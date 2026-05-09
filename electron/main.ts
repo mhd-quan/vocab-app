@@ -2,6 +2,8 @@ import path from "node:path";
 import { BrowserWindow, app, shell } from "electron";
 import started from "electron-squirrel-startup";
 import { type AppDatabase, closeDatabase, openDatabase } from "./db";
+import { createRepositories } from "./db/repositories";
+import { allProcedures, registerIpcProcedures, unregisterIpcProcedures } from "./ipc";
 
 if (started) {
   app.quit();
@@ -47,6 +49,10 @@ app.whenReady().then(() => {
   db = openDatabase();
   console.log("[db] opened, applied migrations through latest");
 
+  const repos = createRepositories(db);
+  registerIpcProcedures(allProcedures, { repos });
+  console.log(`[ipc] registered ${allProcedures.length} procedures`);
+
   createMainWindow();
 
   app.on("activate", () => {
@@ -63,6 +69,7 @@ app.on("window-all-closed", () => {
 });
 
 app.on("will-quit", () => {
+  unregisterIpcProcedures(allProcedures);
   if (db) {
     closeDatabase(db);
     db = null;

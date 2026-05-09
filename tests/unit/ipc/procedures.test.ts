@@ -1,0 +1,149 @@
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { z } from "zod";
+import { type AppDatabase, closeDatabase } from "../../../electron/db";
+import type { Repositories } from "../../../electron/db/repositories";
+import { allProcedures } from "../../../electron/ipc";
+import { defineProcedure } from "../../../electron/ipc/procedure";
+import {
+  curriculumProcedures,
+  metaProcedures,
+  settingsProcedures,
+  studentsProcedures,
+  vocabProcedures,
+} from "../../../electron/ipc/procedures";
+import { freshDb, seedCurriculum } from "../../helpers";
+
+function findProcedure(name: string) {
+  const proc = allProcedures.find((p) => p.name === name);
+  if (!proc) throw new Error(`Procedure ${name} not registered`);
+  return proc;
+}
+
+async function call<T>(name: string, input: unknown, ctx: { repos: Repositories }): Promise<T> {
+  const proc = findProcedure(name);
+  const parsed = proc.inputSchema.parse(input);
+  return (await proc.handler(parsed, ctx)) as T;
+}
+
+describe("IPC procedure registry", () => {
+  let db: AppDatabase;
+  let ctx: { repos: Repositories };
+
+  beforeEach(() => {
+    const fresh = freshDb();
+    db = fresh.db;
+    ctx = { repos: fresh.repos };
+  });
+
+  afterEach(() => {
+    closeDatabase(db);
+  });
+
+  it("has unique channel names across every domain", () => {
+    const names = allProcedures.map((p) => p.name);
+    expect(new Set(names).size).toBe(names.length);
+  });
+
+  it("aggregates every domain's procedures into allProcedures", () => {
+    expect(allProcedures.length).toBe(
+      metaProcedures.length +
+        curriculumProcedures.length +
+        vocabProcedures.length +
+        studentsProcedures.length +
+        settingsProcedures.length,
+    );
+  });
+
+  describe("meta", () => {
+    it("ping returns 'pong'", async () => {
+      expect(await call<string>("meta.ping", undefined, ctx)).toBe("pong");
+    });
+
+    it("appInfo returns the expected schema-tables count", async () => {
+      const info = await call<{ schemaTablesExpected: number }>("meta.appInfo", undefined, ctx);
+      expect(info.schemaTablesExpected).toBe(19);
+    });
+  });
+
+  describe("input validation", () => {
+    it("rejects negative ids", () => {
+      const proc = findProcedure("curriculum.getBookById");
+      expect(() => proc.inputSchema.parse({ id: -1 })).toThrow();
+    });
+
+    it("rejects malformed colors on students.create", () => {
+      const proc = findProcedure("students.create");
+      expect(() => proc.inputSchema.parse({ name: "Alice", color: "blue" })).toThrow();
+    });
+
+    it("accepts valid inputs", () => {
+      const proc = findProcedure("students.create");
+      expect(() => proc.inputSchema.parse({ name: "Alice", color: "#1a2b3c" })).not.toThrow();
+    });
+  });
+
+  describe("curriculum", () => {
+    it("listBooks delegates to the repository", async () => {
+      seedCurriculum(db, { bookCode: "destination-b1" });
+      seedCurriculum(db, { bookCode: "destination-b2" });
+      const books = await call<Array<{ code: string }>>("curriculum.listBooks", undefined, ctx);
+      expect(books.map((b) => b.code).sort()).toEqual(["destination-b1", "destination-b2"]);
+    });
+
+    it("getBookByCode returns null when missing", async () => {
+      const result = await call<unknown | null>(
+        "curriculum.getBookByCode",
+        { code: "missing" },
+        ctx,
+      );
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("students", () => {
+    it("create + listActive round-trips through IPC handlers", async () => {
+      const created = await call<{ id: number; name: string }>(
+        "students.create",
+        { name: "Alice", color: "#1a2b3c" },
+        ctx,
+      );
+      expect(created.name).toBe("Alice");
+
+      const list = await call<Array<{ id: number }>>("students.listActive", undefined, ctx);
+      expect(list).toHaveLength(1);
+      expect(list[0]?.id).toBe(created.id);
+    });
+
+    it("archive hides from listActive", async () => {
+      const created = await call<{ id: number }>("students.create", { name: "Bob" }, ctx);
+      await call("students.archive", { id: created.id }, ctx);
+      const list = await call<unknown[]>("students.listActive", undefined, ctx);
+      expect(list).toHaveLength(0);
+    });
+  });
+
+  describe("settings", () => {
+    it("get returns null for missing keys (IPC null-coercion)", async () => {
+      const result = await call<unknown | null>("settings.get", { key: "missing" }, ctx);
+      expect(result).toBeNull();
+    });
+
+    it("set + get round-trips", async () => {
+      await call("settings.set", { key: "theme", value: "dark" }, ctx);
+      expect(await call<string | null>("settings.get", { key: "theme" }, ctx)).toBe("dark");
+    });
+  });
+});
+
+describe("defineProcedure helper", () => {
+  it("preserves the name and validates inputs", () => {
+    const proc = defineProcedure({
+      name: "test.echo",
+      input: z.object({ msg: z.string() }),
+      handler: ({ msg }) => msg,
+    });
+    expect(proc.name).toBe("test.echo");
+    expect(() => proc.inputSchema.parse({ msg: 123 })).toThrow();
+    expect(proc.inputSchema.parse({ msg: "hi" })).toEqual({ msg: "hi" });
+  });
+});
