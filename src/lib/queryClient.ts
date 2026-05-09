@@ -39,5 +39,10 @@ export const queryKeys = {
   students: {
     listActive: () => ["students", "listActive"] as const,
     listAll: () => ["students", "listAll"] as const,
+    byId: (id: number) => ["students", "byId", id] as const,
+  },
+  imports: {
+    listRuns: (limit?: number) => ["imports", "listRuns", limit ?? "default"] as const,
+    listItems: (runId: number) => ["imports", "listItems", runId] as const,
   },
 } as const;

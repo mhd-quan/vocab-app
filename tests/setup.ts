@@ -55,6 +55,10 @@ Object.defineProperty(window, "api", {
       delete: async () => ({ ok: true }),
       getAll: async () => ({}),
     },
+    imports: {
+      listRuns: async () => [],
+      listItems: async () => [],
+    },
   },
   writable: true,
 });

@@ -7,6 +7,7 @@ import { defineProcedure } from "../../../electron/ipc/procedure";
 import {
   authProcedures,
   curriculumProcedures,
+  importsProcedures,
   metaProcedures,
   settingsProcedures,
   studentsProcedures,
@@ -52,7 +53,8 @@ describe("IPC procedure registry", () => {
         curriculumProcedures.length +
         vocabProcedures.length +
         studentsProcedures.length +
-        settingsProcedures.length,
+        settingsProcedures.length +
+        importsProcedures.length,
     );
   });
 

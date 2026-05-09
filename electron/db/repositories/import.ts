@@ -1,11 +1,11 @@
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import {
   type ImportAction,
   type ImportStatus,
   importItems,
   importRuns,
 } from "../../../src/data/schema";
-import type { ImportRun } from "../../../src/data/types";
+import type { ImportItem, ImportRun } from "../../../src/data/types";
 import type { AppDatabase } from "../client";
 
 export interface StartRunInput {
@@ -83,6 +83,29 @@ export function createImportRepository(db: AppDatabase) {
           .all()
           .find((run) => run.status === "success") ?? null
       );
+    },
+
+    /**
+     * Most-recent-first listing of all import runs. Includes `id` as a
+     * tiebreaker so two runs that share a millisecond keep a stable order.
+     */
+    listRuns(limit = 100): ImportRun[] {
+      return db
+        .select()
+        .from(importRuns)
+        .orderBy(desc(importRuns.startedAt), desc(importRuns.id))
+        .limit(limit)
+        .all();
+    },
+
+    /** Per-row outcomes for a single import run, in insertion order. */
+    listItems(runId: number): ImportItem[] {
+      return db
+        .select()
+        .from(importItems)
+        .where(eq(importItems.runId, runId))
+        .orderBy(asc(importItems.id))
+        .all();
     },
   };
 }

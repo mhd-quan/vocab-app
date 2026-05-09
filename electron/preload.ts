@@ -1,6 +1,14 @@
 import { contextBridge, ipcRenderer } from "electron";
 import type { LessonKind } from "../src/data/schema";
-import type { Book, Lesson, Student, Unit, VocabEntry } from "../src/data/types";
+import type {
+  Book,
+  ImportItem,
+  ImportRun,
+  Lesson,
+  Student,
+  Unit,
+  VocabEntry,
+} from "../src/data/types";
 import type { VocabEntryFull } from "./db/repositories/vocab";
 
 const invoke = <T>(channel: string, payload?: unknown): Promise<T> =>
@@ -83,6 +91,11 @@ const api = {
     set: (input: { key: string; value: unknown }) => invoke<{ ok: true }>("settings.set", input),
     delete: (input: { key: string }) => invoke<{ ok: true }>("settings.delete", input),
     getAll: () => invoke<Record<string, unknown>>("settings.getAll"),
+  },
+
+  imports: {
+    listRuns: (input?: { limit?: number }) => invoke<ImportRun[]>("imports.listRuns", input ?? {}),
+    listItems: (input: { runId: number }) => invoke<ImportItem[]>("imports.listItems", input),
   },
 } as const;
 

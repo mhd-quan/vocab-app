@@ -4,9 +4,9 @@ Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
 student practice) running as a desktop app on Windows and macOS.
 
-> **Status:** v0.0.1 — PR #5 (App shell). DB + IPC + import pipeline +
-> tutor PIN unlock + hybrid tutor/student layouts with TanStack Router &
-> Query. Real content browser + students CRUD UI land in PR #6.
+> **Status:** v0.0.1 — PR #6 (Tutor screens). Students CRUD, three-pane
+> content browser with cloze highlight, and import-history view are now
+> wired to live IPC. Exercise engine + practice player land in PRs #7+.
 
 ## Stack
 
@@ -222,7 +222,7 @@ See `docs/roadmap.md` (added with PR #2). Current plan:
 
 | Version | Scope                                                     |
 | ------- | --------------------------------------------------------- |
-| v0.0.1  | Scaffold + vocabulary DB + import + **app shell (this PR)** |
+| v0.0.1  | Scaffold + vocab DB + import + app shell + **tutor screens (this PR)** |
 | v0.0.2  | Grammar DB + import + browse                              |
 | v0.0.3  | Exercise engine + flashcard + multiple-choice plugins     |
 | v0.0.4  | Practice session + spaced repetition                      |

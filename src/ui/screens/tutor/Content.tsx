@@ -1,19 +1,418 @@
+import type { Book, Lesson, Unit } from "@/data/types";
+import { api } from "@/lib/api";
+import { cn } from "@/lib/cn";
+import { queryKeys } from "@/lib/queryClient";
+import { Badge } from "@/ui/components/Badge";
+import { ClozeText } from "@/ui/components/ClozeText";
+import { EmptyState } from "@/ui/components/EmptyState";
 import { PageHeader } from "@/ui/components/PageHeader";
-import { PlaceholderPanel } from "@/ui/components/PlaceholderPanel";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import type { VocabEntryFull } from "../../../../electron/db/repositories/vocab";
 
 export function TutorContent() {
+  const [selectedBookId, setSelectedBookId] = useState<number | null>(null);
+  const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null);
+
+  const booksQ = useQuery({
+    queryKey: queryKeys.curriculum.books(),
+    queryFn: () => api.curriculum.listBooks(),
+  });
+
+  // Auto-select the first book once data lands.
+  useEffect(() => {
+    if (selectedBookId === null && booksQ.data && booksQ.data.length > 0) {
+      const first = booksQ.data[0];
+      if (first) setSelectedBookId(first.id);
+    }
+  }, [booksQ.data, selectedBookId]);
+
   return (
     <>
       <PageHeader
         eyebrow="Tutor"
         title="Content browser"
-        subtitle="Browse books → units → lessons → vocab entries. Read-only; authoring stays in YAML files for v0.0.1."
+        subtitle="Books → units → lessons → vocabulary entries. Read-only — author content via YAML and `npm run import`."
       />
-      <PlaceholderPanel
-        title="Books / units / lessons / entries view"
-        body="Three-pane Lingvist-style browser with entry detail card (headword, IPA, senses, examples with cloze highlight, collocations, relations). Lands in PR #6."
-        hint="The data is already in SQLite — try `npm run import` then check api.curriculum.listBooks() returns the row."
-      />
+
+      <div className="grid h-[calc(100vh-9rem)] grid-cols-[14rem_1fr_22rem] border-t border-border-subtle">
+        <BooksPane
+          books={booksQ.data ?? []}
+          loading={booksQ.isLoading}
+          selectedId={selectedBookId}
+          onSelect={(id) => {
+            setSelectedBookId(id);
+            setSelectedEntryId(null);
+          }}
+        />
+
+        <LessonsPane
+          bookId={selectedBookId}
+          selectedEntryId={selectedEntryId}
+          onSelectEntry={setSelectedEntryId}
+        />
+
+        <EntryPane entryId={selectedEntryId} />
+      </div>
     </>
+  );
+}
+
+function BooksPane({
+  books,
+  loading,
+  selectedId,
+  onSelect,
+}: {
+  books: Book[];
+  loading: boolean;
+  selectedId: number | null;
+  onSelect: (id: number) => void;
+}) {
+  return (
+    <aside className="flex h-full flex-col overflow-y-auto border-r border-border-subtle bg-surface-1">
+      <div className="border-b border-border-subtle px-4 py-3">
+        <h2 className="text-[10px] font-medium uppercase tracking-widest text-muted">Books</h2>
+      </div>
+      {loading ? (
+        <p className="px-4 py-3 text-xs text-muted">Loading…</p>
+      ) : books.length === 0 ? (
+        <div className="p-4">
+          <EmptyState
+            title="No books yet"
+            body="Add a YAML file in content/books/ and run npm run import."
+          />
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-0.5 px-2 py-2">
+          {books.map((book) => (
+            <li key={book.id}>
+              <button
+                type="button"
+                onClick={() => onSelect(book.id)}
+                className={cn(
+                  "w-full rounded-md px-3 py-2 text-left text-sm transition-colors",
+                  selectedId === book.id
+                    ? "bg-surface-2 text-app"
+                    : "text-muted hover:bg-surface-2 hover:text-app",
+                )}
+              >
+                <span className="block truncate font-medium">{book.title}</span>
+                <span className="block truncate font-mono text-[10px] text-muted-2">
+                  {book.code}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </aside>
+  );
+}
+
+function LessonsPane({
+  bookId,
+  selectedEntryId,
+  onSelectEntry,
+}: {
+  bookId: number | null;
+  selectedEntryId: number | null;
+  onSelectEntry: (id: number) => void;
+}) {
+  const unitsQ = useQuery({
+    queryKey: queryKeys.curriculum.units(bookId ?? -1),
+    queryFn: () => api.curriculum.listUnitsByBook({ bookId: bookId as number }),
+    enabled: bookId !== null,
+  });
+  const units = unitsQ.data ?? [];
+
+  if (bookId === null) {
+    return (
+      <div className="flex items-center justify-center bg-app">
+        <p className="text-sm text-muted">Pick a book to browse units &amp; entries.</p>
+      </div>
+    );
+  }
+
+  if (unitsQ.isLoading) {
+    return <p className="px-6 py-4 text-sm text-muted">Loading units…</p>;
+  }
+
+  if (units.length === 0) {
+    return (
+      <div className="p-6">
+        <EmptyState
+          title="No units in this book"
+          body="Vocab YAML files create the unit + lesson rows on import."
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full flex-col overflow-y-auto bg-app">
+      <ul className="flex flex-col">
+        {units.map((unit) => (
+          <UnitGroupRow
+            key={unit.id}
+            unit={unit}
+            selectedEntryId={selectedEntryId}
+            onSelectEntry={onSelectEntry}
+          />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function UnitGroupRow({
+  unit,
+  selectedEntryId,
+  onSelectEntry,
+}: {
+  unit: Unit;
+  selectedEntryId: number | null;
+  onSelectEntry: (id: number) => void;
+}) {
+  const lessonsQ = useQuery({
+    queryKey: queryKeys.curriculum.lessons(unit.id),
+    queryFn: () => api.curriculum.listLessonsByUnit({ unitId: unit.id }),
+  });
+  const lessons = lessonsQ.data ?? [];
+  return (
+    <li className="border-b border-border-subtle last:border-b-0">
+      <header className="flex items-baseline gap-2 px-6 py-3">
+        <span className="font-mono text-[11px] text-muted-2">{unit.code}</span>
+        <h3 className="text-sm font-semibold">{unit.title}</h3>
+      </header>
+      <div className="flex flex-col gap-3 pb-4">
+        {lessons.length === 0 ? (
+          <p className="px-6 text-xs text-muted-2">No lessons in this unit.</p>
+        ) : (
+          lessons.map((lesson) => (
+            <LessonRow
+              key={lesson.id}
+              lesson={lesson}
+              selectedEntryId={selectedEntryId}
+              onSelectEntry={onSelectEntry}
+            />
+          ))
+        )}
+      </div>
+    </li>
+  );
+}
+
+function LessonRow({
+  lesson,
+  selectedEntryId,
+  onSelectEntry,
+}: {
+  lesson: Lesson;
+  selectedEntryId: number | null;
+  onSelectEntry: (id: number) => void;
+}) {
+  const entriesQ = useQuery({
+    queryKey: queryKeys.vocab.list(lesson.id),
+    queryFn: () => api.vocab.listByLesson({ lessonId: lesson.id }),
+    enabled: lesson.kind === "vocabulary",
+  });
+  const entries = entriesQ.data ?? [];
+  return (
+    <section className="px-6">
+      <header className="mb-2 flex items-center gap-2">
+        <Badge tone={lesson.kind === "vocabulary" ? "accent" : "muted"} uppercase>
+          {lesson.kind}
+        </Badge>
+        <h4 className="text-xs font-medium text-app">{lesson.title}</h4>
+        <span className="text-[10px] text-muted-2">({entries.length})</span>
+      </header>
+      {lesson.kind !== "vocabulary" ? (
+        <p className="text-xs text-muted-2">{lesson.kind} content lands when its module ships.</p>
+      ) : entriesQ.isLoading ? (
+        <p className="text-xs text-muted">Loading…</p>
+      ) : entries.length === 0 ? (
+        <p className="text-xs text-muted-2">No entries imported for this lesson yet.</p>
+      ) : (
+        <ul className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+          {entries.map((entry) => (
+            <li key={entry.id}>
+              <button
+                type="button"
+                onClick={() => onSelectEntry(entry.id)}
+                className={cn(
+                  "flex w-full items-baseline gap-2 rounded-md border px-3 py-2 text-left transition-colors",
+                  selectedEntryId === entry.id
+                    ? "border-accent bg-accent/10"
+                    : "border-border-subtle bg-surface-1 hover:border-border-strong",
+                )}
+              >
+                <span className="truncate text-sm font-medium">{entry.headword}</span>
+                <span className="font-mono text-[10px] text-muted-2">{entry.pos}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function EntryPane({ entryId }: { entryId: number | null }) {
+  const entryQ = useQuery({
+    queryKey: ["vocab", "byId", entryId ?? -1],
+    queryFn: () => api.vocab.getById({ id: entryId as number }),
+    enabled: entryId !== null,
+  });
+
+  return (
+    <aside className="h-full overflow-y-auto border-l border-border-subtle bg-surface-1">
+      {entryId === null ? (
+        <div className="flex h-full items-center justify-center px-6 text-center">
+          <p className="text-xs text-muted">Pick an entry on the left to see its details.</p>
+        </div>
+      ) : entryQ.isLoading ? (
+        <p className="px-6 py-4 text-xs text-muted">Loading entry…</p>
+      ) : !entryQ.data ? (
+        <p className="px-6 py-4 text-xs text-danger">Entry not found.</p>
+      ) : (
+        <EntryDetail entry={entryQ.data} />
+      )}
+    </aside>
+  );
+}
+
+function EntryDetail({ entry }: { entry: VocabEntryFull }) {
+  return (
+    <article className="flex flex-col gap-5 px-5 py-5">
+      <header className="flex flex-col gap-1">
+        <div className="flex flex-wrap items-baseline gap-2">
+          <h3 className="text-2xl font-semibold tracking-tight">{entry.headword}</h3>
+          <span className="font-mono text-xs text-muted">{entry.pos}</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {entry.ipa ? <span className="font-mono text-xs text-muted">{entry.ipa}</span> : null}
+          {entry.cefrLevel ? (
+            <Badge tone="accent" uppercase>
+              {entry.cefrLevel}
+            </Badge>
+          ) : null}
+          {(entry.tags ?? []).map((tag) => (
+            <Badge key={tag} tone="muted">
+              #{tag}
+            </Badge>
+          ))}
+        </div>
+      </header>
+
+      {entry.senses.length > 0 ? (
+        <Section title="Senses">
+          <ol className="flex flex-col gap-2">
+            {entry.senses
+              .slice()
+              .sort((a, b) => a.ordinal - b.ordinal)
+              .map((sense, i) => (
+                <li key={sense.id} className="flex gap-3 text-sm">
+                  <span className="font-mono text-xs text-muted-2">{i + 1}.</span>
+                  <div className="flex flex-1 flex-col gap-0.5">
+                    {sense.definitionEn ? (
+                      <span className="text-app">{sense.definitionEn}</span>
+                    ) : null}
+                    {sense.definitionVi ? (
+                      <span className="text-xs text-muted">{sense.definitionVi}</span>
+                    ) : null}
+                    {sense.register ? (
+                      <span className="text-[10px] uppercase tracking-wider text-muted-2">
+                        {sense.register}
+                      </span>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+          </ol>
+        </Section>
+      ) : null}
+
+      {entry.examples.length > 0 ? (
+        <Section title="Examples">
+          <ul className="flex flex-col gap-3">
+            {entry.examples
+              .slice()
+              .sort((a, b) => a.ordinal - b.ordinal)
+              .map((ex) => (
+                <li
+                  key={ex.id}
+                  className="rounded-md border border-border-subtle bg-surface-0/50 px-3 py-2"
+                >
+                  <ClozeText text={ex.text} className="text-sm" />
+                  {ex.translation ? (
+                    <p className="mt-1 text-xs text-muted">{ex.translation}</p>
+                  ) : null}
+                  {ex.clozeHint ? (
+                    <p className="mt-1 font-mono text-[10px] text-muted-2">hint: {ex.clozeHint}</p>
+                  ) : null}
+                </li>
+              ))}
+          </ul>
+        </Section>
+      ) : null}
+
+      {entry.forms.length > 0 ? (
+        <Section title="Forms">
+          <ul className="flex flex-wrap gap-2">
+            {entry.forms.map((form) => (
+              <li
+                key={form.id}
+                className="flex flex-col rounded-md border border-border-subtle bg-surface-0/50 px-3 py-1.5 text-xs"
+              >
+                <span className="text-[10px] uppercase tracking-wider text-muted-2">
+                  {form.kind.replace(/_/g, " ")}
+                </span>
+                <span className="font-medium">{form.formText}</span>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
+
+      {entry.collocations.length > 0 ? (
+        <Section title="Collocations">
+          <ul className="flex flex-col gap-1.5">
+            {entry.collocations.map((c) => (
+              <li key={c.id} className="flex flex-wrap items-baseline gap-2 text-sm">
+                <span className="text-app">{c.collocation}</span>
+                {c.pattern ? (
+                  <span className="font-mono text-[10px] text-muted-2">{c.pattern}</span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
+
+      {entry.relations.length > 0 ? (
+        <Section title="Related">
+          <ul className="flex flex-wrap gap-1.5">
+            {entry.relations.map((r) => (
+              <li key={r.id}>
+                <Badge tone={r.relation === "antonym" ? "warning" : "accent"} uppercase>
+                  {r.relation}
+                </Badge>{" "}
+                <span className="text-xs text-app">{r.relatedText}</span>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
+    </article>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="flex flex-col gap-2">
+      <h4 className="text-[10px] font-medium uppercase tracking-widest text-muted">{title}</h4>
+      {children}
+    </section>
   );
 }
