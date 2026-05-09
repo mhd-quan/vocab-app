@@ -4,9 +4,10 @@ Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
 student practice) running as a desktop app on Windows and macOS.
 
-> **Status:** v0.0.1 — PR #6 (Tutor screens). Students CRUD, three-pane
-> content browser with cloze highlight, and import-history view are now
-> wired to live IPC. Exercise engine + practice player land in PRs #7+.
+> **Status:** v0.0.1 — PR #7 (Exercise engine). Plugin-based exercise
+> system with flashcard + multiple-choice, deterministic seeded deck
+> builder, and student session player. Persistence (learning_events +
+> spaced repetition) lands in PR #8.
 
 ## Stack
 
@@ -208,6 +209,46 @@ tutor screen = drop a component under `src/ui/screens/tutor/`, register a
 `createRoute` entry, add the sidebar item in `TutorLayout`. No other
 plumbing required.
 
+## Exercise engine
+
+The exercise engine lives in `src/modules/exercises/` as pure functions
+plus React renderers. The plugin contract:
+
+```ts
+interface ExercisePlugin<TExercise, TAnswer> {
+  kind: ExerciseKind;
+  build(entry: VocabEntryFull, ctx: BuildContext): TExercise | null;
+  grade(exercise: TExercise, answer: TAnswer): GradeOutcome;
+}
+```
+
+`build` returns `null` when the entry can't satisfy the kind's
+preconditions (e.g. multiple-choice needs ≥3 distinct distractors), so
+the deck shrinks gracefully rather than throwing.
+
+Adding a new kind = three steps:
+
+1. Add `'<kind>'` to the `ExerciseKind` union in `types.ts`.
+2. Drop a `<kind>.ts` file with `build` + `grade`, register it in
+   `engine.ts` `PLUGINS`.
+3. Add a renderer under `src/ui/screens/student/session/` and wire the
+   case into `ExerciseCard` in `SessionPlayer.tsx`.
+
+Decks are deterministic for a given `sessionSeed`: `buildDeck` hashes
+the seed → mulberry32 PRNG → Fisher–Yates shuffle. Two calls with the
+same seed produce the same deck in the same order.
+
+Currently shipping kinds:
+
+- **flashcard** — flip card, self-graded (Again / Hard / Good / Easy);
+  the grade flows through to SRS in PR #8.
+- **multiple_choice** — definition prompt + 4 headword options, one
+  correct; auto-graded.
+
+Persistence is intentionally absent here — sessions in PR #7 are
+ephemeral. PR #8 layers `learning_events` + `practice_sessions` rows
+on top of the same `SessionResult` events the player already emits.
+
 ## Dev environment
 
 - Node ≥ 20 (tested on Node 22).
@@ -222,7 +263,7 @@ See `docs/roadmap.md` (added with PR #2). Current plan:
 
 | Version | Scope                                                     |
 | ------- | --------------------------------------------------------- |
-| v0.0.1  | Scaffold + vocab DB + import + app shell + **tutor screens (this PR)** |
+| v0.0.1  | Scaffold + vocab DB + import + app shell + tutor screens + **exercise engine (this PR)** |
 | v0.0.2  | Grammar DB + import + browse                              |
 | v0.0.3  | Exercise engine + flashcard + multiple-choice plugins     |
 | v0.0.4  | Practice session + spaced repetition                      |

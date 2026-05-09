@@ -1,5 +1,6 @@
 import { StudentHome } from "@/ui/screens/student/Home";
 import { StudentProfilePicker } from "@/ui/screens/student/ProfilePicker";
+import { StudentSession } from "@/ui/screens/student/Session";
 import { TutorContent } from "@/ui/screens/tutor/Content";
 import { TutorDashboard } from "@/ui/screens/tutor/Dashboard";
 import { TutorImports } from "@/ui/screens/tutor/Imports";
@@ -79,6 +80,12 @@ const studentProfileRoute = createRoute({
   component: StudentHome,
 });
 
+const studentSessionRoute = createRoute({
+  getParentRoute: () => studentRoute,
+  path: "profile/$studentId/session/$lessonId",
+  component: StudentSession,
+});
+
 const routeTree = rootRoute.addChildren([
   tutorRoute.addChildren([
     tutorIndexRoute,
@@ -88,7 +95,7 @@ const routeTree = rootRoute.addChildren([
     tutorImportsRoute,
     tutorSettingsRoute,
   ]),
-  studentRoute.addChildren([studentIndexRoute, studentProfileRoute]),
+  studentRoute.addChildren([studentIndexRoute, studentProfileRoute, studentSessionRoute]),
 ]);
 
 export const router = createRouter({
