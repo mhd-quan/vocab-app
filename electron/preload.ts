@@ -35,6 +35,15 @@ const api = {
       invoke<{ name: string; version: string; schemaTablesExpected: number }>("meta.appInfo"),
   },
 
+  auth: {
+    hasPin: () => invoke<boolean>("auth.hasPin"),
+    setupPin: (input: { pin: string }) => invoke<{ ok: true }>("auth.setupPin", input),
+    verifyPin: (input: { pin: string }) =>
+      invoke<{ ok: true } | { ok: false; reason: "no_pin" | "invalid" }>("auth.verifyPin", input),
+    changePin: (input: { currentPin: string; newPin: string }) =>
+      invoke<{ ok: true }>("auth.changePin", input),
+  },
+
   curriculum: {
     listBooks: () => invoke<Book[]>("curriculum.listBooks"),
     getBookById: (input: { id: number }) => invoke<Book | null>("curriculum.getBookById", input),

@@ -19,6 +19,12 @@ Object.defineProperty(window, "api", {
         schemaTablesExpected: 19,
       }),
     },
+    auth: {
+      hasPin: async () => false,
+      setupPin: async () => ({ ok: true }),
+      verifyPin: async () => ({ ok: true }),
+      changePin: async () => ({ ok: true }),
+    },
     curriculum: {
       listBooks: async () => [],
       getBookById: async () => null,

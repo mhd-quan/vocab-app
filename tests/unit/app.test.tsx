@@ -3,16 +3,16 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 describe("App shell smoke test", () => {
-  it("renders the title and resolves IPC probes", async () => {
+  it("renders the first-time PIN setup when no tutor PIN exists", async () => {
+    // tests/setup.ts stubs auth.hasPin → false, so the unlock screen lands on
+    // the setup variant. We just confirm the right tree mounted.
     render(<App />);
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Vocab App");
-    expect(screen.getByText("Bridge")).toBeInTheDocument();
-    expect(screen.getByText("Books")).toBeInTheDocument();
-    expect(screen.getByText("Students")).toBeInTheDocument();
-    expect(screen.getByText("Ping")).toBeInTheDocument();
-
     await waitFor(() => {
-      expect(screen.getByText("pong")).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { level: 1, name: /set your tutor pin/i }),
+      ).toBeInTheDocument();
     });
+    expect(screen.getByLabelText(/^new pin$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^confirm pin$/i)).toBeInTheDocument();
   });
 });

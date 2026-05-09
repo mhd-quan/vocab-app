@@ -5,6 +5,7 @@ import type { Repositories } from "../../../electron/db/repositories";
 import { allProcedures } from "../../../electron/ipc";
 import { defineProcedure } from "../../../electron/ipc/procedure";
 import {
+  authProcedures,
   curriculumProcedures,
   metaProcedures,
   settingsProcedures,
@@ -47,6 +48,7 @@ describe("IPC procedure registry", () => {
   it("aggregates every domain's procedures into allProcedures", () => {
     expect(allProcedures.length).toBe(
       metaProcedures.length +
+        authProcedures.length +
         curriculumProcedures.length +
         vocabProcedures.length +
         studentsProcedures.length +

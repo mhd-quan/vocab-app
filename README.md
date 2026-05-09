@@ -4,9 +4,9 @@ Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
 student practice) running as a desktop app on Windows and macOS.
 
-> **Status:** v0.0.1 — PR #4 (Vocab import). App shell + SQLite schema +
-> repositories + typed IPC bridge + YAML import pipeline. UI screens (PIN
-> unlock, content browser, student picker) arrive in PRs #5–#7.
+> **Status:** v0.0.1 — PR #5 (App shell). DB + IPC + import pipeline +
+> tutor PIN unlock + hybrid tutor/student layouts with TanStack Router &
+> Query. Real content browser + students CRUD UI land in PR #6.
 
 ## Stack
 
@@ -14,12 +14,15 @@ student practice) running as a desktop app on Windows and macOS.
 | ------------ | ------------------------------------------------- |
 | Shell        | Electron 33 + electron-forge (Vite plugin)        |
 | UI           | React 18 + TypeScript + Vite                      |
+| Routing      | TanStack Router (memory history)                  |
+| Data fetch   | TanStack Query                                    |
 | Style        | Tailwind CSS 3 (Lingvist-inspired tokens)         |
 | Lint/format  | Biome                                             |
 | Test         | Vitest + Testing Library + jsdom                  |
 | DB           | SQLite via `better-sqlite3` + Drizzle ORM         |
 | Migrations   | drizzle-kit (SQL files in `drizzle/`)             |
 | Validation   | Zod (IPC inputs + YAML import)                    |
+| Auth         | scrypt-hashed tutor PIN (Node `crypto`)           |
 | Content      | YAML files in `content/`, parsed via `js-yaml`    |
 | Watch        | chokidar (`npm run import:watch`)                 |
 
@@ -176,6 +179,35 @@ Highlights:
 - Failures inside a file roll the whole file back; other files in a batch
   are independent. Every run is logged in `import_runs` + `import_items`.
 
+## App shell & modes
+
+The app boots into one of three modes:
+
+| Mode      | Trigger                                       | What renders                          |
+| --------- | --------------------------------------------- | ------------------------------------- |
+| `loading` | initial mount, before `auth.hasPin` resolves  | small spinner                         |
+| `locked`  | after probe; or after the tutor presses Lock  | `UnlockScreen` (setup or verify)      |
+| `tutor`   | successful PIN unlock or first-time setup     | TanStack Router → `TutorLayout`       |
+| `student` | "Continue to student practice" or sidebar btn | TanStack Router → `StudentLayout`     |
+
+The PIN is stored as an scrypt hash (`scrypt$1$<salt>$<key>`) in
+`app_settings.tutor_pin_hash`. There's no recovery path — clearing the local
+DB is the only reset. Switching tutor → student is free; the reverse always
+goes through the lock screen.
+
+`AppModeProvider` (in `src/providers/`) owns the mode state and exposes:
+
+```ts
+const { mode, hasPin, pinReady,
+        unlockTutor, setupPin, changePin,
+        enterStudent, switchToStudent, lock } = useAppMode();
+```
+
+Routes live in `src/router.tsx` (memory history — no URL bar). Adding a new
+tutor screen = drop a component under `src/ui/screens/tutor/`, register a
+`createRoute` entry, add the sidebar item in `TutorLayout`. No other
+plumbing required.
+
 ## Dev environment
 
 - Node ≥ 20 (tested on Node 22).
@@ -190,7 +222,7 @@ See `docs/roadmap.md` (added with PR #2). Current plan:
 
 | Version | Scope                                                     |
 | ------- | --------------------------------------------------------- |
-| v0.0.1  | Scaffold + vocabulary DB + **import (this PR)** + browse  |
+| v0.0.1  | Scaffold + vocabulary DB + import + **app shell (this PR)** |
 | v0.0.2  | Grammar DB + import + browse                              |
 | v0.0.3  | Exercise engine + flashcard + multiple-choice plugins     |
 | v0.0.4  | Practice session + spaced repetition                      |
