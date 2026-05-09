@@ -12,18 +12,10 @@ import { lessons } from "./curriculum";
  * DB layer to keep migrations simple; the application layer owns the
  * invariant.
  */
-export const contentItemKinds = [
-  "vocab_entry",
-  "grammar_topic",
-  "exercise",
-] as const;
+export const contentItemKinds = ["vocab_entry", "grammar_topic", "exercise"] as const;
 export type ContentItemKind = (typeof contentItemKinds)[number];
 
-export const contentItemRefTables = [
-  "vocab_entries",
-  "grammar_topics",
-  "exercises",
-] as const;
+export const contentItemRefTables = ["vocab_entries", "grammar_topics", "exercises"] as const;
 export type ContentItemRefTable = (typeof contentItemRefTables)[number];
 
 export const contentItems = sqliteTable(

@@ -28,10 +28,7 @@ export const practiceSessions = sqliteTable(
     summary: text("summary", { mode: "json" }).$type<Record<string, unknown>>(),
   },
   (t) => ({
-    studentStartedIdx: index("practice_sessions_student_started_idx").on(
-      t.studentId,
-      t.startedAt,
-    ),
+    studentStartedIdx: index("practice_sessions_student_started_idx").on(t.studentId, t.startedAt),
   }),
 );
 
