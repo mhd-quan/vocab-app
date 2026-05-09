@@ -1,10 +1,13 @@
 import path from "node:path";
 import { BrowserWindow, app, shell } from "electron";
 import started from "electron-squirrel-startup";
+import { type AppDatabase, closeDatabase, openDatabase } from "./db";
 
 if (started) {
   app.quit();
 }
+
+let db: AppDatabase | null = null;
 
 const createMainWindow = (): BrowserWindow => {
   const win = new BrowserWindow({
@@ -41,6 +44,9 @@ const createMainWindow = (): BrowserWindow => {
 };
 
 app.whenReady().then(() => {
+  db = openDatabase();
+  console.log("[db] opened, applied migrations through latest");
+
   createMainWindow();
 
   app.on("activate", () => {
@@ -53,5 +59,12 @@ app.whenReady().then(() => {
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
+  }
+});
+
+app.on("will-quit", () => {
+  if (db) {
+    closeDatabase(db);
+    db = null;
   }
 });

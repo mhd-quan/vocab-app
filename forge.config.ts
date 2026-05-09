@@ -15,6 +15,10 @@ const config: ForgeConfig = {
     executableName: "vocab-app",
     appBundleId: "dev.mhd-quan.vocab-app",
     icon: undefined,
+    // SQL migration files live alongside the app bundle so the runtime
+    // migrator can read them. Resolved via `process.resourcesPath` in
+    // electron/db/paths.ts.
+    extraResource: ["./drizzle"],
   },
   rebuildConfig: {},
   makers: [

@@ -37,9 +37,11 @@ coverage/
 # Local DB / runtime
 *.db
 *.db-journal
+*.db-wal
+*.db-shm
 *.sqlite
 *.sqlite-journal
-data/
+/data/
 
 # Cache
 .eslintcache
