@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-fg: 240 244 250;
+    --color-muted: 162 170 184;
+    --color-muted-2: 113 122 137;
+    --color-surface-0: 11 13 18;
+    --color-surface-1: 20 23 31;
+    --color-surface-2: 30 34 44;
+    --color-border-subtle: 38 43 55;
+    --color-border-strong: 60 67 84;
+    --color-accent: 124 156 255;
+    --color-accent-fg: 11 13 18;
+    --color-success: 80 200 140;
+    --color-warning: 240 180 80;
+    --color-danger: 240 90 100;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
