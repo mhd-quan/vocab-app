@@ -4,9 +4,9 @@ Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
 student practice) running as a desktop app on Windows and macOS.
 
-> **Status:** v0.0.1 — PR #2 (DB layer). App shell + full SQLite schema +
-> migrations. Repositories, IPC bridge, content import, and UI flows arrive
-> in later PRs (see _Roadmap_).
+> **Status:** v0.0.1 — PR #4 (Vocab import). App shell + SQLite schema +
+> repositories + typed IPC bridge + YAML import pipeline. UI screens (PIN
+> unlock, content browser, student picker) arrive in PRs #5–#7.
 
 ## Stack
 
@@ -19,7 +19,9 @@ student practice) running as a desktop app on Windows and macOS.
 | Test         | Vitest + Testing Library + jsdom                  |
 | DB           | SQLite via `better-sqlite3` + Drizzle ORM         |
 | Migrations   | drizzle-kit (SQL files in `drizzle/`)             |
-| Validation   | Zod (PR #4+)                                      |
+| Validation   | Zod (IPC inputs + YAML import)                    |
+| Content      | YAML files in `content/`, parsed via `js-yaml`    |
+| Watch        | chokidar (`npm run import:watch`)                 |
 
 ## Folder layout
 
@@ -28,23 +30,31 @@ vocab-app/
 ├── electron/             # Main process + preload (Node only)
 │   ├── main.ts
 │   ├── preload.ts        # contextBridge → window.api (typed)
-│   └── db/               # SQLite client, paths, migration runner
+│   ├── db/               # SQLite client, paths, migration runner
+│   │   └── repositories/ # curriculum, vocab, students, settings, imports
+│   └── ipc/              # defineProcedure + Zod-validated handlers
+│       └── procedures/   # meta, curriculum, vocab, students, settings
 ├── src/
 │   ├── data/
 │   │   ├── schema/       # Drizzle table definitions (1 file per domain)
 │   │   └── types.ts      # Inferred row types re-exports
+│   ├── application/
+│   │   └── import/       # YAML schema, parser, hash, ImportVocabUseCase
 │   ├── App.tsx
 │   ├── main.tsx
 │   ├── styles/
 │   └── types/            # Ambient types (window.api, etc.)
+├── content/              # YAML content sources — versioned in git
+│   └── books/
+│       └── destination-b1/
 ├── drizzle/              # Generated SQL migrations + meta (versioned)
 ├── scripts/
-│   └── migrate-dev.ts    # Apply migrations without launching Electron
+│   ├── migrate-dev.ts    # Apply migrations without launching Electron
+│   └── import-content.ts # CLI: import / dry-run / watch
 ├── tests/
 │   ├── helpers.ts
 │   ├── setup.ts
 │   └── unit/
-├── content/              # YAML content sources (PR #4) — versioned in git
 ├── drizzle.config.ts
 ├── forge.config.ts
 ├── vite.{main,preload,renderer}.config.ts
@@ -74,6 +84,12 @@ npm run rebuild        # rebuild better-sqlite3 against Electron's Node ABI
 
 npm run db:generate    # drizzle-kit generate (after editing src/data/schema)
 npm run db:migrate:dev # apply migrations to ./data/dev.db without Electron
+
+npm run import         # import all YAML in content/books/**/*-vocab.yaml
+npm run import:dry-run # validate + show plan; no DB writes
+npm run import:watch   # re-import on file change (chokidar)
+npm run import -- ./content/books/destination-b1   # specific path
+npm run import -- --force                          # bypass file-hash short-circuit
 ```
 
 After the first `npm install`, run `npm run rebuild` once on your dev machine
@@ -114,6 +130,52 @@ Adding a new content kind later (custom exercise type, listening clip, …) is
 a single migration that adds the concrete table plus a row in `content_items`
 — no downstream change to progress or session code.
 
+## Authoring vocab content
+
+Vocab lessons are YAML files under `content/books/<book-code>/`. Filename
+convention: `unit-NN-vocab.yaml`. Inside one file you describe one lesson:
+
+```yaml
+book: destination-b1
+unit: { ordinal: 1, code: U01, title: People & Relationships }
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: Family & Friends
+  slug: family-and-friends
+entries:
+  - id: relative-noun       # stable id; powers idempotent re-import
+    headword: relative
+    pos: noun
+    ipa: /ˈrelətɪv/
+    cefr: B1
+    tags: [family, people]
+    senses:
+      - definition_en: a member of your family
+        definition_vi: người thân, họ hàng
+    examples:
+      - text: I have many {{relatives}} in Hanoi.
+        cloze_hint: r____
+    forms:
+      - { kind: plural, text: relatives }
+    collocations:
+      - { collocation: close relative, pattern: adj+noun }
+    relations:
+      - { relation: synonym, text: family member }
+```
+
+Highlights:
+
+- `{{token}}` in `examples[].text` automatically becomes the cloze target.
+  You can override or supply explicitly via `cloze_target`.
+- `id` is optional; missing ids are auto-derived from `<headword>-<pos>`.
+  Keep stable across edits — it's how the importer matches existing rows.
+- Re-running `npm run import` on an unchanged file is a no-op (file-hash
+  short-circuit). Editing one entry results in `inserted/updated/skipped`
+  diff and only changed rows are touched.
+- Failures inside a file roll the whole file back; other files in a batch
+  are independent. Every run is logged in `import_runs` + `import_items`.
+
 ## Dev environment
 
 - Node ≥ 20 (tested on Node 22).
@@ -128,7 +190,7 @@ See `docs/roadmap.md` (added with PR #2). Current plan:
 
 | Version | Scope                                                     |
 | ------- | --------------------------------------------------------- |
-| v0.0.1  | Scaffold + **vocabulary DB (this PR)** + import + browse  |
+| v0.0.1  | Scaffold + vocabulary DB + **import (this PR)** + browse  |
 | v0.0.2  | Grammar DB + import + browse                              |
 | v0.0.3  | Exercise engine + flashcard + multiple-choice plugins     |
 | v0.0.4  | Practice session + spaced repetition                      |

@@ -1,0 +1,102 @@
+# Destination B1 — Unit 1: People & Relationships
+# This is a starter fixture. Add more entries as you go; the importer is
+# idempotent (re-running on an unchanged file is a no-op).
+book: destination-b1
+
+unit:
+  ordinal: 1
+  code: U01
+  title: People & Relationships
+
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: Family & Friends
+  slug: family-and-friends
+
+entries:
+  - id: relative-noun
+    headword: relative
+    pos: noun
+    ipa: /ˈrelətɪv/
+    cefr: B1
+    tags: [family, people]
+    forms:
+      - kind: plural
+        text: relatives
+    senses:
+      - definition_en: a member of your family
+        definition_vi: người thân, họ hàng
+        register: neutral
+    examples:
+      - text: I have many {{relatives}} in Hanoi.
+        translation: Tôi có nhiều họ hàng ở Hà Nội.
+        cloze_hint: r____
+    collocations:
+      - collocation: close relative
+        pattern: adj+noun
+      - collocation: distant relative
+        pattern: adj+noun
+    relations:
+      - relation: synonym
+        text: family member
+      - relation: confused_with
+        text: relation
+
+  - id: get-on-with-phrasal_verb
+    headword: get on with
+    pos: phrasal_verb
+    cefr: B1
+    tags: [relationships]
+    senses:
+      - definition_en: to have a friendly relationship with someone
+        definition_vi: hợp tính, hòa thuận
+        register: informal
+    examples:
+      - text: She {{gets on with}} her colleagues really well.
+        translation: Cô ấy hợp tính với các đồng nghiệp.
+    relations:
+      - relation: synonym
+        text: get along with
+
+  - id: stubborn-adjective
+    headword: stubborn
+    pos: adjective
+    ipa: /ˈstʌbən/
+    cefr: B1
+    tags: [personality]
+    senses:
+      - definition_en: refusing to change your mind even when it would be sensible
+        definition_vi: cứng đầu, bướng bỉnh
+    examples:
+      - text: He's too {{stubborn}} to admit he was wrong.
+        translation: Anh ấy quá cứng đầu để thừa nhận mình sai.
+    relations:
+      - relation: synonym
+        text: obstinate
+      - relation: antonym
+        text: flexible
+
+  - id: bring-up-phrasal_verb
+    headword: bring up
+    pos: phrasal_verb
+    cefr: B1
+    tags: [family, parenting]
+    senses:
+      - definition_en: to look after a child until they are an adult
+        definition_vi: nuôi dạy
+        register: neutral
+      - definition_en: to start to talk about a particular subject
+        definition_vi: nêu ra (chủ đề)
+        register: neutral
+    examples:
+      - text: She was {{brought up}} by her grandparents.
+        translation: Cô ấy được ông bà nuôi dạy.
+    forms:
+      - kind: past
+        text: brought up
+      - kind: past_participle
+        text: brought up
+    relations:
+      - relation: synonym
+        text: raise

@@ -1,5 +1,12 @@
-import { asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import {
+  type CefrLevel,
+  type CollocationPattern,
+  type PartOfSpeech,
+  type VocabFormKind,
+  type VocabRegister,
+  type VocabRelationKind,
+  contentItems,
   vocabCollocations,
   vocabEntries,
   vocabExamples,
@@ -25,12 +32,74 @@ export interface VocabEntryFull extends VocabEntry {
   relations: VocabRelation[];
 }
 
-/**
- * Read access to vocabulary. Writes land in PR #4 alongside the import
- * pipeline so insertion logic stays colocated with validation.
- */
+export interface SenseInput {
+  ordinal: number;
+  definitionEn?: string | null;
+  definitionVi?: string | null;
+  register?: VocabRegister | null;
+  domain?: string | null;
+  notesMd?: string | null;
+}
+
+export interface ExampleInput {
+  ordinal: number;
+  text: string;
+  translation?: string | null;
+  clozeTarget?: string | null;
+  clozeHint?: string | null;
+  audioRef?: string | null;
+  sourceRef?: string | null;
+}
+
+export interface FormInput {
+  kind: VocabFormKind;
+  formText: string;
+  ipa?: string | null;
+}
+
+export interface CollocationInput {
+  collocation: string;
+  pattern?: CollocationPattern | null;
+  exampleText?: string | null;
+  notesMd?: string | null;
+}
+
+export interface RelationInput {
+  relation: VocabRelationKind;
+  relatedText?: string | null;
+  relatedEntryId?: number | null;
+}
+
+export interface UpsertVocabEntryInput {
+  lessonId: number;
+  sourceId: string;
+  contentHash: string;
+  headword: string;
+  lemma?: string | null;
+  pos: PartOfSpeech;
+  ipa?: string | null;
+  cefrLevel?: CefrLevel | null;
+  frequencyRank?: number | null;
+  imageRef?: string | null;
+  audioRef?: string | null;
+  tags?: string[] | null;
+  metadata?: Record<string, unknown> | null;
+  senses: SenseInput[];
+  examples: ExampleInput[];
+  forms: FormInput[];
+  collocations: CollocationInput[];
+  relations: RelationInput[];
+}
+
+export type UpsertAction = "inserted" | "updated" | "skipped";
+
+export interface UpsertVocabEntryResult {
+  entryId: number;
+  action: UpsertAction;
+}
+
 export function createVocabRepository(db: AppDatabase) {
-  return {
+  const repo = {
     listByLesson(lessonId: number): VocabEntry[] {
       return db
         .select()
@@ -55,10 +124,6 @@ export function createVocabRepository(db: AppDatabase) {
       return hydrateChildren(db, [entry])[0] ?? null;
     },
 
-    /**
-     * Hydrate full entries (with children) for a lesson. Single SQL round
-     * trip per child table — N+1-safe.
-     */
     listFullByLesson(lessonId: number): VocabEntryFull[] {
       const entries = db
         .select()
@@ -68,7 +133,152 @@ export function createVocabRepository(db: AppDatabase) {
         .all();
       return hydrateChildren(db, entries);
     },
+
+    /**
+     * Atomically upsert one entry plus its children.
+     *
+     * Idempotency: when an existing row's `contentHash` matches the input's
+     * we early-return `skipped` without touching the DB. Any other case
+     * wipes the entry's children and re-inserts them — simpler and safer
+     * than diffing each child collection.
+     *
+     * The first insert also seeds a row in `content_items` so progress and
+     * exercise tables can reference the entry polymorphically.
+     */
+    upsertEntryWithChildren(input: UpsertVocabEntryInput): UpsertVocabEntryResult {
+      return db.transaction((tx) => {
+        const existing = tx
+          .select()
+          .from(vocabEntries)
+          .where(
+            and(
+              eq(vocabEntries.lessonId, input.lessonId),
+              eq(vocabEntries.sourceId, input.sourceId),
+            ),
+          )
+          .get();
+
+        if (existing && existing.contentHash === input.contentHash) {
+          return { entryId: existing.id, action: "skipped" as const };
+        }
+
+        const now = new Date();
+        let entryId: number;
+        let action: UpsertAction;
+
+        if (existing) {
+          tx.update(vocabEntries)
+            .set({
+              headword: input.headword,
+              lemma: input.lemma ?? null,
+              pos: input.pos,
+              ipa: input.ipa ?? null,
+              cefrLevel: input.cefrLevel ?? null,
+              frequencyRank: input.frequencyRank ?? null,
+              imageRef: input.imageRef ?? null,
+              audioRef: input.audioRef ?? null,
+              tags: input.tags ?? null,
+              metadata: input.metadata ?? null,
+              contentHash: input.contentHash,
+              updatedAt: now,
+            })
+            .where(eq(vocabEntries.id, existing.id))
+            .run();
+          entryId = existing.id;
+          action = "updated";
+
+          tx.delete(vocabSenses).where(eq(vocabSenses.entryId, entryId)).run();
+          tx.delete(vocabExamples).where(eq(vocabExamples.entryId, entryId)).run();
+          tx.delete(vocabForms).where(eq(vocabForms.entryId, entryId)).run();
+          tx.delete(vocabCollocations).where(eq(vocabCollocations.entryId, entryId)).run();
+          tx.delete(vocabRelations).where(eq(vocabRelations.entryId, entryId)).run();
+        } else {
+          const inserted = tx
+            .insert(vocabEntries)
+            .values({
+              lessonId: input.lessonId,
+              sourceId: input.sourceId,
+              headword: input.headword,
+              lemma: input.lemma ?? null,
+              pos: input.pos,
+              ipa: input.ipa ?? null,
+              cefrLevel: input.cefrLevel ?? null,
+              frequencyRank: input.frequencyRank ?? null,
+              imageRef: input.imageRef ?? null,
+              audioRef: input.audioRef ?? null,
+              tags: input.tags ?? null,
+              metadata: input.metadata ?? null,
+              contentHash: input.contentHash,
+              createdAt: now,
+              updatedAt: now,
+            })
+            .returning({ id: vocabEntries.id })
+            .get();
+          if (!inserted) throw new Error("Failed to insert vocab entry");
+          entryId = inserted.id;
+          action = "inserted";
+
+          tx.insert(contentItems)
+            .values({
+              kind: "vocab_entry",
+              refTable: "vocab_entries",
+              refId: entryId,
+              lessonId: input.lessonId,
+              tags: input.tags ?? null,
+            })
+            .run();
+        }
+
+        if (input.senses.length > 0) {
+          tx.insert(vocabSenses)
+            .values(input.senses.map((s) => ({ ...s, entryId })))
+            .run();
+        }
+        if (input.examples.length > 0) {
+          tx.insert(vocabExamples)
+            .values(input.examples.map((e) => ({ ...e, entryId })))
+            .run();
+        }
+        if (input.forms.length > 0) {
+          tx.insert(vocabForms)
+            .values(input.forms.map((f) => ({ ...f, entryId })))
+            .run();
+        }
+        if (input.collocations.length > 0) {
+          tx.insert(vocabCollocations)
+            .values(input.collocations.map((c) => ({ ...c, entryId })))
+            .run();
+        }
+        if (input.relations.length > 0) {
+          tx.insert(vocabRelations)
+            .values(input.relations.map((r) => ({ ...r, entryId })))
+            .run();
+        }
+
+        return { entryId, action };
+      });
+    },
+
+    /** Delete an entry. CASCADE removes children + the content_items row. */
+    deleteById(id: number): void {
+      db.transaction((tx) => {
+        tx.delete(contentItems)
+          .where(and(eq(contentItems.refTable, "vocab_entries"), eq(contentItems.refId, id)))
+          .run();
+        tx.delete(vocabEntries).where(eq(vocabEntries.id, id)).run();
+      });
+    },
+
+    /** All entry ids that exist for a lesson (fast — single column scan). */
+    listIdsByLesson(lessonId: number): Array<{ id: number; sourceId: string | null }> {
+      return db
+        .select({ id: vocabEntries.id, sourceId: vocabEntries.sourceId })
+        .from(vocabEntries)
+        .where(eq(vocabEntries.lessonId, lessonId))
+        .all();
+    },
   };
+  return repo;
 }
 
 export type VocabRepository = ReturnType<typeof createVocabRepository>;
