@@ -16,7 +16,7 @@ Object.defineProperty(window, "api", {
       appInfo: async () => ({
         name: "vocab-app",
         version: "0.0.1",
-        schemaTablesExpected: 19,
+        schemaTablesExpected: 20,
       }),
     },
     auth: {
@@ -91,6 +91,7 @@ Object.defineProperty(window, "api", {
           totalWrong: 0,
           updatedAt: new Date(0),
         },
+        unlockedAchievements: [],
       }),
       dueByLesson: async () => ({ totalCount: 0, dueCount: 0, newCount: 0 }),
       dueByStudent: async () => [],
@@ -100,6 +101,15 @@ Object.defineProperty(window, "api", {
         totalWrong: 0,
         accuracy: 0,
         totalDue: 0,
+      }),
+    },
+    rewards: {
+      listUnlocked: async () => [],
+      streak: async () => ({
+        currentStreak: 0,
+        longestStreak: 0,
+        lastPracticedAt: null,
+        practicedToday: false,
       }),
     },
   },

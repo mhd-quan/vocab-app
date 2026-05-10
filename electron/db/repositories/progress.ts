@@ -8,10 +8,17 @@ import {
   practiceSessions,
   vocabEntries,
 } from "../../../src/data/schema";
-import type { ItemProgress, LearningEvent, PracticeSession } from "../../../src/data/types";
+import type {
+  ItemProgress,
+  LearningEvent,
+  PracticeSession,
+  StudentAchievement,
+} from "../../../src/data/types";
 import type { GradeOutcome } from "../../../src/modules/exercises";
+import { evaluateAchievements } from "../../../src/modules/rewards";
 import { applyAnswer, qualityFromOutcome } from "../../../src/modules/srs";
 import type { AppDatabase } from "../client";
+import { _internal as rewardsInternal } from "./rewards";
 
 export interface StartSessionInput {
   studentId: number;
@@ -29,6 +36,12 @@ export interface RecordAnswerInput {
   /** vocab_entries.id — we resolve it to a content_items row internally. */
   entryId: number;
   outcome: GradeOutcome;
+  /**
+   * In-session correct streak ending at this answer (0 if this answer was
+   * wrong). The SessionPlayer tracks it client-side; we use it to
+   * evaluate "N in a row" achievements without re-walking the event log.
+   */
+  currentSessionRun?: number;
   /** Caller-controlled clock (defaults to `new Date()`). Tests inject a fixed Date. */
   now?: Date;
 }
@@ -36,6 +49,11 @@ export interface RecordAnswerInput {
 export interface RecordAnswerResult {
   event: LearningEvent;
   progress: ItemProgress;
+  /**
+   * Achievements that became unlocked as a result of this answer. Empty
+   * on every call until a threshold is crossed.
+   */
+  unlockedAchievements: StudentAchievement[];
 }
 
 export interface DueLessonStats {
@@ -184,7 +202,27 @@ export function createProgressRepository(db: AppDatabase) {
           .get();
         if (!progress) throw new Error("Failed to upsert item_progress");
 
-        return { event, progress };
+        // Re-evaluate achievements inside the same transaction so the
+        // newly-written event + progress are visible. A wrong answer
+        // can never *unlock* anything new (every rule is monotonically
+        // increasing), so we skip the work in that case.
+        let unlockedAchievements: StudentAchievement[] = [];
+        if (input.outcome.correct) {
+          const stats = rewardsInternal.buildStats(tx, {
+            studentId: input.studentId,
+            currentSessionRun: input.currentSessionRun,
+            now,
+          });
+          const earned = evaluateAchievements(stats);
+          unlockedAchievements = rewardsInternal.persistNewlyEarned(
+            tx,
+            input.studentId,
+            earned,
+            now,
+          );
+        }
+
+        return { event, progress, unlockedAchievements };
       });
     },
 

@@ -10,6 +10,7 @@ import {
   importsProcedures,
   metaProcedures,
   progressProcedures,
+  rewardsProcedures,
   settingsProcedures,
   studentsProcedures,
   vocabProcedures,
@@ -56,7 +57,8 @@ describe("IPC procedure registry", () => {
         studentsProcedures.length +
         settingsProcedures.length +
         importsProcedures.length +
-        progressProcedures.length,
+        progressProcedures.length +
+        rewardsProcedures.length,
     );
   });
 
@@ -67,7 +69,7 @@ describe("IPC procedure registry", () => {
 
     it("appInfo returns the expected schema-tables count", async () => {
       const info = await call<{ schemaTablesExpected: number }>("meta.appInfo", undefined, ctx);
-      expect(info.schemaTablesExpected).toBe(19);
+      expect(info.schemaTablesExpected).toBe(20);
     });
   });
 
@@ -137,6 +139,24 @@ describe("IPC procedure registry", () => {
     it("set + get round-trips", async () => {
       await call("settings.set", { key: "theme", value: "dark" }, ctx);
       expect(await call<string | null>("settings.get", { key: "theme" }, ctx)).toBe("dark");
+    });
+  });
+
+  describe("rewards", () => {
+    it("listUnlocked returns [] for an unknown student", async () => {
+      const result = await call<unknown[]>("rewards.listUnlocked", { studentId: 99 }, ctx);
+      expect(result).toEqual([]);
+    });
+
+    it("streak returns zeroed stats for a student with no events", async () => {
+      const student = ctx.repos.students.create({ name: "Alice" });
+      const result = await call<{ currentStreak: number; longestStreak: number }>(
+        "rewards.streak",
+        { studentId: student.id },
+        ctx,
+      );
+      expect(result.currentStreak).toBe(0);
+      expect(result.longestStreak).toBe(0);
     });
   });
 });

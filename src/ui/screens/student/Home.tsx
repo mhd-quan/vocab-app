@@ -1,9 +1,11 @@
 import type { Book, Lesson, Unit } from "@/data/types";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryClient";
+import { getAchievement } from "@/modules/rewards";
 import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
 import { EmptyState } from "@/ui/components/EmptyState";
+import { AchievementIcon } from "@/ui/components/rewards";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 
@@ -41,6 +43,18 @@ export function StudentHome() {
     enabled: Number.isFinite(id) && id > 0,
   });
 
+  const streakQ = useQuery({
+    queryKey: queryKeys.rewards.streak(id),
+    queryFn: () => api.rewards.streak({ studentId: id }),
+    enabled: Number.isFinite(id) && id > 0,
+  });
+
+  const unlockedQ = useQuery({
+    queryKey: queryKeys.rewards.listUnlocked(id),
+    queryFn: () => api.rewards.listUnlocked({ studentId: id }),
+    enabled: Number.isFinite(id) && id > 0,
+  });
+
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-8 py-10">
       <Link to="/student" className="self-start text-xs text-muted hover:text-app">
@@ -64,9 +78,13 @@ export function StudentHome() {
           </h1>
         </div>
         {summaryQ.data && summaryQ.data.totalSeen > 0 ? (
-          <SummaryStats summary={summaryQ.data} />
+          <SummaryStats summary={summaryQ.data} streak={streakQ.data?.currentStreak ?? 0} />
         ) : null}
       </header>
+
+      {unlockedQ.data && unlockedQ.data.length > 0 ? (
+        <AchievementsStrip ids={unlockedQ.data.map((u) => u.achievementId)} />
+      ) : null}
 
       {booksQ.isLoading ? (
         <p className="text-sm text-muted">Loading lessons…</p>
@@ -84,12 +102,23 @@ export function StudentHome() {
 
 function SummaryStats({
   summary,
+  streak,
 }: {
   summary: { totalSeen: number; totalDue: number; accuracy: number };
+  streak: number;
 }) {
   const accuracyPct = Math.round(summary.accuracy * 100);
   return (
     <dl className="flex shrink-0 items-center gap-4 text-right text-xs text-muted">
+      {streak > 0 ? (
+        <div className="flex flex-col">
+          <dt className="text-[10px] uppercase tracking-widest text-muted-2">Streak</dt>
+          <dd className="flex items-center justify-end gap-1 font-mono text-sm text-warning">
+            <AchievementIcon icon="flame" className="h-3.5 w-3.5" />
+            {streak}d
+          </dd>
+        </div>
+      ) : null}
       <div className="flex flex-col">
         <dt className="text-[10px] uppercase tracking-widest text-muted-2">Seen</dt>
         <dd className="font-mono text-sm text-app">{summary.totalSeen}</dd>
@@ -103,6 +132,38 @@ function SummaryStats({
         <dd className="font-mono text-sm text-app">{accuracyPct}%</dd>
       </div>
     </dl>
+  );
+}
+
+function AchievementsStrip({ ids }: { ids: string[] }) {
+  return (
+    <section className="rounded-lg border border-border-subtle bg-surface-1 px-4 py-3">
+      <header className="mb-2 flex items-baseline justify-between">
+        <h2 className="text-sm font-semibold">Achievements</h2>
+        <span className="text-[10px] uppercase tracking-widest text-muted-2">
+          {ids.length} unlocked
+        </span>
+      </header>
+      <ul className="flex flex-wrap gap-2">
+        {ids.map((id) => (
+          <AchievementChip key={id} achievementId={id} />
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function AchievementChip({ achievementId }: { achievementId: string }) {
+  const def = getAchievement(achievementId);
+  if (!def) return null;
+  return (
+    <li
+      className="flex items-center gap-2 rounded-full border border-success/40 bg-success/10 px-3 py-1 text-xs text-success"
+      title={def.description}
+    >
+      <AchievementIcon icon={def.icon} className="h-3.5 w-3.5" />
+      <span className="font-medium text-app">{def.title}</span>
+    </li>
   );
 }
 

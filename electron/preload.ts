@@ -9,10 +9,12 @@ import type {
   Lesson,
   PracticeSession,
   Student,
+  StudentAchievement,
   Unit,
   VocabEntry,
 } from "../src/data/types";
 import type { SelfGrade } from "../src/modules/exercises/types";
+import type { StreakStats } from "../src/modules/rewards";
 import type { VocabEntryFull } from "./db/repositories/vocab";
 
 const invoke = <T>(channel: string, payload?: unknown): Promise<T> =>
@@ -141,14 +143,27 @@ const api = {
       sessionId: number;
       entryId: number;
       outcome: OutcomePayload;
+      currentSessionRun?: number;
       occurredAtIso?: string;
-    }) => invoke<{ event: LearningEvent; progress: ItemProgress }>("progress.recordAnswer", input),
+    }) =>
+      invoke<{
+        event: LearningEvent;
+        progress: ItemProgress;
+        unlockedAchievements: StudentAchievement[];
+      }>("progress.recordAnswer", input),
     dueByLesson: (input: { studentId: number; lessonId: number; nowIso?: string }) =>
       invoke<DueLessonStats>("progress.dueByLesson", input),
     dueByStudent: (input: { studentId: number; nowIso?: string; limit?: number }) =>
       invoke<DueItem[]>("progress.dueByStudent", input),
     studentSummary: (input: { studentId: number }) =>
       invoke<StudentSummary>("progress.studentSummary", input),
+  },
+
+  rewards: {
+    listUnlocked: (input: { studentId: number }) =>
+      invoke<StudentAchievement[]>("rewards.listUnlocked", input),
+    streak: (input: { studentId: number; nowIso?: string }) =>
+      invoke<StreakStats>("rewards.streak", input),
   },
 } as const;
 

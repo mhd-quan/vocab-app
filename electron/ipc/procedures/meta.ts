@@ -13,7 +13,7 @@ export const metaProcedures = [
     handler: () => ({
       name: "vocab-app",
       version: "0.0.1",
-      schemaTablesExpected: 19,
+      schemaTablesExpected: 20,
     }),
   }),
 ];

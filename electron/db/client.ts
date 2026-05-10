@@ -10,6 +10,14 @@ export type AppDatabase = BetterSQLite3Database<typeof schema> & {
   readonly $sqlite: SqliteDatabase;
 };
 
+/**
+ * The handle yielded inside `db.transaction((tx) => …)`. Typed via the
+ * parameter of Drizzle's `transaction` so we never depend on Drizzle's
+ * internal class names — both the tx and the top-level db expose the
+ * same query API to repository code.
+ */
+export type AppTransaction = Parameters<Parameters<AppDatabase["transaction"]>[0]>[0];
+
 export interface OpenDbOptions {
   /** Override the resolved DB path. `:memory:` opens a transient in-memory DB. */
   dbPath?: string;
