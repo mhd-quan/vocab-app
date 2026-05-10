@@ -49,6 +49,41 @@ interface StudentSummary {
   totalDue: number;
 }
 
+interface WeakItem {
+  entryId: number;
+  contentItemId: number;
+  lessonId: number;
+  bookId: number;
+  headword: string;
+  pos: string;
+  totalCorrect: number;
+  totalWrong: number;
+  accuracy: number;
+  lastSeenAt: Date | null;
+}
+
+interface DailyActivityCell {
+  bucketStart: Date;
+  count: number;
+}
+
+interface RecentSessionRow {
+  sessionId: number;
+  mode: PracticeMode;
+  startedAt: Date;
+  endedAt: Date | null;
+  totalAnswered: number;
+  totalCorrect: number;
+}
+
+interface TutorOverviewRow {
+  student: Student;
+  totalSeen: number;
+  totalDue: number;
+  accuracy: number;
+  lastPracticedAt: Date | null;
+}
+
 interface CreateStudent {
   name: string;
   displayName?: string;
@@ -157,6 +192,14 @@ const api = {
       invoke<DueItem[]>("progress.dueByStudent", input),
     studentSummary: (input: { studentId: number }) =>
       invoke<StudentSummary>("progress.studentSummary", input),
+    weakItems: (input: { studentId: number; minAttempts?: number; limit?: number }) =>
+      invoke<WeakItem[]>("progress.weakItems", input),
+    dailyActivity: (input: { studentId: number; sinceIso: string; untilIso: string }) =>
+      invoke<DailyActivityCell[]>("progress.dailyActivity", input),
+    recentSessions: (input: { studentId: number; limit?: number }) =>
+      invoke<RecentSessionRow[]>("progress.recentSessions", input),
+    tutorOverview: (input?: { nowIso?: string }) =>
+      invoke<TutorOverviewRow[]>("progress.tutorOverview", input ?? {}),
   },
 
   rewards: {

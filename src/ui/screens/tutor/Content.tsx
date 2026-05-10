@@ -7,19 +7,31 @@ import { ClozeText } from "@/ui/components/ClozeText";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { PageHeader } from "@/ui/components/PageHeader";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useSearch } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import type { VocabEntryFull } from "../../../../electron/db/repositories/vocab";
 
 export function TutorContent() {
-  const [selectedBookId, setSelectedBookId] = useState<number | null>(null);
-  const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null);
+  // Deep-link entry-points: analytics weak-word rows pass `?entry=` (and
+  // optionally `?book=`) so the browser opens scrolled to that word.
+  const search = useSearch({ from: "/tutor/content" });
+  const [selectedBookId, setSelectedBookId] = useState<number | null>(search.book ?? null);
+  const [selectedEntryId, setSelectedEntryId] = useState<number | null>(search.entry ?? null);
 
   const booksQ = useQuery({
     queryKey: queryKeys.curriculum.books(),
     queryFn: () => api.curriculum.listBooks(),
   });
 
-  // Auto-select the first book once data lands.
+  // Sync state with incoming search params; navigating between two weak
+  // words on the same screen swaps both fields atomically.
+  useEffect(() => {
+    if (search.book !== undefined) setSelectedBookId(search.book);
+    if (search.entry !== undefined) setSelectedEntryId(search.entry);
+  }, [search.book, search.entry]);
+
+  // Auto-select the first book once data lands — only when nothing was
+  // pinned via the search params.
   useEffect(() => {
     if (selectedBookId === null && booksQ.data && booksQ.data.length > 0) {
       const first = booksQ.data[0];
@@ -237,24 +249,49 @@ function LessonRow({
         <ul className="grid grid-cols-1 gap-1 sm:grid-cols-2">
           {entries.map((entry) => (
             <li key={entry.id}>
-              <button
-                type="button"
+              <EntryButton
+                entry={entry}
+                selected={selectedEntryId === entry.id}
                 onClick={() => onSelectEntry(entry.id)}
-                className={cn(
-                  "flex w-full items-baseline gap-2 rounded-md border px-3 py-2 text-left transition-colors",
-                  selectedEntryId === entry.id
-                    ? "border-accent bg-accent/10"
-                    : "border-border-subtle bg-surface-1 hover:border-border-strong",
-                )}
-              >
-                <span className="truncate text-sm font-medium">{entry.headword}</span>
-                <span className="font-mono text-[10px] text-muted-2">{entry.pos}</span>
-              </button>
+              />
             </li>
           ))}
         </ul>
       )}
     </section>
+  );
+}
+
+function EntryButton({
+  entry,
+  selected,
+  onClick,
+}: {
+  entry: { id: number; headword: string; pos: string };
+  selected: boolean;
+  onClick: () => void;
+}) {
+  const ref = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (selected && ref.current) {
+      ref.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [selected]);
+  return (
+    <button
+      ref={ref}
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex w-full items-baseline gap-2 rounded-md border px-3 py-2 text-left transition-colors",
+        selected
+          ? "border-accent bg-accent/10"
+          : "border-border-subtle bg-surface-1 hover:border-border-strong",
+      )}
+    >
+      <span className="truncate text-sm font-medium">{entry.headword}</span>
+      <span className="font-mono text-[10px] text-muted-2">{entry.pos}</span>
+    </button>
   );
 }
 

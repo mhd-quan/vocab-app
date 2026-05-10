@@ -1,9 +1,9 @@
 import type { Book, Lesson, Unit, VocabEntry } from "@/data/types";
 import { TutorContent } from "@/ui/screens/tutor/Content";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { VocabEntryFull } from "../../../electron/db/repositories/vocab";
+import { mountTutorScreen } from "../../test-router";
 
 function dt(): Date {
   return new Date(0);
@@ -115,12 +115,7 @@ const entryFull: VocabEntryFull = {
 };
 
 function renderScreen() {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(
-    <QueryClientProvider client={client}>
-      <TutorContent />
-    </QueryClientProvider>,
-  );
+  return mountTutorScreen({ path: "content", screen: TutorContent });
 }
 
 describe("TutorContent", () => {

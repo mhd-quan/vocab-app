@@ -1,8 +1,8 @@
 import type { Student } from "@/data/types";
 import { TutorStudents } from "@/ui/screens/tutor/Students";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { mountTutorScreen } from "../../test-router";
 
 function makeStudent(overrides: Partial<Student> = {}): Student {
   const now = new Date();
@@ -22,14 +22,11 @@ function makeStudent(overrides: Partial<Student> = {}): Student {
 }
 
 function renderScreen() {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
+  return mountTutorScreen({
+    path: "students",
+    screen: TutorStudents,
+    siblings: ["students/$studentId"],
   });
-  return render(
-    <QueryClientProvider client={client}>
-      <TutorStudents />
-    </QueryClientProvider>,
-  );
 }
 
 describe("TutorStudents", () => {

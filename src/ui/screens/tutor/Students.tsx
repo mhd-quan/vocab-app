@@ -10,6 +10,7 @@ import { Field, TextArea, TextInput, useFieldId } from "@/ui/components/Field";
 import { Modal } from "@/ui/components/Modal";
 import { PageHeader } from "@/ui/components/PageHeader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 
 type Tab = "active" | "archived";
@@ -142,14 +143,26 @@ function StudentRow({ student, onEdit }: { student: Student; onEdit: () => void 
 
   const archived = student.archivedAt !== null;
 
+  const nameNode = (
+    <span className="truncate text-sm font-semibold">{student.displayName ?? student.name}</span>
+  );
+
   return (
     <li className="flex items-center gap-4 rounded-lg border border-border-subtle bg-surface-1 px-4 py-3">
       <Avatar name={student.displayName ?? student.name} color={student.color} size="lg" />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="truncate text-sm font-semibold">
-            {student.displayName ?? student.name}
-          </span>
+          {archived ? (
+            nameNode
+          ) : (
+            <Link
+              to="/tutor/students/$studentId"
+              params={{ studentId: String(student.id) }}
+              className="truncate text-sm font-semibold transition-colors hover:text-accent"
+            >
+              {student.displayName ?? student.name}
+            </Link>
+          )}
           {archived ? (
             <Badge tone="muted" uppercase>
               archived

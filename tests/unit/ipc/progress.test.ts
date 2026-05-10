@@ -154,6 +154,87 @@ describe("progress.* procedures", () => {
     expect(summary).toMatchObject({ totalSeen: 0, accuracy: 0 });
   });
 
+  it("weakItems surfaces only items with at least minAttempts answers", async () => {
+    const { lesson, book } = seedCurriculum(db);
+    const a = seedEntry(ctx.repos, lesson.id, "alpha");
+    const student = ctx.repos.students.create({ name: "Alice" });
+    const session = ctx.repos.progress.startSession({ studentId: student.id, mode: "mixed" });
+    for (let i = 0; i < 4; i += 1) {
+      ctx.repos.progress.recordAnswer({
+        studentId: student.id,
+        sessionId: session.id,
+        entryId: a.entryId,
+        outcome: { correct: i === 0, feedback: "x", selfGrade: "again", selectedIndex: null },
+        now: new Date("2026-01-01T00:00:00.000Z"),
+      });
+    }
+    const weak = await call<Array<{ headword: string; bookId: number; accuracy: number }>>(
+      "progress.weakItems",
+      { studentId: student.id, minAttempts: 3 },
+      ctx,
+    );
+    expect(weak).toHaveLength(1);
+    expect(weak[0]?.bookId).toBe(book.id);
+    expect(weak[0]?.accuracy).toBeCloseTo(0.25, 2);
+  });
+
+  it("dailyActivity returns dense day cells across the window", async () => {
+    const { lesson } = seedCurriculum(db);
+    const seeded = seedEntry(ctx.repos, lesson.id);
+    const student = ctx.repos.students.create({ name: "Alice" });
+    const session = ctx.repos.progress.startSession({ studentId: student.id, mode: "mixed" });
+    ctx.repos.progress.recordAnswer({
+      studentId: student.id,
+      sessionId: session.id,
+      entryId: seeded.entryId,
+      outcome: correctOutcome,
+      now: new Date("2026-01-02T08:00:00.000Z"),
+    });
+    const cells = await call<Array<{ count: number }>>(
+      "progress.dailyActivity",
+      {
+        studentId: student.id,
+        sinceIso: "2026-01-01T00:00:00.000Z",
+        untilIso: "2026-01-03T23:59:59.000Z",
+      },
+      ctx,
+    );
+    expect(cells.length).toBe(3);
+    expect(cells.reduce((sum, c) => sum + c.count, 0)).toBe(1);
+  });
+
+  it("recentSessions returns sessions newest-first with totals", async () => {
+    const { lesson } = seedCurriculum(db);
+    const seeded = seedEntry(ctx.repos, lesson.id);
+    const student = ctx.repos.students.create({ name: "Alice" });
+    const session = ctx.repos.progress.startSession({ studentId: student.id, mode: "flashcard" });
+    ctx.repos.progress.recordAnswer({
+      studentId: student.id,
+      sessionId: session.id,
+      entryId: seeded.entryId,
+      outcome: correctOutcome,
+      now: new Date("2026-01-02T08:00:00.000Z"),
+    });
+    const recent = await call<
+      Array<{ sessionId: number; totalAnswered: number; totalCorrect: number }>
+    >("progress.recentSessions", { studentId: student.id, limit: 5 }, ctx);
+    expect(recent).toHaveLength(1);
+    expect(recent[0]?.totalAnswered).toBe(1);
+    expect(recent[0]?.totalCorrect).toBe(1);
+  });
+
+  it("tutorOverview lists active students with rolled-up stats", async () => {
+    const alice = ctx.repos.students.create({ name: "Alice" });
+    const bob = ctx.repos.students.create({ name: "Bob" });
+    ctx.repos.students.archive(bob.id);
+    const rows = await call<Array<{ student: { id: number }; totalSeen: number }>>(
+      "progress.tutorOverview",
+      {},
+      ctx,
+    );
+    expect(rows.map((r) => r.student.id)).toEqual([alice.id]);
+  });
+
   it("Zod rejects malformed input shapes", () => {
     const proc = findProcedure("progress.recordAnswer");
     expect(() =>

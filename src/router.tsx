@@ -5,6 +5,7 @@ import { TutorContent } from "@/ui/screens/tutor/Content";
 import { TutorDashboard } from "@/ui/screens/tutor/Dashboard";
 import { TutorImports } from "@/ui/screens/tutor/Imports";
 import { TutorSettings } from "@/ui/screens/tutor/Settings";
+import { TutorStudentDetail } from "@/ui/screens/tutor/StudentDetail";
 import { TutorStudents } from "@/ui/screens/tutor/Students";
 import { StudentLayout } from "@/ui/shell/StudentLayout";
 import { TutorLayout } from "@/ui/shell/TutorLayout";
@@ -44,10 +45,29 @@ const tutorStudentsRoute = createRoute({
   component: TutorStudents,
 });
 
+const tutorStudentDetailRoute = createRoute({
+  getParentRoute: () => tutorRoute,
+  path: "students/$studentId",
+  component: TutorStudentDetail,
+});
+
+interface ContentSearch {
+  entry?: number;
+  book?: number;
+}
+
 const tutorContentRoute = createRoute({
   getParentRoute: () => tutorRoute,
   path: "content",
   component: TutorContent,
+  validateSearch: (raw: Record<string, unknown>): ContentSearch => {
+    const out: ContentSearch = {};
+    const entry = Number(raw.entry);
+    if (Number.isFinite(entry) && entry > 0) out.entry = entry;
+    const book = Number(raw.book);
+    if (Number.isFinite(book) && book > 0) out.book = book;
+    return out;
+  },
 });
 
 const tutorImportsRoute = createRoute({
@@ -91,6 +111,7 @@ const routeTree = rootRoute.addChildren([
     tutorIndexRoute,
     tutorDashboardRoute,
     tutorStudentsRoute,
+    tutorStudentDetailRoute,
     tutorContentRoute,
     tutorImportsRoute,
     tutorSettingsRoute,
