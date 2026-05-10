@@ -1,0 +1,829 @@
+# Destination B1 — Unit 18: Inventions and discoveries
+book: destination-b1
+
+unit:
+  ordinal: 18
+  code: U18
+  title: Inventions and discoveries
+
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: Vocabulary, Phrasal Verbs & Patterns
+  slug: vocab-phrasal-verbs-patterns
+
+entries:
+  # --- TOPIC VOCABULARY ---
+  - id: artificial-adjective
+    headword: artificial
+    pos: adjective
+    ipa: /ˌɑːtɪˈfɪʃl/
+    cefr: B1
+    tags: [technology, description]
+    senses:
+      - definition_en: made by people, often as a copy of something natural
+        definition_vi: nhân tạo
+        register: neutral
+    examples:
+      - text: The new robot is equipped with {{artificial}} intelligence.
+        translation: Robot mới được trang bị trí tuệ nhân tạo.
+        cloze_hint: a_________
+
+  - id: automatic-adjective
+    headword: automatic
+    pos: adjective
+    ipa: /ˌɔːtəˈmætɪk/
+    cefr: B1
+    tags: [technology, description]
+    senses:
+      - definition_en: an automatic machine is designed to work without needing someone to operate it for each part of a process
+        definition_vi: tự động
+        register: neutral
+    examples:
+      - text: This washing machine is completely {{automatic}}.
+        translation: Chiếc máy giặt này hoàn toàn tự động.
+        cloze_hint: a________
+
+  - id: complicated-adjective
+    headword: complicated
+    pos: adjective
+    ipa: /ˈkɒmplɪkeɪtɪd/
+    cefr: B1
+    tags: [abstract, description]
+    senses:
+      - definition_en: involving a lot of different parts, in a way that is difficult to understand
+        definition_vi: phức tạp
+        register: neutral
+    examples:
+      - text: The instructions for assembling the computer are too {{complicated}}.
+        translation: Hướng dẫn lắp ráp máy tính quá phức tạp.
+        cloze_hint: c__________
+
+  - id: decrease-verb
+    headword: decrease
+    pos: verb
+    ipa: /dɪˈkriːs/
+    cefr: B1
+    tags: [actions, science]
+    senses:
+      - definition_en: to become less, or to make something become less
+        definition_vi: giảm bớt
+        register: formal
+    examples:
+      - text: The new system will help to {{decrease}} energy consumption.
+        translation: Hệ thống mới sẽ giúp giảm bớt lượng tiêu thụ năng lượng.
+        cloze_hint: d_______
+
+  - id: digital-adjective
+    headword: digital
+    pos: adjective
+    ipa: /ˈdɪdʒɪtl/
+    cefr: B1
+    tags: [technology]
+    senses:
+      - definition_en: recording or storing information as a series of the numbers 1 and 0, to show that a signal is present or absent
+        definition_vi: kỹ thuật số
+        register: neutral
+    examples:
+      - text: You can store thousands of photos on a {{digital}} camera.
+        translation: Bạn có thể lưu trữ hàng nghìn bức ảnh trên một chiếc máy ảnh kỹ thuật số.
+        cloze_hint: d______
+
+  - id: discover-verb
+    headword: discover
+    pos: verb
+    ipa: /dɪˈskʌvə/
+    cefr: A2
+    tags: [science, actions]
+    senses:
+      - definition_en: to find information, a place, or an object, especially for the first time
+        definition_vi: khám phá, tìm ra
+        register: neutral
+    examples:
+      - text: Scientists hope to {{discover}} a cure for the disease soon.
+        translation: Các nhà khoa học hy vọng sẽ sớm tìm ra phương pháp chữa trị căn bệnh này.
+        cloze_hint: d_______
+
+  - id: effect-noun
+    headword: effect
+    pos: noun
+    ipa: /ɪˈfekt/
+    cefr: A2
+    tags: [science, abstract]
+    senses:
+      - definition_en: the result of a particular influence
+        definition_vi: ảnh hưởng, tác động
+        register: formal
+    examples:
+      - text: We are studying the long-term {{effects}} of pollution on the environment.
+        translation: Chúng tôi đang nghiên cứu những tác động lâu dài của ô nhiễm đối với môi trường.
+        cloze_hint: e_____
+
+  - id: equipment-noun
+    headword: equipment
+    pos: noun
+    ipa: /ɪˈkwɪpmənt/
+    cefr: A2
+    tags: [technology, objects]
+    senses:
+      - definition_en: the set of necessary tools, clothing, etc. for a particular purpose
+        definition_vi: trang thiết bị
+        register: neutral
+    examples:
+      - text: The laboratory is filled with expensive scientific {{equipment}}.
+        translation: Phòng thí nghiệm chứa đầy các trang thiết bị khoa học đắt tiền.
+        cloze_hint: e________
+
+  - id: estimate-verb
+    headword: estimate
+    pos: verb
+    ipa: /ˈestɪmeɪt/
+    cefr: B1
+    tags: [science, math]
+    senses:
+      - definition_en: to guess or calculate the cost, size, value, etc. of something
+        definition_vi: ước tính
+        register: formal
+    examples:
+      - text: They {{estimate}} that the project will take three years to complete.
+        translation: Họ ước tính rằng dự án sẽ mất ba năm để hoàn thành.
+        cloze_hint: e_______
+
+  - id: exact-adjective
+    headword: exact
+    pos: adjective
+    ipa: /ɪɡˈzækt/
+    cefr: B1
+    tags: [science, description]
+    senses:
+      - definition_en: in great detail, or complete, correct, or true in every way
+        definition_vi: chính xác
+        register: neutral
+    examples:
+      - text: The scientists need the {{exact}} measurements to build the machine.
+        translation: Các nhà khoa học cần những số đo chính xác để chế tạo cỗ máy.
+        cloze_hint: e____
+
+  - id: experiment-noun
+    headword: experiment
+    pos: noun
+    ipa: /ɪkˈsperɪmənt/
+    cefr: A2
+    tags: [science, actions]
+    senses:
+      - definition_en: a test done in order to learn something or to discover if something works or is true
+        definition_vi: thí nghiệm
+        register: neutral
+    examples:
+      - text: We are conducting an {{experiment}} to test the new chemical.
+        translation: Chúng tôi đang tiến hành một thí nghiệm để kiểm tra loại hóa chất mới.
+        cloze_hint: e_________
+
+  - id: gadget-noun
+    headword: gadget
+    pos: noun
+    ipa: /ˈɡædʒɪt/
+    cefr: B1
+    tags: [technology, objects]
+    senses:
+      - definition_en: a small device or machine with a particular purpose
+        definition_vi: thiết bị tiện ích, đồ công nghệ
+        register: informal
+    examples:
+      - text: He loves buying the latest electronic {{gadgets}}.
+        translation: Anh ấy thích mua những đồ công nghệ điện tử mới nhất.
+        cloze_hint: g_____
+
+  - id: hardware-noun
+    headword: hardware
+    pos: noun
+    ipa: /ˈhɑːdweə/
+    cefr: B1
+    tags: [technology]
+    senses:
+      - definition_en: the physical and electronic parts of a computer, rather than the instructions it follows
+        definition_vi: phần cứng
+        register: neutral
+    examples:
+      - text: We need to upgrade the server's {{hardware}} to handle more data.
+        translation: Chúng ta cần nâng cấp phần cứng của máy chủ để xử lý nhiều dữ liệu hơn.
+        cloze_hint: h_______
+
+  - id: invent-verb
+    headword: invent
+    pos: verb
+    ipa: /ɪnˈvent/
+    cefr: A2
+    tags: [science, actions]
+    senses:
+      - definition_en: to design and/or create something that has never been made before
+        definition_vi: phát minh
+        register: neutral
+    examples:
+      - text: Alexander Graham Bell {{invented}} the telephone in 1876.
+        translation: Alexander Graham Bell đã phát minh ra điện thoại vào năm 1876.
+        cloze_hint: i_______
+
+  - id: involve-verb
+    headword: involve
+    pos: verb
+    ipa: /ɪnˈvɒlv/
+    cefr: B1
+    tags: [abstract, actions]
+    senses:
+      - definition_en: if an activity, situation, etc. involves something, that thing is a part of the activity, etc.
+        definition_vi: bao gồm, liên quan
+        register: formal
+    examples:
+      - text: The research will {{involve}} collecting data from various sources.
+        translation: Nghiên cứu sẽ bao gồm việc thu thập dữ liệu từ nhiều nguồn khác nhau.
+        cloze_hint: i______
+
+  - id: laboratory-noun
+    headword: laboratory
+    pos: noun
+    ipa: /ləˈbɒrətri/
+    cefr: B1
+    tags: [science, places]
+    senses:
+      - definition_en: a room or building with scientific equipment for doing scientific tests or for teaching science
+        definition_vi: phòng thí nghiệm
+        register: formal
+    examples:
+      - text: The blood samples were sent to the {{laboratory}} for testing.
+        translation: Các mẫu máu đã được gửi đến phòng thí nghiệm để xét nghiệm.
+        cloze_hint: l_________
+
+  - id: lack-noun
+    headword: lack
+    pos: noun
+    ipa: /læk/
+    cefr: B1
+    tags: [abstract]
+    senses:
+      - definition_en: the fact that something is not available or that there is not enough of it
+        definition_vi: sự thiếu sót, thiếu hụt
+        register: formal
+    examples:
+      - text: The project failed due to a {{lack}} of funding and resources.
+        translation: Dự án thất bại do sự thiếu hụt về nguồn vốn và tài nguyên.
+        cloze_hint: l___
+
+  - id: laptop-noun
+    headword: laptop
+    pos: noun
+    ipa: /ˈlæptɒp/
+    cefr: A2
+    tags: [technology, objects]
+    senses:
+      - definition_en: a computer that is small enough to be carried around easily and is flat when closed
+        definition_vi: máy tính xách tay
+        register: neutral
+    examples:
+      - text: I usually bring my {{laptop}} to the cafe to work.
+        translation: Tôi thường mang máy tính xách tay của mình đến quán cà phê để làm việc.
+        cloze_hint: l_____
+
+  - id: maximum-adjective
+    headword: maximum
+    pos: adjective
+    ipa: /ˈmæksɪməm/
+    cefr: B1
+    tags: [science, math]
+    senses:
+      - definition_en: being the largest amount or number allowed or possible
+        definition_vi: tối đa
+        register: neutral
+    examples:
+      - text: The car has a {{maximum}} speed of 200 kilometers per hour.
+        translation: Chiếc xe có tốc độ tối đa là 200 km một giờ.
+        cloze_hint: m______
+
+  - id: minimum-adjective
+    headword: minimum
+    pos: adjective
+    ipa: /ˈmɪnɪməm/
+    cefr: B1
+    tags: [science, math]
+    senses:
+      - definition_en: being the smallest amount or number allowed or possible
+        definition_vi: tối thiểu
+        register: neutral
+    examples:
+      - text: The system requires a {{minimum}} of 8GB of RAM to run properly.
+        translation: Hệ thống yêu cầu tối thiểu 8GB RAM để chạy bình thường.
+        cloze_hint: m______
+
+  - id: operate-verb
+    headword: operate
+    pos: verb
+    ipa: /ˈɒpəreɪt/
+    cefr: B1
+    tags: [technology, actions]
+    senses:
+      - definition_en: to work, be in action or have an effect; to control the functioning of a machine
+        definition_vi: vận hành, hoạt động
+        register: formal
+    examples:
+      - text: You need special training to {{operate}} this heavy machinery.
+        translation: Bạn cần được đào tạo đặc biệt để vận hành hệ thống máy móc hạng nặng này.
+        cloze_hint: o______
+
+  - id: plastic-noun
+    headword: plastic
+    pos: noun
+    ipa: /ˈplæstɪk/
+    cefr: A2
+    tags: [science, objects]
+    senses:
+      - definition_en: an artificial substance that can be shaped when soft into many different forms and has many different uses
+        definition_vi: nhựa
+        register: neutral
+    examples:
+      - text: The casing of the computer is made of cheap {{plastic}}.
+        translation: Vỏ ngoài của máy tính được làm bằng nhựa rẻ tiền.
+        cloze_hint: p______
+
+  - id: program-verb
+    headword: program
+    pos: verb
+    ipa: /ˈprəʊɡræm/
+    cefr: B1
+    tags: [technology, actions]
+    senses:
+      - definition_en: to write a series of instructions that makes a computer perform a particular operation
+        definition_vi: lập trình
+        register: neutral
+    examples:
+      - text: I am learning how to {{program}} in Python.
+        translation: Tôi đang học cách lập trình bằng ngôn ngữ Python.
+        cloze_hint: p______
+
+  - id: research-noun
+    headword: research
+    pos: noun
+    ipa: /rɪˈsɜːtʃ/
+    cefr: B1
+    tags: [science, education]
+    senses:
+      - definition_en: a detailed study of a subject, especially in order to discover (new) information or reach a (new) understanding
+        definition_vi: nghiên cứu
+        register: formal
+    examples:
+      - text: She is doing {{research}} into the causes of climate change.
+        translation: Cô ấy đang thực hiện nghiên cứu về nguyên nhân của biến đổi khí hậu.
+        cloze_hint: r_______
+
+  - id: run-verb
+    headword: run
+    pos: verb
+    ipa: /rʌn/
+    cefr: A2
+    tags: [technology, actions]
+    senses:
+      - definition_en: (of a machine or system) to operate or function
+        definition_vi: chạy (máy móc, phần mềm)
+        register: neutral
+    examples:
+      - text: The software will only {{run}} on a Windows operating system.
+        translation: Phần mềm sẽ chỉ chạy trên hệ điều hành Windows.
+        cloze_hint: r__
+
+  - id: screen-noun
+    headword: screen
+    pos: noun
+    ipa: /skriːn/
+    cefr: A2
+    tags: [technology, objects]
+    senses:
+      - definition_en: a flat surface in a cinema, on a television, or as part of a computer, on which pictures or words are shown
+        definition_vi: màn hình
+        register: neutral
+    examples:
+      - text: He stared at the computer {{screen}} all day and got a headache.
+        translation: Anh ấy nhìn chằm chằm vào màn hình máy tính cả ngày và bị đau đầu.
+        cloze_hint: s_____
+
+  - id: software-noun
+    headword: software
+    pos: noun
+    ipa: /ˈsɒftweə/
+    cefr: B1
+    tags: [technology]
+    senses:
+      - definition_en: the instructions that control what a computer does; computer programs
+        definition_vi: phần mềm
+        register: neutral
+    examples:
+      - text: You need to install the latest {{software}} update to fix the bug.
+        translation: Bạn cần cài đặt bản cập nhật phần mềm mới nhất để sửa lỗi.
+        cloze_hint: s_______
+
+  - id: sudden-adjective
+    headword: sudden
+    pos: adjective
+    ipa: /ˈsʌdn/
+    cefr: B1
+    tags: [time, description]
+    senses:
+      - definition_en: happening or done quickly and without warning
+        definition_vi: đột ngột
+        register: neutral
+    examples:
+      - text: There was a {{sudden}} loss of power in the laboratory.
+        translation: Đã có một sự mất điện đột ngột trong phòng thí nghiệm.
+        cloze_hint: s_____
+
+  - id: technology-noun
+    headword: technology
+    pos: noun
+    ipa: /tekˈnɒlədʒi/
+    cefr: A2
+    tags: [technology, science]
+    senses:
+      - definition_en: (the study and knowledge of) the practical, especially industrial, use of scientific discoveries
+        definition_vi: công nghệ
+        register: neutral
+    examples:
+      - text: Modern {{technology}} has completely changed the way we communicate.
+        translation: Công nghệ hiện đại đã thay đổi hoàn toàn cách chúng ta giao tiếp.
+        cloze_hint: t_________
+
+  - id: unique-adjective
+    headword: unique
+    pos: adjective
+    ipa: /juˈniːk/
+    cefr: B1
+    tags: [description]
+    senses:
+      - definition_en: being the only existing one of its type or, more generally, unusual, or special in some way
+        definition_vi: độc đáo, duy nhất
+        register: neutral
+    examples:
+      - text: Each person's DNA is entirely {{unique}}.
+        translation: DNA của mỗi người là hoàn toàn duy nhất.
+        cloze_hint: u_____
+
+  # --- PHRASAL VERBS ---
+  - id: break-down-phrasal_verb
+    headword: break down
+    pos: phrasal_verb
+    cefr: B1
+    tags: [technology, actions]
+    senses:
+      - definition_en: if a machine or vehicle breaks down, it stops working
+        definition_vi: hỏng hóc (máy móc)
+        register: neutral
+    examples:
+      - text: The printer {{broke down}} just as I was trying to print the report.
+        translation: Máy in bị hỏng hóc ngay lúc tôi đang cố in bản báo cáo.
+
+  - id: come-across-phrasal_verb
+    headword: come across
+    pos: phrasal_verb
+    cefr: B1
+    tags: [discovery, actions]
+    senses:
+      - definition_en: to find something or someone by chance
+        definition_vi: tình cờ thấy, gặp
+        register: neutral
+    examples:
+      - text: I {{came across}} an interesting article about artificial intelligence.
+        translation: Tôi đã tình cờ thấy một bài báo thú vị về trí tuệ nhân tạo.
+
+  - id: find-out-phrasal_verb
+    headword: find out
+    pos: phrasal_verb
+    cefr: A2
+    tags: [discovery, mind]
+    senses:
+      - definition_en: to get information about something because you want to know more about it
+        definition_vi: tìm ra, phát hiện ra
+        register: neutral
+    examples:
+      - text: The researchers are trying to {{find out}} how the virus spreads.
+        translation: Các nhà nghiên cứu đang cố gắng tìm ra cách thức vi-rút lây lan.
+
+  - id: make-up-phrasal_verb
+    headword: make up
+    pos: phrasal_verb
+    cefr: B1
+    tags: [abstract, actions]
+    senses:
+      - definition_en: to invent an excuse, a story, etc., often in order to deceive
+        definition_vi: bịa chuyện
+        register: neutral
+      - definition_en: to put cosmetics on someone's face
+        definition_vi: trang điểm
+        register: neutral
+    examples:
+      - text: He didn't do his homework, so he {{made up}} an excuse about his computer crashing.
+        translation: Cậu ấy không làm bài tập, nên cậu ấy đã bịa chuyện về việc máy tính bị hỏng.
+
+  - id: pull-off-phrasal_verb
+    headword: pull off
+    pos: phrasal_verb
+    cefr: B1
+    tags: [success, actions]
+    senses:
+      - definition_en: to succeed in doing something difficult or unexpected
+        definition_vi: thành công rực rỡ (trong việc khó khăn)
+        register: informal
+    examples:
+      - text: The engineering team managed to {{pull off}} a highly complicated project.
+        translation: Đội ngũ kỹ thuật đã xoay sở để thành công rực rỡ trong một dự án vô cùng phức tạp.
+
+  - id: throw-away-phrasal_verb
+    headword: throw away
+    pos: phrasal_verb
+    cefr: A2
+    tags: [actions, objects]
+    senses:
+      - definition_en: to get rid of something you do not want any more
+        definition_vi: vứt bỏ
+        register: neutral
+    examples:
+      - text: Don't {{throw away}} those old batteries; they need to be recycled.
+        translation: Đừng vứt bỏ những cục pin cũ đó; chúng cần được tái chế.
+
+  - id: turn-off-phrasal_verb
+    headword: turn off
+    pos: phrasal_verb
+    cefr: A2
+    tags: [technology, actions]
+    senses:
+      - definition_en: to stop a piece of equipment working temporarily by pressing a button or by moving a switch
+        definition_vi: tắt (máy, điện)
+        register: neutral
+    examples:
+      - text: Please remember to {{turn off}} the screen before you leave the laboratory.
+        translation: Vui lòng nhớ tắt màn hình trước khi bạn rời khỏi phòng thí nghiệm.
+
+  - id: turn-on-phrasal_verb
+    headword: turn on
+    pos: phrasal_verb
+    cefr: A2
+    tags: [technology, actions]
+    senses:
+      - definition_en: to make a piece of equipment start working by pressing a button or moving a switch
+        definition_vi: bật (máy, điện)
+        register: neutral
+    examples:
+      - text: Press this button to {{turn on}} the automatic system.
+        translation: Nhấn nút này để bật hệ thống tự động.
+
+  # --- WORD FORMATION (ROOTS & DERIVATIVES) ---
+  - id: boil-verb
+    headword: boil
+    pos: verb
+    ipa: /bɔɪl/
+    cefr: A2
+    tags: [formation, science]
+    senses:
+      - definition_en: to reach, or cause something to reach, the temperature at which a liquid starts to turn into a gas
+        definition_vi: sôi
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: boiler
+      - relation: derived_from
+        text: boiling
+
+  - id: chemist-noun
+    headword: chemist
+    pos: noun
+    ipa: /ˈkemɪst/
+    cefr: A2
+    tags: [formation, science, people]
+    senses:
+      - definition_en: a person who studies chemistry, or a scientist who works with chemicals or studies their reactions
+        definition_vi: nhà hóa học
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: chemical
+      - relation: derived_from
+        text: chemistry
+
+  - id: conclude-verb
+    headword: conclude
+    pos: verb
+    ipa: /kənˈkluːd/
+    cefr: B1
+    tags: [formation, mind]
+    senses:
+      - definition_en: to judge or decide something after thinking carefully about it
+        definition_vi: kết luận
+        register: formal
+    relations:
+      - relation: derived_from
+        text: conclusion
+
+  - id: examine-verb
+    headword: examine
+    pos: verb
+    ipa: /ɪɡˈzæmɪn/
+    cefr: B1
+    tags: [formation, actions, science]
+    senses:
+      - definition_en: to look at or consider a person or thing carefully and in detail in order to discover something about them
+        definition_vi: kiểm tra, xem xét
+        register: formal
+    relations:
+      - relation: derived_from
+        text: exam
+      - relation: derived_from
+        text: examination
+      - relation: derived_from
+        text: examiner
+
+  - id: fascinate-verb
+    headword: fascinate
+    pos: verb
+    ipa: /ˈfæsɪneɪt/
+    cefr: B1
+    tags: [formation, feelings]
+    senses:
+      - definition_en: to interest someone a lot
+        definition_vi: cuốn hút
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: fascination
+      - relation: derived_from
+        text: fascinating
+
+  - id: history-noun
+    headword: history
+    pos: noun
+    ipa: /ˈhɪstri/
+    cefr: A2
+    tags: [formation, abstract]
+    senses:
+      - definition_en: the study of or a record of past events considered together, especially events of a particular period, country, or subject
+        definition_vi: lịch sử
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: historic
+      - relation: derived_from
+        text: historian
+
+  - id: identical-adjective
+    headword: identical
+    pos: adjective
+    ipa: /aɪˈdentɪkl/
+    cefr: B1
+    tags: [formation, description]
+    senses:
+      - definition_en: exactly the same, or very similar
+        definition_vi: giống hệt
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: identically
+
+  - id: long-adjective
+    headword: long
+    pos: adjective
+    ipa: /lɒŋ/
+    cefr: A1
+    tags: [formation, science, measurement]
+    senses:
+      - definition_en: measuring a great distance from end to end
+        definition_vi: dài
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: length
+
+  - id: measure-verb
+    headword: measure
+    pos: verb
+    ipa: /ˈmeʒə/
+    cefr: B1
+    tags: [formation, actions, science]
+    senses:
+      - definition_en: to discover the exact size or amount of something
+        definition_vi: đo lường
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: measurement
+
+  - id: science-noun
+    headword: science
+    pos: noun
+    ipa: /ˈsaɪəns/
+    cefr: A2
+    tags: [formation, abstract]
+    senses:
+      - definition_en: knowledge from the careful study of the structure and behaviour of the physical world, especially by watching, measuring, and doing experiments
+        definition_vi: khoa học
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: scientist
+
+  # --- WORD PATTERNS (BASE WORDS) ---
+  - id: different-adjective
+    headword: different
+    pos: adjective
+    ipa: /ˈdɪfrənt/
+    cefr: A1
+    tags: [patterns, description]
+    senses:
+      - definition_en: not the same
+        definition_vi: khác
+        register: neutral
+    collocations:
+      - collocation: different from
+        pattern: adj+prep
+      - collocation: different to
+        pattern: adj+prep
+
+  - id: full-adjective
+    headword: full
+    pos: adjective
+    ipa: /fʊl/
+    cefr: A2
+    tags: [patterns, description]
+    senses:
+      - definition_en: holding or containing as much as possible or a lot
+        definition_vi: đầy
+        register: neutral
+    collocations:
+      - collocation: full of
+        pattern: adj+prep
+
+  - id: begin-verb-pattern
+    headword: begin
+    pos: verb
+    ipa: /bɪˈɡɪn/
+    cefr: A1
+    tags: [patterns, actions]
+    senses:
+      - definition_en: to start to happen or exist
+        definition_vi: bắt đầu
+        register: neutral
+    collocations:
+      - collocation: begin with
+        pattern: verb+prep
+
+  - id: connect-verb
+    headword: connect
+    pos: verb
+    ipa: /kəˈnekt/
+    cefr: B1
+    tags: [patterns, technology]
+    senses:
+      - definition_en: to join or be joined with something else
+        definition_vi: kết nối
+        register: neutral
+    collocations:
+      - collocation: connect to
+        pattern: verb+prep
+      - collocation: connect with
+        pattern: verb+prep
+
+  - id: disconnect-verb
+    headword: disconnect
+    pos: verb
+    ipa: /ˌdɪskəˈnekt/
+    cefr: B1
+    tags: [patterns, technology]
+    senses:
+      - definition_en: to unfasten something, especially to break the connection between a supply of electricity, gas, water, etc. and a device
+        definition_vi: ngắt kết nối
+        register: neutral
+    collocations:
+      - collocation: disconnect from
+        pattern: verb+prep
+
+  - id: fill-verb
+    headword: fill
+    pos: verb
+    ipa: /fɪl/
+    cefr: A2
+    tags: [patterns, actions]
+    senses:
+      - definition_en: to make or become full; to use empty space
+        definition_vi: lấp đầy
+        register: neutral
+    collocations:
+      - collocation: fill with
+        pattern: verb+prep
+
+  - id: result-verb
+    headword: result
+    pos: verb
+    ipa: /rɪˈzʌlt/
+    cefr: B1
+    tags: [patterns, science]
+    senses:
+      - definition_en: to happen or exist because something else has happened
+        definition_vi: dẫn đến kết quả
+        register: formal
+    collocations:
+      - collocation: result in
+        pattern: verb+prep

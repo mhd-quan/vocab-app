@@ -304,13 +304,13 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
   return (
     <div className="flex items-center gap-3">
       <progress className="sr-only" value={current} max={total} aria-label="Session progress" />
-      <div aria-hidden className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-2">
+      <div aria-hidden className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface-2">
         <div
           className="h-full rounded-full bg-accent transition-[width] duration-300"
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="font-mono text-[10px] text-muted">
+      <span className="font-mono text-xs text-muted">
         {current} / {total}
       </span>
     </div>
@@ -327,19 +327,19 @@ function PlayerShell({
   onExit: () => void;
 }) {
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-6 py-8">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-8">
       <header className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Badge tone="accent" uppercase>
             Practice
           </Badge>
-          {contextLabel ? <span className="text-xs text-muted">{contextLabel}</span> : null}
+          {contextLabel ? <span className="text-sm text-muted">{contextLabel}</span> : null}
         </div>
-        <Button variant="ghost" size="sm" onClick={onExit} className="text-muted">
+        <Button variant="ghost" size="md" onClick={onExit} className="text-muted">
           End session
         </Button>
       </header>
-      <div className={cn("flex flex-col gap-4")}>{children}</div>
+      <div className={cn("flex flex-col gap-5")}>{children}</div>
     </div>
   );
 }

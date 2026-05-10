@@ -1,0 +1,845 @@
+# Destination B1 — Unit 15: Buying and selling
+book: destination-b1
+
+unit:
+  ordinal: 15
+  code: U15
+  title: Buying and selling
+
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: Vocabulary, Phrasal Verbs & Patterns
+  slug: vocab-phrasal-verbs-patterns
+
+entries:
+  # --- TOPIC VOCABULARY ---
+  - id: advertisement-noun
+    headword: advertisement
+    pos: noun
+    ipa: /ədˈvɜːtɪsmənt/
+    cefr: B1
+    tags: [business, media]
+    senses:
+      - definition_en: a picture, short film, song, etc. that tries to persuade people to buy a product or service
+        definition_vi: quảng cáo
+        register: neutral
+    examples:
+      - text: I saw an {{advertisement}} for a new smartphone on television.
+        translation: Tôi đã thấy một quảng cáo cho một chiếc điện thoại thông minh mới trên truyền hình.
+        cloze_hint: a____________
+
+  - id: afford-verb
+    headword: afford
+    pos: verb
+    ipa: /əˈfɔːd/
+    cefr: B1
+    tags: [money]
+    senses:
+      - definition_en: to have enough money or time to buy, keep, or do something
+        definition_vi: có đủ khả năng chi trả
+        register: neutral
+    examples:
+      - text: I don't know how he can {{afford}} to buy a new car on his salary.
+        translation: Tôi không biết làm thế nào anh ấy có đủ khả năng chi trả để mua một chiếc xe mới với mức lương của mình.
+        cloze_hint: a_____
+    relations:
+      - relation: derived_from
+        text: affordable
+
+  - id: bargain-noun
+    headword: bargain
+    pos: noun
+    ipa: /ˈbɑːɡən/
+    cefr: B1
+    tags: [shopping, money]
+    senses:
+      - definition_en: something on sale at a lower price than its true value
+        definition_vi: món hời
+        register: neutral
+    examples:
+      - text: This coat was half-price, so it was a real {{bargain}}.
+        translation: Chiếc áo khoác này được giảm giá một nửa, vì vậy nó thực sự là một món hời.
+        cloze_hint: b______
+
+  - id: brand-noun
+    headword: brand
+    pos: noun
+    ipa: /brænd/
+    cefr: B1
+    tags: [business, shopping]
+    senses:
+      - definition_en: a type of product made by a particular company
+        definition_vi: thương hiệu
+        register: neutral
+    examples:
+      - text: Which {{brand}} of toothpaste do you usually buy?
+        translation: Bạn thường mua thương hiệu kem đánh răng nào?
+        cloze_hint: b____
+
+  - id: catalogue-noun
+    headword: catalogue
+    pos: noun
+    ipa: /ˈkætəlɒɡ/
+    cefr: B1
+    tags: [shopping, media]
+    senses:
+      - definition_en: a book with a list of all the goods that you can buy from a shop
+        definition_vi: danh mục sản phẩm
+        register: neutral
+    examples:
+      - text: You can order goods directly from our mail-order {{catalogue}}.
+        translation: Bạn có thể đặt hàng trực tiếp từ danh mục sản phẩm đặt qua thư của chúng tôi.
+        cloze_hint: c________
+
+  - id: change-noun
+    headword: change
+    pos: noun
+    ipa: /tʃeɪndʒ/
+    cefr: A2
+    tags: [money]
+    senses:
+      - definition_en: the money that is returned to someone who has paid for something that costs less than the amount that they gave
+        definition_vi: tiền lẻ, tiền thối lại
+        register: neutral
+    examples:
+      - text: Here is your receipt and your {{change}}.
+        translation: Đây là biên lai và tiền thối lại của bạn.
+        cloze_hint: c_____
+
+  - id: coin-noun
+    headword: coin
+    pos: noun
+    ipa: /kɔɪn/
+    cefr: A2
+    tags: [money]
+    senses:
+      - definition_en: a small, round piece of metal, usually silver or copper coloured, that is used as money
+        definition_vi: đồng xu
+        register: neutral
+    examples:
+      - text: The vending machine only accepts {{coins}}, not paper notes.
+        translation: Máy bán hàng tự động chỉ chấp nhận đồng xu, không nhận tiền giấy.
+        cloze_hint: c___
+
+  - id: cost-verb
+    headword: cost
+    pos: verb
+    ipa: /kɒst/
+    cefr: A2
+    tags: [money, actions]
+    senses:
+      - definition_en: if something costs an amount of money, you must pay that amount to buy or do it
+        definition_vi: tốn kém, có giá là
+        register: neutral
+    examples:
+      - text: How much does this jacket {{cost}}?
+        translation: Chiếc áo khoác này có giá bao nhiêu?
+        cloze_hint: c___
+
+  - id: customer-noun
+    headword: customer
+    pos: noun
+    ipa: /ˈkʌstəmə/
+    cefr: A2
+    tags: [business, people]
+    senses:
+      - definition_en: a person who buys goods or a service
+        definition_vi: khách hàng
+        register: neutral
+    examples:
+      - text: The shop offers excellent service to its regular {{customers}}.
+        translation: Cửa hàng cung cấp dịch vụ xuất sắc cho các khách hàng thường xuyên.
+        cloze_hint: c_______
+
+  - id: debt-noun
+    headword: debt
+    pos: noun
+    ipa: /det/
+    cefr: B1
+    tags: [money]
+    senses:
+      - definition_en: something, especially money, that is owed to someone else
+        definition_vi: khoản nợ
+        register: neutral
+    examples:
+      - text: He managed to pay off his credit card {{debt}} in ten months.
+        translation: Anh ấy đã xoay sở để trả hết khoản nợ thẻ tín dụng của mình trong mười tháng.
+        cloze_hint: d___
+
+  - id: demand-noun
+    headword: demand
+    pos: noun
+    ipa: /dɪˈmɑːnd/
+    cefr: B1
+    tags: [business, abstract]
+    senses:
+      - definition_en: a need for something to be sold or supplied
+        definition_vi: nhu cầu
+        register: formal
+    examples:
+      - text: There is a huge {{demand}} for new housing in this area.
+        translation: Có một nhu cầu khổng lồ về nhà ở mới trong khu vực này.
+        cloze_hint: d_____
+
+  - id: export-verb
+    headword: export
+    pos: verb
+    ipa: /ɪkˈspɔːt/
+    cefr: B1
+    tags: [business, actions]
+    senses:
+      - definition_en: to send goods to another country for sale
+        definition_vi: xuất khẩu
+        register: formal
+    examples:
+      - text: Vietnam {{exports}} a large amount of rice to other countries.
+        translation: Việt Nam xuất khẩu một lượng lớn gạo sang các quốc gia khác.
+        cloze_hint: e_____
+
+  - id: fee-noun
+    headword: fee
+    pos: noun
+    ipa: /fiː/
+    cefr: B1
+    tags: [money, business]
+    senses:
+      - definition_en: an amount of money paid for a particular piece of work or for a particular right or service
+        definition_vi: lệ phí, học phí
+        register: formal
+    examples:
+      - text: You have to pay an entrance {{fee}} to visit the museum.
+        translation: Bạn phải trả một khoản lệ phí vào cửa để tham quan bảo tàng.
+        cloze_hint: f__
+
+  - id: fortune-noun
+    headword: fortune
+    pos: noun
+    ipa: /ˈfɔːtʃuːn/
+    cefr: B1
+    tags: [money]
+    senses:
+      - definition_en: a large amount of money, goods, property, etc.
+        definition_vi: gia tài, số tiền lớn
+        register: neutral
+    examples:
+      - text: She inherited a large {{fortune}} from her grandfather.
+        translation: Cô ấy được thừa kế một gia tài lớn từ ông nội của mình.
+        cloze_hint: f______
+
+  - id: import-verb
+    headword: import
+    pos: verb
+    ipa: /ɪmˈpɔːt/
+    cefr: B1
+    tags: [business, actions]
+    senses:
+      - definition_en: to buy or bring in products from another country
+        definition_vi: nhập khẩu
+        register: formal
+    examples:
+      - text: We {{import}} most of our raw materials from China.
+        translation: Chúng tôi nhập khẩu phần lớn nguyên liệu thô từ Trung Quốc.
+        cloze_hint: i_____
+
+  - id: invest-verb
+    headword: invest
+    pos: verb
+    ipa: /ɪnˈvest/
+    cefr: B1
+    tags: [business, money]
+    senses:
+      - definition_en: to put money, effort, time, etc. into something to make a profit or get an advantage
+        definition_vi: đầu tư
+        register: formal
+    examples:
+      - text: The company plans to {{invest}} heavily in new technology.
+        translation: Công ty có kế hoạch đầu tư mạnh mẽ vào công nghệ mới.
+        cloze_hint: i_____
+
+  - id: obtain-verb
+    headword: obtain
+    pos: verb
+    ipa: /əbˈteɪn/
+    cefr: B1
+    tags: [actions]
+    senses:
+      - definition_en: to get something, especially by asking for it, buying it, working for it, or producing it
+        definition_vi: đạt được, thu được
+        register: formal
+    examples:
+      - text: You need to {{obtain}} permission before taking any photographs here.
+        translation: Bạn cần phải đạt được sự cho phép trước khi chụp bất kỳ bức ảnh nào ở đây.
+        cloze_hint: o_____
+
+  - id: owe-verb
+    headword: owe
+    pos: verb
+    ipa: /əʊ/
+    cefr: B1
+    tags: [money, actions]
+    senses:
+      - definition_en: to need to pay or give something to someone because they have lent money to you
+        definition_vi: nợ
+        register: neutral
+    examples:
+      - text: I still {{owe}} my brother fifty dollars.
+        translation: Tôi vẫn còn nợ anh trai mình năm mươi đô la.
+        cloze_hint: o__
+
+  - id: own-verb
+    headword: own
+    pos: verb
+    ipa: /əʊn/
+    cefr: A2
+    tags: [actions, property]
+    senses:
+      - definition_en: to have something that legally belongs to you
+        definition_vi: sở hữu
+        register: neutral
+    examples:
+      - text: Do you rent this house, or do you {{own}} it?
+        translation: Bạn thuê ngôi nhà này, hay bạn sở hữu nó?
+        cloze_hint: o__
+
+  - id: profit-noun
+    headword: profit
+    pos: noun
+    ipa: /ˈprɒfɪt/
+    cefr: B1
+    tags: [business, money]
+    senses:
+      - definition_en: money that is earned in trade or business after paying the costs of producing and selling goods and services
+        definition_vi: lợi nhuận
+        register: formal
+    examples:
+      - text: The agency expects to make a significant {{profit}} in its first year.
+        translation: Đại lý dự kiến sẽ tạo ra một mức lợi nhuận đáng kể trong năm đầu tiên.
+        cloze_hint: p_____
+
+  - id: property-noun
+    headword: property
+    pos: noun
+    ipa: /ˈprɒpəti/
+    cefr: B1
+    tags: [money, places]
+    senses:
+      - definition_en: an object or objects that belong to someone; a building or area of land
+        definition_vi: tài sản, bất động sản
+        register: formal
+    examples:
+      - text: He has invested all his money in real estate and {{property}}.
+        translation: Anh ấy đã đầu tư toàn bộ tiền của mình vào bất động sản và tài sản.
+        cloze_hint: p_______
+
+  - id: purchase-verb
+    headword: purchase
+    pos: verb
+    ipa: /ˈpɜːtʃəs/
+    cefr: B1
+    tags: [shopping, actions]
+    senses:
+      - definition_en: to buy something
+        definition_vi: mua sắm
+        register: formal
+    examples:
+      - text: Tickets must be {{purchased}} two weeks in advance.
+        translation: Vé phải được mua sắm trước hai tuần.
+        cloze_hint: p_______
+
+  - id: receipt-noun
+    headword: receipt
+    pos: noun
+    ipa: /rɪˈsiːt/
+    cefr: B1
+    tags: [shopping, money]
+    senses:
+      - definition_en: a piece of paper that proves that money, goods, or information have been received
+        definition_vi: biên lai
+        register: neutral
+    examples:
+      - text: Make sure you keep the {{receipt}} in case you need to return the shoes.
+        translation: Đảm bảo rằng bạn giữ lại biên lai trong trường hợp bạn cần trả lại đôi giày.
+        cloze_hint: r______
+
+  - id: require-verb
+    headword: require
+    pos: verb
+    ipa: /rɪˈkwaɪə/
+    cefr: B1
+    tags: [actions, abstract]
+    senses:
+      - definition_en: to need something or make something necessary
+        definition_vi: yêu cầu, đòi hỏi
+        register: formal
+    examples:
+      - text: Building a data warehouse {{requires}} a lot of technical skill.
+        translation: Việc xây dựng một kho dữ liệu yêu cầu rất nhiều kỹ năng kỹ thuật.
+        cloze_hint: r______
+
+  - id: sale-noun
+    headword: sale
+    pos: noun
+    ipa: /seɪl/
+    cefr: A2
+    tags: [shopping, business]
+    senses:
+      - definition_en: an act of exchanging something for money; a period when a shop sells goods at lower prices
+        definition_vi: sự bán hàng, đợt giảm giá
+        register: neutral
+    examples:
+      - text: I bought this sweater for half price during the winter {{sale}}.
+        translation: Tôi đã mua chiếc áo len này với giá một nửa trong đợt giảm giá mùa đông.
+        cloze_hint: s___
+
+  - id: save-verb
+    headword: save
+    pos: verb
+    ipa: /seɪv/
+    cefr: A2
+    tags: [money, actions]
+    senses:
+      - definition_en: to keep money so that you can buy something with it in the future
+        definition_vi: tiết kiệm
+        register: neutral
+    examples:
+      - text: I am trying to {{save}} enough money to start my own agency.
+        translation: Tôi đang cố gắng tiết kiệm đủ tiền để bắt đầu đại lý của riêng mình.
+        cloze_hint: s___
+
+  - id: select-verb
+    headword: select
+    pos: verb
+    ipa: /sɪˈlekt/
+    cefr: B1
+    tags: [actions]
+    senses:
+      - definition_en: to choose a small number of things, or to choose by making careful decisions
+        definition_vi: lựa chọn
+        register: formal
+    examples:
+      - text: The system allows you to {{select}} data from multiple platforms.
+        translation: Hệ thống cho phép bạn lựa chọn dữ liệu từ nhiều nền tảng.
+        cloze_hint: s_____
+
+  - id: supply-verb
+    headword: supply
+    pos: verb
+    ipa: /səˈplaɪ/
+    cefr: B1
+    tags: [business, actions]
+    senses:
+      - definition_en: to provide something that is wanted or needed, often in large quantities
+        definition_vi: cung cấp
+        register: formal
+    examples:
+      - text: Our agency will {{supply}} centralized data dashboards for retail clients.
+        translation: Đại lý của chúng tôi sẽ cung cấp các bảng điều khiển dữ liệu tập trung cho khách hàng bán lẻ.
+        cloze_hint: s_____
+
+  - id: variety-noun
+    headword: variety
+    pos: noun
+    ipa: /vəˈraɪəti/
+    cefr: B1
+    tags: [abstract]
+    senses:
+      - definition_en: many different types of things or people
+        definition_vi: sự đa dạng
+        register: neutral
+    examples:
+      - text: The supermarket offers a wide {{variety}} of organic products.
+        translation: Siêu thị cung cấp một sự đa dạng lớn các sản phẩm hữu cơ.
+        cloze_hint: v______
+
+  - id: waste-verb
+    headword: waste
+    pos: verb
+    ipa: /weɪst/
+    cefr: A2
+    tags: [money, actions]
+    senses:
+      - definition_en: to use too much of something or use something badly when there is a limited amount of it
+        definition_vi: lãng phí
+        register: neutral
+    examples:
+      - text: Don't {{waste}} your money on things you don't really need.
+        translation: Đừng lãng phí tiền của bạn vào những thứ bạn không thực sự cần.
+        cloze_hint: w____
+
+  # --- PHRASAL VERBS ---
+  - id: add-up-phrasal_verb
+    headword: add up
+    pos: phrasal_verb
+    cefr: B1
+    tags: [math, mind]
+    senses:
+      - definition_en: to calculate the total of two or more numbers
+        definition_vi: tính tổng
+        register: neutral
+      - definition_en: to seem reasonable or likely
+        definition_vi: có vẻ hợp lý
+        register: neutral
+    examples:
+      - text: His explanation for losing the money just doesn't {{add up}}.
+        translation: Lời giải thích của anh ta về việc làm mất tiền nghe không có vẻ hợp lý chút nào.
+
+  - id: come-back-phrasal_verb
+    headword: come back
+    pos: phrasal_verb
+    cefr: A2
+    tags: [travel, actions]
+    senses:
+      - definition_en: to return to a place
+        definition_vi: trở về (từ)
+        register: neutral
+    examples:
+      - text: When did you {{come back}} from your trip to Thailand?
+        translation: Bạn trở về từ chuyến đi Thái Lan khi nào?
+
+  - id: give-away-phrasal_verb
+    headword: give away
+    pos: phrasal_verb
+    cefr: B1
+    tags: [actions, objects]
+    senses:
+      - definition_en: to give something to someone without asking for payment
+        definition_vi: cho đi, tặng miễn phí
+        register: neutral
+    examples:
+      - text: The shop is {{giving away}} free samples of their new coffee.
+        translation: Cửa hàng đang tặng miễn phí các mẫu thử cà phê mới của họ.
+
+  - id: hurry-up-phrasal_verb
+    headword: hurry up
+    pos: phrasal_verb
+    cefr: A2
+    tags: [time, actions]
+    senses:
+      - definition_en: to do something more quickly
+        definition_vi: nhanh lên
+        register: informal
+    examples:
+      - text: "{{Hurry up}}, or we will miss the beginning of the movie!"
+        translation: Nhanh lên, nếu không chúng ta sẽ bỏ lỡ phần đầu của bộ phim!
+
+  - id: pay-back-phrasal_verb
+    headword: pay back
+    pos: phrasal_verb
+    cefr: B1
+    tags: [money, actions]
+    senses:
+      - definition_en: to give someone the same amount of money that you borrowed from them
+        definition_vi: trả nợ
+        register: neutral
+    examples:
+      - text: I will {{pay you back}} the fifty dollars I owe you tomorrow.
+        translation: Tôi sẽ trả nợ cho bạn năm mươi đô la tôi nợ bạn vào ngày mai.
+
+  - id: save-up-phrasal_verb
+    headword: save up
+    pos: phrasal_verb
+    cefr: B1
+    tags: [money, actions]
+    senses:
+      - definition_en: to keep money so that you can buy something with it in the future
+        definition_vi: tiết kiệm (để mua gì)
+        register: neutral
+    examples:
+      - text: They are {{saving up}} for a deposit on a new apartment.
+        translation: Họ đang tiết kiệm để đặt cọc cho một căn hộ mới.
+
+  - id: take-back-phrasal_verb
+    headword: take back
+    pos: phrasal_verb
+    cefr: B1
+    tags: [shopping, actions]
+    senses:
+      - definition_en: to return something you have bought to a shop
+        definition_vi: trả lại món hàng đã mua
+        register: neutral
+    examples:
+      - text: The shoes were too small, so I had to {{take them back}} to the store.
+        translation: Đôi giày quá nhỏ, nên tôi đã phải trả lại chúng cho cửa hàng.
+
+  - id: take-down-phrasal_verb
+    headword: take down
+    pos: phrasal_verb
+    cefr: B1
+    tags: [actions]
+    senses:
+      - definition_en: to remove something that is on a wall or something that is temporary
+        definition_vi: lấy xuống
+        register: neutral
+      - definition_en: to write something that another person has just said
+        definition_vi: ghi chép lại
+        register: neutral
+    examples:
+      - text: The reporter carefully {{took down}} everything the manager said.
+        translation: Người phóng viên cẩn thận ghi chép lại mọi thứ mà người quản lý đã nói.
+
+  # --- WORD FORMATION (ROOTS & DERIVATIVES) ---
+  - id: add-verb
+    headword: add
+    pos: verb
+    ipa: /æd/
+    cefr: A1
+    tags: [formation, actions]
+    senses:
+      - definition_en: to put something with something else to increase the number or amount
+        definition_vi: thêm vào
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: addition
+
+  - id: compare-verb
+    headword: compare
+    pos: verb
+    ipa: /kəmˈpeə/
+    cefr: A2
+    tags: [formation, abstract]
+    senses:
+      - definition_en: to examine or look for the difference between two or more things
+        definition_vi: so sánh
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: comparison
+
+  - id: decide-verb
+    headword: decide
+    pos: verb
+    ipa: /dɪˈsaɪd/
+    cefr: A2
+    tags: [formation, mind]
+    senses:
+      - definition_en: to choose something, especially after thinking carefully about several possibilities
+        definition_vi: quyết định
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: decision
+
+  - id: expense-noun
+    headword: expense
+    pos: noun
+    ipa: /ɪkˈspens/
+    cefr: B1
+    tags: [formation, money]
+    senses:
+      - definition_en: the use of money, time, or effort
+        definition_vi: chi phí
+        register: formal
+    relations:
+      - relation: derived_from
+        text: expensive
+      - relation: derived_from
+        text: inexpensive
+
+  - id: judge-verb
+    headword: judge
+    pos: verb
+    ipa: /dʒʌdʒ/
+    cefr: B1
+    tags: [formation, mind]
+    senses:
+      - definition_en: to form, give, or have as an opinion, or to decide about something or someone
+        definition_vi: đánh giá, phán xét
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: judgement
+
+  - id: serve-verb
+    headword: serve
+    pos: verb
+    ipa: /sɜːv/
+    cefr: A2
+    tags: [formation, actions, business]
+    senses:
+      - definition_en: to provide food or drinks; to work for or do your duty to something
+        definition_vi: phục vụ
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: service
+      - relation: derived_from
+        text: servant
+
+  - id: true-adjective
+    headword: "true"
+    pos: adjective
+    ipa: /truː/
+    cefr: A1
+    tags: [formation, abstract]
+    senses:
+      - definition_en: right and not wrong; correct
+        definition_vi: đúng
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: truth
+      - relation: derived_from
+        text: untrue
+      - relation: derived_from
+        text: truthful
+
+  - id: use-verb
+    headword: use
+    pos: verb
+    ipa: /juːz/
+    cefr: A1
+    tags: [formation, actions]
+    senses:
+      - definition_en: to put something such as a tool, skill, or building to a particular purpose
+        definition_vi: sử dụng
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: useful
+      - relation: derived_from
+        text: useless
+
+  - id: value-noun
+    headword: value
+    pos: noun
+    ipa: /ˈvæljuː/
+    cefr: B1
+    tags: [formation, money, abstract]
+    senses:
+      - definition_en: the amount of money that can be received for something; the importance or worth of something
+        definition_vi: giá trị
+        register: formal
+    relations:
+      - relation: derived_from
+        text: valuable
+
+  # --- WORD PATTERNS (BASE WORDS) ---
+  - id: wrong-adjective
+    headword: wrong
+    pos: adjective
+    ipa: /rɒŋ/
+    cefr: A1
+    tags: [patterns, description]
+    senses:
+      - definition_en: not correct
+        definition_vi: sai
+        register: neutral
+    collocations:
+      - collocation: wrong about
+        pattern: adj+prep
+      - collocation: wrong with
+        pattern: adj+prep
+
+  - id: belong-verb
+    headword: belong
+    pos: verb
+    ipa: /bɪˈlɒŋ/
+    cefr: A2
+    tags: [patterns, property]
+    senses:
+      - definition_en: to be the property of a person or thing
+        definition_vi: thuộc về
+        register: neutral
+    collocations:
+      - collocation: belong to
+        pattern: verb+prep
+
+  - id: borrow-verb
+    headword: borrow
+    pos: verb
+    ipa: /ˈbɒrəʊ/
+    cefr: A2
+    tags: [patterns, actions, money]
+    senses:
+      - definition_en: to get or receive something from someone with the intention of giving it back after a period of time
+        definition_vi: mượn
+        register: neutral
+    collocations:
+      - collocation: borrow from
+        pattern: verb+prep
+
+  - id: buy-verb
+    headword: buy
+    pos: verb
+    ipa: /baɪ/
+    cefr: A1
+    tags: [patterns, shopping, actions]
+    senses:
+      - definition_en: to get something by paying money for it
+        definition_vi: mua
+        register: neutral
+    collocations:
+      - collocation: buy from
+        pattern: verb+prep
+
+  - id: choose-verb
+    headword: choose
+    pos: verb
+    ipa: /tʃuːz/
+    cefr: A1
+    tags: [patterns, mind]
+    senses:
+      - definition_en: to decide what you want from two or more things or possibilities
+        definition_vi: chọn lựa
+        register: neutral
+    collocations:
+      - collocation: choose between
+        pattern: verb+prep
+
+  - id: decide-verb-pattern
+    headword: decide
+    pos: verb
+    ipa: /dɪˈsaɪd/
+    cefr: A2
+    tags: [patterns, mind]
+    senses:
+      - definition_en: to choose something, especially after thinking carefully about several possibilities
+        definition_vi: quyết định
+        register: neutral
+    collocations:
+      - collocation: decide on
+        pattern: verb+prep
+
+  - id: lend-verb
+    headword: lend
+    pos: verb
+    ipa: /lend/
+    cefr: A2
+    tags: [patterns, actions, money]
+    senses:
+      - definition_en: to give something to someone for a short period of time, expecting it to be given back
+        definition_vi: cho mượn
+        register: neutral
+    collocations:
+      - collocation: lend to
+        pattern: verb+prep
+
+  - id: pay-verb
+    headword: pay
+    pos: verb
+    ipa: /peɪ/
+    cefr: A1
+    tags: [patterns, actions, money]
+    senses:
+      - definition_en: to give money to someone for something you want to buy or for services provided
+        definition_vi: trả tiền
+        register: neutral
+    collocations:
+      - collocation: pay for
+        pattern: verb+prep
+
+  - id: spend-verb
+    headword: spend
+    pos: verb
+    ipa: /spend/
+    cefr: A1
+    tags: [patterns, actions, money]
+    senses:
+      - definition_en: to give money as a payment for something
+        definition_vi: dành, tiêu
+        register: neutral
+    collocations:
+      - collocation: spend on
+        pattern: verb+prep

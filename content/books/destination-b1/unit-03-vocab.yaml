@@ -1,141 +1,840 @@
+# Destination B1 — Unit 3: Fun and games
 book: destination-b1
+
 unit:
   ordinal: 3
   code: U03
-  title: Education & Learning
+  title: Fun and games
 
 lesson:
   ordinal: 1
   kind: vocabulary
-  title: School & Studying
-  slug: school-and-studying
+  title: Vocabulary, Phrasal Verbs & Patterns
+  slug: vocab-phrasal-verbs-patterns
 
 entries:
-  - id: syllabus-noun
-    headword: syllabus
-    pos: noun
-    ipa: /ˈsɪləbəs/
+  # --- TOPIC VOCABULARY ---
+  - id: beat-verb
+    headword: beat
+    pos: verb
+    ipa: /biːt/
     cefr: B1
-    tags: [education, school]
+    tags: [games, sports]
     senses:
-      - definition_en: a list of the topics, books, etc. that students should study in a particular subject
-        definition_vi: đề cương, giáo trình
+      - definition_en: to defeat someone in a game, competition, election, or battle
+        definition_vi: đánh bại
+        register: neutral
     examples:
-      - text: The history {{syllabus}} covers the 20th century.
-        translation: Đề cương môn lịch sử bao gồm thế kỷ 20.
+      - text: I managed to {{beat}} him at chess.
+        translation: Tôi đã xoay sở để đánh bại anh ấy môn cờ vua.
+        cloze_hint: b____
+    forms:
+      - kind: past
+        text: beat
+      - kind: past_participle
+        text: beaten
+
+  - id: board-game-noun
+    headword: board game
+    pos: noun
+    ipa: /ˈbɔːd ˌɡeɪm/
+    cefr: B1
+    tags: [games, entertainment]
     forms:
       - kind: plural
-        text: syllabuses
-        
-  - id: catch-on-phrasal_verb
-    headword: catch on
-    pos: phrasal_verb
-    cefr: B1
-    tags: [learning, understanding]
+        text: board games
     senses:
-      - definition_en: to understand something, especially after a long time
-        definition_vi: hiểu ra
+      - definition_en: any game in which you move objects around on a special board
+        definition_vi: trò chơi bàn cờ
+        register: neutral
     examples:
-      - text: He didn't understand at first, but he quickly {{caught on}}.
-        translation: Lúc đầu anh ấy không hiểu, nhưng đã nhanh chóng hiểu ra.
+      - text: Monopoly is a very popular {{board game}}.
+        translation: Cờ tỷ phú là một trò chơi bàn cờ rất phổ biến.
+        cloze_hint: b____ g___
+
+  - id: captain-noun
+    headword: captain
+    pos: noun
+    ipa: /ˈkæptɪn/
+    cefr: B1
+    tags: [sports, people]
     forms:
-      - kind: past
-        text: caught on
-      - kind: past_participle
-        text: caught on
+      - kind: plural
+        text: captains
+    senses:
+      - definition_en: the person who is in charge of a team or ship
+        definition_vi: đội trưởng
+        register: neutral
+    examples:
+      - text: She was chosen as the {{captain}} of the volleyball team.
+        translation: Cô ấy được chọn làm đội trưởng của đội bóng chuyền.
+        cloze_hint: c______
 
-  - id: degree-noun
-    headword: degree
+  - id: challenge-noun
+    headword: challenge
     pos: noun
-    ipa: /dɪˈɡriː/
+    ipa: /ˈtʃælɪndʒ/
     cefr: B1
-    tags: [education, university]
+    tags: [games, abstract]
     senses:
-      - definition_en: a qualification given for completing a university course
-        definition_vi: bằng cấp (đại học)
+      - definition_en: something that needs a lot of skill, energy, and determination to deal with or achieve
+        definition_vi: thách thức
+        register: neutral
     examples:
-      - text: She has a {{degree}} in physics from Oxford.
-        translation: Cô ấy có bằng vật lý từ Oxford.
-    collocations:
-      - collocation: do a degree
-        pattern: verb+noun
-      - collocation: have a degree
-        pattern: verb+noun
+      - text: Climbing the mountain will be a real {{challenge}}.
+        translation: Leo lên ngọn núi sẽ là một thách thức thực sự.
+        cloze_hint: c________
 
-  - id: primary-adjective
-    headword: primary
-    pos: adjective
-    ipa: /ˈpraɪməri/
-    cefr: B1
-    tags: [education, school]
-    senses:
-      - definition_en: connected with the education of children between the ages of about 5 and 11
-        definition_vi: tiểu học
-    examples:
-      - text: My daughter is in her first year of {{primary}} school.
-        translation: Con gái tôi đang học năm đầu tiên ở trường tiểu học.
-    collocations:
-      - collocation: primary school
-        pattern: adj+noun
-
-  - id: term-noun
-    headword: term
+  - id: champion-noun
+    headword: champion
     pos: noun
-    ipa: /tɜːm/
+    ipa: /ˈtʃæmpiən/
     cefr: B1
-    tags: [education, time]
+    tags: [sports, people]
     senses:
-      - definition_en: one of the periods into which a year is divided at school, college, or university
-        definition_vi: học kỳ
+      - definition_en: someone or something that has won a competition, especially in sports
+        definition_vi: nhà vô địch
+        register: neutral
     examples:
-      - text: Exams will be held at the end of the spring {{term}}.
-        translation: Các kỳ thi sẽ được tổ chức vào cuối học kỳ mùa xuân.
-    relations:
-      - relation: synonym
-        text: semester
+      - text: He became the world heavyweight {{champion}}.
+        translation: Anh ấy đã trở thành nhà vô địch quyền anh hạng nặng thế giới.
+        cloze_hint: c_______
 
-  - id: revise-verb
-    headword: revise
+  - id: cheat-verb
+    headword: cheat
     pos: verb
-    ipa: /rɪˈvaɪz/
+    ipa: /tʃiːt/
     cefr: B1
-    tags: [studying, exams]
+    tags: [games, actions]
     senses:
-      - definition_en: to study a subject before you take an exam
-        definition_vi: ôn tập
+      - definition_en: to behave in a dishonest way in order to get what you want
+        definition_vi: gian lận
+        register: neutral
     examples:
-      - text: I need to {{revise}} for my math test tomorrow.
-        translation: Tôi cần ôn tập cho bài kiểm tra toán vào ngày mai.
+      - text: You are not allowed to look at your notes, that is {{cheating}}.
+        translation: Bạn không được phép nhìn vào ghi chú của mình, đó là gian lận.
+        cloze_hint: c_______
+
+  - id: classical-music-noun
+    headword: classical music
+    pos: noun
+    ipa: /ˌklæsɪkl ˈmjuːzɪk/
+    cefr: B1
+    tags: [music, entertainment]
+    senses:
+      - definition_en: a form of music developed from a European tradition mainly in the 18th and 19th centuries
+        definition_vi: nhạc cổ điển
+        register: formal
+    examples:
+      - text: She prefers listening to {{classical music}} over pop.
+        translation: Cô ấy thích nghe nhạc cổ điển hơn là nhạc pop.
+        cloze_hint: c________ m____
+
+  - id: club-noun
+    headword: club
+    pos: noun
+    ipa: /klʌb/
+    cefr: A2
+    tags: [entertainment, people]
+    senses:
+      - definition_en: an organization of people with a common purpose or interest, who meet regularly
+        definition_vi: câu lạc bộ
+        register: neutral
+    examples:
+      - text: I decided to join the local photography {{club}}.
+        translation: Tôi quyết định tham gia câu lạc bộ nhiếp ảnh địa phương.
+        cloze_hint: c___
+
+  - id: coach-noun
+    headword: coach
+    pos: noun
+    ipa: /kəʊtʃ/
+    cefr: B1
+    tags: [sports, people]
+    senses:
+      - definition_en: someone whose job is to train and organize a sports team
+        definition_vi: huấn luyện viên
+        register: neutral
+    examples:
+      - text: The tennis {{coach}} told me to practice my serve.
+        translation: Huấn luyện viên quần vợt bảo tôi luyện tập cú giao bóng.
+        cloze_hint: c____
+
+  - id: competition-noun
+    headword: competition
+    pos: noun
+    ipa: /ˌkɒmpəˈtɪʃn/
+    cefr: A2
+    tags: [sports, games]
+    senses:
+      - definition_en: an organized event in which people try to win a prize by being the best
+        definition_vi: cuộc thi
+        register: neutral
+    examples:
+      - text: She entered a dancing {{competition}} and won first prize.
+        translation: Cô ấy đã tham gia một cuộc thi khiêu vũ và giành giải nhất.
+        cloze_hint: c__________
+
+  - id: concert-noun
+    headword: concert
+    pos: noun
+    ipa: /ˈkɒnsət/
+    cefr: A2
+    tags: [music, entertainment]
+    senses:
+      - definition_en: a performance of music by one or more musicians or singers
+        definition_vi: buổi hòa nhạc
+        register: neutral
+    examples:
+      - text: We got tickets for the rock {{concert}} next week.
+        translation: Chúng tôi đã có vé cho buổi hòa nhạc rock vào tuần tới.
+        cloze_hint: c______
+
+  - id: defeat-verb
+    headword: defeat
+    pos: verb
+    ipa: /dɪˈfiːt/
+    cefr: B1
+    tags: [sports, actions]
+    senses:
+      - definition_en: to win against someone in a fight, war, or competition
+        definition_vi: đánh bại
+        register: formal
+    examples:
+      - text: The national team was {{defeated}} in the final match.
+        translation: Đội tuyển quốc gia đã bị đánh bại trong trận chung kết.
+        cloze_hint: d_______
     relations:
       - relation: synonym
-        text: review
+        text: beat
 
-  - id: drop-out-phrasal_verb
-    headword: drop out
+  - id: entertaining-adjective
+    headword: entertaining
+    pos: adjective
+    ipa: /ˌentəˈteɪnɪŋ/
+    cefr: B1
+    tags: [entertainment, description]
+    senses:
+      - definition_en: funny and enjoyable
+        definition_vi: mang tính giải trí, thú vị
+        register: neutral
+    examples:
+      - text: It was an {{entertaining}} movie, but not very realistic.
+        translation: Đó là một bộ phim mang tính giải trí, nhưng không thực tế lắm.
+        cloze_hint: e___________
+
+  - id: folk-music-noun
+    headword: folk music
+    pos: noun
+    ipa: /ˈfəʊk ˌmjuːzɪk/
+    cefr: B1
+    tags: [music, culture]
+    senses:
+      - definition_en: the traditional music of a particular region or group of people
+        definition_vi: nhạc dân gian
+        register: neutral
+    examples:
+      - text: The festival features traditional dance and {{folk music}}.
+        translation: Lễ hội có khiêu vũ truyền thống và nhạc dân gian.
+        cloze_hint: f___ m____
+
+  - id: group-noun
+    headword: group
+    pos: noun
+    ipa: /ɡruːp/
+    cefr: A2
+    tags: [music, people]
+    senses:
+      - definition_en: a number of people who play music together
+        definition_vi: nhóm (nhạc)
+        register: neutral
+    examples:
+      - text: My favorite pop {{group}} is going on tour next year.
+        translation: Nhóm nhạc pop yêu thích của tôi sẽ đi lưu diễn vào năm tới.
+        cloze_hint: g____
+
+  - id: gym-noun
+    headword: gym
+    pos: noun
+    ipa: /dʒɪm/
+    cefr: A2
+    tags: [sports, places]
+    senses:
+      - definition_en: a building with equipment for doing physical exercise
+        definition_vi: phòng tập thể dục
+        register: neutral
+    examples:
+      - text: I go to the {{gym}} three times a week to stay fit.
+        translation: Tôi đến phòng tập thể dục ba lần một tuần để giữ dáng.
+        cloze_hint: g__
+
+  - id: have-fun-verb
+    headword: have fun
+    pos: verb
+    ipa: /hæv fʌn/
+    cefr: A1
+    tags: [entertainment, actions]
+    senses:
+      - definition_en: to enjoy yourself
+        definition_vi: vui vẻ
+        register: informal
+    examples:
+      - text: Just relax and {{have fun}} at the party tonight.
+        translation: Cứ thư giãn và vui vẻ tại bữa tiệc tối nay nhé.
+        cloze_hint: h___ f__
+
+  - id: interest-noun
+    headword: interest
+    pos: noun
+    ipa: /ˈɪntrəst/
+    cefr: A2
+    tags: [abstract]
+    senses:
+      - definition_en: something you enjoy doing, studying, or experiencing
+        definition_vi: sở thích, sự quan tâm
+        register: neutral
+    examples:
+      - text: He has a strong {{interest}} in modern art.
+        translation: Anh ấy có sự quan tâm mãnh liệt đến nghệ thuật hiện đại.
+        cloze_hint: i_______
+
+  - id: member-noun
+    headword: member
+    pos: noun
+    ipa: /ˈmembə/
+    cefr: A2
+    tags: [people]
+    senses:
+      - definition_en: a person, animal, or thing that is part of a group
+        definition_vi: thành viên
+        register: neutral
+    examples:
+      - text: She is a new {{member}} of the school choir.
+        translation: Cô ấy là một thành viên mới của dàn đồng ca trường.
+        cloze_hint: m_____
+
+  - id: opponent-noun
+    headword: opponent
+    pos: noun
+    ipa: /əˈpəʊnənt/
+    cefr: B1
+    tags: [sports, people]
+    senses:
+      - definition_en: a person who someone is competing against in a sports event or game
+        definition_vi: đối thủ
+        register: neutral
+    examples:
+      - text: His {{opponent}} was much taller and stronger.
+        translation: Đối thủ của anh ấy cao hơn và khỏe hơn nhiều.
+        cloze_hint: o_______
+
+  - id: organise-verb
+    headword: organise
+    pos: verb
+    ipa: /ˈɔːɡənaɪz/
+    cefr: B1
+    tags: [actions]
+    senses:
+      - definition_en: to make arrangements for something to happen
+        definition_vi: tổ chức
+        register: neutral
+    examples:
+      - text: They are helping to {{organise}} the school sports day.
+        translation: Họ đang giúp tổ chức ngày hội thể thao của trường.
+        cloze_hint: o_______
+
+  - id: pleasure-noun
+    headword: pleasure
+    pos: noun
+    ipa: /ˈpleʒə/
+    cefr: B1
+    tags: [feelings]
+    senses:
+      - definition_en: enjoyment, happiness, or satisfaction
+        definition_vi: niềm vui
+        register: neutral
+    examples:
+      - text: Reading gives him a lot of {{pleasure}}.
+        translation: Việc đọc sách mang lại cho anh ấy rất nhiều niềm vui.
+        cloze_hint: p_______
+
+  - id: referee-noun
+    headword: referee
+    pos: noun
+    ipa: /ˌrefəˈriː/
+    cefr: B1
+    tags: [sports, people]
+    senses:
+      - definition_en: a person who is in charge of a sports game and who makes certain that the rules are followed
+        definition_vi: trọng tài
+        register: neutral
+    examples:
+      - text: The {{referee}} blew his whistle to end the match.
+        translation: Trọng tài thổi còi để kết thúc trận đấu.
+        cloze_hint: r______
+
+  - id: rhythm-noun
+    headword: rhythm
+    pos: noun
+    ipa: /ˈrɪðəm/
+    cefr: B1
+    tags: [music]
+    senses:
+      - definition_en: a strong, regular, repeated pattern of movement or sound
+        definition_vi: nhịp điệu
+        register: neutral
+    examples:
+      - text: The dancer moved beautifully to the {{rhythm}} of the drums.
+        translation: Người vũ công di chuyển tuyệt đẹp theo nhịp điệu của tiếng trống.
+        cloze_hint: r_____
+
+  - id: risk-noun
+    headword: risk
+    pos: noun
+    ipa: /rɪsk/
+    cefr: B1
+    tags: [abstract]
+    senses:
+      - definition_en: the possibility of something bad happening
+        definition_vi: rủi ro, sự liều lĩnh
+        register: neutral
+    examples:
+      - text: Extreme sports always involve some level of {{risk}}.
+        translation: Thể thao mạo hiểm luôn đi kèm với một mức độ rủi ro nhất định.
+        cloze_hint: r___
+
+  - id: score-verb
+    headword: score
+    pos: verb
+    ipa: /skɔː/
+    cefr: A2
+    tags: [sports, games]
+    senses:
+      - definition_en: to win or get a point, goal, etc. in a competition or sport
+        definition_vi: ghi bàn, ghi điểm
+        register: neutral
+    examples:
+      - text: He managed to {{score}} a goal in the last minute.
+        translation: Anh ấy đã xoay sở để ghi một bàn thắng vào phút cuối.
+        cloze_hint: s____
+
+  - id: support-verb
+    headword: support
+    pos: verb
+    ipa: /səˈpɔːt/
+    cefr: B1
+    tags: [sports, actions]
+    senses:
+      - definition_en: to like a particular sports team and always want them to win
+        definition_vi: ủng hộ, hỗ trợ
+        register: neutral
+    examples:
+      - text: Which football team do you {{support}}?
+        translation: Bạn ủng hộ đội bóng đá nào?
+        cloze_hint: s______
+
+  - id: team-noun
+    headword: team
+    pos: noun
+    ipa: /tiːm/
+    cefr: A1
+    tags: [sports, people]
+    senses:
+      - definition_en: a number of people who play a sport or game together against another group
+        definition_vi: đội
+        register: neutral
+    examples:
+      - text: Our {{team}} won the championship this year.
+        translation: Đội của chúng tôi đã giành chức vô địch năm nay.
+        cloze_hint: t___
+
+  - id: train-verb
+    headword: train
+    pos: verb
+    ipa: /treɪn/
+    cefr: A2
+    tags: [sports, actions]
+    senses:
+      - definition_en: to prepare someone or yourself for a job, activity, or sport, by learning skills and/or by mental or physical exercise
+        definition_vi: huấn luyện, tập luyện
+        register: neutral
+    examples:
+      - text: Athletes have to {{train}} very hard before the Olympics.
+        translation: Các vận động viên phải tập luyện rất chăm chỉ trước kỳ Thế vận hội.
+        cloze_hint: t____
+
+  - id: video-game-noun
+    headword: video game
+    pos: noun
+    ipa: /ˈvɪdiəʊ ˌɡeɪm/
+    cefr: A1
+    tags: [games, entertainment]
+    senses:
+      - definition_en: a game in which you direct the action on a screen by using a controller
+        definition_vi: trò chơi điện tử
+        register: neutral
+    examples:
+      - text: My brother spends hours playing {{video games}} every day.
+        translation: Anh trai tôi dành hàng giờ để chơi trò chơi điện tử mỗi ngày.
+        cloze_hint: v____ g___
+
+  # --- PHRASAL VERBS ---
+  - id: carry-on-phrasal_verb
+    headword: carry on
     pos: phrasal_verb
     cefr: B1
-    tags: [education, school]
+    tags: [actions]
     senses:
-      - definition_en: to leave school, college, etc. without finishing your studies
-        definition_vi: bỏ học
+      - definition_en: to continue doing something
+        definition_vi: tiếp tục
+        register: neutral
     examples:
-      - text: He {{dropped out}} of university after only one year.
-        translation: Anh ấy đã bỏ học đại học chỉ sau một năm.
-    forms:
-      - kind: past
-        text: dropped out
-      - kind: past_participle
-        text: dropped out
+      - text: Despite the rain, they decided to {{carry on}} playing.
+        translation: Bất chấp trời mưa, họ quyết định tiếp tục chơi.
 
-  - id: uniform-noun
-    headword: uniform
-    pos: noun
-    ipa: /ˈjuːnɪfɔːm/
-    cefr: B1
-    tags: [education, clothing]
+  - id: eat-out-phrasal_verb
+    headword: eat out
+    pos: phrasal_verb
+    cefr: A2
+    tags: [food, actions]
     senses:
-      - definition_en: the special set of clothes worn by all members of an organization or by children at school
-        definition_vi: đồng phục
+      - definition_en: to eat in a restaurant instead of at home
+        definition_vi: ăn ở nhà hàng, ăn ngoài
+        register: neutral
     examples:
-      - text: The school {{uniform}} is a blue shirt and grey trousers.
-        translation: Đồng phục trường là áo sơ mi xanh và quần tây xám.
+      - text: We are too tired to cook, let's {{eat out}} tonight.
+        translation: Chúng ta quá mệt để nấu nướng, tối nay hãy ăn ngoài nhé.
+
+  - id: give-up-phrasal_verb
+    headword: give up
+    pos: phrasal_verb
+    cefr: A2
+    tags: [actions]
+    senses:
+      - definition_en: to stop trying to do something, often because it is too difficult
+        definition_vi: từ bỏ, bỏ cuộc
+        register: neutral
+    examples:
+      - text: The puzzle was so hard that I finally had to {{give up}}.
+        translation: Câu đố quá khó nên cuối cùng tôi đành phải bỏ cuộc.
+
+  - id: join-in-phrasal_verb
+    headword: join in
+    pos: phrasal_verb
+    cefr: B1
+    tags: [actions, social]
+    senses:
+      - definition_en: to become involved in an activity with other people
+        definition_vi: tham gia vào
+        register: neutral
+    examples:
+      - text: They were playing cards, and I asked if I could {{join in}}.
+        translation: Họ đang chơi bài, và tôi hỏi liệu tôi có thể tham gia vào không.
+
+  - id: send-off-phrasal_verb
+    headword: send off
+    pos: phrasal_verb
+    cefr: B1
+    tags: [sports, actions]
+    senses:
+      - definition_en: to order a sports player to leave the field because they have broken the rules
+        definition_vi: đuổi khỏi sân (thể thao)
+        register: neutral
+    examples:
+      - text: The player was {{sent off}} for arguing with the referee.
+        translation: Cầu thủ đã bị đuổi khỏi sân vì cãi nhau với trọng tài.
+
+  - id: take-up-phrasal_verb
+    headword: take up
+    pos: phrasal_verb
+    cefr: B1
+    tags: [hobbies, actions]
+    senses:
+      - definition_en: to start doing a particular job or activity
+        definition_vi: bắt đầu một sở thích/môn thể thao
+        register: neutral
+    examples:
+      - text: I decided to {{take up}} swimming to stay healthy.
+        translation: Tôi quyết định bắt đầu môn bơi lội để giữ sức khỏe.
+        
+  - id: turn-down-phrasal_verb
+    headword: turn down
+    pos: phrasal_verb
+    cefr: B1
+    tags: [actions]
+    senses:
+      - definition_en: to reduce the volume or level of something
+        definition_vi: vặn nhỏ (âm lượng)
+        register: neutral
+      - definition_en: to refuse an offer or request
+        definition_vi: từ chối
+        register: neutral
+    examples:
+      - text: Could you {{turn down}} the music? I'm trying to study.
+        translation: Bạn có thể vặn nhỏ nhạc xuống được không? Tôi đang cố gắng học.
+
+  - id: turn-up-phrasal_verb
+    headword: turn up
+    pos: phrasal_verb
+    cefr: B1
+    tags: [actions]
+    senses:
+      - definition_en: to increase the volume or level of something
+        definition_vi: vặn lớn (âm lượng)
+        register: neutral
+      - definition_en: to arrive or appear, often unexpectedly
+        definition_vi: xuất hiện
+        register: neutral
+    examples:
+      - text: He didn't {{turn up}} until the party was almost over.
+        translation: Anh ta đã không xuất hiện cho đến khi bữa tiệc gần kết thúc.
+
+  # --- WORD FORMATION (ROOTS & DERIVATIVES) ---
+  - id: act-verb
+    headword: act
+    pos: verb
+    ipa: /ækt/
+    cefr: B1
+    tags: [formation, actions]
+    senses:
+      - definition_en: to perform a part in a film, play, etc.
+        definition_vi: hành động, diễn xuất
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: action
+      - relation: derived_from
+        text: active
+      - relation: derived_from
+        text: inactive
+      - relation: derived_from
+        text: actor
+
+  - id: athlete-noun
+    headword: athlete
+    pos: noun
+    ipa: /ˈæθliːt/
+    cefr: B1
+    tags: [formation, people, sports]
+    senses:
+      - definition_en: a person who is very good at sports or physical exercise
+        definition_vi: vận động viên
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: athletic
+      - relation: derived_from
+        text: athletics
+
+  - id: child-noun
+    headword: child
+    pos: noun
+    ipa: /tʃaɪld/
+    cefr: A1
+    tags: [formation, people]
+    senses:
+      - definition_en: a boy or girl from the time of birth until he or she is an adult
+        definition_vi: đứa trẻ
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: children
+      - relation: derived_from
+        text: childhood
+
+  - id: collect-verb
+    headword: collect
+    pos: verb
+    ipa: /kəˈlekt/
+    cefr: A2
+    tags: [formation, actions]
+    senses:
+      - definition_en: to get and keep things of one type such as stamps or coins as a hobby
+        definition_vi: sưu tầm
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: collection
+      - relation: derived_from
+        text: collector
+
+  - id: entertain-verb
+    headword: entertain
+    pos: verb
+    ipa: /ˌentəˈteɪn/
+    cefr: B1
+    tags: [formation, actions]
+    senses:
+      - definition_en: to keep a group of people interested or enjoying themselves
+        definition_vi: giải trí
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: entertainment
+
+  - id: hero-noun
+    headword: hero
+    pos: noun
+    ipa: /ˈhɪərəʊ/
+    cefr: A2
+    tags: [formation, people]
+    senses:
+      - definition_en: a person who is admired for having done something very brave or having achieved something great
+        definition_vi: anh hùng
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: heroic
+      - relation: derived_from
+        text: heroine
+
+  - id: music-noun
+    headword: music
+    pos: noun
+    ipa: /ˈmjuːzɪk/
+    cefr: A1
+    tags: [formation, abstract]
+    senses:
+      - definition_en: a pattern of sounds made by musical instruments, voices, or computers
+        definition_vi: âm nhạc
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: musical
+      - relation: derived_from
+        text: musician
+
+  - id: play-verb
+    headword: play
+    pos: verb
+    ipa: /pleɪ/
+    cefr: A1
+    tags: [formation, games]
+    senses:
+      - definition_en: to take part in a game or other organized activity
+        definition_vi: chơi
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: player
+      - relation: derived_from
+        text: playful
+
+  - id: sail-verb
+    headword: sail
+    pos: verb
+    ipa: /seɪl/
+    cefr: B1
+    tags: [formation, transport]
+    senses:
+      - definition_en: to control a boat that has no engine and is pushed by the wind
+        definition_vi: chèo thuyền
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: sailing
+      - relation: derived_from
+        text: sailor
+
+  - id: sing-verb
+    headword: sing
+    pos: verb
+    ipa: /sɪŋ/
+    cefr: A1
+    tags: [formation, actions, music]
+    senses:
+      - definition_en: to make musical sounds with the voice
+        definition_vi: hát
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: song
+      - relation: derived_from
+        text: singer
+      - relation: derived_from
+        text: singing
+
+  # --- WORD PATTERNS (BASE WORDS) ---
+  - id: bored-adjective
+    headword: bored
+    pos: adjective
+    ipa: /bɔːd/
+    cefr: A1
+    tags: [patterns, feelings]
+    senses:
+      - definition_en: feeling unhappy because something is not interesting or because you have nothing to do
+        definition_vi: chán nản
+        register: neutral
+    collocations:
+      - collocation: bored with
+        pattern: adj+prep
+
+  - id: crazy-adjective
+    headword: crazy
+    pos: adjective
+    ipa: /ˈkreɪzi/
+    cefr: B1
+    tags: [patterns, feelings]
+    senses:
+      - definition_en: very enthusiastic about something
+        definition_vi: phát cuồng vì, đam mê
+        register: informal
+    collocations:
+      - collocation: crazy about
+        pattern: adj+prep
+
+  - id: good-adjective
+    headword: good
+    pos: adjective
+    ipa: /ɡʊd/
+    cefr: A1
+    tags: [patterns, description]
+    senses:
+      - definition_en: of a high quality or level
+        definition_vi: giỏi, tốt
+        register: neutral
+    collocations:
+      - collocation: good at
+        pattern: adj+prep
+
+  - id: interested-adjective
+    headword: interested
+    pos: adjective
+    ipa: /ˈɪntrəstɪd/
+    cefr: A2
+    tags: [patterns, feelings]
+    senses:
+      - definition_en: wanting to give your attention to something and discover more about it
+        definition_vi: quan tâm
+        register: neutral
+    collocations:
+      - collocation: interested in
+        pattern: adj+prep
+
+  - id: keen-adjective
+    headword: keen
+    pos: adjective
+    ipa: /kiːn/
+    cefr: B1
+    tags: [patterns, feelings]
+    senses:
+      - definition_en: very interested, eager, or wanting (to do) something very much
+        definition_vi: say mê, thích
+        register: neutral
+    collocations:
+      - collocation: keen on
+        pattern: adj+prep
+
+  - id: popular-adjective
+    headword: popular
+    pos: adjective
+    ipa: /ˈpɒpjələ/
+    cefr: A2
+    tags: [patterns, description]
+    senses:
+      - definition_en: liked, enjoyed, or supported by many people
+        definition_vi: phổ biến, được yêu thích
+        register: neutral
+    collocations:
+      - collocation: popular with
+        pattern: adj+prep

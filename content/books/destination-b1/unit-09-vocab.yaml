@@ -1,0 +1,896 @@
+# Destination B1 — Unit 9: Coming and going
+book: destination-b1
+
+unit:
+  ordinal: 9
+  code: U09
+  title: Coming and going
+
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: Vocabulary, Phrasal Verbs & Patterns
+  slug: vocab-phrasal-verbs-patterns
+
+entries:
+  # --- TOPIC VOCABULARY ---
+  - id: abroad-adverb
+    headword: abroad
+    pos: adverb
+    ipa: /əˈbrɔːd/
+    cefr: B1
+    tags: [travel]
+    senses:
+      - definition_en: in or to a foreign country or countries
+        definition_vi: ở nước ngoài, ra nước ngoài
+        register: neutral
+    examples:
+      - text: We try to go {{abroad}} for our holiday every year.
+        translation: Chúng tôi cố gắng đi nghỉ ở nước ngoài mỗi năm.
+        cloze_hint: a_____
+
+  - id: accommodation-noun
+    headword: accommodation
+    pos: noun
+    ipa: /əˌkɒməˈdeɪʃn/
+    cefr: B1
+    tags: [travel, places]
+    senses:
+      - definition_en: a room, group of rooms, or building in which someone may live or stay
+        definition_vi: chỗ ở
+        register: neutral
+    examples:
+      - text: The price includes flights and {{accommodation}}.
+        translation: Giá đã bao gồm chuyến bay và chỗ ở.
+        cloze_hint: a____________
+
+  - id: book-verb
+    headword: book
+    pos: verb
+    ipa: /bʊk/
+    cefr: A2
+    tags: [travel]
+    senses:
+      - definition_en: to arrange to have a seat, room, or ticket at a particular time
+        definition_vi: đặt chỗ, đặt phòng
+        register: neutral
+    examples:
+      - text: I'd like to {{book}} a table for two at 8 o'clock.
+        translation: Tôi muốn đặt một bàn cho hai người lúc 8 giờ.
+        cloze_hint: b___
+    relations:
+      - relation: synonym
+        text: reserve
+
+  - id: break-noun
+    headword: break
+    pos: noun
+    ipa: /breɪk/
+    cefr: A2
+    tags: [travel, time]
+    senses:
+      - definition_en: a short holiday or time away from work
+        definition_vi: kỳ nghỉ ngắn, giờ nghỉ
+        register: neutral
+    examples:
+      - text: We took a short weekend {{break}} in Paris.
+        translation: Chúng tôi đã có một kỳ nghỉ ngắn vào cuối tuần ở Paris.
+        cloze_hint: b____
+
+  - id: cancel-verb
+    headword: cancel
+    pos: verb
+    ipa: /ˈkænsl/
+    cefr: B1
+    tags: [travel, actions]
+    senses:
+      - definition_en: to decide that an organized event will not happen
+        definition_vi: hủy bỏ
+        register: neutral
+    examples:
+      - text: They had to {{cancel}} the flight due to bad weather.
+        translation: Họ phải hủy chuyến bay do thời tiết xấu.
+        cloze_hint: c_____
+
+  - id: catch-verb
+    headword: catch
+    pos: verb
+    ipa: /kætʃ/
+    cefr: A2
+    tags: [transport]
+    senses:
+      - definition_en: to get on a train, bus, or plane
+        definition_vi: bắt (xe, tàu)
+        register: neutral
+    examples:
+      - text: I have to run if I want to {{catch}} the 9:00 AM train.
+        translation: Tôi phải chạy nếu muốn bắt kịp chuyến tàu lúc 9 giờ sáng.
+        cloze_hint: c____
+
+  - id: coach-noun
+    headword: coach
+    pos: noun
+    ipa: /kəʊtʃ/
+    cefr: B1
+    tags: [transport]
+    senses:
+      - definition_en: a comfortable bus used to take groups of people on long journeys
+        definition_vi: xe khách
+        register: neutral
+    examples:
+      - text: We travelled to Scotland by {{coach}}.
+        translation: Chúng tôi đã đi du lịch đến Scotland bằng xe khách.
+        cloze_hint: c____
+    collocations:
+      - collocation: by coach
+        pattern: other
+
+  - id: convenient-adjective
+    headword: convenient
+    pos: adjective
+    ipa: /kənˈviːniənt/
+    cefr: B1
+    tags: [description]
+    senses:
+      - definition_en: suitable for your purposes and needs and causing the least difficulty
+        definition_vi: tiện lợi
+        register: neutral
+    examples:
+      - text: Our new house is very {{convenient}} for the supermarket.
+        translation: Nhà mới của chúng tôi rất tiện lợi để đến siêu thị.
+        cloze_hint: c_________
+
+  - id: crash-verb
+    headword: crash
+    pos: verb
+    ipa: /kræʃ/
+    cefr: B1
+    tags: [transport, accidents]
+    senses:
+      - definition_en: to have an accident, especially one that damages a vehicle
+        definition_vi: va chạm, đâm xe
+        register: neutral
+    examples:
+      - text: He was tired and lost control, causing the car to {{crash}}.
+        translation: Anh ta mệt mỏi và mất kiểm soát, khiến chiếc xe bị đâm.
+        cloze_hint: c____
+
+  - id: crowded-adjective
+    headword: crowded
+    pos: adjective
+    ipa: /ˈkraʊdɪd/
+    cefr: A2
+    tags: [description, places]
+    senses:
+      - definition_en: very full of people
+        definition_vi: đông đúc
+        register: neutral
+    examples:
+      - text: The train was so {{crowded}} that we couldn't find a seat.
+        translation: Chuyến tàu quá đông đúc đến nỗi chúng tôi không thể tìm được chỗ ngồi.
+        cloze_hint: c______
+
+  - id: cruise-noun
+    headword: cruise
+    pos: noun
+    ipa: /kruːz/
+    cefr: B1
+    tags: [travel, transport]
+    senses:
+      - definition_en: a journey on a large ship for pleasure, during which you visit several places
+        definition_vi: chuyến du ngoạn trên biển
+        register: neutral
+    examples:
+      - text: They went on a luxury {{cruise}} around the Mediterranean.
+        translation: Họ đã đi một chuyến du ngoạn trên biển sang trọng quanh Địa Trung Hải.
+        cloze_hint: c_____
+
+  - id: delay-verb
+    headword: delay
+    pos: verb
+    ipa: /dɪˈleɪ/
+    cefr: B1
+    tags: [time, travel]
+    senses:
+      - definition_en: to make something happen at a later time than originally planned
+        definition_vi: trì hoãn
+        register: neutral
+    examples:
+      - text: The flight was {{delayed}} because of heavy snow.
+        translation: Chuyến bay bị trì hoãn do tuyết rơi dày.
+        cloze_hint: d______
+
+  - id: destination-noun
+    headword: destination
+    pos: noun
+    ipa: /ˌdestɪˈneɪʃn/
+    cefr: B1
+    tags: [travel, places]
+    senses:
+      - definition_en: the place where someone is going or where something is being sent
+        definition_vi: điểm đến
+        register: neutral
+    examples:
+      - text: Spain is still our most popular holiday {{destination}}.
+        translation: Tây Ban Nha vẫn là điểm đến nghỉ lễ phổ biến nhất của chúng tôi.
+        cloze_hint: d__________
+
+  - id: ferry-noun
+    headword: ferry
+    pos: noun
+    ipa: /ˈferi/
+    cefr: B1
+    tags: [transport]
+    senses:
+      - definition_en: a boat or ship for taking passengers and often vehicles across an area of water
+        definition_vi: phà
+        register: neutral
+    examples:
+      - text: We took the passenger {{ferry}} across the river.
+        translation: Chúng tôi đã đi phà chở khách qua sông.
+        cloze_hint: f____
+
+  - id: flight-noun
+    headword: flight
+    pos: noun
+    ipa: /flaɪt/
+    cefr: A2
+    tags: [transport, travel]
+    senses:
+      - definition_en: a journey in an aircraft
+        definition_vi: chuyến bay
+        register: neutral
+    examples:
+      - text: How was your {{flight}} from London?
+        translation: Chuyến bay của bạn từ London thế nào?
+        cloze_hint: f_____
+
+  - id: foreign-adjective
+    headword: foreign
+    pos: adjective
+    ipa: /ˈfɒrən/
+    cefr: A2
+    tags: [description, places]
+    senses:
+      - definition_en: belonging or connected to a country that is not your own
+        definition_vi: thuộc nước ngoài
+        register: neutral
+    examples:
+      - text: She loves traveling and experiencing {{foreign}} cultures.
+        translation: Cô ấy thích đi du lịch và trải nghiệm các nền văn hóa nước ngoài.
+        cloze_hint: f______
+
+  - id: harbour-noun
+    headword: harbour
+    pos: noun
+    ipa: /ˈhɑːbə/
+    cefr: B1
+    tags: [places, transport]
+    senses:
+      - definition_en: an area of water next to the coast, often protected from the sea, where ships can shelter
+        definition_vi: bến cảng
+        register: neutral
+    examples:
+      - text: Several fishing boats were safe in the {{harbour}} during the storm.
+        translation: Một vài chiếc thuyền đánh cá đã an toàn trong bến cảng suốt cơn bão.
+        cloze_hint: h______
+
+  - id: journey-noun
+    headword: journey
+    pos: noun
+    ipa: /ˈdʒɜːni/
+    cefr: A2
+    tags: [travel]
+    senses:
+      - definition_en: the act of travelling from one place to another, especially in a vehicle
+        definition_vi: hành trình, chuyến đi
+        register: neutral
+    examples:
+      - text: It's a two-hour train {{journey}} from York to London.
+        translation: Đó là một hành trình hai giờ đi tàu từ York đến London.
+        cloze_hint: j______
+
+  - id: luggage-noun
+    headword: luggage
+    pos: noun
+    ipa: /ˈlʌɡɪdʒ/
+    cefr: A2
+    tags: [travel, objects]
+    senses:
+      - definition_en: the bags, suitcases, etc. that contain your things and that you take with you when you are travelling
+        definition_vi: hành lý
+        register: neutral
+    examples:
+      - text: Never leave your {{luggage}} unattended at the airport.
+        translation: Không bao giờ để hành lý của bạn không có người trông coi tại sân bay.
+        cloze_hint: l______
+
+  - id: nearby-adjective
+    headword: nearby
+    pos: adjective
+    ipa: /ˌnɪəˈbaɪ/
+    cefr: B1
+    tags: [places]
+    senses:
+      - definition_en: not far away
+        definition_vi: gần đó
+        register: neutral
+    examples:
+      - text: We can have lunch at a {{nearby}} restaurant.
+        translation: Chúng ta có thể ăn trưa tại một nhà hàng gần đó.
+        cloze_hint: n_____
+
+  - id: pack-verb
+    headword: pack
+    pos: verb
+    ipa: /pæk/
+    cefr: A2
+    tags: [travel, actions]
+    senses:
+      - definition_en: to put your things into bags or boxes when you are going on holiday or leaving a place
+        definition_vi: đóng gói hành lý
+        register: neutral
+    examples:
+      - text: I haven't started to {{pack}} my suitcase yet.
+        translation: Tôi vẫn chưa bắt đầu đóng gói vali của mình.
+        cloze_hint: p___
+
+  - id: passport-noun
+    headword: passport
+    pos: noun
+    ipa: /ˈpɑːspɔːt/
+    cefr: A2
+    tags: [travel, documents]
+    senses:
+      - definition_en: an official document containing personal information and usually a photograph that allows a person to travel to foreign countries
+        definition_vi: hộ chiếu
+        register: neutral
+    examples:
+      - text: You need a valid {{passport}} to travel internationally.
+        translation: Bạn cần một hộ chiếu hợp lệ để đi du lịch quốc tế.
+        cloze_hint: p_______
+
+  - id: platform-noun
+    headword: platform
+    pos: noun
+    ipa: /ˈplætfɔːm/
+    cefr: A2
+    tags: [transport, places]
+    senses:
+      - definition_en: the area in a railway station where you get on and off the train
+        definition_vi: sân ga
+        register: neutral
+    examples:
+      - text: The train to Edinburgh will depart from {{platform}} 4.
+        translation: Chuyến tàu đến Edinburgh sẽ khởi hành từ sân ga số 4.
+        cloze_hint: p_______
+
+  - id: public-transport-noun
+    headword: public transport
+    pos: noun
+    ipa: /ˌpʌblɪk ˈtrænspɔːt/
+    cefr: B1
+    tags: [transport]
+    senses:
+      - definition_en: a system of vehicles such as buses and trains that operate at regular times and that the public use
+        definition_vi: giao thông công cộng
+        register: neutral
+    examples:
+      - text: Using {{public transport}} is better for the environment than driving a car.
+        translation: Sử dụng giao thông công cộng thì tốt cho môi trường hơn là lái ô tô.
+        cloze_hint: p_____ t________
+
+  - id: reach-verb
+    headword: reach
+    pos: verb
+    ipa: /riːtʃ/
+    cefr: B1
+    tags: [travel, actions]
+    senses:
+      - definition_en: to arrive at a place, especially after spending a long time or a lot of effort travelling
+        definition_vi: đến (nơi)
+        register: neutral
+    examples:
+      - text: We didn't {{reach}} the hotel until midnight.
+        translation: Chúng tôi đã không đến khách sạn cho tới tận nửa đêm.
+        cloze_hint: r____
+
+  - id: resort-noun
+    headword: resort
+    pos: noun
+    ipa: /rɪˈzɔːt/
+    cefr: B1
+    tags: [travel, places]
+    senses:
+      - definition_en: a place where many people go for rest, sport, or another stated purpose
+        definition_vi: khu nghỉ dưỡng
+        register: neutral
+    examples:
+      - text: They spent a week at a ski {{resort}} in the Alps.
+        translation: Họ đã dành một tuần tại một khu nghỉ dưỡng trượt tuyết ở dãy Alps.
+        cloze_hint: r_____
+
+  - id: souvenir-noun
+    headword: souvenir
+    pos: noun
+    ipa: /ˌsuːvəˈnɪə/
+    cefr: B1
+    tags: [travel, objects]
+    senses:
+      - definition_en: something you buy or keep to help you remember a holiday or special event
+        definition_vi: đồ lưu niệm
+        register: neutral
+    examples:
+      - text: I bought this small wooden cat as a {{souvenir}} from Japan.
+        translation: Tôi đã mua con mèo gỗ nhỏ này làm đồ lưu niệm từ Nhật Bản.
+        cloze_hint: s_______
+
+  - id: traffic-noun
+    headword: traffic
+    pos: noun
+    ipa: /ˈtræfɪk/
+    cefr: A2
+    tags: [transport]
+    senses:
+      - definition_en: the number of vehicles moving along roads, or the amount of aircraft, trains, or ships moving along a route
+        definition_vi: giao thông, lưu lượng xe cộ
+        register: neutral
+    examples:
+      - text: We were stuck in heavy {{traffic}} for two hours.
+        translation: Chúng tôi bị kẹt trong tình trạng giao thông đông đúc suốt hai giờ.
+        cloze_hint: t______
+
+  - id: trip-noun
+    headword: trip
+    pos: noun
+    ipa: /trɪp/
+    cefr: A2
+    tags: [travel]
+    senses:
+      - definition_en: a journey in which you go somewhere, usually for a short time, and come back again
+        definition_vi: chuyến đi ngắn
+        register: neutral
+    examples:
+      - text: We are going on a school {{trip}} to the museum next week.
+        translation: Chúng tôi sẽ đi một chuyến đi thực tế của trường đến bảo tàng vào tuần tới.
+        cloze_hint: t___
+
+  - id: vehicle-noun
+    headword: vehicle
+    pos: noun
+    ipa: /ˈviːəkl/
+    cefr: B1
+    tags: [transport]
+    senses:
+      - definition_en: a machine, usually with wheels and an engine, used for transporting people or goods
+        definition_vi: phương tiện, xe cộ
+        register: formal
+    examples:
+      - text: Tractors are farm {{vehicles}}.
+        translation: Máy kéo là phương tiện nông nghiệp.
+        cloze_hint: v______
+
+  # --- PHRASAL VERBS ---
+  - id: get-away-phrasal_verb
+    headword: get away
+    pos: phrasal_verb
+    cefr: B1
+    tags: [travel, actions]
+    senses:
+      - definition_en: to go somewhere to have a holiday, often because you need to rest
+        definition_vi: đi nghỉ mát
+        register: neutral
+      - definition_en: to escape
+        definition_vi: trốn thoát
+        register: neutral
+    examples:
+      - text: We're hoping to {{get away}} for a few days next month.
+        translation: Chúng tôi hy vọng sẽ đi nghỉ mát vài ngày vào tháng tới.
+
+  - id: get-in-phrasal_verb
+    headword: get in
+    pos: phrasal_verb
+    cefr: B1
+    tags: [transport]
+    senses:
+      - definition_en: if a train or other vehicle gets in at a particular time, it arrives at that time
+        definition_vi: đến nơi (tàu, máy bay)
+        register: neutral
+    examples:
+      - text: What time does your train {{get in}}?
+        translation: Mấy giờ chuyến tàu của bạn đến nơi?
+
+  - id: get-off-phrasal_verb
+    headword: get off
+    pos: phrasal_verb
+    cefr: A2
+    tags: [transport]
+    senses:
+      - definition_en: to leave a train, bus, or aircraft
+        definition_vi: xuống xe (bus, tàu, máy bay)
+        register: neutral
+    examples:
+      - text: We need to {{get off}} at the next stop.
+        translation: Chúng ta cần xuống xe ở trạm tiếp theo.
+
+  - id: get-on-phrasal_verb
+    headword: get on
+    pos: phrasal_verb
+    cefr: A2
+    tags: [transport]
+    senses:
+      - definition_en: to board a train, bus, plane, or ship
+        definition_vi: lên xe (bus, tàu, máy bay)
+        register: neutral
+    examples:
+      - text: Hurry up and {{get on}} the bus before it leaves.
+        translation: Nhanh lên và lên xe buýt trước khi nó rời đi.
+
+  - id: get-out-of-phrasal_verb
+    headword: get out of
+    pos: phrasal_verb
+    cefr: A2
+    tags: [transport]
+    senses:
+      - definition_en: to leave a closed vehicle, building, etc.
+        definition_vi: ra khỏi (xe hơi, tòa nhà)
+        register: neutral
+    examples:
+      - text: I'll wait here until you {{get out of}} the taxi.
+        translation: Tôi sẽ đợi ở đây cho đến khi bạn ra khỏi xe taxi.
+
+  - id: go-away-phrasal_verb
+    headword: go away
+    pos: phrasal_verb
+    cefr: A2
+    tags: [travel]
+    senses:
+      - definition_en: to leave your home in order to spend time somewhere else, usually for a holiday
+        definition_vi: rời đi, đi nghỉ ngơi
+        register: neutral
+    examples:
+      - text: We're {{going away}} to the beach for the weekend.
+        translation: Chúng tôi sẽ đi nghỉ ngơi ở bãi biển vào cuối tuần.
+
+  - id: go-back-phrasal_verb
+    headword: go back
+    pos: phrasal_verb
+    cefr: A2
+    tags: [travel, actions]
+    senses:
+      - definition_en: to return to a place where you were or where you have been before
+        definition_vi: quay lại
+        register: neutral
+    examples:
+      - text: I forgot my wallet, so I have to {{go back}} home.
+        translation: Tôi quên ví, nên tôi phải quay lại nhà.
+
+  - id: set-off-phrasal_verb
+    headword: set off
+    pos: phrasal_verb
+    cefr: B1
+    tags: [travel]
+    senses:
+      - definition_en: to start a journey
+        definition_vi: khởi hành
+        register: neutral
+    examples:
+      - text: We plan to {{set off}} early in the morning to avoid traffic.
+        translation: Chúng tôi dự định khởi hành sớm vào buổi sáng để tránh kẹt xe.
+
+  - id: take-off-phrasal_verb
+    headword: take off
+    pos: phrasal_verb
+    cefr: B1
+    tags: [transport]
+    senses:
+      - definition_en: if an aircraft, bird, or insect takes off, it leaves the ground and begins to fly
+        definition_vi: cất cánh
+        register: neutral
+    examples:
+      - text: The plane will {{take off}} in twenty minutes.
+        translation: Máy bay sẽ cất cánh trong hai mươi phút nữa.
+
+  # --- WORD FORMATION (ROOTS & DERIVATIVES) ---
+  - id: attract-verb
+    headword: attract
+    pos: verb
+    ipa: /əˈtrækt/
+    cefr: B1
+    tags: [formation, feelings]
+    senses:
+      - definition_en: to pull or draw someone or something towards them, by the qualities they have
+        definition_vi: thu hút
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: attractive
+      - relation: derived_from
+        text: attraction
+
+  - id: back-noun
+    headword: back
+    pos: noun
+    ipa: /bæk/
+    cefr: A1
+    tags: [formation, direction]
+    senses:
+      - definition_en: the part of something that is furthest from the front
+        definition_vi: phía sau
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: backwards
+
+  - id: choose-verb
+    headword: choose
+    pos: verb
+    ipa: /tʃuːz/
+    cefr: A1
+    tags: [formation, actions]
+    senses:
+      - definition_en: to decide what you want from two or more things or possibilities
+        definition_vi: chọn
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: choice
+
+  - id: comfort-noun
+    headword: comfort
+    pos: noun
+    ipa: /ˈkʌmfət/
+    cefr: B1
+    tags: [formation, feelings]
+    senses:
+      - definition_en: a pleasant feeling of being relaxed and free from pain
+        definition_vi: sự thoải mái
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: comfortable
+      - relation: derived_from
+        text: uncomfortable
+
+  - id: depart-verb
+    headword: depart
+    pos: verb
+    ipa: /dɪˈpɑːt/
+    cefr: B1
+    tags: [formation, travel]
+    senses:
+      - definition_en: to go away or leave, especially on a journey
+        definition_vi: khởi hành
+        register: formal
+    relations:
+      - relation: derived_from
+        text: departure
+
+  - id: direct-verb
+    headword: direct
+    pos: verb
+    ipa: /dɪˈrekt/
+    cefr: B1
+    tags: [formation, actions]
+    senses:
+      - definition_en: to aim something in a particular direction or at a particular person
+        definition_vi: trực tiếp, chỉ đường
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: direction
+
+  - id: drive-verb
+    headword: drive
+    pos: verb
+    ipa: /draɪv/
+    cefr: A1
+    tags: [formation, transport]
+    senses:
+      - definition_en: to move or travel on land in a motor vehicle, especially as the person controlling the vehicle's movement
+        definition_vi: lái xe
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: driver
+
+  - id: fly-verb
+    headword: fly
+    pos: verb
+    ipa: /flaɪ/
+    cefr: A1
+    tags: [formation, transport]
+    senses:
+      - definition_en: to travel through the air in an aircraft
+        definition_vi: bay
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: flight
+
+  - id: travel-verb
+    headword: travel
+    pos: verb
+    ipa: /ˈtrævl/
+    cefr: A1
+    tags: [formation, travel]
+    senses:
+      - definition_en: to make a journey, usually over a long distance
+        definition_vi: du lịch, đi lại
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: traveller
+
+  - id: visit-verb
+    headword: visit
+    pos: verb
+    ipa: /ˈvɪzɪt/
+    cefr: A1
+    tags: [formation, actions]
+    senses:
+      - definition_en: to go to a place in order to look at it, or to a person in order to spend time with them
+        definition_vi: thăm
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: visitor
+
+  # --- WORD PATTERNS (BASE WORDS) ---
+  - id: close-adjective
+    headword: close
+    pos: adjective
+    ipa: /kləʊs/
+    cefr: A2
+    tags: [patterns, places]
+    senses:
+      - definition_en: having only a short distance or time between two people, things, or events
+        definition_vi: gần
+        register: neutral
+    collocations:
+      - collocation: close to
+        pattern: adj+prep
+
+  - id: famous-adjective
+    headword: famous
+    pos: adjective
+    ipa: /ˈfeɪməs/
+    cefr: A2
+    tags: [patterns, description]
+    senses:
+      - definition_en: known and recognized by many people
+        definition_vi: nổi tiếng
+        register: neutral
+    collocations:
+      - collocation: famous for
+        pattern: adj+prep
+
+  - id: far-adjective
+    headword: far
+    pos: adjective
+    ipa: /fɑː/
+    cefr: A1
+    tags: [patterns, places]
+    senses:
+      - definition_en: at, to, or from a great distance in space or time
+        definition_vi: xa
+        register: neutral
+    collocations:
+      - collocation: far from
+        pattern: adj+prep
+
+  - id: late-adjective
+    headword: late
+    pos: adjective
+    ipa: /leɪt/
+    cefr: A1
+    tags: [patterns, time]
+    senses:
+      - definition_en: happening or arriving after the planned, expected, usual, or necessary time
+        definition_vi: trễ, chậm
+        register: neutral
+    collocations:
+      - collocation: late for
+        pattern: adj+prep
+
+  - id: suitable-adjective
+    headword: suitable
+    pos: adjective
+    ipa: /ˈsuːtəbl/
+    cefr: B1
+    tags: [patterns, description]
+    senses:
+      - definition_en: acceptable or right for someone or something
+        definition_vi: phù hợp
+        register: neutral
+    collocations:
+      - collocation: suitable for
+        pattern: adj+prep
+
+  - id: arrive-verb
+    headword: arrive
+    pos: verb
+    ipa: /əˈraɪv/
+    cefr: A2
+    tags: [patterns, transport]
+    senses:
+      - definition_en: to reach a place, especially at the end of a journey
+        definition_vi: đến
+        register: neutral
+    collocations:
+      - collocation: arrive at
+        pattern: verb+prep
+      - collocation: arrive in
+        pattern: verb+prep
+
+  - id: ask-verb
+    headword: ask
+    pos: verb
+    ipa: /ɑːsk/
+    cefr: A1
+    tags: [patterns, actions]
+    senses:
+      - definition_en: to put a question to someone, or to request an answer from someone
+        definition_vi: hỏi, yêu cầu
+        register: neutral
+    collocations:
+      - collocation: ask somebody about
+        pattern: other
+      - collocation: ask for
+        pattern: verb+prep
+
+  - id: look-verb
+    headword: look
+    pos: verb
+    ipa: /lʊk/
+    cefr: A1
+    tags: [patterns, actions]
+    senses:
+      - definition_en: to direct your eyes in order to see
+        definition_vi: nhìn
+        register: neutral
+    collocations:
+      - collocation: look at
+        pattern: verb+prep
+
+  - id: prepare-verb
+    headword: prepare
+    pos: verb
+    ipa: /prɪˈpeə/
+    cefr: A2
+    tags: [patterns, actions]
+    senses:
+      - definition_en: to make or get something or someone ready for something that will happen in the future
+        definition_vi: chuẩn bị
+        register: neutral
+    collocations:
+      - collocation: prepare for
+        pattern: verb+prep
+
+  - id: provide-verb
+    headword: provide
+    pos: verb
+    ipa: /prəˈvaɪd/
+    cefr: B1
+    tags: [patterns, actions]
+    senses:
+      - definition_en: to give someone something that they need
+        definition_vi: cung cấp
+        register: neutral
+    collocations:
+      - collocation: provide somebody with
+        pattern: other
+
+  - id: wait-verb
+    headword: wait
+    pos: verb
+    ipa: /weɪt/
+    cefr: A1
+    tags: [patterns, time]
+    senses:
+      - definition_en: to allow time to go by, especially while staying in one place without doing very much, until someone comes
+        definition_vi: chờ đợi
+        register: neutral
+    collocations:
+      - collocation: wait for
+        pattern: verb+prep

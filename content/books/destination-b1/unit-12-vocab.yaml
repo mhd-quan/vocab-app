@@ -1,0 +1,808 @@
+# Destination B1 — Unit 12: Friends and relations
+book: destination-b1
+
+unit:
+  ordinal: 12
+  code: U12
+  title: Friends and relations
+
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: Vocabulary, Phrasal Verbs & Patterns
+  slug: vocab-phrasal-verbs-patterns
+
+entries:
+  # --- TOPIC VOCABULARY ---
+  - id: apologise-verb
+    headword: apologise
+    pos: verb
+    ipa: /əˈpɒlədʒaɪz/
+    cefr: B1
+    tags: [relationships, communication]
+    senses:
+      - definition_en: to tell someone that you are sorry for having done something that has caused problems or unhappiness
+        definition_vi: xin lỗi
+        register: neutral
+    examples:
+      - text: I think you should {{apologise}} to your brother for breaking his toy.
+        translation: Tôi nghĩ bạn nên xin lỗi anh trai vì đã làm hỏng đồ chơi của anh ấy.
+        cloze_hint: a________
+
+  - id: boyfriend-noun
+    headword: boyfriend
+    pos: noun
+    ipa: /ˈbɔɪfrend/
+    cefr: A1
+    tags: [relationships, people]
+    senses:
+      - definition_en: a man or boy that a person is having a romantic or sexual relationship with
+        definition_vi: bạn trai
+        register: informal
+    examples:
+      - text: She is going to the cinema with her {{boyfriend}} tonight.
+        translation: Cô ấy sẽ đi xem phim với bạn trai tối nay.
+        cloze_hint: b________
+
+  - id: close-adjective
+    headword: close
+    pos: adjective
+    ipa: /kləʊs/
+    cefr: A2
+    tags: [relationships, description]
+    senses:
+      - definition_en: having direct family connections or shared beliefs, support, and sympathy
+        definition_vi: thân thiết, gần gũi
+        register: neutral
+    examples:
+      - text: They have been {{close}} friends since they were in primary school.
+        translation: Họ đã là những người bạn thân thiết từ khi còn học tiểu học.
+        cloze_hint: c____
+
+  - id: confident-adjective
+    headword: confident
+    pos: adjective
+    ipa: /ˈkɒnfɪdənt/
+    cefr: B1
+    tags: [personality, feelings]
+    senses:
+      - definition_en: being certain of your abilities or having trust in people, plans, or the future
+        definition_vi: tự tin
+        register: neutral
+    examples:
+      - text: He is very {{confident}} about his chances of winning the game.
+        translation: Anh ấy rất tự tin về cơ hội chiến thắng trò chơi của mình.
+        cloze_hint: c________
+    relations:
+      - relation: derived_from
+        text: confidence
+
+  - id: cool-adjective
+    headword: cool
+    pos: adjective
+    ipa: /kuːl/
+    cefr: A2
+    tags: [personality, description]
+    senses:
+      - definition_en: fashionably attractive or impressive; calm and not emotional
+        definition_vi: ngầu, lạnh lùng
+        register: informal
+    examples:
+      - text: He always stays {{cool}}, even in stressful situations.
+        translation: Anh ấy luôn giữ thái độ lạnh lùng, ngay cả trong những tình huống căng thẳng.
+        cloze_hint: c___
+
+  - id: couple-noun
+    headword: couple
+    pos: noun
+    ipa: /ˈkʌpl/
+    cefr: A2
+    tags: [relationships, people]
+    senses:
+      - definition_en: two people who are married or in a romantic relationship
+        definition_vi: cặp đôi
+        register: neutral
+    examples:
+      - text: The young {{couple}} decided to buy a house in the suburbs.
+        translation: Cặp đôi trẻ quyết định mua một ngôi nhà ở vùng ngoại ô.
+        cloze_hint: c_____
+
+  - id: decorate-verb
+    headword: decorate
+    pos: verb
+    ipa: /ˈdekəreɪt/
+    cefr: B1
+    tags: [actions, places]
+    senses:
+      - definition_en: to add things to a room or building to make it look more attractive
+        definition_vi: trang trí
+        register: neutral
+    examples:
+      - text: We are going to {{decorate}} the living room for the birthday party.
+        translation: Chúng tôi sẽ trang trí phòng khách cho bữa tiệc sinh nhật.
+        cloze_hint: d_______
+
+  - id: defend-verb
+    headword: defend
+    pos: verb
+    ipa: /dɪˈfend/
+    cefr: B1
+    tags: [actions, relationships]
+    senses:
+      - definition_en: to protect someone or something against attack or criticism
+        definition_vi: bảo vệ, bênh vực
+        register: neutral
+    examples:
+      - text: She will always {{defend}} her friends when someone criticizes them.
+        translation: Cô ấy sẽ luôn bênh vực bạn bè khi có ai đó chỉ trích họ.
+        cloze_hint: d_____
+
+  - id: divorced-adjective
+    headword: divorced
+    pos: adjective
+    ipa: /dɪˈvɔːst/
+    cefr: A2
+    tags: [relationships, status]
+    senses:
+      - definition_en: married in the past but not now married
+        definition_vi: đã ly hôn
+        register: neutral
+    examples:
+      - text: My parents got {{divorced}} when I was seven years old.
+        translation: Bố mẹ tôi đã ly hôn khi tôi lên bảy tuổi.
+        cloze_hint: d_______
+
+  - id: flat-noun
+    headword: flat
+    pos: noun
+    ipa: /flæt/
+    cefr: A1
+    tags: [places, living]
+    senses:
+      - definition_en: a set of rooms for living in that are part of a larger building and are usually all on one floor
+        definition_vi: căn hộ
+        register: neutral
+    examples:
+      - text: They rent a small {{flat}} in the center of the city.
+        translation: Họ thuê một căn hộ nhỏ ở trung tâm thành phố.
+        cloze_hint: f___
+
+  - id: generous-adjective
+    headword: generous
+    pos: adjective
+    ipa: /ˈdʒenərəs/
+    cefr: B1
+    tags: [personality, relationships]
+    senses:
+      - definition_en: willing to give money, help, kindness, etc., especially more than is usual or expected
+        definition_vi: hào phóng
+        register: neutral
+    examples:
+      - text: It was very {{generous}} of you to pay for dinner.
+        translation: Bạn thật hào phóng khi trả tiền cho bữa tối.
+        cloze_hint: g_______
+
+  - id: girlfriend-noun
+    headword: girlfriend
+    pos: noun
+    ipa: /ˈɡɜːlfrend/
+    cefr: A1
+    tags: [relationships, people]
+    senses:
+      - definition_en: a woman or girl that a person is having a romantic or sexual relationship with
+        definition_vi: bạn gái
+        register: informal
+    examples:
+      - text: He bought a beautiful necklace for his {{girlfriend}}.
+        translation: Anh ấy đã mua một chiếc vòng cổ tuyệt đẹp cho bạn gái.
+        cloze_hint: g_________
+
+  - id: grateful-adjective
+    headword: grateful
+    pos: adjective
+    ipa: /ˈɡreɪtfl/
+    cefr: B1
+    tags: [feelings, relationships]
+    senses:
+      - definition_en: showing or expressing thanks, especially to another person
+        definition_vi: biết ơn
+        register: neutral
+    examples:
+      - text: I am extremely {{grateful}} for all your help with the project.
+        translation: Tôi vô cùng biết ơn vì tất cả sự giúp đỡ của bạn cho dự án.
+        cloze_hint: g_______
+
+  - id: guest-noun
+    headword: guest
+    pos: noun
+    ipa: /ɡest/
+    cefr: A2
+    tags: [people, events]
+    senses:
+      - definition_en: a person who is invited to visit or stay in someone's home
+        definition_vi: khách mời
+        register: neutral
+    examples:
+      - text: We are expecting fifty {{guests}} at the wedding reception.
+        translation: Chúng tôi dự kiến có năm mươi khách mời tại tiệc cưới.
+        cloze_hint: g____
+
+  - id: independent-adjective
+    headword: independent
+    pos: adjective
+    ipa: /ˌɪndɪˈpendənt/
+    cefr: B1
+    tags: [personality, status]
+    senses:
+      - definition_en: not taking help or money from other people; able to do things by yourself
+        definition_vi: độc lập
+        register: neutral
+    examples:
+      - text: She is a very {{independent}} young woman who likes to make her own decisions.
+        translation: Cô ấy là một phụ nữ trẻ rất độc lập, thích tự đưa ra quyết định.
+        cloze_hint: i__________
+
+  - id: introduce-verb
+    headword: introduce
+    pos: verb
+    ipa: /ˌɪntrəˈdjuːs/
+    cefr: A2
+    tags: [relationships, communication]
+    senses:
+      - definition_en: to tell someone another person's name the first time that they meet
+        definition_vi: giới thiệu
+        register: neutral
+    examples:
+      - text: Let me {{introduce}} you to my colleague, Sarah.
+        translation: Để tôi giới thiệu bạn với đồng nghiệp của tôi, Sarah.
+        cloze_hint: i________
+    relations:
+      - relation: derived_from
+        text: introduction
+
+  - id: loving-adjective
+    headword: loving
+    pos: adjective
+    ipa: /ˈlʌvɪŋ/
+    cefr: B1
+    tags: [personality, feelings]
+    senses:
+      - definition_en: showing a lot of affection and care towards someone
+        definition_vi: âu yếm, đằm thắm
+        register: neutral
+    examples:
+      - text: He grew up in a very warm and {{loving}} family.
+        translation: Anh ấy lớn lên trong một gia đình rất ấm áp và đong đầy tình yêu thương.
+        cloze_hint: l_____
+
+  - id: loyal-adjective
+    headword: loyal
+    pos: adjective
+    ipa: /ˈlɔɪəl/
+    cefr: B1
+    tags: [personality, relationships]
+    senses:
+      - definition_en: firm and not changing in your friendship with or support for a person or an organization
+        definition_vi: trung thành
+        register: neutral
+    examples:
+      - text: Dogs are known for being incredibly {{loyal}} pets.
+        translation: Chó được biết đến là những thú cưng vô cùng trung thành.
+        cloze_hint: l____
+
+  - id: mood-noun
+    headword: mood
+    pos: noun
+    ipa: /muːd/
+    cefr: B1
+    tags: [feelings]
+    senses:
+      - definition_en: the way you feel at a particular time
+        definition_vi: tâm trạng
+        register: neutral
+    examples:
+      - text: Listening to upbeat music always puts me in a good {{mood}}.
+        translation: Nghe nhạc sôi động luôn khiến tôi có tâm trạng tốt.
+        cloze_hint: m___
+
+  - id: neighbourhood-noun
+    headword: neighbourhood
+    pos: noun
+    ipa: /ˈneɪbəhʊd/
+    cefr: B1
+    tags: [places, society]
+    senses:
+      - definition_en: the area of a town that surrounds someone's home, or the people who live in this area
+        definition_vi: khu vực lân cận, hàng xóm
+        register: neutral
+    examples:
+      - text: They live in a very quiet and safe {{neighbourhood}}.
+        translation: Họ sống trong một khu vực lân cận rất yên tĩnh và an toàn.
+        cloze_hint: n____________
+
+  - id: ordinary-adjective
+    headword: ordinary
+    pos: adjective
+    ipa: /ˈɔːdnri/
+    cefr: A2
+    tags: [description]
+    senses:
+      - definition_en: not different or special or unexpected in any way; usual
+        definition_vi: bình thường
+        register: neutral
+    examples:
+      - text: It was just an {{ordinary}} day at the office.
+        translation: Đó chỉ là một ngày bình thường ở văn phòng.
+        cloze_hint: o_______
+
+  - id: patient-adjective
+    headword: patient
+    pos: adjective
+    ipa: /ˈpeɪʃnt/
+    cefr: B1
+    tags: [personality]
+    senses:
+      - definition_en: having patience; able to wait or bear trouble without complaining
+        definition_vi: kiên nhẫn
+        register: neutral
+    examples:
+      - text: You need to be {{patient}} with children when they are learning something new.
+        translation: Bạn cần phải kiên nhẫn với trẻ em khi chúng đang học một điều gì đó mới.
+        cloze_hint: p______
+
+  - id: private-adjective
+    headword: private
+    pos: adjective
+    ipa: /ˈpraɪvət/
+    cefr: B1
+    tags: [description, status]
+    senses:
+      - definition_en: only for one person or group and not for everyone
+        definition_vi: riêng tư
+        register: neutral
+    examples:
+      - text: She keeps her personal life completely {{private}}.
+        translation: Cô ấy giữ cuộc sống cá nhân của mình hoàn toàn riêng tư.
+        cloze_hint: p______
+
+  - id: recognise-verb
+    headword: recognise
+    pos: verb
+    ipa: /ˈrekəɡnaɪz/
+    cefr: B1
+    tags: [mind, actions]
+    senses:
+      - definition_en: to know someone or something because you have seen or heard him or her or experienced it before
+        definition_vi: nhận ra
+        register: neutral
+    examples:
+      - text: I hadn't seen her for years, but I {{recognised}} her immediately.
+        translation: Tôi đã không gặp cô ấy trong nhiều năm, nhưng tôi nhận ra cô ấy ngay lập tức.
+        cloze_hint: r________
+
+  - id: relation-noun
+    headword: relation
+    pos: noun
+    ipa: /rɪˈleɪʃn/
+    cefr: B1
+    tags: [relationships, family]
+    senses:
+      - definition_en: the way in which two people or groups of people feel and behave towards each other; a member of your family
+        definition_vi: mối quan hệ, họ hàng
+        register: neutral
+    examples:
+      - text: Our company maintains good {{relations}} with its suppliers.
+        translation: Công ty chúng tôi duy trì các mối quan hệ tốt với các nhà cung cấp.
+        cloze_hint: r_______
+
+  - id: rent-verb
+    headword: rent
+    pos: verb
+    ipa: /rent/
+    cefr: A2
+    tags: [living, actions]
+    senses:
+      - definition_en: to pay or receive a fixed amount of money for the use of a room, house, car, etc.
+        definition_vi: thuê
+        register: neutral
+    examples:
+      - text: We decided to {{rent}} a car for our holiday in Italy.
+        translation: Chúng tôi quyết định thuê một chiếc ô tô cho kỳ nghỉ ở Ý.
+        cloze_hint: r___
+
+  - id: respect-verb
+    headword: respect
+    pos: verb
+    ipa: /rɪˈspekt/
+    cefr: B1
+    tags: [relationships, abstract]
+    senses:
+      - definition_en: to feel or show admiration for someone or something that you believe has good ideas or qualities
+        definition_vi: tôn trọng
+        register: neutral
+    examples:
+      - text: You should always {{respect}} your teachers and elders.
+        translation: Bạn nên luôn tôn trọng giáo viên và những người lớn tuổi hơn mình.
+        cloze_hint: r______
+
+  - id: single-adjective
+    headword: single
+    pos: adjective
+    ipa: /ˈsɪŋɡl/
+    cefr: A2
+    tags: [relationships, status]
+    senses:
+      - definition_en: not married, or not having a romantic relationship with someone
+        definition_vi: độc thân
+        register: neutral
+    examples:
+      - text: He has been {{single}} since he broke up with his girlfriend last year.
+        translation: Anh ấy đã độc thân kể từ khi chia tay bạn gái vào năm ngoái.
+        cloze_hint: s_____
+
+  - id: stranger-noun
+    headword: stranger
+    pos: noun
+    ipa: /ˈstreɪndʒə/
+    cefr: A2
+    tags: [people]
+    senses:
+      - definition_en: someone you do not know
+        definition_vi: người lạ
+        register: neutral
+    examples:
+      - text: Children are taught not to talk to {{strangers}}.
+        translation: Trẻ em được dạy không nói chuyện với người lạ.
+        cloze_hint: s_______
+
+  - id: trust-verb
+    headword: trust
+    pos: verb
+    ipa: /trʌst/
+    cefr: B1
+    tags: [relationships, mind]
+    senses:
+      - definition_en: to believe that someone is good and honest and will not harm you
+        definition_vi: tin tưởng
+        register: neutral
+    examples:
+      - text: A solid marriage is built on mutual respect and {{trust}}.
+        translation: Một cuộc hôn nhân bền vững được xây dựng trên sự tôn trọng và tin tưởng lẫn nhau.
+        cloze_hint: t____
+
+  # --- PHRASAL VERBS ---
+  - id: bring-up-phrasal_verb
+    headword: bring up
+    pos: phrasal_verb
+    cefr: B1
+    tags: [family, actions]
+    senses:
+      - definition_en: to care for a child until they are an adult, often giving them particular beliefs
+        definition_vi: nuôi dưỡng
+        register: neutral
+    examples:
+      - text: She was {{brought up}} by her grandparents in a small village.
+        translation: Cô ấy được ông bà nuôi dưỡng ở một ngôi làng nhỏ.
+
+  - id: fall-out-phrasal_verb
+    headword: fall out
+    pos: phrasal_verb
+    cefr: B1
+    tags: [relationships, conflict]
+    senses:
+      - definition_en: to argue with someone and stop being friendly with them
+        definition_vi: cãi nhau (với ai)
+        register: informal
+    examples:
+      - text: He left home after {{falling out}} with his parents.
+        translation: Anh ấy bỏ nhà đi sau khi cãi nhau với bố mẹ.
+
+  - id: get-on-phrasal_verb
+    headword: get on
+    pos: phrasal_verb
+    cefr: B1
+    tags: [relationships]
+    senses:
+      - definition_en: to have a good relationship with someone
+        definition_vi: có quan hệ tốt, hòa thuận
+        register: neutral
+    examples:
+      - text: I have always {{got on}} well with my sister.
+        translation: Tôi luôn hòa thuận với chị gái tôi.
+
+  - id: go-out-with-phrasal_verb
+    headword: go out with
+    pos: phrasal_verb
+    cefr: A2
+    tags: [relationships, romance]
+    senses:
+      - definition_en: to have a romantic and usually sexual relationship with someone
+        definition_vi: hẹn hò với
+        register: informal
+    examples:
+      - text: How long have you been {{going out with}} him?
+        translation: Bạn đã hẹn hò với anh ấy được bao lâu rồi?
+
+  - id: grow-up-phrasal_verb
+    headword: grow up
+    pos: phrasal_verb
+    cefr: A2
+    tags: [people, life]
+    senses:
+      - definition_en: to gradually become an adult
+        definition_vi: lớn lên, trưởng thành
+        register: neutral
+    examples:
+      - text: What do you want to be when you {{grow up}}?
+        translation: Bạn muốn làm gì khi lớn lên?
+
+  - id: let-down-phrasal_verb
+    headword: let down
+    pos: phrasal_verb
+    cefr: B1
+    tags: [relationships, feelings]
+    senses:
+      - definition_en: to disappoint someone by failing to do what you agreed to do
+        definition_vi: làm thất vọng
+        register: neutral
+    examples:
+      - text: I promised to help him, and I don't want to {{let him down}}.
+        translation: Tôi đã hứa sẽ giúp anh ấy, và tôi không muốn làm anh ấy thất vọng.
+
+  - id: look-after-phrasal_verb
+    headword: look after
+    pos: phrasal_verb
+    cefr: A2
+    tags: [relationships, actions]
+    senses:
+      - definition_en: to take care of or be in charge of someone or something
+        definition_vi: chăm sóc
+        register: neutral
+    examples:
+      - text: Could you {{look after}} my cat while I am on holiday?
+        translation: Bạn có thể chăm sóc con mèo của tôi trong khi tôi đi nghỉ mát không?
+
+  - id: split-up-phrasal_verb
+    headword: split up
+    pos: phrasal_verb
+    cefr: B1
+    tags: [relationships, romance]
+    senses:
+      - definition_en: if two people split up, they end their relationship or marriage
+        definition_vi: chia tay
+        register: informal
+    examples:
+      - text: They decided to {{split up}} after three years of marriage.
+        translation: Họ quyết định chia tay sau ba năm kết hôn.
+
+  # --- WORD FORMATION (ROOTS & DERIVATIVES) ---
+  - id: able-adjective
+    headword: able
+    pos: adjective
+    ipa: /ˈeɪbl/
+    cefr: A2
+    tags: [formation, ability]
+    senses:
+      - definition_en: having the necessary physical strength, mental power, skill, time, or opportunity to do something
+        definition_vi: có thể
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: ability
+      - relation: derived_from
+        text: disabled
+      - relation: derived_from
+        text: unable
+
+  - id: admire-verb
+    headword: admire
+    pos: verb
+    ipa: /ədˈmaɪə/
+    cefr: B1
+    tags: [formation, feelings]
+    senses:
+      - definition_en: to respect and approve of someone or their behaviour
+        definition_vi: ngưỡng mộ
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: admiration
+
+  - id: care-verb
+    headword: care
+    pos: verb
+    ipa: /keə/
+    cefr: A2
+    tags: [formation, feelings]
+    senses:
+      - definition_en: to feel interested in something or worried about it
+        definition_vi: quan tâm
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: careful
+      - relation: derived_from
+        text: careless
+
+  - id: forgive-verb
+    headword: forgive
+    pos: verb
+    ipa: /fəˈɡɪv/
+    cefr: B1
+    tags: [formation, relationships]
+    senses:
+      - definition_en: to stop blaming or being angry with someone for something they have done
+        definition_vi: tha thứ
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: forgiveness
+
+  - id: honest-adjective
+    headword: honest
+    pos: adjective
+    ipa: /ˈɒnɪst/
+    cefr: B1
+    tags: [formation, personality]
+    senses:
+      - definition_en: telling the truth or able to be trusted and not likely to steal, cheat, or lie
+        definition_vi: thành thật
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: dishonest
+      - relation: derived_from
+        text: honesty
+
+  - id: lie-verb
+    headword: lie
+    pos: verb
+    ipa: /laɪ/
+    cefr: A2
+    tags: [formation, communication]
+    senses:
+      - definition_en: to say or write something that is not true in order to deceive someone
+        definition_vi: nói dối
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: liar
+      - relation: derived_from
+        text: lying
+
+  - id: person-noun
+    headword: person
+    pos: noun
+    ipa: /ˈpɜːsn/
+    cefr: A1
+    tags: [formation, people]
+    senses:
+      - definition_en: a man, woman, or child
+        definition_vi: người
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: personality
+      - relation: derived_from
+        text: personal
+
+  - id: relate-verb
+    headword: relate
+    pos: verb
+    ipa: /rɪˈleɪt/
+    cefr: B1
+    tags: [formation, relationships]
+    senses:
+      - definition_en: to find or show the connection between two or more things
+        definition_vi: liên quan, liên hệ
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: relative
+      - relation: derived_from
+        text: relation
+      - relation: derived_from
+        text: relationship
+
+  # --- WORD PATTERNS (BASE WORDS) ---
+  - id: fond-adjective
+    headword: fond
+    pos: adjective
+    ipa: /fɒnd/
+    cefr: B1
+    tags: [patterns, feelings]
+    senses:
+      - definition_en: having a great liking for someone or something
+        definition_vi: thích
+        register: neutral
+    collocations:
+      - collocation: fond of
+        pattern: adj+prep
+
+  - id: jealous-adjective
+    headword: jealous
+    pos: adjective
+    ipa: /ˈdʒeləs/
+    cefr: B1
+    tags: [patterns, feelings]
+    senses:
+      - definition_en: upset and angry because someone that you love seems interested in another person, or wanting what someone else has
+        definition_vi: ghen tị
+        register: neutral
+    collocations:
+      - collocation: jealous of
+        pattern: adj+prep
+
+  - id: kind-adjective
+    headword: kind
+    pos: adjective
+    ipa: /kaɪnd/
+    cefr: A2
+    tags: [patterns, personality]
+    senses:
+      - definition_en: generous, helpful, and thinking about other people's feelings
+        definition_vi: tử tế
+        register: neutral
+    collocations:
+      - collocation: kind to
+        pattern: adj+prep
+
+  - id: married-adjective
+    headword: married
+    pos: adjective
+    ipa: /ˈmærid/
+    cefr: A1
+    tags: [patterns, status]
+    senses:
+      - definition_en: having a husband or wife
+        definition_vi: kết hôn
+        register: neutral
+    collocations:
+      - collocation: married to
+        pattern: adj+prep
+
+  - id: proud-adjective
+    headword: proud
+    pos: adjective
+    ipa: /praʊd/
+    cefr: B1
+    tags: [patterns, feelings]
+    senses:
+      - definition_en: feeling pleasure and satisfaction because you or people connected with you have done or got something good
+        definition_vi: tự hào
+        register: neutral
+    collocations:
+      - collocation: proud of
+        pattern: adj+prep
+
+  - id: argue-verb
+    headword: argue
+    pos: verb
+    ipa: /ˈɑːɡjuː/
+    cefr: A2
+    tags: [patterns, communication]
+    senses:
+      - definition_en: to speak angrily to someone, telling that person that you disagree with them
+        definition_vi: tranh cãi
+        register: neutral
+    collocations:
+      - collocation: argue with somebody
+        pattern: other
+      - collocation: argue about something
+        pattern: other
+
+  - id: chat-verb
+    headword: chat
+    pos: verb
+    ipa: /tʃæt/
+    cefr: A2
+    tags: [patterns, communication]
+    senses:
+      - definition_en: to talk to someone in a friendly informal way
+        definition_vi: tán gẫu
+        register: informal
+    collocations:
+      - collocation: chat to somebody
+        pattern: other
+      - collocation: chat about something
+        pattern: other

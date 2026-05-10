@@ -1,0 +1,847 @@
+# Destination B1 — Unit 21: Sending and receiving
+book: destination-b1
+
+unit:
+  ordinal: 21
+  code: U21
+  title: Sending and receiving
+
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: Vocabulary, Phrasal Verbs & Patterns
+  slug: vocab-phrasal-verbs-patterns
+
+entries:
+  # --- TOPIC VOCABULARY ---
+  - id: accent-noun
+    headword: accent
+    pos: noun
+    ipa: /ˈæksent/
+    cefr: B1
+    tags: [communication, language]
+    senses:
+      - definition_en: the way in which people in a particular area, country, or social group pronounce words
+        definition_vi: giọng điệu, khẩu âm
+        register: neutral
+    examples:
+      - text: He has a strong Scottish {{accent}} that is sometimes hard to understand.
+        translation: Anh ấy có một chất giọng Scotland đặc sệt đôi khi rất khó hiểu.
+        cloze_hint: a_____
+
+  - id: announcement-noun
+    headword: announcement
+    pos: noun
+    ipa: /əˈnaʊnsmənt/
+    cefr: B1
+    tags: [communication, media]
+    senses:
+      - definition_en: something that someone says officially, giving information about something
+        definition_vi: thông báo
+        register: formal
+    examples:
+      - text: The headteacher made an {{announcement}} about the school trip.
+        translation: Thầy hiệu trưởng đã đưa ra một thông báo về chuyến đi thực tế của trường.
+        cloze_hint: a___________
+
+  - id: broadcast-verb
+    headword: broadcast
+    pos: verb
+    ipa: /ˈbrɔːdkɑːst/
+    cefr: B1
+    tags: [media, actions]
+    senses:
+      - definition_en: to send out a programme on television or radio
+        definition_vi: phát sóng
+        register: formal
+    examples:
+      - text: The tennis match will be {{broadcast}} live to over forty countries.
+        translation: Trận đấu quần vợt sẽ được phát sóng trực tiếp tới hơn bốn mươi quốc gia.
+        cloze_hint: b________
+    forms:
+      - kind: past
+        text: broadcast
+      - kind: past_participle
+        text: broadcast
+
+  - id: channel-noun
+    headword: channel
+    pos: noun
+    ipa: /ˈtʃænl/
+    cefr: A2
+    tags: [media]
+    senses:
+      - definition_en: a television station
+        definition_vi: kênh truyền hình, kênh thông tin
+        register: neutral
+    examples:
+      - text: Can you switch to another {{channel}}? This program is boring.
+        translation: Bạn có thể chuyển sang kênh khác được không? Chương trình này thật nhàm chán.
+        cloze_hint: c______
+
+  - id: clear-adjective
+    headword: clear
+    pos: adjective
+    ipa: /klɪə/
+    cefr: A2
+    tags: [communication, description]
+    senses:
+      - definition_en: easy to understand, hear, read, or see
+        definition_vi: rõ ràng
+        register: neutral
+    examples:
+      - text: The instructions on the box are very {{clear}}.
+        translation: Các hướng dẫn trên hộp rất rõ ràng.
+        cloze_hint: c____
+
+  - id: click-verb
+    headword: click
+    pos: verb
+    ipa: /klɪk/
+    cefr: A2
+    tags: [technology, actions]
+    senses:
+      - definition_en: to carry out a computer operation by pressing a button on the mouse or keyboard
+        definition_vi: nhấp chuột
+        register: neutral
+    examples:
+      - text: If you want to open the file, double {{click}} on the icon.
+        translation: Nếu bạn muốn mở tập tin, hãy nhấp đúp chuột vào biểu tượng.
+        cloze_hint: c____
+
+  - id: contact-verb
+    headword: contact
+    pos: verb
+    ipa: /ˈkɒntækt/
+    cefr: A2
+    tags: [communication, actions]
+    senses:
+      - definition_en: to communicate with someone by calling or sending them a letter, email, etc.
+        definition_vi: liên lạc
+        register: neutral
+    examples:
+      - text: Please {{contact}} me if you need any further information.
+        translation: Vui lòng liên lạc với tôi nếu bạn cần thêm bất kỳ thông tin nào.
+        cloze_hint: c______
+
+  - id: file-noun
+    headword: file
+    pos: noun
+    ipa: /faɪl/
+    cefr: A2
+    tags: [technology]
+    senses:
+      - definition_en: a collection of information stored electronically with a single name
+        definition_vi: tập tin
+        register: neutral
+    examples:
+      - text: I accidentally deleted an important document {{file}} from my computer.
+        translation: Tôi đã vô tình xóa một tập tin tài liệu quan trọng khỏi máy tính của mình.
+        cloze_hint: f___
+
+  - id: formal-adjective
+    headword: formal
+    pos: adjective
+    ipa: /ˈfɔːml/
+    cefr: B1
+    tags: [communication, description]
+    senses:
+      - definition_en: used about behaviour or language that is serious and careful, showing respect
+        definition_vi: trang trọng
+        register: neutral
+    examples:
+      - text: Business letters should be written in a {{formal}} style.
+        translation: Các bức thư thương mại nên được viết theo phong cách trang trọng.
+        cloze_hint: f_____
+
+  - id: image-noun
+    headword: image
+    pos: noun
+    ipa: /ˈɪmɪdʒ/
+    cefr: B1
+    tags: [media, technology]
+    senses:
+      - definition_en: a picture in your mind or an idea of how someone or something is; a visual representation
+        definition_vi: hình ảnh
+        register: neutral
+    examples:
+      - text: The website uses large {{images}} to attract visitors.
+        translation: Trang web sử dụng các hình ảnh lớn để thu hút khách truy cập.
+        cloze_hint: i____
+
+  - id: informal-adjective
+    headword: informal
+    pos: adjective
+    ipa: /ɪnˈfɔːml/
+    cefr: B1
+    tags: [communication, description]
+    senses:
+      - definition_en: not formal or official; relaxed and friendly
+        definition_vi: thân mật, không trang trọng
+        register: neutral
+    examples:
+      - text: We had an {{informal}} meeting over coffee to discuss the project.
+        translation: Chúng tôi đã có một cuộc họp thân mật bên tách cà phê để thảo luận về dự án.
+        cloze_hint: i_______
+
+  - id: internet-noun
+    headword: internet
+    pos: noun
+    ipa: /ˈɪntənet/
+    cefr: A1
+    tags: [technology, media]
+    senses:
+      - definition_en: the large system of connected computers around the world that allows people to share information
+        definition_vi: mạng internet
+        register: neutral
+    examples:
+      - text: You can find almost any information you need on the {{internet}}.
+        translation: Bạn có thể tìm thấy hầu như mọi thông tin mình cần trên mạng internet.
+        cloze_hint: i_______
+
+  - id: interrupt-verb
+    headword: interrupt
+    pos: verb
+    ipa: /ˌɪntəˈrʌpt/
+    cefr: B1
+    tags: [communication, actions]
+    senses:
+      - definition_en: to stop someone from speaking by saying or doing something, or to stop an activity
+        definition_vi: ngắt lời, làm gián đoạn
+        register: neutral
+    examples:
+      - text: It is impolite to {{interrupt}} someone while they are speaking.
+        translation: Thật là bất lịch sự khi ngắt lời ai đó trong khi họ đang nói.
+        cloze_hint: i________
+
+  - id: link-verb
+    headword: link
+    pos: verb
+    ipa: /lɪŋk/
+    cefr: B1
+    tags: [technology, actions]
+    senses:
+      - definition_en: to make a connection between two or more people, things, or ideas
+        definition_vi: liên kết
+        register: neutral
+    examples:
+      - text: The new bridge will {{link}} the island to the mainland.
+        translation: Cây cầu mới sẽ liên kết hòn đảo với đất liền.
+        cloze_hint: l___
+
+  - id: media-noun
+    headword: media
+    pos: noun
+    ipa: /ˈmiːdiə/
+    cefr: B1
+    tags: [media]
+    senses:
+      - definition_en: newspapers, magazines, radio, and television considered as a group
+        definition_vi: phương tiện truyền thông
+        register: neutral
+    examples:
+      - text: The event received a lot of coverage in the local {{media}}.
+        translation: Sự kiện này đã nhận được rất nhiều sự đưa tin trên các phương tiện truyền thông địa phương.
+        cloze_hint: m____
+
+  - id: mobile-phone-noun
+    headword: mobile phone
+    pos: noun
+    ipa: /ˌməʊbaɪl ˈfəʊn/
+    cefr: A1
+    tags: [technology, objects]
+    senses:
+      - definition_en: a telephone that you can carry with you and use anywhere
+        definition_vi: điện thoại di động
+        register: neutral
+    examples:
+      - text: Please turn off your {{mobile phone}} during the movie.
+        translation: Vui lòng tắt điện thoại di động của bạn trong suốt bộ phim.
+        cloze_hint: m_____ p____
+
+  - id: online-adjective
+    headword: online
+    pos: adjective
+    ipa: /ˌɒnˈlaɪn/
+    cefr: A2
+    tags: [technology, description]
+    senses:
+      - definition_en: bought, done, or used on the internet
+        definition_vi: trực tuyến
+        register: neutral
+    examples:
+      - text: I prefer buying clothes {{online}} because it is more convenient.
+        translation: Tôi thích mua quần áo trực tuyến vì nó tiện lợi hơn.
+        cloze_hint: o_____
+
+  - id: pause-verb
+    headword: pause
+    pos: verb
+    ipa: /pɔːz/
+    cefr: B1
+    tags: [actions, time]
+    senses:
+      - definition_en: to stop doing something for a short time before continuing
+        definition_vi: tạm dừng
+        register: neutral
+    examples:
+      - text: He {{paused}} for a moment before answering the question.
+        translation: Anh ấy đã tạm dừng một khoảnh khắc trước khi trả lời câu hỏi.
+        cloze_hint: p____
+
+  - id: persuade-verb
+    headword: persuade
+    pos: verb
+    ipa: /pəˈsweɪd/
+    cefr: B1
+    tags: [communication, mind]
+    senses:
+      - definition_en: to make someone do or believe something by giving them a good reason to do it
+        definition_vi: thuyết phục
+        register: neutral
+    examples:
+      - text: We managed to {{persuade}} him to come to the party.
+        translation: Chúng tôi đã xoay sở để thuyết phục anh ấy đến bữa tiệc.
+        cloze_hint: p_______
+
+  - id: pronounce-verb
+    headword: pronounce
+    pos: verb
+    ipa: /prəˈnaʊns/
+    cefr: A2
+    tags: [communication, language]
+    senses:
+      - definition_en: to make the sound of a word or letter in a particular way
+        definition_vi: phát âm
+        register: neutral
+    examples:
+      - text: How do you {{pronounce}} your last name?
+        translation: Bạn phát âm họ của mình như thế nào?
+        cloze_hint: p________
+
+  - id: publish-verb
+    headword: publish
+    pos: verb
+    ipa: /ˈpʌblɪʃ/
+    cefr: B1
+    tags: [media, actions]
+    senses:
+      - definition_en: to make information available to people, especially in a book, magazine, or newspaper
+        definition_vi: xuất bản, công bố
+        register: formal
+    examples:
+      - text: The university will {{publish}} the research findings next month.
+        translation: Trường đại học sẽ xuất bản các kết quả nghiên cứu vào tháng tới.
+        cloze_hint: p______
+
+  - id: report-verb
+    headword: report
+    pos: verb
+    ipa: /rɪˈpɔːt/
+    cefr: A2
+    tags: [communication, work]
+    senses:
+      - definition_en: to give a description of something or information about it to someone
+        definition_vi: báo cáo
+        register: formal
+    examples:
+      - text: The journalist {{reported}} on the political situation in the country.
+        translation: Nhà báo đã báo cáo về tình hình chính trị ở quốc gia đó.
+        cloze_hint: r_____
+
+  - id: request-verb
+    headword: request
+    pos: verb
+    ipa: /rɪˈkwest/
+    cefr: B1
+    tags: [communication, actions]
+    senses:
+      - definition_en: to ask for something politely or officially
+        definition_vi: yêu cầu
+        register: formal
+    examples:
+      - text: We have {{requested}} some further information about the product.
+        translation: Chúng tôi đã yêu cầu thêm một số thông tin về sản phẩm.
+        cloze_hint: r______
+
+  - id: ring-verb
+    headword: ring
+    pos: verb
+    ipa: /rɪŋ/
+    cefr: A2
+    tags: [communication, actions]
+    senses:
+      - definition_en: to make a phone call to someone
+        definition_vi: reo (chuông), gọi điện thoại
+        register: neutral
+    examples:
+      - text: I will {{ring}} you when I arrive at the station.
+        translation: Tôi sẽ gọi điện cho bạn khi tôi đến nhà ga.
+        cloze_hint: r___
+
+  - id: signal-noun
+    headword: signal
+    pos: noun
+    ipa: /ˈsɪɡnəl/
+    cefr: B1
+    tags: [technology, communication]
+    senses:
+      - definition_en: an action, movement, or sound that gives information, a message, a warning, or an order
+        definition_vi: tín hiệu
+        register: neutral
+    examples:
+      - text: The red light is a {{signal}} that the machine has stopped.
+        translation: Đèn đỏ là một tín hiệu cho thấy máy đã dừng hoạt động.
+        cloze_hint: s_____
+
+  - id: swear-verb
+    headword: swear
+    pos: verb
+    ipa: /sweə/
+    cefr: B1
+    tags: [communication, abstract]
+    senses:
+      - definition_en: to use words that are rude or offensive as a way of emphasizing what you mean or as a way of insulting someone or something
+        definition_vi: chửi thề, thề
+        register: informal
+    examples:
+      - text: It is not acceptable to {{swear}} in the classroom.
+        translation: Việc chửi thề trong lớp học là không thể chấp nhận được.
+        cloze_hint: s____
+
+  - id: type-verb
+    headword: type
+    pos: verb
+    ipa: /taɪp/
+    cefr: A2
+    tags: [technology, actions]
+    senses:
+      - definition_en: to write using a machine, either a computer keyboard or a typewriter
+        definition_vi: gõ phím
+        register: neutral
+    examples:
+      - text: She can {{type}} over sixty words per minute.
+        translation: Cô ấy có thể gõ phím hơn sáu mươi từ mỗi phút.
+        cloze_hint: t___
+
+  - id: viewer-noun
+    headword: viewer
+    pos: noun
+    ipa: /ˈvjuːə/
+    cefr: B1
+    tags: [media, people]
+    senses:
+      - definition_en: a person who watches something, especially television
+        definition_vi: người xem
+        register: neutral
+    examples:
+      - text: The program attracts millions of {{viewers}} every week.
+        translation: Chương trình thu hút hàng triệu người xem mỗi tuần.
+        cloze_hint: v_____
+
+  - id: website-noun
+    headword: website
+    pos: noun
+    ipa: /ˈwebsaɪt/
+    cefr: A1
+    tags: [technology, media]
+    senses:
+      - definition_en: a set of pages of information on the internet about a particular subject, published by a single person or organization
+        definition_vi: trang web
+        register: neutral
+    examples:
+      - text: You can find our contact details on our {{website}}.
+        translation: Bạn có thể tìm thấy thông tin liên lạc của chúng tôi trên trang web của chúng tôi.
+        cloze_hint: w______
+
+  - id: whisper-verb
+    headword: whisper
+    pos: verb
+    ipa: /ˈwɪspə/
+    cefr: B1
+    tags: [communication, actions]
+    senses:
+      - definition_en: to speak very quietly, using the breath but not the voice, so that only the person close to you can hear you
+        definition_vi: nói thầm
+        register: neutral
+    examples:
+      - text: She leaned over and {{whispered}} something in his ear.
+        translation: Cô ấy nghiêng người sang và nói thầm điều gì đó vào tai anh ấy.
+        cloze_hint: w______
+
+  # --- PHRASAL VERBS ---
+  - id: call-back-phrasal_verb
+    headword: call back
+    pos: phrasal_verb
+    cefr: A2
+    tags: [communication, actions]
+    senses:
+      - definition_en: to telephone someone again, or to telephone someone who telephoned you earlier
+        definition_vi: gọi lại
+        register: neutral
+    examples:
+      - text: I'm in a meeting right now, can I {{call you back}} later?
+        translation: Hiện tại tôi đang họp, tôi có thể gọi lại cho bạn sau được không?
+
+  - id: come-out-phrasal_verb
+    headword: come out
+    pos: phrasal_verb
+    cefr: B1
+    tags: [media, actions]
+    senses:
+      - definition_en: if a book, record, film, etc. comes out, it becomes available for people to buy or see
+        definition_vi: được xuất bản, phát hành
+        register: neutral
+    examples:
+      - text: When does their new album {{come out}}?
+        translation: Khi nào thì album mới của họ được phát hành?
+
+  - id: cut-off-phrasal_verb
+    headword: cut off
+    pos: phrasal_verb
+    cefr: B1
+    tags: [technology, communication]
+    senses:
+      - definition_en: to stop a telephone conversation by breaking the connection
+        definition_vi: cắt đứt, ngắt kết nối (điện thoại)
+        register: neutral
+    examples:
+      - text: We were in the middle of talking when we suddenly got {{cut off}}.
+        translation: Chúng tôi đang nói chuyện dở dang thì đột nhiên bị ngắt kết nối.
+
+  - id: fill-in-phrasal_verb
+    headword: fill in
+    pos: phrasal_verb
+    cefr: A2
+    tags: [actions, administration]
+    senses:
+      - definition_en: to write the necessary information on an official document
+        definition_vi: điền vào (đơn từ)
+        register: neutral
+    examples:
+      - text: Please {{fill in}} this application form and sign at the bottom.
+        translation: Vui lòng điền vào mẫu đơn đăng ký này và ký tên ở phía dưới.
+
+  - id: hang-up-phrasal_verb
+    headword: hang up
+    pos: phrasal_verb
+    cefr: B1
+    tags: [communication, actions]
+    senses:
+      - definition_en: to end a telephone conversation
+        definition_vi: cúp máy
+        register: neutral
+    examples:
+      - text: Don't {{hang up}} on me, I haven't finished explaining!
+        translation: Đừng cúp máy tôi, tôi vẫn chưa giải thích xong!
+
+  - id: log-off-phrasal_verb
+    headword: log off
+    pos: phrasal_verb
+    cefr: B1
+    tags: [technology, actions]
+    senses:
+      - definition_en: to stop a computer being connected to a computer system, usually when you want to stop working
+        definition_vi: đăng xuất
+        register: neutral
+    examples:
+      - text: Always remember to {{log off}} when you leave your desk.
+        translation: Hãy luôn nhớ đăng xuất khi bạn rời khỏi bàn làm việc của mình.
+
+  - id: log-on-phrasal_verb
+    headword: log on
+    pos: phrasal_verb
+    cefr: B1
+    tags: [technology, actions]
+    senses:
+      - definition_en: to connect a computer to a computer system by typing your name, so that you can start working
+        definition_vi: đăng nhập
+        register: neutral
+    examples:
+      - text: You need a password to {{log on}} to the school network.
+        translation: Bạn cần một mật khẩu để đăng nhập vào mạng nội bộ của trường.
+
+  - id: print-out-phrasal_verb
+    headword: print out
+    pos: phrasal_verb
+    cefr: A2
+    tags: [technology, actions]
+    senses:
+      - definition_en: to produce a printed copy of a document that has been written on a computer
+        definition_vi: in ra
+        register: neutral
+    examples:
+      - text: Could you {{print out}} a copy of the report for me?
+        translation: Bạn có thể in ra một bản sao của báo cáo cho tôi được không?
+
+  # --- WORD FORMATION (ROOTS & DERIVATIVES) ---
+  - id: certain-adjective
+    headword: certain
+    pos: adjective
+    ipa: /ˈsɜːtn/
+    cefr: A2
+    tags: [formation, mind]
+    senses:
+      - definition_en: having no doubt or knowing exactly that something is true
+        definition_vi: chắc chắn
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: certainly
+      - relation: derived_from
+        text: certainty
+
+  - id: communicate-verb
+    headword: communicate
+    pos: verb
+    ipa: /kəˈmjuːnɪkeɪt/
+    cefr: B1
+    tags: [formation, communication]
+    senses:
+      - definition_en: to share information with others by speaking, writing, moving your body, or using other signals
+        definition_vi: giao tiếp
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: communication
+
+  - id: connect-verb-formation
+    headword: connect
+    pos: verb
+    ipa: /kəˈnekt/
+    cefr: A2
+    tags: [formation, technology]
+    senses:
+      - definition_en: to join or be joined with something else
+        definition_vi: kết nối
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: connection
+      - relation: derived_from
+        text: disconnect
+
+  - id: deliver-verb
+    headword: deliver
+    pos: verb
+    ipa: /dɪˈlɪvə/
+    cefr: B1
+    tags: [formation, actions]
+    senses:
+      - definition_en: to take goods, letters, parcels, etc. to people's houses or places of work
+        definition_vi: giao hàng
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: delivery
+
+  - id: express-verb
+    headword: express
+    pos: verb
+    ipa: /ɪkˈspres/
+    cefr: B1
+    tags: [formation, communication]
+    senses:
+      - definition_en: to show a feeling, opinion, or fact
+        definition_vi: biểu lộ
+        register: formal
+    relations:
+      - relation: derived_from
+        text: expression
+      - relation: derived_from
+        text: expressive
+
+  - id: inform-verb
+    headword: inform
+    pos: verb
+    ipa: /ɪnˈfɔːm/
+    cefr: B1
+    tags: [formation, communication]
+    senses:
+      - definition_en: to tell someone about particular facts
+        definition_vi: thông báo
+        register: formal
+    relations:
+      - relation: derived_from
+        text: information
+      - relation: derived_from
+        text: informative
+
+  - id: predict-verb
+    headword: predict
+    pos: verb
+    ipa: /prɪˈdɪkt/
+    cefr: B1
+    tags: [formation, mind]
+    senses:
+      - definition_en: to say that an event or action will happen in the future, especially as a result of knowledge or experience
+        definition_vi: dự đoán
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: prediction
+      - relation: derived_from
+        text: predictable
+      - relation: derived_from
+        text: unpredictable
+
+  - id: secret-noun
+    headword: secret
+    pos: noun
+    ipa: /ˈsiːkrət/
+    cefr: A2
+    tags: [formation, abstract]
+    senses:
+      - definition_en: a piece of information that is only known by one person or a few people and should not be told to others
+        definition_vi: bí mật
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: secretly
+      - relation: derived_from
+        text: secrecy
+
+  - id: speak-verb
+    headword: speak
+    pos: verb
+    ipa: /spiːk/
+    cefr: A1
+    tags: [formation, communication]
+    senses:
+      - definition_en: to say words, to use the voice, or to have a conversation with someone
+        definition_vi: nói
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: speaker
+      - relation: derived_from
+        text: speech
+
+  - id: translate-verb
+    headword: translate
+    pos: verb
+    ipa: /trænsˈleɪt/
+    cefr: B1
+    tags: [formation, language]
+    senses:
+      - definition_en: to change words into a different language
+        definition_vi: dịch
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: translation
+      - relation: derived_from
+        text: translator
+
+  # --- WORD PATTERNS (BASE WORDS) ---
+  - id: comment-verb
+    headword: comment
+    pos: verb
+    ipa: /ˈkɒment/
+    cefr: B1
+    tags: [patterns, communication]
+    senses:
+      - definition_en: to express an opinion
+        definition_vi: bình luận
+        register: neutral
+    collocations:
+      - collocation: comment on
+        pattern: verb+prep
+
+  - id: glance-verb
+    headword: glance
+    pos: verb
+    ipa: /ɡlɑːns/
+    cefr: B1
+    tags: [patterns, actions]
+    senses:
+      - definition_en: to give a quick short look
+        definition_vi: liếc nhìn
+        register: neutral
+    collocations:
+      - collocation: glance at
+        pattern: verb+prep
+
+  - id: receive-verb
+    headword: receive
+    pos: verb
+    ipa: /rɪˈsiːv/
+    cefr: A2
+    tags: [patterns, actions]
+    senses:
+      - definition_en: to get or be given something
+        definition_vi: nhận
+        register: formal
+    collocations:
+      - collocation: receive from
+        pattern: verb+prep
+
+  - id: reply-verb
+    headword: reply
+    pos: verb
+    ipa: /rɪˈplaɪ/
+    cefr: A2
+    tags: [patterns, communication]
+    senses:
+      - definition_en: to answer
+        definition_vi: phản hồi lại
+        register: neutral
+    collocations:
+      - collocation: reply to
+        pattern: verb+prep
+
+  - id: send-verb
+    headword: send
+    pos: verb
+    ipa: /send/
+    cefr: A1
+    tags: [patterns, actions]
+    senses:
+      - definition_en: to cause something to go from one place to another
+        definition_vi: gửi
+        register: neutral
+    collocations:
+      - collocation: send something to somebody
+        pattern: other
+
+  - id: talk-verb
+    headword: talk
+    pos: verb
+    ipa: /tɔːk/
+    cefr: A1
+    tags: [patterns, communication]
+    senses:
+      - definition_en: to say words aloud; to speak to someone
+        definition_vi: nói chuyện
+        register: neutral
+    collocations:
+      - collocation: talk to somebody about
+        pattern: other
+
+  - id: tell-verb
+    headword: tell
+    pos: verb
+    ipa: /tel/
+    cefr: A1
+    tags: [patterns, communication]
+    senses:
+      - definition_en: to say something to someone, often giving them information or instructions
+        definition_vi: kể, bảo
+        register: neutral
+    collocations:
+      - collocation: tell somebody about
+        pattern: other
+
+  - id: write-verb
+    headword: write
+    pos: verb
+    ipa: /raɪt/
+    cefr: A1
+    tags: [patterns, communication]
+    senses:
+      - definition_en: to make marks that represent letters, words, or numbers on a surface
+        definition_vi: viết
+        register: neutral
+    collocations:
+      - collocation: write to somebody about
+        pattern: other

@@ -1,0 +1,820 @@
+# Destination B1 — Unit 6: Learning and doing
+book: destination-b1
+
+unit:
+  ordinal: 6
+  code: U06
+  title: Learning and doing
+
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: Vocabulary, Phrasal Verbs & Patterns
+  slug: vocab-phrasal-verbs-patterns
+
+entries:
+  # --- TOPIC VOCABULARY ---
+  - id: achieve-verb
+    headword: achieve
+    pos: verb
+    ipa: /əˈtʃiːv/
+    cefr: B1
+    tags: [education, success]
+    senses:
+      - definition_en: to succeed in doing or having what you planned or intended, usually after a lot of effort
+        definition_vi: đạt được
+        register: neutral
+    examples:
+      - text: If you study hard, you will {{achieve}} your goals.
+        translation: Nếu bạn học hành chăm chỉ, bạn sẽ đạt được mục tiêu của mình.
+        cloze_hint: a______
+    forms:
+      - kind: past
+        text: achieved
+
+  - id: brain-noun
+    headword: brain
+    pos: noun
+    ipa: /breɪn/
+    cefr: A2
+    tags: [anatomy, mind]
+    senses:
+      - definition_en: the organ inside your head that allows you to think and feel, and controls your body
+        definition_vi: bộ não
+        register: neutral
+    examples:
+      - text: The human {{brain}} is highly complex.
+        translation: Bộ não con người vô cùng phức tạp.
+        cloze_hint: b____
+
+  - id: clever-adjective
+    headword: clever
+    pos: adjective
+    ipa: /ˈklevə/
+    cefr: A2
+    tags: [description, mind]
+    senses:
+      - definition_en: able to learn and understand things quickly and easily
+        definition_vi: thông minh
+        register: neutral
+    examples:
+      - text: She is a very {{clever}} student who always gets good marks.
+        translation: Cô ấy là một học sinh rất thông minh, người luôn đạt điểm cao.
+        cloze_hint: c_____
+    relations:
+      - relation: synonym
+        text: smart
+
+  - id: concentrate-verb
+    headword: concentrate
+    pos: verb
+    ipa: /ˈkɒnsntreɪt/
+    cefr: B1
+    tags: [education, mind]
+    senses:
+      - definition_en: to give all your attention to the thing you are doing
+        definition_vi: tập trung
+        register: neutral
+    examples:
+      - text: It is difficult to {{concentrate}} when the room is noisy.
+        translation: Thật khó để tập trung khi căn phòng ồn ào.
+        cloze_hint: c__________
+    relations:
+      - relation: synonym
+        text: focus
+
+  - id: consider-verb
+    headword: consider
+    pos: verb
+    ipa: /kənˈsɪdə/
+    cefr: B1
+    tags: [mind, abstract]
+    senses:
+      - definition_en: to spend time thinking about a possibility or making a decision
+        definition_vi: cân nhắc, xem xét
+        register: formal
+    examples:
+      - text: We are {{considering}} buying a new house.
+        translation: Chúng tôi đang cân nhắc việc mua một ngôi nhà mới.
+        cloze_hint: c_________
+
+  - id: course-noun
+    headword: course
+    pos: noun
+    ipa: /kɔːs/
+    cefr: A2
+    tags: [education]
+    senses:
+      - definition_en: a set of classes or a plan of study on a particular subject
+        definition_vi: khóa học
+        register: neutral
+    examples:
+      - text: I have enrolled in an English writing {{course}}.
+        translation: Tôi đã đăng ký vào một khóa học viết tiếng Anh.
+        cloze_hint: c_____
+
+  - id: degree-noun
+    headword: degree
+    pos: noun
+    ipa: /dɪˈɡriː/
+    cefr: B1
+    tags: [education]
+    senses:
+      - definition_en: the qualification given to a student after he or she has completed his or her studies
+        definition_vi: bằng cấp (đại học)
+        register: formal
+    examples:
+      - text: She holds a master's {{degree}} in Business Administration.
+        translation: Cô ấy có bằng thạc sĩ Quản trị Kinh doanh.
+        cloze_hint: d_____
+
+  - id: experience-noun
+    headword: experience
+    pos: noun
+    ipa: /ɪkˈspɪəriəns/
+    cefr: A2
+    tags: [abstract, work]
+    senses:
+      - definition_en: knowledge or skill from doing, seeing, or feeling things
+        definition_vi: kinh nghiệm, trải nghiệm
+        register: neutral
+    examples:
+      - text: Do you have any previous {{experience}} in management?
+        translation: Bạn có bất kỳ kinh nghiệm quản lý nào trước đây không?
+        cloze_hint: e_________
+
+  - id: expert-noun
+    headword: expert
+    pos: noun
+    ipa: /ˈekspɜːt/
+    cefr: B1
+    tags: [people, work]
+    senses:
+      - definition_en: a person with a high level of knowledge or skill relating to a particular subject
+        definition_vi: chuyên gia
+        register: neutral
+    examples:
+      - text: He is a medical {{expert}} in the field of neurology.
+        translation: Ông ấy là một chuyên gia y tế trong lĩnh vực thần kinh học.
+        cloze_hint: e_____
+
+  - id: fail-verb
+    headword: fail
+    pos: verb
+    ipa: /feɪl/
+    cefr: A2
+    tags: [education, success]
+    senses:
+      - definition_en: to not be successful in achieving something
+        definition_vi: trượt, thất bại
+        register: neutral
+    examples:
+      - text: If you don't revise, you will {{fail}} the exam.
+        translation: Nếu bạn không ôn tập, bạn sẽ trượt kỳ thi.
+        cloze_hint: f___
+
+  - id: guess-verb
+    headword: guess
+    pos: verb
+    ipa: /ɡes/
+    cefr: A2
+    tags: [mind, actions]
+    senses:
+      - definition_en: to give an answer to a particular question when you do not have all the facts
+        definition_vi: đoán
+        register: neutral
+    examples:
+      - text: Can you {{guess}} how old he is?
+        translation: Bạn có thể đoán anh ấy bao nhiêu tuổi không?
+        cloze_hint: g____
+
+  - id: hesitate-verb
+    headword: hesitate
+    pos: verb
+    ipa: /ˈhezɪteɪt/
+    cefr: B1
+    tags: [actions, feelings]
+    senses:
+      - definition_en: to pause before doing or saying something, especially because you are nervous or not certain
+        definition_vi: do dự, ngập ngừng
+        register: neutral
+    examples:
+      - text: Please do not {{hesitate}} to contact me if you have any questions.
+        translation: Xin đừng ngần ngại liên hệ với tôi nếu bạn có bất kỳ câu hỏi nào.
+        cloze_hint: h_______
+
+  - id: instruction-noun
+    headword: instruction
+    pos: noun
+    ipa: /ɪnˈstrʌkʃn/
+    cefr: B1
+    tags: [education, abstract]
+    senses:
+      - definition_en: advice and information about how to do or use something
+        definition_vi: sự hướng dẫn
+        register: neutral
+    examples:
+      - text: Read the {{instructions}} carefully before using the machine.
+        translation: Đọc kỹ hướng dẫn trước khi sử dụng máy.
+        cloze_hint: i__________
+
+  - id: make-progress-verb
+    headword: make progress
+    pos: verb
+    ipa: /meɪk ˈprəʊɡres/
+    cefr: B1
+    tags: [education, success]
+    senses:
+      - definition_en: to improve or develop in skills, knowledge, etc.
+        definition_vi: tiến bộ
+        register: neutral
+    examples:
+      - text: You are {{making good progress}} in your English studies.
+        translation: Bạn đang đạt được tiến bộ tốt trong việc học tiếng Anh của mình.
+        cloze_hint: m___ p_______
+
+  - id: make-sure-verb
+    headword: make sure
+    pos: verb
+    ipa: /meɪk ʃʊə/
+    cefr: A2
+    tags: [actions, abstract]
+    senses:
+      - definition_en: to take action so that you are certain that something happens
+        definition_vi: đảm bảo, chắc chắn
+        register: neutral
+    examples:
+      - text: "{{Make sure}} you lock the door when you leave."
+        translation: Đảm bảo rằng bạn khóa cửa khi bạn rời đi.
+        cloze_hint: m___ s___
+
+  - id: mark-noun
+    headword: mark
+    pos: noun
+    ipa: /mɑːk/
+    cefr: A2
+    tags: [education]
+    senses:
+      - definition_en: a number or letter that shows how good someone's work or performance is
+        definition_vi: điểm số
+        register: neutral
+    examples:
+      - text: She got a high {{mark}} in her math test.
+        translation: Cô ấy đã đạt điểm cao trong bài kiểm tra toán của mình.
+        cloze_hint: m___
+
+  - id: mental-adjective
+    headword: mental
+    pos: adjective
+    ipa: /ˈmentl/
+    cefr: B1
+    tags: [mind, description]
+    senses:
+      - definition_en: relating to the mind, or involving the process of thinking
+        definition_vi: thuộc về tinh thần, trí óc
+        register: formal
+    examples:
+      - text: Chess is a game that requires great {{mental}} effort.
+        translation: Cờ vua là một trò chơi đòi hỏi nỗ lực trí óc lớn.
+        cloze_hint: m_____
+
+  - id: pass-verb
+    headword: pass
+    pos: verb
+    ipa: /pɑːs/
+    cefr: A2
+    tags: [education, success]
+    senses:
+      - definition_en: to be successful in a test, exam, or course
+        definition_vi: vượt qua, đỗ
+        register: neutral
+    examples:
+      - text: I studied hard so I could {{pass}} my driving test.
+        translation: Tôi đã học hành chăm chỉ để có thể vượt qua kỳ thi lái xe.
+        cloze_hint: p___
+
+  - id: qualification-noun
+    headword: qualification
+    pos: noun
+    ipa: /ˌkwɒlɪfɪˈkeɪʃn/
+    cefr: B1
+    tags: [education, work]
+    senses:
+      - definition_en: an official record showing that you have finished a training course or have the necessary skills
+        definition_vi: bằng cấp, chứng chỉ
+        register: formal
+    examples:
+      - text: You need the right {{qualifications}} for this job.
+        translation: Bạn cần những bằng cấp phù hợp cho công việc này.
+        cloze_hint: q____________
+
+  - id: remind-verb
+    headword: remind
+    pos: verb
+    ipa: /rɪˈmaɪnd/
+    cefr: B1
+    tags: [mind, actions]
+    senses:
+      - definition_en: to make someone think of something they have forgotten or might have forgotten
+        definition_vi: nhắc nhở
+        register: neutral
+    examples:
+      - text: Please {{remind}} me to call my mother later.
+        translation: Xin hãy nhắc tôi gọi cho mẹ tôi sau.
+        cloze_hint: r_____
+
+  - id: report-noun
+    headword: report
+    pos: noun
+    ipa: /rɪˈpɔːt/
+    cefr: A2
+    tags: [education, work]
+    senses:
+      - definition_en: a written or spoken description of a situation or event
+        definition_vi: bản báo cáo
+        register: formal
+    examples:
+      - text: The manager asked me to write a {{report}} on the project.
+        translation: Người quản lý yêu cầu tôi viết một bản báo cáo về dự án.
+        cloze_hint: r_____
+
+  - id: revise-verb
+    headword: revise
+    pos: verb
+    ipa: /rɪˈvaɪz/
+    cefr: B1
+    tags: [education, actions]
+    senses:
+      - definition_en: to study again something you have already learned, in preparation for an exam
+        definition_vi: ôn tập
+        register: neutral
+    examples:
+      - text: I have to {{revise}} for my history exam tonight.
+        translation: Tôi phải ôn tập cho kỳ thi lịch sử của mình tối nay.
+        cloze_hint: r_____
+
+  - id: search-verb
+    headword: search
+    pos: verb
+    ipa: /sɜːtʃ/
+    cefr: A2
+    tags: [actions]
+    senses:
+      - definition_en: to look somewhere carefully in order to find something
+        definition_vi: tìm kiếm
+        register: neutral
+    examples:
+      - text: The police are still {{searching}} for the missing child.
+        translation: Cảnh sát vẫn đang tìm kiếm đứa trẻ mất tích.
+        cloze_hint: s_______
+
+  - id: skill-noun
+    headword: skill
+    pos: noun
+    ipa: /skɪl/
+    cefr: A2
+    tags: [education, work]
+    senses:
+      - definition_en: an ability to do an activity or job well, especially because you have practised it
+        definition_vi: kỹ năng
+        register: neutral
+    examples:
+      - text: Communication is an important {{skill}} in business.
+        translation: Giao tiếp là một kỹ năng quan trọng trong kinh doanh.
+        cloze_hint: s____
+
+  - id: smart-adjective
+    headword: smart
+    pos: adjective
+    ipa: /smɑːt/
+    cefr: A2
+    tags: [description, mind]
+    senses:
+      - definition_en: intelligent, or able to think quickly or intelligently
+        definition_vi: thông minh
+        register: informal
+    examples:
+      - text: He is a very {{smart}} boy and learns quickly.
+        translation: Cậu ấy là một cậu bé rất thông minh và học nhanh.
+        cloze_hint: s____
+    relations:
+      - relation: synonym
+        text: clever
+
+  - id: subject-noun
+    headword: subject
+    pos: noun
+    ipa: /ˈsʌbdʒɪkt/
+    cefr: A2
+    tags: [education]
+    senses:
+      - definition_en: an area of knowledge that is studied in school, college, or university
+        definition_vi: môn học
+        register: neutral
+    examples:
+      - text: Mathematics is my favorite {{subject}} at school.
+        translation: Toán là môn học yêu thích của tôi ở trường.
+        cloze_hint: s______
+
+  - id: take-an-exam-verb
+    headword: take an exam
+    pos: verb
+    ipa: /teɪk ən ɪɡˈzæm/
+    cefr: A2
+    tags: [education, actions]
+    senses:
+      - definition_en: to do an official test that shows your knowledge or ability
+        definition_vi: làm bài thi
+        register: neutral
+    examples:
+      - text: All students must {{take an exam}} at the end of the year.
+        translation: Tất cả học sinh phải làm bài thi vào cuối năm.
+        cloze_hint: t___ a_ e___
+
+  - id: talented-adjective
+    headword: talented
+    pos: adjective
+    ipa: /ˈtæləntɪd/
+    cefr: B1
+    tags: [description, arts]
+    senses:
+      - definition_en: with talent; able or skilful
+        definition_vi: có tài năng
+        register: neutral
+    examples:
+      - text: She is a highly {{talented}} musician.
+        translation: Cô ấy là một nhạc sĩ vô cùng tài năng.
+        cloze_hint: t_______
+
+  - id: term-noun
+    headword: term
+    pos: noun
+    ipa: /tɜːm/
+    cefr: B1
+    tags: [education, time]
+    senses:
+      - definition_en: one of the periods into which a year is divided at school, college, or university
+        definition_vi: học kỳ
+        register: neutral
+    examples:
+      - text: We have a lot of exams at the end of the summer {{term}}.
+        translation: Chúng tôi có rất nhiều bài thi vào cuối học kỳ mùa hè.
+        cloze_hint: t___
+
+  - id: wonder-verb
+    headword: wonder
+    pos: verb
+    ipa: /ˈwʌndə/
+    cefr: B1
+    tags: [mind, abstract]
+    senses:
+      - definition_en: to ask yourself questions or express a wish to know about something
+        definition_vi: tự hỏi, thắc mắc
+        register: neutral
+    examples:
+      - text: I {{wonder}} what he is doing right now.
+        translation: Tôi tự hỏi anh ấy đang làm gì ngay lúc này.
+        cloze_hint: w_____
+
+  # --- PHRASAL VERBS ---
+  - id: cross-out-phrasal_verb
+    headword: cross out
+    pos: phrasal_verb
+    cefr: B1
+    tags: [education, actions]
+    senses:
+      - definition_en: to draw a line through something you have written, usually because it is wrong
+        definition_vi: gạch bỏ
+        register: neutral
+    examples:
+      - text: If you make a mistake, simply {{cross it out}}.
+        translation: Nếu bạn mắc lỗi, đơn giản chỉ cần gạch bỏ nó.
+
+  - id: look-up-phrasal_verb
+    headword: look up
+    pos: phrasal_verb
+    cefr: B1
+    tags: [education, abstract]
+    senses:
+      - definition_en: to try to find a piece of information by looking in a book or on a computer
+        definition_vi: tra cứu (từ điển)
+        register: neutral
+    examples:
+      - text: You should {{look up}} the new words in the dictionary.
+        translation: Bạn nên tra cứu các từ mới trong từ điển.
+
+  - id: point-out-phrasal_verb
+    headword: point out
+    pos: phrasal_verb
+    cefr: B1
+    tags: [actions, communication]
+    senses:
+      - definition_en: to tell someone about some information, often because you believe they do not know it or have forgotten it
+        definition_vi: chỉ ra
+        register: neutral
+    examples:
+      - text: The teacher {{pointed out}} the mistakes in my essay.
+        translation: Giáo viên đã chỉ ra những lỗi sai trong bài luận của tôi.
+
+  - id: read-out-phrasal_verb
+    headword: read out
+    pos: phrasal_verb
+    cefr: A2
+    tags: [education, communication]
+    senses:
+      - definition_en: to read the words and say them so that people can hear you
+        definition_vi: đọc to
+        register: neutral
+    examples:
+      - text: Please {{read out}} the instructions to the class.
+        translation: Vui lòng đọc to các hướng dẫn cho cả lớp.
+
+  - id: rip-up-phrasal_verb
+    headword: rip up
+    pos: phrasal_verb
+    cefr: B1
+    tags: [actions]
+    senses:
+      - definition_en: to tear something into small pieces
+        definition_vi: xé vụn
+        register: neutral
+    examples:
+      - text: He was so angry that he {{ripped up}} the letter.
+        translation: Anh ta tức giận đến mức xé vụn bức thư.
+
+  - id: rub-out-phrasal_verb
+    headword: rub out
+    pos: phrasal_verb
+    cefr: B1
+    tags: [education, actions]
+    senses:
+      - definition_en: to remove writing from a document, usually using an eraser
+        definition_vi: tẩy, xóa
+        register: neutral
+    examples:
+      - text: You can {{rub out}} the pencil marks easily.
+        translation: Bạn có thể tẩy các vết bút chì một cách dễ dàng.
+
+  - id: turn-over-phrasal_verb
+    headword: turn over
+    pos: phrasal_verb
+    cefr: A2
+    tags: [actions]
+    senses:
+      - definition_en: to turn a page so that the other side is towards you
+        definition_vi: lật sang trang
+        register: neutral
+    examples:
+      - text: You may now {{turn over}} your exam papers and begin.
+        translation: Các em có thể lật tờ giấy thi sang trang và bắt đầu.
+
+  - id: write-down-phrasal_verb
+    headword: write down
+    pos: phrasal_verb
+    cefr: A2
+    tags: [education, actions]
+    senses:
+      - definition_en: to record information on paper
+        definition_vi: ghi chép lại
+        register: neutral
+    examples:
+      - text: Did you {{write down}} his phone number?
+        translation: Bạn có ghi chép lại số điện thoại của anh ấy không?
+
+  # --- WORD FORMATION (ROOTS & DERIVATIVES) ---
+  - id: begin-verb
+    headword: begin
+    pos: verb
+    ipa: /bɪˈɡɪn/
+    cefr: A1
+    tags: [formation, abstract]
+    senses:
+      - definition_en: to start to happen or exist
+        definition_vi: bắt đầu
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: beginner
+      - relation: derived_from
+        text: beginning
+
+  - id: brave-adjective
+    headword: brave
+    pos: adjective
+    ipa: /breɪv/
+    cefr: B1
+    tags: [formation, description]
+    senses:
+      - definition_en: showing no fear of dangerous or difficult things
+        definition_vi: dũng cảm
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: bravery
+
+  - id: correct-adjective
+    headword: correct
+    pos: adjective
+    ipa: /kəˈrekt/
+    cefr: A2
+    tags: [formation, description]
+    senses:
+      - definition_en: in agreement with the true facts or with what is generally accepted
+        definition_vi: chính xác, sửa
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: correction
+      - relation: derived_from
+        text: incorrect
+
+  - id: divide-verb
+    headword: divide
+    pos: verb
+    ipa: /dɪˈvaɪd/
+    cefr: B1
+    tags: [formation, actions]
+    senses:
+      - definition_en: to separate into parts or groups
+        definition_vi: chia
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: division
+
+  - id: educate-verb
+    headword: educate
+    pos: verb
+    ipa: /ˈedjʊkeɪt/
+    cefr: B1
+    tags: [formation, education]
+    senses:
+      - definition_en: to teach someone, especially using the formal system of school, college, or university
+        definition_vi: giáo dục
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: education
+
+  - id: instruct-verb
+    headword: instruct
+    pos: verb
+    ipa: /ɪnˈstrʌkt/
+    cefr: B1
+    tags: [formation, education]
+    senses:
+      - definition_en: to order or tell someone to do something, especially in a formal way
+        definition_vi: hướng dẫn
+        register: formal
+    relations:
+      - relation: derived_from
+        text: instruction
+      - relation: derived_from
+        text: instructor
+
+  - id: memory-noun
+    headword: memory
+    pos: noun
+    ipa: /ˈmeməri/
+    cefr: A2
+    tags: [formation, mind]
+    senses:
+      - definition_en: the ability to remember information, experiences, and people
+        definition_vi: trí nhớ
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: memorise
+      - relation: derived_from
+        text: memorial
+
+  - id: refer-verb
+    headword: refer
+    pos: verb
+    ipa: /rɪˈfɜː/
+    cefr: B1
+    tags: [formation, communication]
+    senses:
+      - definition_en: to look at a book or similar record in order to find information and help
+        definition_vi: tham khảo, nhắc đến
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: reference
+
+  - id: silent-adjective
+    headword: silent
+    pos: adjective
+    ipa: /ˈsaɪlənt/
+    cefr: B1
+    tags: [formation, description]
+    senses:
+      - definition_en: without any sound
+        definition_vi: im lặng
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: silence
+
+  - id: simple-adjective
+    headword: simple
+    pos: adjective
+    ipa: /ˈsɪmpl/
+    cefr: A2
+    tags: [formation, description]
+    senses:
+      - definition_en: easy to understand or do; not difficult
+        definition_vi: đơn giản
+        register: neutral
+    relations:
+      - relation: derived_from
+        text: simplify
+      - relation: derived_from
+        text: simplicity
+
+  # --- WORD PATTERNS (BASE WORDS) ---
+  - id: capable-adjective
+    headword: capable
+    pos: adjective
+    ipa: /ˈkeɪpəbl/
+    cefr: B1
+    tags: [patterns, description]
+    senses:
+      - definition_en: having the ability, power, or qualities to be able to do something
+        definition_vi: có khả năng
+        register: neutral
+    collocations:
+      - collocation: capable of
+        pattern: adj+prep
+
+  - id: cheat-verb
+    headword: cheat
+    pos: verb
+    ipa: /tʃiːt/
+    cefr: B1
+    tags: [patterns, education]
+    senses:
+      - definition_en: to behave in a dishonest way in order to get what you want
+        definition_vi: gian lận
+        register: neutral
+    collocations:
+      - collocation: cheat at
+        pattern: verb+prep
+      - collocation: cheat in
+        pattern: verb+prep
+
+  - id: confuse-verb
+    headword: confuse
+    pos: verb
+    ipa: /kənˈfjuːz/
+    cefr: B1
+    tags: [patterns, mind]
+    senses:
+      - definition_en: to mix up someone's mind or ideas, or to make something difficult to understand
+        definition_vi: nhầm lẫn
+        register: neutral
+    collocations:
+      - collocation: confuse with
+        pattern: verb+prep
+
+  - id: continue-verb
+    headword: continue
+    pos: verb
+    ipa: /kənˈtɪnjuː/
+    cefr: A2
+    tags: [patterns, actions]
+    senses:
+      - definition_en: to keep happening, existing, or doing something
+        definition_vi: tiếp tục
+        register: neutral
+    collocations:
+      - collocation: continue with
+        pattern: verb+prep
+
+  - id: cope-verb
+    headword: cope
+    pos: verb
+    ipa: /kəʊp/
+    cefr: B1
+    tags: [patterns, abstract]
+    senses:
+      - definition_en: to deal successfully with a difficult situation
+        definition_vi: đối phó, đương đầu
+        register: neutral
+    collocations:
+      - collocation: cope with
+        pattern: verb+prep
+
+  - id: succeed-verb
+    headword: succeed
+    pos: verb
+    ipa: /səkˈsiːd/
+    cefr: B1
+    tags: [patterns, success]
+    senses:
+      - definition_en: to achieve something that you have been aiming for
+        definition_vi: thành công
+        register: neutral
+    collocations:
+      - collocation: succeed in
+        pattern: verb+prep
