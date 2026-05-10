@@ -50,14 +50,14 @@ export function MultipleChoiceCard({ exercise, onAnswer, outcome }: MultipleChoi
         <Badge tone="accent" uppercase>
           Multiple choice
         </Badge>
-        <span className="text-[10px] uppercase tracking-widest text-muted-2">
-          {locked ? (outcome.correct ? "Correct" : "Incorrect") : "Pick the headword"}
+        <span className="text-xs uppercase tracking-widest text-muted-2">
+          {locked ? (outcome.correct ? "Correct ✓" : "Incorrect ✗") : "Pick the headword"}
         </span>
       </header>
 
-      <p className="text-balance text-lg leading-relaxed text-app">{exercise.payload.prompt}</p>
+      <p className="text-balance text-xl font-medium leading-relaxed text-app">{exercise.payload.prompt}</p>
 
-      <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {exercise.payload.options.map((option, idx) => {
           const isPicked = picked === idx;
           const tone = optionTone({ option, locked, isPicked });
@@ -74,20 +74,20 @@ export function MultipleChoiceCard({ exercise, onAnswer, outcome }: MultipleChoi
                 aria-pressed={isPicked}
                 aria-label={`Option ${idx + 1}: ${option.text}`}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-md border px-4 py-3 text-left text-sm transition-colors",
+                  "flex w-full items-center gap-3 rounded-lg border px-5 py-4 text-left text-base transition-colors",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-1",
                   tone,
                 )}
               >
-                <span className="font-mono text-[10px] text-muted-2">{idx + 1}</span>
+                <span className="font-mono text-xs text-muted-2">{idx + 1}</span>
                 <span className="flex-1 font-medium">{option.text}</span>
                 {locked && option.correct ? (
-                  <span aria-hidden className="text-success">
+                  <span aria-hidden className="text-lg text-success">
                     ✓
                   </span>
                 ) : null}
                 {locked && isPicked && !option.correct ? (
-                  <span aria-hidden className="text-danger">
+                  <span aria-hidden className="text-lg text-danger">
                     ✗
                   </span>
                 ) : null}
