@@ -38,12 +38,16 @@ export {
 } from "./curriculum";
 export { type ImportRepository, createImportRepository } from "./import";
 export {
+  type DailyActivityCell,
   type DueItem,
   type DueLessonStats,
   type ProgressRepository,
   createProgressRepository,
+  type RecentSessionRow,
   type RecordAnswerInput,
   type RecordAnswerResult,
+  type TutorOverviewRow,
+  type WeakItem,
 } from "./progress";
 export {
   type BuildStatsInput,

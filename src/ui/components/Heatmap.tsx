@@ -1,0 +1,113 @@
+import { cn } from "@/lib/cn";
+import type { HeatmapCell } from "@/modules/analytics";
+
+export interface HeatmapProps {
+  cells: HeatmapCell[];
+  /** Optional title displayed above the grid. */
+  title?: string;
+  /** Optional sub-text under the title (e.g. "Last 90 days"). */
+  caption?: string;
+  className?: string;
+}
+
+const INTENSITY_BG: Record<HeatmapCell["intensity"], string> = {
+  0: "bg-surface-2",
+  1: "bg-accent/20",
+  2: "bg-accent/40",
+  3: "bg-accent/65",
+  4: "bg-accent/90",
+};
+
+/**
+ * GitHub-style activity grid. Cells are laid out top-to-bottom, then
+ * left-to-right (columns are weeks, rows are weekdays Sun→Sat) so the
+ * shape stays narrow horizontally regardless of the window length.
+ *
+ * The first column starts on the weekday of the earliest cell — we
+ * pad the column with empty placeholders above so subsequent columns
+ * align to a 7-row grid. This keeps Sunday on row 0 across the whole
+ * grid, matching what tutors expect from GitHub / Lingvist.
+ */
+export function Heatmap({ cells, title, caption, className }: HeatmapProps) {
+  if (cells.length === 0) {
+    return (
+      <div
+        className={cn(
+          "rounded-md border border-dashed border-border-subtle bg-surface-1 px-4 py-3 text-xs text-muted-2",
+          className,
+        )}
+      >
+        No activity yet.
+      </div>
+    );
+  }
+
+  const columns = packIntoColumns(cells);
+  return (
+    <section
+      className={cn("rounded-md border border-border-subtle bg-surface-1 px-4 py-3", className)}
+    >
+      {title || caption ? (
+        <header className="mb-2 flex items-baseline justify-between gap-2">
+          {title ? <h3 className="text-sm font-semibold">{title}</h3> : <span />}
+          {caption ? <span className="text-[10px] text-muted-2">{caption}</span> : null}
+        </header>
+      ) : null}
+      <div className="flex gap-1 overflow-x-auto">
+        {columns.map((col, ci) => (
+          <div key={col.weekKey ?? `pad-${ci}`} className="flex flex-col gap-1">
+            {col.cells.map((cell, ri) => (
+              <Cell key={cell ? cell.date : `${ci}-${ri}`} cell={cell} />
+            ))}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Cell({ cell }: { cell: HeatmapCell | null }) {
+  if (!cell) {
+    return <div aria-hidden className="h-3 w-3" />;
+  }
+  return (
+    <div
+      title={`${cell.date} — ${cell.count} ${cell.count === 1 ? "event" : "events"}`}
+      className={cn("h-3 w-3 rounded-[2px]", INTENSITY_BG[cell.intensity])}
+    />
+  );
+}
+
+interface Column {
+  /** Stable key for React; null for the leading pad column. */
+  weekKey: string | null;
+  /** Length 7. Index 0 = Sunday, 6 = Saturday. */
+  cells: Array<HeatmapCell | null>;
+}
+
+/**
+ * Slice the dense day list into 7-tall columns aligned on Sunday rows.
+ * The first column may have leading nulls if the earliest cell is mid-
+ * week; the last column may have trailing nulls if `now` isn't on a
+ * Saturday.
+ */
+function packIntoColumns(cells: HeatmapCell[]): Column[] {
+  const first = cells[0];
+  if (!first) return [];
+  const firstWeekday = new Date(first.date).getDay(); // 0..6 (Sun..Sat)
+
+  const columns: Column[] = [];
+  let current: Column | null = null;
+
+  for (let i = 0; i < cells.length; i += 1) {
+    const cell = cells[i];
+    if (!cell) continue;
+    const weekday = i === 0 ? firstWeekday : (firstWeekday + i) % 7;
+    if (weekday === 0 || current === null) {
+      current = { weekKey: cell.date, cells: Array(7).fill(null) };
+      columns.push(current);
+    }
+    current.cells[weekday] = cell;
+  }
+  return columns;
+}

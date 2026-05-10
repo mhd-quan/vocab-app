@@ -102,6 +102,10 @@ Object.defineProperty(window, "api", {
         accuracy: 0,
         totalDue: 0,
       }),
+      weakItems: async () => [],
+      dailyActivity: async () => [],
+      recentSessions: async () => [],
+      tutorOverview: async () => [],
     },
     rewards: {
       listUnlocked: async () => [],

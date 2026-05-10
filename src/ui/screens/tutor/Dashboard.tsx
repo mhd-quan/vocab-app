@@ -1,9 +1,18 @@
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryClient";
+import { Avatar } from "@/ui/components/Avatar";
+import { Badge } from "@/ui/components/Badge";
+import { EmptyState } from "@/ui/components/EmptyState";
 import { PageHeader } from "@/ui/components/PageHeader";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 
+/**
+ * Tutor overview: a few corpus stats up top, then a per-student
+ * roll-up table that links into the per-student detail screen. The
+ * "Getting started" copy moved to README — this view is now the
+ * actual at-a-glance for an active tutor.
+ */
 export function TutorDashboard() {
   const booksQ = useQuery({
     queryKey: queryKeys.curriculum.books(),
@@ -13,9 +22,9 @@ export function TutorDashboard() {
     queryKey: queryKeys.students.listActive(),
     queryFn: () => api.students.listActive(),
   });
-  const appInfoQ = useQuery({
-    queryKey: queryKeys.meta.appInfo(),
-    queryFn: () => api.meta.appInfo(),
+  const overviewQ = useQuery({
+    queryKey: queryKeys.progress.tutorOverview(),
+    queryFn: () => api.progress.tutorOverview(),
   });
 
   const books = booksQ.data ?? [];
@@ -27,7 +36,7 @@ export function TutorDashboard() {
       <PageHeader
         eyebrow="Overview"
         title="Tutor dashboard"
-        subtitle="Quick view of what's loaded in the local database. Detailed views land in the content browser and analytics screens."
+        subtitle="At-a-glance corpus stats + per-student roll-up. Click a student to drill into their analytics."
       />
 
       <section className="grid grid-cols-1 gap-3 px-8 py-6 md:grid-cols-2 xl:grid-cols-4">
@@ -50,33 +59,136 @@ export function TutorDashboard() {
           to="/tutor/students"
         />
         <Stat
-          label="Schema"
-          value={appInfoQ.data ? `${appInfoQ.data.schemaTablesExpected} tables` : "…"}
-          hint="v0.0.1"
+          label="Sessions"
+          value={overviewQ.data ? String(sumPracticed(overviewQ.data)) : "…"}
+          hint="have practised"
         />
       </section>
 
       <section className="px-8 pb-10">
-        <div className="rounded-lg border border-border-subtle bg-surface-1 p-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">
-            Getting started
-          </h2>
-          <ol className="mt-3 flex flex-col gap-2 text-sm text-muted">
-            <li>
-              <span className="text-app">1.</span> Edit YAML in{" "}
-              <code className="text-xs text-app">content/books/...</code>
-            </li>
-            <li>
-              <span className="text-app">2.</span> Run{" "}
-              <code className="text-xs text-app">npm run import</code> — re-runs are idempotent.
-            </li>
-            <li>
-              <span className="text-app">3.</span> Browse imported content here once PR #6 lands.
-            </li>
-          </ol>
-        </div>
+        <header className="mb-3 flex items-baseline justify-between">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">Students</h2>
+          <Link to="/tutor/students" className="text-xs text-muted hover:text-app">
+            Manage →
+          </Link>
+        </header>
+        {overviewQ.isLoading ? (
+          <p className="text-sm text-muted">Loading…</p>
+        ) : (overviewQ.data ?? []).length === 0 ? (
+          <EmptyState
+            title="No active students"
+            body="Create a profile in Students to start tracking practice."
+          />
+        ) : (
+          <StudentTable rows={overviewQ.data ?? []} />
+        )}
       </section>
     </>
+  );
+}
+
+function StudentTable({
+  rows,
+}: {
+  rows: Array<{
+    student: {
+      id: number;
+      name: string;
+      displayName: string | null;
+      color: string | null;
+    };
+    totalSeen: number;
+    totalDue: number;
+    accuracy: number;
+    lastPracticedAt: Date | null;
+  }>;
+}) {
+  return (
+    <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface-1">
+      <table className="w-full text-left text-sm">
+        <thead className="border-b border-border-subtle bg-surface-2 text-[10px] uppercase tracking-widest text-muted-2">
+          <tr>
+            <th className="px-4 py-2 font-medium">Student</th>
+            <th className="px-4 py-2 font-medium">Seen</th>
+            <th className="px-4 py-2 font-medium">Due</th>
+            <th className="px-4 py-2 font-medium">Accuracy</th>
+            <th className="px-4 py-2 font-medium">Last practised</th>
+            <th aria-hidden className="px-4 py-2" />
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <StudentRow key={row.student.id} row={row} />
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function StudentRow({
+  row,
+}: {
+  row: {
+    student: {
+      id: number;
+      name: string;
+      displayName: string | null;
+      color: string | null;
+    };
+    totalSeen: number;
+    totalDue: number;
+    accuracy: number;
+    lastPracticedAt: Date | null;
+  };
+}) {
+  const display = row.student.displayName ?? row.student.name;
+  const totalAttempts = row.totalSeen > 0 ? Math.round(row.accuracy * 100) : null;
+  return (
+    <tr className="border-b border-border-subtle last:border-b-0 transition-colors hover:bg-surface-2">
+      <td className="px-4 py-2.5">
+        <Link
+          to="/tutor/students/$studentId"
+          params={{ studentId: String(row.student.id) }}
+          className="flex items-center gap-3 hover:text-accent"
+        >
+          <Avatar name={display} color={row.student.color} size="sm" />
+          <span className="font-medium text-app">{display}</span>
+        </Link>
+      </td>
+      <td className="px-4 py-2.5 font-mono text-xs text-muted">{row.totalSeen}</td>
+      <td className="px-4 py-2.5">
+        {row.totalDue > 0 ? (
+          <Badge tone="warning" uppercase>
+            {row.totalDue}
+          </Badge>
+        ) : (
+          <span className="font-mono text-xs text-muted-2">0</span>
+        )}
+      </td>
+      <td className="px-4 py-2.5">
+        {totalAttempts === null ? (
+          <span className="font-mono text-xs text-muted-2">—</span>
+        ) : (
+          <Badge
+            tone={totalAttempts >= 80 ? "success" : totalAttempts >= 50 ? "accent" : "warning"}
+            uppercase
+          >
+            {totalAttempts}%
+          </Badge>
+        )}
+      </td>
+      <td className="px-4 py-2.5 text-xs text-muted">{relativeTime(row.lastPracticedAt)}</td>
+      <td className="px-4 py-2.5 text-right">
+        <Link
+          to="/tutor/students/$studentId"
+          params={{ studentId: String(row.student.id) }}
+          className="text-xs text-muted hover:text-app"
+        >
+          Open →
+        </Link>
+      </td>
+    </tr>
   );
 }
 
@@ -123,4 +235,24 @@ function useTotalUnitCount(bookIds: number[]): number | null {
   if (queries.length === 0) return 0;
   if (queries.some((q) => q.isLoading)) return null;
   return queries.reduce((acc, q) => acc + (q.data?.length ?? 0), 0);
+}
+
+function sumPracticed(rows: Array<{ totalSeen: number }>): number {
+  return rows.reduce((acc, r) => acc + (r.totalSeen > 0 ? 1 : 0), 0);
+}
+
+const SECOND = 1000;
+const MINUTE = 60 * SECOND;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+
+function relativeTime(d: Date | null): string {
+  if (!d) return "never";
+  const diff = Date.now() - d.getTime();
+  if (diff < 0) return "just now";
+  if (diff < MINUTE) return "just now";
+  if (diff < HOUR) return `${Math.floor(diff / MINUTE)}m ago`;
+  if (diff < DAY) return `${Math.floor(diff / HOUR)}h ago`;
+  if (diff < 7 * DAY) return `${Math.floor(diff / DAY)}d ago`;
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }

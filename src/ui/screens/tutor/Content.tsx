@@ -7,19 +7,31 @@ import { ClozeText } from "@/ui/components/ClozeText";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { PageHeader } from "@/ui/components/PageHeader";
 import { useQuery } from "@tanstack/react-query";
+import { useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { VocabEntryFull } from "../../../../electron/db/repositories/vocab";
 
 export function TutorContent() {
-  const [selectedBookId, setSelectedBookId] = useState<number | null>(null);
-  const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null);
+  // Deep-link entry-points: analytics weak-word rows pass `?entry=` (and
+  // optionally `?book=`) so the browser opens scrolled to that word.
+  const search = useSearch({ from: "/tutor/content" });
+  const [selectedBookId, setSelectedBookId] = useState<number | null>(search.book ?? null);
+  const [selectedEntryId, setSelectedEntryId] = useState<number | null>(search.entry ?? null);
 
   const booksQ = useQuery({
     queryKey: queryKeys.curriculum.books(),
     queryFn: () => api.curriculum.listBooks(),
   });
 
-  // Auto-select the first book once data lands.
+  // Sync state with incoming search params; navigating between two weak
+  // words on the same screen swaps both fields atomically.
+  useEffect(() => {
+    if (search.book !== undefined) setSelectedBookId(search.book);
+    if (search.entry !== undefined) setSelectedEntryId(search.entry);
+  }, [search.book, search.entry]);
+
+  // Auto-select the first book once data lands — only when nothing was
+  // pinned via the search params.
   useEffect(() => {
     if (selectedBookId === null && booksQ.data && booksQ.data.length > 0) {
       const first = booksQ.data[0];

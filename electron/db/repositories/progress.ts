@@ -1,17 +1,21 @@
-import { and, eq, isNull, lte, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lte, or, sql } from "drizzle-orm";
 import {
   type LearningEventKind,
   type PracticeMode,
   contentItems,
   itemProgress,
   learningEvents,
+  lessons,
   practiceSessions,
+  students,
+  units,
   vocabEntries,
 } from "../../../src/data/schema";
 import type {
   ItemProgress,
   LearningEvent,
   PracticeSession,
+  Student,
   StudentAchievement,
 } from "../../../src/data/types";
 import type { GradeOutcome } from "../../../src/modules/exercises";
@@ -68,6 +72,43 @@ export interface DueItem {
   lessonId: number;
   headword: string;
   nextDueAt: Date | null;
+}
+
+export interface WeakItem {
+  entryId: number;
+  contentItemId: number;
+  lessonId: number;
+  bookId: number;
+  headword: string;
+  pos: string;
+  totalCorrect: number;
+  totalWrong: number;
+  /** correct / (correct + wrong); 0..1, lower is weaker. */
+  accuracy: number;
+  lastSeenAt: Date | null;
+}
+
+export interface DailyActivityCell {
+  /** Local-day timestamp at midnight (caller decides timezone — we store ms). */
+  bucketStart: Date;
+  count: number;
+}
+
+export interface RecentSessionRow {
+  sessionId: number;
+  mode: PracticeMode;
+  startedAt: Date;
+  endedAt: Date | null;
+  totalAnswered: number;
+  totalCorrect: number;
+}
+
+export interface TutorOverviewRow {
+  student: Student;
+  totalSeen: number;
+  totalDue: number;
+  accuracy: number;
+  lastPracticedAt: Date | null;
 }
 
 /**
@@ -307,6 +348,257 @@ export function createProgressRepository(db: AppDatabase) {
         .limit(limit)
         .all();
       return rows;
+    },
+
+    /**
+     * Top-N weakest items for a student: lowest accuracy first, ties
+     * broken by most-recently-seen so a stale-but-bad word doesn't
+     * crowd out a fresh one. We filter by `minAttempts` so a single
+     * unlucky guess on a brand-new word doesn't immediately surface.
+     *
+     * Returned rows include the curriculum path (lessonId, bookId)
+     * so the analytics screen can deep-link straight into the
+     * Content browser.
+     */
+    weakItems({
+      studentId,
+      minAttempts = 3,
+      limit = 10,
+    }: {
+      studentId: number;
+      minAttempts?: number;
+      limit?: number;
+    }): WeakItem[] {
+      const totalAttempts = sql<number>`(${itemProgress.totalCorrect} + ${itemProgress.totalWrong})`;
+      const accuracySql = sql<number>`CAST(${itemProgress.totalCorrect} AS REAL) / NULLIF(${totalAttempts}, 0)`;
+      const rows = db
+        .select({
+          entryId: vocabEntries.id,
+          contentItemId: itemProgress.contentItemId,
+          lessonId: vocabEntries.lessonId,
+          bookId: units.bookId,
+          headword: vocabEntries.headword,
+          pos: vocabEntries.pos,
+          totalCorrect: itemProgress.totalCorrect,
+          totalWrong: itemProgress.totalWrong,
+          accuracy: accuracySql,
+          lastSeenAt: itemProgress.lastSeenAt,
+        })
+        .from(itemProgress)
+        .innerJoin(contentItems, eq(itemProgress.contentItemId, contentItems.id))
+        .innerJoin(vocabEntries, eq(contentItems.refId, vocabEntries.id))
+        .innerJoin(lessons, eq(vocabEntries.lessonId, lessons.id))
+        .innerJoin(units, eq(lessons.unitId, units.id))
+        .where(
+          and(
+            eq(itemProgress.studentId, studentId),
+            eq(contentItems.refTable, "vocab_entries"),
+            gte(totalAttempts, minAttempts),
+          ),
+        )
+        .orderBy(asc(accuracySql), desc(itemProgress.lastSeenAt), asc(vocabEntries.headword))
+        .limit(limit)
+        .all();
+      // Drizzle hands us NULL accuracy when totalAttempts === 0, but the
+      // gte() clause above excludes those rows. Coerce defensively so the
+      // type matches `WeakItem.accuracy: number`.
+      return rows.map((r) => ({
+        ...r,
+        pos: r.pos ?? "",
+        accuracy: r.accuracy ?? 0,
+      }));
+    },
+
+    /**
+     * Per-day learning-event counts inside a window. Cheap path: pull
+     * timestamps for the student between `since` and `until`, bucket by
+     * local-calendar day in JS — SQLite's `date()` is UTC-only, and we
+     * want the tutor's local day boundaries.
+     *
+     * Returned cells are dense over the requested window (one per day,
+     * gaps zero-filled), sorted ascending.
+     */
+    dailyActivity({
+      studentId,
+      since,
+      until,
+    }: {
+      studentId: number;
+      since: Date;
+      until: Date;
+    }): DailyActivityCell[] {
+      if (until.getTime() < since.getTime()) return [];
+      const rows = db
+        .select({ occurredAt: learningEvents.occurredAt })
+        .from(learningEvents)
+        .where(
+          and(
+            eq(learningEvents.studentId, studentId),
+            gte(learningEvents.occurredAt, since),
+            lte(learningEvents.occurredAt, until),
+          ),
+        )
+        .all();
+
+      const bucket = new Map<number, number>();
+      for (const r of rows) {
+        const d = r.occurredAt;
+        const key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+        bucket.set(key, (bucket.get(key) ?? 0) + 1);
+      }
+
+      const cells: DailyActivityCell[] = [];
+      const start = new Date(since.getFullYear(), since.getMonth(), since.getDate());
+      const end = new Date(until.getFullYear(), until.getMonth(), until.getDate());
+      const dayMs = 86_400_000;
+      for (let t = start.getTime(); t <= end.getTime(); t += dayMs) {
+        cells.push({ bucketStart: new Date(t), count: bucket.get(t) ?? 0 });
+      }
+      return cells;
+    },
+
+    /**
+     * Last N sessions for a student, with answered/correct totals
+     * derived from the event log. We use a separate aggregation query
+     * + a JS join because Drizzle's typed `groupBy` interaction with
+     * `inArray` over a sub-select gets unwieldy for two columns.
+     */
+    recentSessions({
+      studentId,
+      limit = 10,
+    }: {
+      studentId: number;
+      limit?: number;
+    }): RecentSessionRow[] {
+      const sessionRows = db
+        .select({
+          id: practiceSessions.id,
+          mode: practiceSessions.mode,
+          startedAt: practiceSessions.startedAt,
+          endedAt: practiceSessions.endedAt,
+        })
+        .from(practiceSessions)
+        .where(eq(practiceSessions.studentId, studentId))
+        .orderBy(desc(practiceSessions.startedAt), desc(practiceSessions.id))
+        .limit(limit)
+        .all();
+      if (sessionRows.length === 0) return [];
+
+      const ids = sessionRows.map((s) => s.id);
+      const aggRows = db
+        .select({
+          sessionId: learningEvents.sessionId,
+          kind: learningEvents.kind,
+          n: sql<number>`count(*)`.as("n"),
+        })
+        .from(learningEvents)
+        .where(and(isNotNull(learningEvents.sessionId), inArray(learningEvents.sessionId, ids)))
+        .groupBy(learningEvents.sessionId, learningEvents.kind)
+        .all();
+
+      const totals = new Map<number, { answered: number; correct: number }>();
+      for (const row of aggRows) {
+        if (row.sessionId === null) continue;
+        const cur = totals.get(row.sessionId) ?? { answered: 0, correct: 0 };
+        if (row.kind === "answered_correct") {
+          cur.answered += row.n;
+          cur.correct += row.n;
+        } else if (row.kind === "answered_wrong") {
+          cur.answered += row.n;
+        }
+        totals.set(row.sessionId, cur);
+      }
+
+      return sessionRows.map((s) => {
+        const t = totals.get(s.id) ?? { answered: 0, correct: 0 };
+        return {
+          sessionId: s.id,
+          mode: s.mode,
+          startedAt: s.startedAt,
+          endedAt: s.endedAt,
+          totalAnswered: t.answered,
+          totalCorrect: t.correct,
+        };
+      });
+    },
+
+    /**
+     * Tutor-side fan-out: one row per active student with the same
+     * fields the dashboard table renders. Active = `archivedAt IS NULL`.
+     * Sorted by display name, then created order, so the table is
+     * stable across renders.
+     */
+    tutorOverview({ now }: { now: Date }): TutorOverviewRow[] {
+      const studentRows = db
+        .select()
+        .from(students)
+        .where(isNull(students.archivedAt))
+        .orderBy(asc(students.name), asc(students.id))
+        .all();
+      if (studentRows.length === 0) return [];
+
+      // One pass of item_progress for all active students; bucket in JS.
+      const ids = studentRows.map((s) => s.id);
+      const progressRows = db
+        .select({
+          studentId: itemProgress.studentId,
+          totalCorrect: itemProgress.totalCorrect,
+          totalWrong: itemProgress.totalWrong,
+          nextDueAt: itemProgress.nextDueAt,
+          lastSeenAt: itemProgress.lastSeenAt,
+        })
+        .from(itemProgress)
+        .where(inArray(itemProgress.studentId, ids))
+        .all();
+
+      const stats = new Map<
+        number,
+        {
+          totalSeen: number;
+          totalCorrect: number;
+          totalWrong: number;
+          totalDue: number;
+          lastPracticedAt: Date | null;
+        }
+      >();
+      for (const id of ids) {
+        stats.set(id, {
+          totalSeen: 0,
+          totalCorrect: 0,
+          totalWrong: 0,
+          totalDue: 0,
+          lastPracticedAt: null,
+        });
+      }
+      for (const r of progressRows) {
+        const cur = stats.get(r.studentId);
+        if (!cur) continue;
+        cur.totalSeen += 1;
+        cur.totalCorrect += r.totalCorrect;
+        cur.totalWrong += r.totalWrong;
+        if (r.nextDueAt === null || r.nextDueAt.getTime() <= now.getTime()) {
+          cur.totalDue += 1;
+        }
+        if (r.lastSeenAt) {
+          if (!cur.lastPracticedAt || r.lastSeenAt.getTime() > cur.lastPracticedAt.getTime()) {
+            cur.lastPracticedAt = r.lastSeenAt;
+          }
+        }
+      }
+
+      return studentRows.map((student) => {
+        const s = stats.get(student.id);
+        const totalCorrect = s?.totalCorrect ?? 0;
+        const totalWrong = s?.totalWrong ?? 0;
+        const totalAttempts = totalCorrect + totalWrong;
+        return {
+          student,
+          totalSeen: s?.totalSeen ?? 0,
+          totalDue: s?.totalDue ?? 0,
+          accuracy: totalAttempts === 0 ? 0 : totalCorrect / totalAttempts,
+          lastPracticedAt: s?.lastPracticedAt ?? null,
+        };
+      });
     },
 
     /** Coarse student-wide stats used by tutor / student summary cards. */

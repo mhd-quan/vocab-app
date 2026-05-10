@@ -4,13 +4,13 @@ Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
 student practice) running as a desktop app on Windows and macOS.
 
-> **Status:** v0.0.1 — PR #9 (rewards + micro-rewards). Every answered
-> exercise persists via SM-2 and now also evaluates the achievement
-> catalogue inside the same transaction. In-session correct streaks
-> trigger a confetti burst (and optional chime); freshly-unlocked
-> achievements slide in as a toast and surface in the student home
-> header alongside a daily-streak badge. Tutor analytics dashboard
-> lands in PR #10.
+> **Status:** v0.0.1 — PR #10 (tutor analytics). The dashboard now
+> shows a per-student roll-up table (seen / due / accuracy / last
+> practised) instead of "Getting started"; clicking a row drills into
+> a detail screen with a 90-day GitHub-style heatmap, top-10 weak
+> words (deep-linked into the content browser), recent sessions, and
+> the unlocked achievement gallery. All aggregates ride directly on
+> `learning_events` + `item_progress` — no new tables.
 
 ## Stack
 
@@ -315,6 +315,34 @@ The achievement table is a *cache*, not a source of truth: dropping it
 and re-running `rewards.evaluate` over the event log + `item_progress`
 yields the same set. So adding a new rule is a code-only change.
 
+## Tutor analytics
+
+The dashboard (`/tutor/dashboard`) shows a per-student roll-up table
+sourced from `progress.tutorOverview` — one DB pass over `item_progress`
+joined with `students` (active only). Click a row to land on the
+per-student detail screen (`/tutor/students/$studentId`).
+
+The detail screen stitches four narrow IPC slices:
+
+- `progress.dailyActivity({since, until})` → `Heatmap` (90 days). The
+  pure `bucketByDay` helper in `src/modules/analytics/heatmap.ts` does
+  the dense fill + intensity bucketing so the renderer just paints
+  cells. Same shape feeds any future sparkline.
+- `progress.weakItems({minAttempts: 3})` → top-10 weakest words sorted
+  by accuracy ascending. Each row carries `entryId` + `bookId` so the
+  link drops the tutor straight into Content browser via
+  `?entry=…&book=…` search params (validated on the route).
+- `progress.recentSessions` → last 10 sessions with answered/correct
+  totals from a `groupBy(sessionId, kind)` aggregation over
+  `learning_events`.
+- `rewards.listUnlocked` → existing achievement cache; renders a chip
+  strip via the same `getAchievement` catalogue used by the toast in
+  `SessionPlayer`.
+
+No new tables; analytics is a query-only feature. That keeps the
+schema flat and means swapping the SRS algorithm later doesn't drag
+the analytics view with it.
+
 ## Dev environment
 
 - Node ≥ 20 (tested on Node 22).
@@ -329,9 +357,8 @@ See `docs/roadmap.md` (added with PR #2). Current plan:
 
 | Version | Scope                                                     |
 | ------- | --------------------------------------------------------- |
-| v0.0.1  | + import + app shell + tutor screens + exercise engine + SRS persistence + **rewards (this PR)** |
+| v0.0.1  | + import + app shell + tutor screens + exercise engine + SRS persistence + rewards + **analytics (this PR)** |
 | v0.0.2  | Grammar DB + import + browse                              |
-| v0.0.3  | Tutor analytics dashboard (per-student, weak words, heatmap) |
-| v0.0.4  | In-app authoring GUI                                      |
-| v0.0.5  | More exercise types (fill-blank, matching, ordering, ...) |
+| v0.0.3  | In-app authoring GUI                                      |
+| v0.0.4  | More exercise types (fill-blank, matching, ordering, ...) |
 | v0.1.0  | Beta packaging (signed installers, auto-update)           |

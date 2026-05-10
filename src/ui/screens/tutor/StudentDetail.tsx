@@ -1,0 +1,346 @@
+import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/queryClient";
+import { type HeatmapCell, bucketByDay } from "@/modules/analytics";
+import { type AchievementDefinition, getAchievement } from "@/modules/rewards";
+import { Avatar } from "@/ui/components/Avatar";
+import { Badge } from "@/ui/components/Badge";
+import { EmptyState } from "@/ui/components/EmptyState";
+import { Heatmap } from "@/ui/components/Heatmap";
+import { PageHeader } from "@/ui/components/PageHeader";
+import { AchievementIcon } from "@/ui/components/rewards";
+import { useQuery } from "@tanstack/react-query";
+import { Link, useParams } from "@tanstack/react-router";
+import { useMemo } from "react";
+
+const HEATMAP_DAYS = 90;
+
+/**
+ * Per-student analytics drill-down. Every panel reads its own narrow
+ * IPC slice — `tutor_overview` already gives the table on Dashboard
+ * the rolled-up totals, so we don't reuse it here. That keeps each
+ * query's invalidation surface minimal and the page resilient if any
+ * one panel fails.
+ */
+export function TutorStudentDetail() {
+  const { studentId } = useParams({ from: "/tutor/students/$studentId" });
+  const id = Number(studentId);
+
+  const studentQ = useQuery({
+    queryKey: queryKeys.students.byId(id),
+    queryFn: () => api.students.getById({ id }),
+    enabled: Number.isFinite(id) && id > 0,
+  });
+
+  const summaryQ = useQuery({
+    queryKey: queryKeys.progress.summary(id),
+    queryFn: () => api.progress.studentSummary({ studentId: id }),
+    enabled: Number.isFinite(id) && id > 0,
+  });
+
+  const streakQ = useQuery({
+    queryKey: queryKeys.rewards.streak(id),
+    queryFn: () => api.rewards.streak({ studentId: id }),
+    enabled: Number.isFinite(id) && id > 0,
+  });
+
+  const unlockedQ = useQuery({
+    queryKey: queryKeys.rewards.listUnlocked(id),
+    queryFn: () => api.rewards.listUnlocked({ studentId: id }),
+    enabled: Number.isFinite(id) && id > 0,
+  });
+
+  const weakQ = useQuery({
+    queryKey: queryKeys.progress.weakItems(id),
+    queryFn: () => api.progress.weakItems({ studentId: id, minAttempts: 3, limit: 10 }),
+    enabled: Number.isFinite(id) && id > 0,
+  });
+
+  const recentQ = useQuery({
+    queryKey: queryKeys.progress.recentSessions(id),
+    queryFn: () => api.progress.recentSessions({ studentId: id, limit: 10 }),
+    enabled: Number.isFinite(id) && id > 0,
+  });
+
+  // Daily-activity is fetched once per (studentId, days) pair. The cells
+  // we hand to Heatmap are derived locally so the same IPC payload also
+  // feeds any future widget (sparklines, weekly totals).
+  const activityQ = useQuery({
+    queryKey: queryKeys.progress.dailyActivity(id, HEATMAP_DAYS),
+    queryFn: () => {
+      const now = new Date();
+      const since = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      since.setDate(since.getDate() - (HEATMAP_DAYS - 1));
+      return api.progress.dailyActivity({
+        studentId: id,
+        sinceIso: since.toISOString(),
+        untilIso: now.toISOString(),
+      });
+    },
+    enabled: Number.isFinite(id) && id > 0,
+  });
+
+  const heatmapCells = useMemo<HeatmapCell[]>(() => {
+    if (!activityQ.data) return [];
+    // Re-derive from raw timestamps so we get the intensity scaling
+    // for free; we expand each day's count into N timestamps so
+    // bucketByDay can do a single pass.
+    const timestamps: Date[] = [];
+    for (const cell of activityQ.data) {
+      for (let i = 0; i < cell.count; i += 1) timestamps.push(cell.bucketStart);
+    }
+    return bucketByDay({ eventTimestamps: timestamps, now: new Date(), days: HEATMAP_DAYS });
+  }, [activityQ.data]);
+
+  if (!Number.isFinite(id) || id <= 0) {
+    return (
+      <div className="px-8 py-10">
+        <p className="text-sm text-danger">Invalid student id.</p>
+        <Link to="/tutor/students" className="mt-2 inline-block text-xs text-muted hover:text-app">
+          ← Back to students
+        </Link>
+      </div>
+    );
+  }
+
+  const student = studentQ.data;
+  const summary = summaryQ.data;
+  const streak = streakQ.data;
+  const accuracyPct =
+    summary && summary.totalCorrect + summary.totalWrong > 0
+      ? Math.round(summary.accuracy * 100)
+      : null;
+
+  return (
+    <>
+      <PageHeader
+        eyebrow="Student"
+        title={
+          student?.displayName ?? student?.name ?? (studentQ.isLoading ? "Loading…" : "Unknown")
+        }
+        subtitle="Per-student analytics: practice activity, weak words, recent sessions, achievements."
+        actions={
+          <Link to="/tutor/students" className="text-xs text-muted hover:text-app">
+            ← All students
+          </Link>
+        }
+      />
+
+      <div className="flex flex-col gap-6 px-8 py-6">
+        <section className="flex items-center gap-4 rounded-lg border border-border-subtle bg-surface-1 p-5">
+          <Avatar
+            name={student?.displayName ?? student?.name ?? "?"}
+            color={student?.color ?? null}
+            size="lg"
+          />
+          <dl className="grid flex-1 grid-cols-2 gap-4 sm:grid-cols-4">
+            <Stat label="Seen" value={summary?.totalSeen ?? 0} />
+            <Stat label="Due" value={summary?.totalDue ?? 0} />
+            <Stat label="Accuracy" value={accuracyPct === null ? "—" : `${accuracyPct}%`} />
+            <Stat label="Streak" value={streak?.currentStreak ? `${streak.currentStreak}d` : "—"} />
+          </dl>
+        </section>
+
+        <Heatmap
+          cells={heatmapCells}
+          title="Practice activity"
+          caption={`Last ${HEATMAP_DAYS} days`}
+        />
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <WeakWordsPanel rows={weakQ.data ?? []} loading={weakQ.isLoading} />
+          <RecentSessionsPanel rows={recentQ.data ?? []} loading={recentQ.isLoading} />
+        </div>
+
+        <AchievementsPanel
+          ids={(unlockedQ.data ?? []).map((u) => u.achievementId)}
+          loading={unlockedQ.isLoading}
+        />
+      </div>
+    </>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: number | string }) {
+  return (
+    <div className="flex flex-col">
+      <dt className="text-[10px] uppercase tracking-widest text-muted-2">{label}</dt>
+      <dd className="font-mono text-xl text-app">{value}</dd>
+    </div>
+  );
+}
+
+function WeakWordsPanel({
+  rows,
+  loading,
+}: {
+  rows: Array<{
+    entryId: number;
+    headword: string;
+    pos: string;
+    accuracy: number;
+    totalCorrect: number;
+    totalWrong: number;
+    bookId: number;
+  }>;
+  loading: boolean;
+}) {
+  return (
+    <Panel title="Weak words" caption="Lowest accuracy first · ≥ 3 attempts">
+      {loading ? (
+        <p className="text-xs text-muted">Loading…</p>
+      ) : rows.length === 0 ? (
+        <EmptyState
+          title="No weak spots yet"
+          body="Once a student answers a few words at least three times, the trickiest ones surface here."
+        />
+      ) : (
+        <ul className="flex flex-col gap-1">
+          {rows.map((row) => (
+            <li key={row.entryId}>
+              <Link
+                to="/tutor/content"
+                search={{ entry: row.entryId, book: row.bookId }}
+                className="flex items-center justify-between rounded-md border border-border-subtle bg-surface-0/50 px-3 py-2 text-sm transition-colors hover:border-accent/50 hover:bg-surface-2"
+              >
+                <span className="flex items-baseline gap-2">
+                  <span className="font-medium text-app">{row.headword}</span>
+                  <span className="font-mono text-[10px] text-muted-2">{row.pos}</span>
+                </span>
+                <span className="flex items-center gap-2 text-xs text-muted">
+                  <Badge tone="warning" uppercase>
+                    {Math.round(row.accuracy * 100)}%
+                  </Badge>
+                  <span className="font-mono text-[10px] text-muted-2">
+                    {row.totalCorrect}/{row.totalCorrect + row.totalWrong}
+                  </span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Panel>
+  );
+}
+
+function RecentSessionsPanel({
+  rows,
+  loading,
+}: {
+  rows: Array<{
+    sessionId: number;
+    mode: string;
+    startedAt: Date;
+    endedAt: Date | null;
+    totalAnswered: number;
+    totalCorrect: number;
+  }>;
+  loading: boolean;
+}) {
+  return (
+    <Panel title="Recent sessions" caption="Last 10">
+      {loading ? (
+        <p className="text-xs text-muted">Loading…</p>
+      ) : rows.length === 0 ? (
+        <EmptyState
+          title="No sessions yet"
+          body="Student practice sessions show up here once the learner picks a lesson."
+        />
+      ) : (
+        <ul className="flex flex-col gap-1">
+          {rows.map((row) => {
+            const accuracy =
+              row.totalAnswered === 0
+                ? null
+                : Math.round((row.totalCorrect / row.totalAnswered) * 100);
+            return (
+              <li
+                key={row.sessionId}
+                className="flex items-center justify-between rounded-md border border-border-subtle bg-surface-0/50 px-3 py-2 text-sm"
+              >
+                <span className="flex items-baseline gap-2">
+                  <Badge tone="muted" uppercase>
+                    {row.mode}
+                  </Badge>
+                  <span className="text-xs text-muted">{formatDate(row.startedAt)}</span>
+                </span>
+                <span className="flex items-center gap-2 text-xs text-muted">
+                  <span className="font-mono text-[10px] text-muted-2">
+                    {row.totalCorrect}/{row.totalAnswered}
+                  </span>
+                  {accuracy !== null ? (
+                    <Badge
+                      tone={accuracy >= 80 ? "success" : accuracy >= 50 ? "accent" : "warning"}
+                      uppercase
+                    >
+                      {accuracy}%
+                    </Badge>
+                  ) : null}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </Panel>
+  );
+}
+
+function AchievementsPanel({ ids, loading }: { ids: string[]; loading: boolean }) {
+  const defs = ids
+    .map((id) => getAchievement(id))
+    .filter((d): d is AchievementDefinition => d !== null);
+  return (
+    <Panel title="Achievements" caption={`${defs.length} unlocked`}>
+      {loading ? (
+        <p className="text-xs text-muted">Loading…</p>
+      ) : defs.length === 0 ? (
+        <p className="text-xs text-muted-2">
+          Nothing unlocked yet — encourage a session in student mode.
+        </p>
+      ) : (
+        <ul className="flex flex-wrap gap-2">
+          {defs.map((def) => (
+            <li
+              key={def.id}
+              className="flex items-center gap-2 rounded-full border border-success/40 bg-success/10 px-3 py-1 text-xs text-success"
+              title={def.description}
+            >
+              <AchievementIcon icon={def.icon} className="h-3.5 w-3.5" />
+              <span className="font-medium text-app">{def.title}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Panel>
+  );
+}
+
+function Panel({
+  title,
+  caption,
+  children,
+}: {
+  title: string;
+  caption?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-lg border border-border-subtle bg-surface-1 p-5">
+      <header className="mb-3 flex items-baseline justify-between gap-2">
+        <h2 className="text-sm font-semibold">{title}</h2>
+        {caption ? <span className="text-[10px] text-muted-2">{caption}</span> : null}
+      </header>
+      {children}
+    </section>
+  );
+}
+
+function formatDate(d: Date): string {
+  return d.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}

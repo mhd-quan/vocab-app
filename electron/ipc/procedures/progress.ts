@@ -47,6 +47,27 @@ const dueByStudentInput = z.object({
   limit: z.number().int().positive().max(500).optional(),
 });
 
+const weakItemsInput = z.object({
+  studentId: z.number().int().positive(),
+  minAttempts: z.number().int().nonnegative().max(1000).optional(),
+  limit: z.number().int().positive().max(100).optional(),
+});
+
+const dailyActivityInput = z.object({
+  studentId: z.number().int().positive(),
+  sinceIso: z.string().datetime(),
+  untilIso: z.string().datetime(),
+});
+
+const recentSessionsInput = z.object({
+  studentId: z.number().int().positive(),
+  limit: z.number().int().positive().max(100).optional(),
+});
+
+const tutorOverviewInput = z.object({
+  nowIso: z.string().datetime().optional(),
+});
+
 export const progressProcedures = [
   defineProcedure({
     name: "progress.startSession",
@@ -109,5 +130,36 @@ export const progressProcedures = [
     input: studentIdInput,
     handler: ({ studentId }, ctx) =>
       ctx.repos.progress.studentSummary({ studentId, now: new Date() }),
+  }),
+
+  defineProcedure({
+    name: "progress.weakItems",
+    input: weakItemsInput,
+    handler: ({ studentId, minAttempts, limit }, ctx) =>
+      ctx.repos.progress.weakItems({ studentId, minAttempts, limit }),
+  }),
+
+  defineProcedure({
+    name: "progress.dailyActivity",
+    input: dailyActivityInput,
+    handler: ({ studentId, sinceIso, untilIso }, ctx) =>
+      ctx.repos.progress.dailyActivity({
+        studentId,
+        since: new Date(sinceIso),
+        until: new Date(untilIso),
+      }),
+  }),
+
+  defineProcedure({
+    name: "progress.recentSessions",
+    input: recentSessionsInput,
+    handler: ({ studentId, limit }, ctx) => ctx.repos.progress.recentSessions({ studentId, limit }),
+  }),
+
+  defineProcedure({
+    name: "progress.tutorOverview",
+    input: tutorOverviewInput,
+    handler: ({ nowIso }, ctx) =>
+      ctx.repos.progress.tutorOverview({ now: nowIso ? new Date(nowIso) : new Date() }),
   }),
 ];
