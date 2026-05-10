@@ -108,8 +108,9 @@ function FlashcardBack({
   return (
     <div className="flex flex-col gap-5">
       <section className="flex flex-col gap-2 border-t border-border-subtle pt-5">
+        {back.definitionVi ? <p className="text-lg font-medium text-app">{back.definitionVi}</p> : null}
         {back.definitionsEn.length > 0 ? (
-          <ol className="flex flex-col gap-2 text-lg text-app">
+          <ol className="flex flex-col gap-2 text-base text-muted">
             {back.definitionsEn.map((def, i) => (
               <li key={`${i}-${def}`} className="flex gap-2">
                 <span className="font-mono text-sm text-muted-2">{i + 1}.</span>
@@ -118,7 +119,6 @@ function FlashcardBack({
             ))}
           </ol>
         ) : null}
-        {back.definitionVi ? <p className="text-base text-muted">{back.definitionVi}</p> : null}
       </section>
 
       {back.exampleText ? (
@@ -141,15 +141,14 @@ function FlashcardBack({
               variant="secondary"
               onClick={() => onAnswer(grade)}
               className={cn(
-                "flex-col py-4 text-base",
+                "py-4 text-base font-semibold",
                 meta.tone === "danger" && "border-danger/50 text-danger hover:bg-danger/10",
                 meta.tone === "warning" && "border-warning/50 text-warning hover:bg-warning/10",
                 meta.tone === "success" && "border-success/50 text-success hover:bg-success/10",
                 meta.tone === "accent" && "border-accent/50 text-accent hover:bg-accent/10",
               )}
             >
-              <span className="font-semibold">{meta.label}</span>
-              <span className="font-mono text-xs text-muted-2">{meta.hint}</span>
+              {meta.label}
             </Button>
           );
         })}
