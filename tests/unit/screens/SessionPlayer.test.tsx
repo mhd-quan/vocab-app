@@ -8,6 +8,7 @@ function renderPlayer(
   opts: {
     kinds?: ("flashcard" | "multiple_choice")[];
     autoAdvanceDelayMs?: number;
+    onResult?: (result: unknown) => void | Promise<void>;
   } = {},
 ) {
   const onExit = vi.fn();
@@ -24,6 +25,7 @@ function renderPlayer(
         deck={deck}
         onExit={onExit}
         autoAdvanceDelayMs={opts.autoAdvanceDelayMs ?? 0}
+        onResult={opts.onResult}
       />,
     ),
   };
@@ -67,6 +69,39 @@ describe("SessionPlayer — flashcard flow", () => {
     expect(screen.getByText(/100% accuracy/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /back to lessons/i }));
     expect(onExit).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("SessionPlayer — onResult callback", () => {
+  it("fires onResult with entryId + outcome on each answered exercise", async () => {
+    const onResult = vi.fn();
+    const { deck } = renderPlayer({ kinds: ["flashcard"], onResult });
+    expect(deck.length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByRole("button", { name: /reveal answer/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^good/i }));
+
+    await waitFor(() => expect(onResult).toHaveBeenCalledTimes(1));
+    const arg = onResult.mock.calls[0]?.[0] as
+      | { kind: string; entryId: number; outcome: { correct: boolean } }
+      | undefined;
+    expect(arg?.kind).toBe("flashcard");
+    expect(typeof arg?.entryId).toBe("number");
+    expect(arg?.outcome.correct).toBe(true);
+  });
+
+  it("a throwing onResult does not block the deck (caught + logged)", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const onResult = vi.fn().mockRejectedValue(new Error("network down"));
+    renderPlayer({ kinds: ["flashcard"], onResult });
+    fireEvent.click(screen.getByRole("button", { name: /reveal answer/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^good/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/tap to reveal/i)).toBeInTheDocument();
+    });
+    expect(consoleSpy).toHaveBeenCalled();
+    consoleSpy.mockRestore();
   });
 });
 

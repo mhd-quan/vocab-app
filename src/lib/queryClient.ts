@@ -45,4 +45,10 @@ export const queryKeys = {
     listRuns: (limit?: number) => ["imports", "listRuns", limit ?? "default"] as const,
     listItems: (runId: number) => ["imports", "listItems", runId] as const,
   },
+  progress: {
+    dueByLesson: (studentId: number, lessonId: number) =>
+      ["progress", "dueByLesson", studentId, lessonId] as const,
+    dueByStudent: (studentId: number) => ["progress", "dueByStudent", studentId] as const,
+    summary: (studentId: number) => ["progress", "summary", studentId] as const,
+  },
 } as const;

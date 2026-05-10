@@ -1,18 +1,51 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { LessonKind } from "../src/data/schema";
+import type { LessonKind, PracticeMode } from "../src/data/schema";
 import type {
   Book,
   ImportItem,
   ImportRun,
+  ItemProgress,
+  LearningEvent,
   Lesson,
+  PracticeSession,
   Student,
   Unit,
   VocabEntry,
 } from "../src/data/types";
+import type { SelfGrade } from "../src/modules/exercises/types";
 import type { VocabEntryFull } from "./db/repositories/vocab";
 
 const invoke = <T>(channel: string, payload?: unknown): Promise<T> =>
   ipcRenderer.invoke(channel, payload) as Promise<T>;
+
+interface OutcomePayload {
+  correct: boolean;
+  feedback: string;
+  selfGrade: SelfGrade | null;
+  selectedIndex: number | null;
+}
+
+interface DueLessonStats {
+  totalCount: number;
+  dueCount: number;
+  newCount: number;
+}
+
+interface DueItem {
+  contentItemId: number;
+  entryId: number;
+  lessonId: number;
+  headword: string;
+  nextDueAt: Date | null;
+}
+
+interface StudentSummary {
+  totalSeen: number;
+  totalCorrect: number;
+  totalWrong: number;
+  accuracy: number;
+  totalDue: number;
+}
 
 interface CreateStudent {
   name: string;
@@ -96,6 +129,26 @@ const api = {
   imports: {
     listRuns: (input?: { limit?: number }) => invoke<ImportRun[]>("imports.listRuns", input ?? {}),
     listItems: (input: { runId: number }) => invoke<ImportItem[]>("imports.listItems", input),
+  },
+
+  progress: {
+    startSession: (input: { studentId: number; mode: PracticeMode }) =>
+      invoke<PracticeSession>("progress.startSession", input),
+    endSession: (input: { sessionId: number; summary?: Record<string, unknown> | null }) =>
+      invoke<{ ok: true }>("progress.endSession", input),
+    recordAnswer: (input: {
+      studentId: number;
+      sessionId: number;
+      entryId: number;
+      outcome: OutcomePayload;
+      occurredAtIso?: string;
+    }) => invoke<{ event: LearningEvent; progress: ItemProgress }>("progress.recordAnswer", input),
+    dueByLesson: (input: { studentId: number; lessonId: number; nowIso?: string }) =>
+      invoke<DueLessonStats>("progress.dueByLesson", input),
+    dueByStudent: (input: { studentId: number; nowIso?: string; limit?: number }) =>
+      invoke<DueItem[]>("progress.dueByStudent", input),
+    studentSummary: (input: { studentId: number }) =>
+      invoke<StudentSummary>("progress.studentSummary", input),
   },
 } as const;
 

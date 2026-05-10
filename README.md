@@ -4,10 +4,10 @@ Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
 student practice) running as a desktop app on Windows and macOS.
 
-> **Status:** v0.0.1 — PR #7 (Exercise engine). Plugin-based exercise
-> system with flashcard + multiple-choice, deterministic seeded deck
-> builder, and student session player. Persistence (learning_events +
-> spaced repetition) lands in PR #8.
+> **Status:** v0.0.1 — PR #8 (SRS persistence). Every answered exercise
+> writes a `learning_events` row + updates `item_progress` via SM-2; the
+> student home surfaces due / new / accuracy counts so the tutor can see
+> what's been practised. Tutor analytics dashboard lands in PR #9.
 
 ## Stack
 
@@ -245,9 +245,41 @@ Currently shipping kinds:
 - **multiple_choice** — definition prompt + 4 headword options, one
   correct; auto-graded.
 
-Persistence is intentionally absent here — sessions in PR #7 are
-ephemeral. PR #8 layers `learning_events` + `practice_sessions` rows
-on top of the same `SessionResult` events the player already emits.
+## Spaced repetition
+
+`SessionPlayer` accepts an `onResult` callback that fires once per
+answered exercise. The `StudentSession` route plugs that into
+`progress.recordAnswer`, which:
+
+1. Resolves `vocab_entries.id → content_items.id` (one row per entry,
+   created during import).
+2. Appends a `learning_events` row (`answered_correct` / `answered_wrong`
+   plus payload).
+3. Loads or seeds the matching `item_progress` row.
+4. Runs SM-2 over the previous schedule + the answer's quality (mapped
+   from self-grade or auto-graded correctness; see
+   `qualityFromOutcome` in `src/modules/srs/sm2.ts`).
+5. Upserts the new `(ease, intervalDays, streak, nextDueAt)` quadruple.
+
+Everything happens in a single `db.transaction(...)` so the event log
+and the materialised schedule never disagree — if a write fails, both
+roll back together.
+
+The student home then queries:
+
+- `progress.dueByLesson` per vocab lesson — surfaces *N due / N new*
+  badges so the student knows what to practise.
+- `progress.studentSummary` — totals + accuracy in the page header.
+
+Two design choices worth knowing:
+
+- **Ease is stored as `int × 100`** so the SQLite integer column doesn't
+  lose precision. SM-2 still operates on the float value internally;
+  the conversion happens at the IO boundary.
+- **`learning_events` is append-only.** Item progress is just a fast
+  cache built on top — wiping `item_progress` and replaying the event
+  log would yield the same state. That makes alternate schedulers
+  (FSRS, Leitner) a tractable swap later.
 
 ## Dev environment
 
@@ -263,7 +295,7 @@ See `docs/roadmap.md` (added with PR #2). Current plan:
 
 | Version | Scope                                                     |
 | ------- | --------------------------------------------------------- |
-| v0.0.1  | Scaffold + vocab DB + import + app shell + tutor screens + **exercise engine (this PR)** |
+| v0.0.1  | + import + app shell + tutor screens + exercise engine + **SRS persistence (this PR)** |
 | v0.0.2  | Grammar DB + import + browse                              |
 | v0.0.3  | Exercise engine + flashcard + multiple-choice plugins     |
 | v0.0.4  | Practice session + spaced repetition                      |

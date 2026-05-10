@@ -9,6 +9,7 @@ import {
   curriculumProcedures,
   importsProcedures,
   metaProcedures,
+  progressProcedures,
   settingsProcedures,
   studentsProcedures,
   vocabProcedures,
@@ -54,7 +55,8 @@ describe("IPC procedure registry", () => {
         vocabProcedures.length +
         studentsProcedures.length +
         settingsProcedures.length +
-        importsProcedures.length,
+        importsProcedures.length +
+        progressProcedures.length,
     );
   });
 

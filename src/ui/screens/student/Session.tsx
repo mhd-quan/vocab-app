@@ -2,13 +2,20 @@ import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryClient";
 import { type Exercise, buildDeck, defaultSessionSeed } from "@/modules/exercises";
 import { Button } from "@/ui/components/Button";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { SessionPlayer } from "./session/SessionPlayer";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { SessionPlayer, type SessionResult } from "./session/SessionPlayer";
 
 /**
- * Route screen: glues lesson data → exercise engine → SessionPlayer.
+ * Route screen: glues lesson data → exercise engine → SessionPlayer →
+ * progress persistence (PR #8).
+ *
+ *   - On mount, opens a practice_sessions row.
+ *   - On every answered exercise, calls progress.recordAnswer (writes
+ *     learning_events + upserts item_progress via SM-2).
+ *   - On exit, finalises the session row with stats.
+ *
  * The deck is built once per (lesson, seed) pair so re-renders don't
  * reshuffle out from under the player.
  */
@@ -17,12 +24,10 @@ export function StudentSession() {
     from: "/student/profile/$studentId/session/$lessonId",
   });
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const lessonIdNum = Number(lessonId);
   const studentIdNum = Number(studentId);
 
-  // One seed per mount = a fresh deck on each "Start practice" click.
-  // Re-deriving via useState (lazy initializer) keeps it stable for the
-  // lifetime of the component without writing to a ref.
   const [seed] = useState(() => defaultSessionSeed(lessonIdNum));
 
   const lessonQ = useQuery({
@@ -37,6 +42,24 @@ export function StudentSession() {
     enabled: Number.isFinite(lessonIdNum) && lessonIdNum > 0,
   });
 
+  const sessionStart = useMutation({
+    mutationFn: (input: { studentId: number }) =>
+      api.progress.startSession({ studentId: input.studentId, mode: "mixed" }),
+  });
+
+  // Open the session exactly once when student + lesson are valid.
+  // Using a ref so React 18 strict-mode double-invokes don't double-open.
+  const openedFor = useRef<string | null>(null);
+  const sessionId = sessionStart.data?.id ?? null;
+
+  useEffect(() => {
+    if (!Number.isFinite(studentIdNum) || studentIdNum <= 0) return;
+    const key = `${studentIdNum}:${lessonIdNum}:${seed}`;
+    if (openedFor.current === key) return;
+    openedFor.current = key;
+    sessionStart.mutate({ studentId: studentIdNum });
+  }, [studentIdNum, lessonIdNum, seed, sessionStart.mutate]);
+
   const deck = useMemo<Exercise[]>(() => {
     if (!entriesQ.data) return [];
     return buildDeck({
@@ -46,12 +69,40 @@ export function StudentSession() {
     }).exercises;
   }, [entriesQ.data, seed]);
 
-  function exit() {
+  const handleResult = useCallback(
+    async (result: SessionResult) => {
+      if (sessionId === null) return; // session row not open yet — drop silently
+      await api.progress.recordAnswer({
+        studentId: studentIdNum,
+        sessionId,
+        entryId: result.entryId,
+        outcome: {
+          correct: result.outcome.correct,
+          feedback: result.outcome.feedback,
+          selfGrade: result.outcome.selfGrade,
+          selectedIndex: result.outcome.selectedIndex,
+        },
+      });
+    },
+    [sessionId, studentIdNum],
+  );
+
+  const exit = useCallback(() => {
+    if (sessionId !== null) {
+      void api.progress
+        .endSession({ sessionId })
+        .catch((err) => console.error("[Session] endSession failed", err))
+        .finally(() => {
+          // Refresh anything that reads progress so the home screen due
+          // counts update before the user sees them again.
+          queryClient.invalidateQueries({ queryKey: ["progress"] });
+        });
+    }
     void navigate({
       to: "/student/profile/$studentId",
       params: { studentId: String(studentIdNum) },
     });
-  }
+  }, [sessionId, studentIdNum, navigate, queryClient]);
 
   if (!Number.isFinite(lessonIdNum) || lessonIdNum <= 0) {
     return (
@@ -72,5 +123,7 @@ export function StudentSession() {
     ? `${lessonQ.data.title} · ${entriesQ.data?.length ?? 0} entries`
     : undefined;
 
-  return <SessionPlayer deck={deck} onExit={exit} contextLabel={contextLabel} />;
+  return (
+    <SessionPlayer deck={deck} onExit={exit} onResult={handleResult} contextLabel={contextLabel} />
+  );
 }

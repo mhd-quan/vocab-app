@@ -1,6 +1,7 @@
 import type { AppDatabase } from "../client";
 import { type CurriculumRepository, createCurriculumRepository } from "./curriculum";
 import { type ImportRepository, createImportRepository } from "./import";
+import { type ProgressRepository, createProgressRepository } from "./progress";
 import { type SettingsRepository, createSettingsRepository } from "./settings";
 import { type StudentsRepository, createStudentsRepository } from "./students";
 import { type VocabRepository, createVocabRepository } from "./vocab";
@@ -11,6 +12,7 @@ export interface Repositories {
   students: StudentsRepository;
   settings: SettingsRepository;
   imports: ImportRepository;
+  progress: ProgressRepository;
 }
 
 export function createRepositories(db: AppDatabase): Repositories {
@@ -20,6 +22,7 @@ export function createRepositories(db: AppDatabase): Repositories {
     students: createStudentsRepository(db),
     settings: createSettingsRepository(db),
     imports: createImportRepository(db),
+    progress: createProgressRepository(db),
   };
 }
 
@@ -31,6 +34,14 @@ export {
   type UpsertUnitInput,
 } from "./curriculum";
 export { type ImportRepository, createImportRepository } from "./import";
+export {
+  type DueItem,
+  type DueLessonStats,
+  type ProgressRepository,
+  createProgressRepository,
+  type RecordAnswerInput,
+  type RecordAnswerResult,
+} from "./progress";
 export { type SettingsRepository, createSettingsRepository } from "./settings";
 export { type StudentsRepository, createStudentsRepository } from "./students";
 export {

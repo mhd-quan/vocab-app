@@ -3,6 +3,7 @@ import { authProcedures } from "./auth";
 import { curriculumProcedures } from "./curriculum";
 import { importsProcedures } from "./imports";
 import { metaProcedures } from "./meta";
+import { progressProcedures } from "./progress";
 import { settingsProcedures } from "./settings";
 import { studentsProcedures } from "./students";
 import { vocabProcedures } from "./vocab";
@@ -15,6 +16,7 @@ export const allProcedures: ReadonlyArray<AnyProcedure> = [
   ...studentsProcedures,
   ...settingsProcedures,
   ...importsProcedures,
+  ...progressProcedures,
 ] as ReadonlyArray<AnyProcedure>;
 
 export {
@@ -22,6 +24,7 @@ export {
   curriculumProcedures,
   importsProcedures,
   metaProcedures,
+  progressProcedures,
   settingsProcedures,
   studentsProcedures,
   vocabProcedures,

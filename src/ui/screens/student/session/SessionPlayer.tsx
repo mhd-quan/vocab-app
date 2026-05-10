@@ -25,6 +25,14 @@ export interface SessionPlayerProps {
    * answer highlighted. Tests pass `0` to advance instantly.
    */
   autoAdvanceDelayMs?: number;
+  /**
+   * Side-effect hook called once per answered exercise, fired before the
+   * card advances. The route screen uses it to persist a learning_event
+   * + update item_progress; pure tests pass a spy.
+   *
+   * Errors are caught + logged so a flaky write never blocks the deck.
+   */
+  onResult?: (result: SessionResult) => void | Promise<void>;
 }
 
 const DEFAULT_AUTO_ADVANCE_MS = 1_200;
@@ -32,8 +40,8 @@ const DEFAULT_AUTO_ADVANCE_MS = 1_200;
 /**
  * The actual play loop. Three states: `playing` → optional `feedback` →
  * `done`. The deck and per-result history are owned here in React state;
- * persistence to learning_events / item_progress lands in PR #8 by
- * subscribing to the same `onAdvance` events we already track.
+ * the `onResult` callback is the seam where the route screen plugs in
+ * `progress.recordAnswer` so persistence stays out of the player.
  *
  * Multiple-choice exercises lock the option set on first click and pause
  * for ~1.2s on the wrong-answer path so the student sees the correct
@@ -44,6 +52,7 @@ export function SessionPlayer({
   onExit,
   contextLabel,
   autoAdvanceDelayMs = DEFAULT_AUTO_ADVANCE_MS,
+  onResult,
 }: SessionPlayerProps) {
   const [index, setIndex] = useState(0);
   const [results, setResults] = useState<SessionResult[]>([]);
@@ -71,6 +80,13 @@ export function SessionPlayer({
         outcome,
       };
 
+      if (onResult) {
+        // Fire-and-forget: persistence runs alongside, never blocks the deck.
+        Promise.resolve(onResult(result)).catch((err) => {
+          console.error("[SessionPlayer] onResult failed", err);
+        });
+      }
+
       if (current.kind === "flashcard") {
         // Self-graded: advance immediately. The reveal+grade UX already
         // gave the student time to look at the back.
@@ -88,7 +104,7 @@ export function SessionPlayer({
         window.setTimeout(() => advance(result), autoAdvanceDelayMs);
       }
     },
-    [current, advance, autoAdvanceDelayMs],
+    [current, advance, autoAdvanceDelayMs, onResult],
   );
 
   const summary = useMemo<SessionSummaryStats | null>(() => {
