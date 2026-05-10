@@ -5,15 +5,23 @@ import { Button } from "@/ui/components/Button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SessionPlayer, type SessionResult } from "./session/SessionPlayer";
+import {
+  SessionPlayer,
+  type SessionResult,
+  type SessionResultPersistence,
+} from "./session/SessionPlayer";
+
+const SOUND_KEY = "rewards_sound_enabled";
 
 /**
  * Route screen: glues lesson data → exercise engine → SessionPlayer →
- * progress persistence (PR #8).
+ * progress persistence (PR #8) → reward feedback (PR #9).
  *
  *   - On mount, opens a practice_sessions row.
  *   - On every answered exercise, calls progress.recordAnswer (writes
- *     learning_events + upserts item_progress via SM-2).
+ *     learning_events + upserts item_progress via SM-2). The response
+ *     surfaces freshly-unlocked achievements which flow back to the
+ *     player as toast specs.
  *   - On exit, finalises the session row with stats.
  *
  * The deck is built once per (lesson, seed) pair so re-renders don't
@@ -40,6 +48,11 @@ export function StudentSession() {
     queryKey: queryKeys.vocab.full(lessonIdNum),
     queryFn: () => api.vocab.listFullByLesson({ lessonId: lessonIdNum }),
     enabled: Number.isFinite(lessonIdNum) && lessonIdNum > 0,
+  });
+
+  const soundQ = useQuery({
+    queryKey: ["settings", "get", SOUND_KEY],
+    queryFn: () => api.settings.get<boolean>({ key: SOUND_KEY }),
   });
 
   const sessionStart = useMutation({
@@ -70,9 +83,9 @@ export function StudentSession() {
   }, [entriesQ.data, seed]);
 
   const handleResult = useCallback(
-    async (result: SessionResult) => {
-      if (sessionId === null) return; // session row not open yet — drop silently
-      await api.progress.recordAnswer({
+    async (result: SessionResult): Promise<SessionResultPersistence | undefined> => {
+      if (sessionId === null) return undefined; // session row not open yet — drop silently
+      const response = await api.progress.recordAnswer({
         studentId: studentIdNum,
         sessionId,
         entryId: result.entryId,
@@ -82,7 +95,9 @@ export function StudentSession() {
           selfGrade: result.outcome.selfGrade,
           selectedIndex: result.outcome.selectedIndex,
         },
+        currentSessionRun: result.currentSessionRun,
       });
+      return { unlockedAchievements: response.unlockedAchievements };
     },
     [sessionId, studentIdNum],
   );
@@ -93,9 +108,11 @@ export function StudentSession() {
         .endSession({ sessionId })
         .catch((err) => console.error("[Session] endSession failed", err))
         .finally(() => {
-          // Refresh anything that reads progress so the home screen due
-          // counts update before the user sees them again.
+          // Refresh anything that reads progress + rewards so the home
+          // screen due counts and unlocked achievements update before the
+          // user sees them again.
           queryClient.invalidateQueries({ queryKey: ["progress"] });
+          queryClient.invalidateQueries({ queryKey: ["rewards"] });
         });
     }
     void navigate({
@@ -124,6 +141,12 @@ export function StudentSession() {
     : undefined;
 
   return (
-    <SessionPlayer deck={deck} onExit={exit} onResult={handleResult} contextLabel={contextLabel} />
+    <SessionPlayer
+      deck={deck}
+      onExit={exit}
+      onResult={handleResult}
+      contextLabel={contextLabel}
+      soundEnabled={soundQ.data === true}
+    />
   );
 }

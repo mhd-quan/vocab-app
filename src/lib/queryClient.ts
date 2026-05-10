@@ -51,4 +51,8 @@ export const queryKeys = {
     dueByStudent: (studentId: number) => ["progress", "dueByStudent", studentId] as const,
     summary: (studentId: number) => ["progress", "summary", studentId] as const,
   },
+  rewards: {
+    listUnlocked: (studentId: number) => ["rewards", "listUnlocked", studentId] as const,
+    streak: (studentId: number) => ["rewards", "streak", studentId] as const,
+  },
 } as const;

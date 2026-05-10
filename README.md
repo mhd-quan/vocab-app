@@ -4,10 +4,13 @@ Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
 student practice) running as a desktop app on Windows and macOS.
 
-> **Status:** v0.0.1 — PR #8 (SRS persistence). Every answered exercise
-> writes a `learning_events` row + updates `item_progress` via SM-2; the
-> student home surfaces due / new / accuracy counts so the tutor can see
-> what's been practised. Tutor analytics dashboard lands in PR #9.
+> **Status:** v0.0.1 — PR #9 (rewards + micro-rewards). Every answered
+> exercise persists via SM-2 and now also evaluates the achievement
+> catalogue inside the same transaction. In-session correct streaks
+> trigger a confetti burst (and optional chime); freshly-unlocked
+> achievements slide in as a toast and surface in the student home
+> header alongside a daily-streak badge. Tutor analytics dashboard
+> lands in PR #10.
 
 ## Stack
 
@@ -117,7 +120,7 @@ resolved at runtime through `electron/db/paths.ts`.
 
 ### Schema overview (v0.0.1)
 
-19 tables, organized by domain:
+20 tables, organized by domain:
 
 - **Curriculum**: `books`, `units`, `lessons`
 - **Vocabulary** (PR #2 focus): `vocab_entries`, `vocab_senses`,
@@ -127,6 +130,7 @@ resolved at runtime through `electron/db/paths.ts`.
 - **Learner**: `students`, `enrollments`
 - **Progress** (event-sourced): `practice_sessions`, `learning_events`,
   `item_progress`
+- **Rewards**: `student_achievements` (cache; recomputable from the event log)
 - **Import**: `import_runs`, `import_items`
 - **Settings**: `app_settings`
 
@@ -281,6 +285,36 @@ Two design choices worth knowing:
   log would yield the same state. That makes alternate schedulers
   (FSRS, Leitner) a tractable swap later.
 
+## Rewards
+
+The reward layer (PR #9) sits on top of `learning_events` + the in-session
+state inside `SessionPlayer`. Three pieces:
+
+1. **In-session streak feedback.** Hitting 5 or 10 correct answers in a
+   row inside one session fires a confetti burst (and an optional chime
+   the tutor can toggle in Settings). Pure UI: no DB write needed.
+2. **Achievement catalogue.** Eight rules in
+   `src/modules/rewards/achievements.ts` — first answer, in-session 5/10,
+   3- and 7-day calendar streaks, 25 / 100 distinct correct entries,
+   and 90 %+ accuracy with ≥ 50 attempts. The evaluator is pure: it
+   takes a stats snapshot and returns the earned ID set.
+3. **Persistence.** `progress.recordAnswer` evaluates achievements
+   inside the same SQLite transaction that wrote the event +
+   `item_progress` row, then INSERTs newly-earned rows into
+   `student_achievements` (`ON CONFLICT DO NOTHING`). The freshly-
+   unlocked subset bubbles back to `SessionPlayer` and renders as a
+   slide-in toast. Rolling back the event also rolls back the unlock.
+
+Streak math (`computeStreak`) groups events by local-calendar day and
+walks back from "today" (or yesterday if no practice yet today, so a
+streak doesn't reset until midnight rolls over without practice). Pure
+function — every clock read is the caller's responsibility, which makes
+timezone-edge tests trivial to pin.
+
+The achievement table is a *cache*, not a source of truth: dropping it
+and re-running `rewards.evaluate` over the event log + `item_progress`
+yields the same set. So adding a new rule is a code-only change.
+
 ## Dev environment
 
 - Node ≥ 20 (tested on Node 22).
@@ -295,12 +329,9 @@ See `docs/roadmap.md` (added with PR #2). Current plan:
 
 | Version | Scope                                                     |
 | ------- | --------------------------------------------------------- |
-| v0.0.1  | + import + app shell + tutor screens + exercise engine + **SRS persistence (this PR)** |
+| v0.0.1  | + import + app shell + tutor screens + exercise engine + SRS persistence + **rewards (this PR)** |
 | v0.0.2  | Grammar DB + import + browse                              |
-| v0.0.3  | Exercise engine + flashcard + multiple-choice plugins     |
-| v0.0.4  | Practice session + spaced repetition                      |
-| v0.0.5  | Reward + micro-rewards                                    |
-| v0.0.6  | Analytics dashboard                                       |
-| v0.0.7  | In-app authoring GUI                                      |
-| v0.0.8  | More exercise types (fill-blank, matching, ordering, ...) |
+| v0.0.3  | Tutor analytics dashboard (per-student, weak words, heatmap) |
+| v0.0.4  | In-app authoring GUI                                      |
+| v0.0.5  | More exercise types (fill-blank, matching, ordering, ...) |
 | v0.1.0  | Beta packaging (signed installers, auto-update)           |

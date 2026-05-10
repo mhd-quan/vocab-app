@@ -28,6 +28,8 @@ const recordAnswerInput = z.object({
   sessionId: z.number().int().positive(),
   entryId: z.number().int().positive(),
   outcome: outcomeSchema,
+  /** Caller-tracked: count of consecutive correct answers ending at this answer. */
+  currentSessionRun: z.number().int().nonnegative().optional(),
   /** ISO 8601 string. Optional — server clock if omitted. */
   occurredAtIso: z.string().datetime().optional(),
 });
@@ -77,6 +79,7 @@ export const progressProcedures = [
         sessionId: input.sessionId,
         entryId: input.entryId,
         outcome,
+        currentSessionRun: input.currentSessionRun,
         now,
       });
       return result;

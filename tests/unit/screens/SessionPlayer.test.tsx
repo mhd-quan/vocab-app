@@ -1,5 +1,9 @@
 import { buildDeck } from "@/modules/exercises";
-import { SessionPlayer } from "@/ui/screens/student/session/SessionPlayer";
+import {
+  SessionPlayer,
+  type SessionResult,
+  type SessionResultPersistence,
+} from "@/ui/screens/student/session/SessionPlayer";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { makeEntries } from "../exercises/fixtures";
@@ -8,7 +12,7 @@ function renderPlayer(
   opts: {
     kinds?: ("flashcard" | "multiple_choice")[];
     autoAdvanceDelayMs?: number;
-    onResult?: (result: unknown) => void | Promise<void>;
+    onResult?: (result: SessionResult) => undefined | Promise<SessionResultPersistence | undefined>;
   } = {},
 ) {
   const onExit = vi.fn();
@@ -102,6 +106,65 @@ describe("SessionPlayer — onResult callback", () => {
     });
     expect(consoleSpy).toHaveBeenCalled();
     consoleSpy.mockRestore();
+  });
+});
+
+describe("SessionPlayer — reward feedback", () => {
+  it("annotates results with the in-session correct streak", async () => {
+    const onResult = vi.fn();
+    const { deck } = renderPlayer({ kinds: ["flashcard"], onResult });
+    expect(deck.length).toBeGreaterThanOrEqual(2);
+
+    fireEvent.click(screen.getByRole("button", { name: /reveal answer/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^good/i }));
+    await waitFor(() => expect(onResult).toHaveBeenCalledTimes(1));
+    expect(onResult.mock.calls[0]?.[0].currentSessionRun).toBe(1);
+
+    fireEvent.click(screen.getByRole("button", { name: /reveal answer/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^good/i }));
+    await waitFor(() => expect(onResult).toHaveBeenCalledTimes(2));
+    expect(onResult.mock.calls[1]?.[0].currentSessionRun).toBe(2);
+  });
+
+  it("a wrong answer resets the in-session streak to 0", async () => {
+    const onResult = vi.fn();
+    const { deck } = renderPlayer({ kinds: ["flashcard"], onResult });
+    expect(deck.length).toBeGreaterThanOrEqual(2);
+
+    fireEvent.click(screen.getByRole("button", { name: /reveal answer/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^good/i }));
+    await waitFor(() => expect(onResult).toHaveBeenCalledTimes(1));
+
+    fireEvent.click(screen.getByRole("button", { name: /reveal answer/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^again/i }));
+    await waitFor(() => expect(onResult).toHaveBeenCalledTimes(2));
+    expect(onResult.mock.calls[1]?.[0].currentSessionRun).toBe(0);
+  });
+
+  it("renders a toast when onResult resolves with an unlocked achievement", async () => {
+    const onResult = vi
+      .fn()
+      .mockResolvedValueOnce({ unlockedAchievements: [{ achievementId: "first_answer" }] });
+    renderPlayer({ kinds: ["flashcard"], onResult });
+    fireEvent.click(screen.getByRole("button", { name: /reveal answer/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^good/i }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("reward-toast-first_answer")).toBeInTheDocument();
+    });
+    expect(screen.getByText(/first steps/i)).toBeInTheDocument();
+  });
+
+  it("ignores unknown achievement ids gracefully", async () => {
+    const onResult = vi
+      .fn()
+      .mockResolvedValueOnce({ unlockedAchievements: [{ achievementId: "does_not_exist" }] });
+    renderPlayer({ kinds: ["flashcard"], onResult });
+    fireEvent.click(screen.getByRole("button", { name: /reveal answer/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^good/i }));
+    await waitFor(() => expect(onResult).toHaveBeenCalledTimes(1));
+    // No toast for unknown id; the second card is back on screen.
+    expect(screen.queryByTestId(/reward-toast-/)).toBeNull();
   });
 });
 

@@ -1,7 +1,9 @@
 import { cn } from "@/lib/cn";
 import { type Answer, type Exercise, type GradeOutcome, gradeExercise } from "@/modules/exercises";
+import { type AchievementDefinition, getAchievement } from "@/modules/rewards";
 import { Badge } from "@/ui/components/Badge";
 import { Button } from "@/ui/components/Button";
+import { AchievementIcon, ConfettiBurst, RewardToast, useChime } from "@/ui/components/rewards";
 import { useCallback, useMemo, useState } from "react";
 import { FlashcardCard } from "./FlashcardCard";
 import { MultipleChoiceCard } from "./MultipleChoiceCard";
@@ -12,6 +14,13 @@ export interface SessionResult {
   entryId: number;
   kind: Exercise["kind"];
   outcome: GradeOutcome;
+  /** In-session correct streak ending at this answer (0 if wrong). */
+  currentSessionRun: number;
+}
+
+/** Persistence result returned by `onResult` so the player can show unlock toasts. */
+export interface SessionResultPersistence {
+  unlockedAchievements: Array<{ achievementId: string }>;
 }
 
 export interface SessionPlayerProps {
@@ -32,16 +41,35 @@ export interface SessionPlayerProps {
    *
    * Errors are caught + logged so a flaky write never blocks the deck.
    */
-  onResult?: (result: SessionResult) => void | Promise<void>;
+  onResult?: (result: SessionResult) => undefined | Promise<SessionResultPersistence | undefined>;
+  /** Whether to play a chime on milestone bursts. Off by default. */
+  soundEnabled?: boolean;
 }
 
 const DEFAULT_AUTO_ADVANCE_MS = 1_200;
+/** In-session correct runs that fire confetti + a chime. */
+const CONFETTI_THRESHOLDS = new Set([5, 10]);
+
+interface ToastSpec {
+  /** Stable instance key — used for React reconciliation. */
+  key: number;
+  achievementId: string;
+  title: string;
+  description: string;
+  icon: AchievementDefinition["icon"];
+}
 
 /**
  * The actual play loop. Three states: `playing` → optional `feedback` →
  * `done`. The deck and per-result history are owned here in React state;
  * the `onResult` callback is the seam where the route screen plugs in
  * `progress.recordAnswer` so persistence stays out of the player.
+ *
+ * Reward feedback layers on top:
+ *   - `correctRunCount` ticks up per correct answer; hitting 5 or 10
+ *     triggers confetti + (optional) chime.
+ *   - When `onResult` resolves with `unlockedAchievements`, each becomes
+ *     a slide-in toast that auto-dismisses after a few seconds.
  *
  * Multiple-choice exercises lock the option set on first click and pause
  * for ~1.2s on the wrong-answer path so the student sees the correct
@@ -53,11 +81,17 @@ export function SessionPlayer({
   contextLabel,
   autoAdvanceDelayMs = DEFAULT_AUTO_ADVANCE_MS,
   onResult,
+  soundEnabled = false,
 }: SessionPlayerProps) {
   const [index, setIndex] = useState(0);
   const [results, setResults] = useState<SessionResult[]>([]);
   /** Set when an auto-graded exercise is locked but not yet advanced. */
   const [pendingOutcome, setPendingOutcome] = useState<GradeOutcome | null>(null);
+  const [correctRun, setCorrectRun] = useState(0);
+  const [confettiKey, setConfettiKey] = useState(0);
+  const [toasts, setToasts] = useState<ToastSpec[]>([]);
+
+  const playChime = useChime(soundEnabled);
 
   const total = deck.length;
   const current = deck[index] ?? null;
@@ -69,22 +103,64 @@ export function SessionPlayer({
     setIndex((prev) => prev + 1);
   }, []);
 
+  const dismissToast = useCallback((key: number) => {
+    setToasts((prev) => prev.filter((t) => t.key !== key));
+  }, []);
+
+  const enqueueUnlocks = useCallback(
+    (unlocks: SessionResultPersistence["unlockedAchievements"]) => {
+      if (unlocks.length === 0) return;
+      setToasts((prev) => {
+        const next = [...prev];
+        for (const u of unlocks) {
+          const def = getAchievement(u.achievementId);
+          if (!def) continue;
+          next.push({
+            key: nextToastKey(),
+            achievementId: def.id,
+            title: def.title,
+            description: def.description,
+            icon: def.icon,
+          });
+        }
+        return next;
+      });
+    },
+    [],
+  );
+
   const handleAnswer = useCallback(
     (answer: Answer) => {
       if (!current) return;
       const outcome = gradeExercise(current, answer);
+      const newRun = outcome.correct ? correctRun + 1 : 0;
+      setCorrectRun(newRun);
+
+      if (outcome.correct && CONFETTI_THRESHOLDS.has(newRun)) {
+        setConfettiKey((k) => k + 1);
+        playChime();
+      }
+
       const result: SessionResult = {
         exerciseId: current.id,
         entryId: current.entryId,
         kind: current.kind,
         outcome,
+        currentSessionRun: newRun,
       };
 
       if (onResult) {
-        // Fire-and-forget: persistence runs alongside, never blocks the deck.
-        Promise.resolve(onResult(result)).catch((err) => {
-          console.error("[SessionPlayer] onResult failed", err);
-        });
+        // Fire-and-forget for the deck loop, but capture unlocks asynchronously
+        // so they show up as toasts once persistence resolves.
+        Promise.resolve(onResult(result))
+          .then((persistence) => {
+            if (persistence && persistence.unlockedAchievements.length > 0) {
+              enqueueUnlocks(persistence.unlockedAchievements);
+            }
+          })
+          .catch((err) => {
+            console.error("[SessionPlayer] onResult failed", err);
+          });
       }
 
       if (current.kind === "flashcard") {
@@ -104,7 +180,7 @@ export function SessionPlayer({
         window.setTimeout(() => advance(result), autoAdvanceDelayMs);
       }
     },
-    [current, advance, autoAdvanceDelayMs, onResult],
+    [current, advance, autoAdvanceDelayMs, onResult, correctRun, playChime, enqueueUnlocks],
   );
 
   const summary = useMemo<SessionSummaryStats | null>(() => {
@@ -134,15 +210,19 @@ export function SessionPlayer({
           onRestart={() => {
             setResults([]);
             setIndex(0);
+            setCorrectRun(0);
           }}
           onExit={onExit}
         />
+        <ToastStack toasts={toasts} onDismiss={dismissToast} />
       </PlayerShell>
     );
   }
 
   return (
     <PlayerShell contextLabel={contextLabel} onExit={onExit}>
+      <ConfettiBurst fireKey={confettiKey} />
+      <ToastStack toasts={toasts} onDismiss={dismissToast} />
       <div className="flex flex-col gap-4">
         <ProgressBar current={index} total={total} />
         <ExerciseCard
@@ -152,6 +232,34 @@ export function SessionPlayer({
         />
       </div>
     </PlayerShell>
+  );
+}
+
+let _toastKeyCounter = 0;
+function nextToastKey(): number {
+  _toastKeyCounter += 1;
+  return _toastKeyCounter;
+}
+
+function ToastStack({
+  toasts,
+  onDismiss,
+}: {
+  toasts: ToastSpec[];
+  onDismiss: (key: number) => void;
+}) {
+  // Show at most one toast at a time; queueing is implicit because each
+  // toast unmounts itself via onDismiss before the next slides in.
+  const head = toasts[0];
+  if (!head) return null;
+  return (
+    <RewardToast
+      id={head.achievementId}
+      title={head.title}
+      description={head.description}
+      icon={<AchievementIcon icon={head.icon} className="h-5 w-5" />}
+      onDismiss={() => onDismiss(head.key)}
+    />
   );
 }
 

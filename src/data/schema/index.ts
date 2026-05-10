@@ -6,3 +6,4 @@ export * from "./learner";
 export * from "./progress";
 export * from "./import";
 export * from "./settings";
+export * from "./rewards";

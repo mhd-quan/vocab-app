@@ -1,11 +1,14 @@
+import { api } from "@/lib/api";
 import { useAppMode } from "@/providers/AppModeProvider";
 import { Button } from "@/ui/components/Button";
 import { PageHeader } from "@/ui/components/PageHeader";
 import { PinInput } from "@/ui/components/PinInput";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useState } from "react";
 
 const MIN_PIN = 4;
 const MAX_PIN = 12;
+const SOUND_KEY = "rewards_sound_enabled";
 
 export function TutorSettings() {
   return (
@@ -13,12 +16,51 @@ export function TutorSettings() {
       <PageHeader
         eyebrow="Tutor"
         title="Settings"
-        subtitle="Tutor PIN management. Theme, locale, and idle-timeout knobs land in later PRs."
+        subtitle="Tutor PIN management + reward feedback. Theme, locale, and idle-timeout knobs land in later PRs."
       />
       <section className="grid grid-cols-1 gap-6 px-8 py-6 lg:grid-cols-2">
         <ChangePinCard />
+        <RewardSoundCard />
       </section>
     </>
+  );
+}
+
+function RewardSoundCard() {
+  const queryClient = useQueryClient();
+  const settingQ = useQuery({
+    queryKey: ["settings", "get", SOUND_KEY],
+    queryFn: () => api.settings.get<boolean>({ key: SOUND_KEY }),
+  });
+  const setMutation = useMutation({
+    mutationFn: (next: boolean) => api.settings.set({ key: SOUND_KEY, value: next }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["settings", "get", SOUND_KEY] });
+    },
+  });
+
+  const enabled = settingQ.data === true;
+
+  return (
+    <article className="rounded-lg border border-border-subtle bg-surface-1 p-6">
+      <header className="mb-4 flex flex-col gap-1">
+        <h2 className="text-base font-semibold">Reward sound</h2>
+        <p className="text-xs text-muted">
+          Plays a soft chime when a student hits a 5- or 10-in-a-row streak inside a session. Off by
+          default; the visual celebration (confetti + toast) is always on.
+        </p>
+      </header>
+      <label className="flex cursor-pointer items-center gap-3 text-sm">
+        <input
+          type="checkbox"
+          checked={enabled}
+          disabled={settingQ.isLoading || setMutation.isPending}
+          onChange={(e) => setMutation.mutate(e.target.checked)}
+          className="h-4 w-4 cursor-pointer accent-accent"
+        />
+        <span>{enabled ? "Sound effects enabled" : "Sound effects muted"}</span>
+      </label>
+    </article>
   );
 }
 

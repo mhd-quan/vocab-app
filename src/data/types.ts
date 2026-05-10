@@ -10,6 +10,7 @@ import type {
   learningEvents,
   lessons,
   practiceSessions,
+  studentAchievements,
   students,
   units,
   vocabCollocations,
@@ -65,3 +66,6 @@ export type NewImportItem = typeof importItems.$inferInsert;
 
 export type AppSetting = typeof appSettings.$inferSelect;
 export type NewAppSetting = typeof appSettings.$inferInsert;
+
+export type StudentAchievement = typeof studentAchievements.$inferSelect;
+export type NewStudentAchievement = typeof studentAchievements.$inferInsert;
