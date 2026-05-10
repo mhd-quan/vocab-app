@@ -44,7 +44,7 @@ entries:
         translation: Tôi không biết làm thế nào anh ấy có đủ khả năng chi trả để mua một chiếc xe mới với mức lương của mình.
         cloze_hint: a_____
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: affordable
 
   - id: bargain-noun
@@ -520,7 +520,7 @@ entries:
         definition_vi: nhanh lên
         register: informal
     examples:
-      - text: {{Hurry up}}, or we will miss the beginning of the movie!
+      - text: "{{Hurry up}}, or we will miss the beginning of the movie!"
         translation: Nhanh lên, nếu không chúng ta sẽ bỏ lỡ phần đầu của bộ phim!
 
   - id: pay-back-phrasal_verb
@@ -590,7 +590,7 @@ entries:
         definition_vi: thêm vào
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: addition
 
   - id: compare-verb
@@ -604,7 +604,7 @@ entries:
         definition_vi: so sánh
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: comparison
 
   - id: decide-verb
@@ -618,7 +618,7 @@ entries:
         definition_vi: quyết định
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: decision
 
   - id: expense-noun
@@ -632,9 +632,9 @@ entries:
         definition_vi: chi phí
         register: formal
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: expensive
-      - relation: derivative
+      - relation: derived_from
         text: inexpensive
 
   - id: judge-verb
@@ -648,7 +648,7 @@ entries:
         definition_vi: đánh giá, phán xét
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: judgement
 
   - id: serve-verb
@@ -662,9 +662,9 @@ entries:
         definition_vi: phục vụ
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: service
-      - relation: derivative
+      - relation: derived_from
         text: servant
 
   - id: true-adjective
@@ -678,11 +678,11 @@ entries:
         definition_vi: đúng
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: truth
-      - relation: derivative
+      - relation: derived_from
         text: untrue
-      - relation: derivative
+      - relation: derived_from
         text: truthful
 
   - id: use-verb
@@ -696,9 +696,9 @@ entries:
         definition_vi: sử dụng
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: useful
-      - relation: derivative
+      - relation: derived_from
         text: useless
 
   - id: value-noun
@@ -712,7 +712,7 @@ entries:
         definition_vi: giá trị
         register: formal
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: valuable
 
   # --- WORD PATTERNS (BASE WORDS) ---

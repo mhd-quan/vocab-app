@@ -601,13 +601,13 @@ entries:
         definition_vi: hành động, diễn xuất
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: action
-      - relation: derivative
+      - relation: derived_from
         text: active
-      - relation: derivative
+      - relation: derived_from
         text: inactive
-      - relation: derivative
+      - relation: derived_from
         text: actor
 
   - id: athlete-noun
@@ -621,9 +621,9 @@ entries:
         definition_vi: vận động viên
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: athletic
-      - relation: derivative
+      - relation: derived_from
         text: athletics
 
   - id: child-noun
@@ -637,9 +637,9 @@ entries:
         definition_vi: đứa trẻ
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: children
-      - relation: derivative
+      - relation: derived_from
         text: childhood
 
   - id: collect-verb
@@ -653,9 +653,9 @@ entries:
         definition_vi: sưu tầm
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: collection
-      - relation: derivative
+      - relation: derived_from
         text: collector
 
   - id: entertain-verb
@@ -669,7 +669,7 @@ entries:
         definition_vi: giải trí
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: entertainment
 
   - id: hero-noun
@@ -683,9 +683,9 @@ entries:
         definition_vi: anh hùng
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: heroic
-      - relation: derivative
+      - relation: derived_from
         text: heroine
 
   - id: music-noun
@@ -699,9 +699,9 @@ entries:
         definition_vi: âm nhạc
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: musical
-      - relation: derivative
+      - relation: derived_from
         text: musician
 
   - id: play-verb
@@ -715,9 +715,9 @@ entries:
         definition_vi: chơi
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: player
-      - relation: derivative
+      - relation: derived_from
         text: playful
 
   - id: sail-verb
@@ -731,9 +731,9 @@ entries:
         definition_vi: chèo thuyền
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: sailing
-      - relation: derivative
+      - relation: derived_from
         text: sailor
 
   - id: sing-verb
@@ -747,11 +747,11 @@ entries:
         definition_vi: hát
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: song
-      - relation: derivative
+      - relation: derived_from
         text: singer
-      - relation: derivative
+      - relation: derived_from
         text: singing
 
   # --- WORD PATTERNS (BASE WORDS) ---

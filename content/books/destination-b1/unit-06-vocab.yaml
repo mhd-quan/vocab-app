@@ -244,7 +244,7 @@ entries:
         definition_vi: đảm bảo, chắc chắn
         register: neutral
     examples:
-      - text: {{Make sure}} you lock the door when you leave.
+      - text: "{{Make sure}} you lock the door when you leave."
         translation: Đảm bảo rằng bạn khóa cửa khi bạn rời đi.
         cloze_hint: m___ s___
 
@@ -593,9 +593,9 @@ entries:
         definition_vi: bắt đầu
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: beginner
-      - relation: derivative
+      - relation: derived_from
         text: beginning
 
   - id: brave-adjective
@@ -609,7 +609,7 @@ entries:
         definition_vi: dũng cảm
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: bravery
 
   - id: correct-adjective
@@ -623,9 +623,9 @@ entries:
         definition_vi: chính xác, sửa
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: correction
-      - relation: derivative
+      - relation: derived_from
         text: incorrect
 
   - id: divide-verb
@@ -639,7 +639,7 @@ entries:
         definition_vi: chia
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: division
 
   - id: educate-verb
@@ -653,7 +653,7 @@ entries:
         definition_vi: giáo dục
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: education
 
   - id: instruct-verb
@@ -667,9 +667,9 @@ entries:
         definition_vi: hướng dẫn
         register: formal
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: instruction
-      - relation: derivative
+      - relation: derived_from
         text: instructor
 
   - id: memory-noun
@@ -683,9 +683,9 @@ entries:
         definition_vi: trí nhớ
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: memorise
-      - relation: derivative
+      - relation: derived_from
         text: memorial
 
   - id: refer-verb
@@ -699,7 +699,7 @@ entries:
         definition_vi: tham khảo, nhắc đến
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: reference
 
   - id: silent-adjective
@@ -713,7 +713,7 @@ entries:
         definition_vi: im lặng
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: silence
 
   - id: simple-adjective
@@ -727,9 +727,9 @@ entries:
         definition_vi: đơn giản
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: simplify
-      - relation: derivative
+      - relation: derived_from
         text: simplicity
 
   # --- WORD PATTERNS (BASE WORDS) ---

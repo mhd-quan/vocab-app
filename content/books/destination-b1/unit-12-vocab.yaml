@@ -74,7 +74,7 @@ entries:
         translation: Anh ấy rất tự tin về cơ hội chiến thắng trò chơi của mình.
         cloze_hint: c________
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: confidence
 
   - id: cool-adjective
@@ -257,7 +257,7 @@ entries:
         translation: Để tôi giới thiệu bạn với đồng nghiệp của tôi, Sarah.
         cloze_hint: i________
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: introduction
 
   - id: loving-adjective
@@ -587,11 +587,11 @@ entries:
         definition_vi: có thể
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: ability
-      - relation: derivative
+      - relation: derived_from
         text: disabled
-      - relation: derivative
+      - relation: derived_from
         text: unable
 
   - id: admire-verb
@@ -605,7 +605,7 @@ entries:
         definition_vi: ngưỡng mộ
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: admiration
 
   - id: care-verb
@@ -619,9 +619,9 @@ entries:
         definition_vi: quan tâm
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: careful
-      - relation: derivative
+      - relation: derived_from
         text: careless
 
   - id: forgive-verb
@@ -635,7 +635,7 @@ entries:
         definition_vi: tha thứ
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: forgiveness
 
   - id: honest-adjective
@@ -649,9 +649,9 @@ entries:
         definition_vi: thành thật
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: dishonest
-      - relation: derivative
+      - relation: derived_from
         text: honesty
 
   - id: lie-verb
@@ -665,9 +665,9 @@ entries:
         definition_vi: nói dối
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: liar
-      - relation: derivative
+      - relation: derived_from
         text: lying
 
   - id: person-noun
@@ -681,9 +681,9 @@ entries:
         definition_vi: người
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: personality
-      - relation: derivative
+      - relation: derived_from
         text: personal
 
   - id: relate-verb
@@ -697,11 +697,11 @@ entries:
         definition_vi: liên quan, liên hệ
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: relative
-      - relation: derivative
+      - relation: derived_from
         text: relation
-      - relation: derivative
+      - relation: derived_from
         text: relationship
 
   # --- WORD PATTERNS (BASE WORDS) ---
@@ -787,9 +787,9 @@ entries:
         register: neutral
     collocations:
       - collocation: argue with somebody
-        pattern: verb+prep+pronoun
+        pattern: other
       - collocation: argue about something
-        pattern: verb+prep+noun
+        pattern: other
 
   - id: chat-verb
     headword: chat
@@ -803,6 +803,6 @@ entries:
         register: informal
     collocations:
       - collocation: chat to somebody
-        pattern: verb+prep+pronoun
+        pattern: other
       - collocation: chat about something
-        pattern: verb+prep+noun
+        pattern: other

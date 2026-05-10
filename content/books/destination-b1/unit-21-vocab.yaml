@@ -586,9 +586,9 @@ entries:
         definition_vi: chắc chắn
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: certainly
-      - relation: derivative
+      - relation: derived_from
         text: certainty
 
   - id: communicate-verb
@@ -602,7 +602,7 @@ entries:
         definition_vi: giao tiếp
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: communication
 
   - id: connect-verb-formation
@@ -616,9 +616,9 @@ entries:
         definition_vi: kết nối
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: connection
-      - relation: derivative
+      - relation: derived_from
         text: disconnect
 
   - id: deliver-verb
@@ -632,7 +632,7 @@ entries:
         definition_vi: giao hàng
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: delivery
 
   - id: express-verb
@@ -646,9 +646,9 @@ entries:
         definition_vi: biểu lộ
         register: formal
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: expression
-      - relation: derivative
+      - relation: derived_from
         text: expressive
 
   - id: inform-verb
@@ -662,9 +662,9 @@ entries:
         definition_vi: thông báo
         register: formal
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: information
-      - relation: derivative
+      - relation: derived_from
         text: informative
 
   - id: predict-verb
@@ -678,11 +678,11 @@ entries:
         definition_vi: dự đoán
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: prediction
-      - relation: derivative
+      - relation: derived_from
         text: predictable
-      - relation: derivative
+      - relation: derived_from
         text: unpredictable
 
   - id: secret-noun
@@ -696,9 +696,9 @@ entries:
         definition_vi: bí mật
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: secretly
-      - relation: derivative
+      - relation: derived_from
         text: secrecy
 
   - id: speak-verb
@@ -712,9 +712,9 @@ entries:
         definition_vi: nói
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: speaker
-      - relation: derivative
+      - relation: derived_from
         text: speech
 
   - id: translate-verb
@@ -728,9 +728,9 @@ entries:
         definition_vi: dịch
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: translation
-      - relation: derivative
+      - relation: derived_from
         text: translator
 
   # --- WORD PATTERNS (BASE WORDS) ---
@@ -802,7 +802,7 @@ entries:
         register: neutral
     collocations:
       - collocation: send something to somebody
-        pattern: verb+noun+prep+pronoun
+        pattern: other
 
   - id: talk-verb
     headword: talk
@@ -816,7 +816,7 @@ entries:
         register: neutral
     collocations:
       - collocation: talk to somebody about
-        pattern: verb+prep+pronoun+prep
+        pattern: other
 
   - id: tell-verb
     headword: tell
@@ -830,7 +830,7 @@ entries:
         register: neutral
     collocations:
       - collocation: tell somebody about
-        pattern: verb+pronoun+prep
+        pattern: other
 
   - id: write-verb
     headword: write
@@ -844,4 +844,4 @@ entries:
         register: neutral
     collocations:
       - collocation: write to somebody about
-        pattern: verb+prep+pronoun+prep
+        pattern: other

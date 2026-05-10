@@ -254,7 +254,7 @@ entries:
         translation: Anh ta đã bị tống vào nhà tù năm năm vì tội ăn cắp tiền.
         cloze_hint: p_____
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: prisoner
 
   - id: protest-verb
@@ -584,9 +584,9 @@ entries:
         definition_vi: đồng ý
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: agreement
-      - relation: derivative
+      - relation: derived_from
         text: disagree
 
   - id: belief-noun
@@ -600,11 +600,11 @@ entries:
         definition_vi: niềm tin
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: believe
-      - relation: derivative
+      - relation: derived_from
         text: believable
-      - relation: derivative
+      - relation: derived_from
         text: unbelievable
 
   - id: courage-noun
@@ -618,7 +618,7 @@ entries:
         definition_vi: lòng can đảm
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: courageous
 
   - id: elect-verb
@@ -632,7 +632,7 @@ entries:
         definition_vi: bầu cử
         register: formal
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: election
 
   - id: equal-adjective
@@ -646,9 +646,9 @@ entries:
         definition_vi: công bằng, bình đẳng
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: equality
-      - relation: derivative
+      - relation: derived_from
         text: unequal
 
   - id: life-noun
@@ -662,9 +662,9 @@ entries:
         definition_vi: cuộc sống
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: live
-      - relation: derivative
+      - relation: derived_from
         text: alive
 
   - id: nation-noun
@@ -678,11 +678,11 @@ entries:
         definition_vi: quốc gia
         register: formal
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: nationality
-      - relation: derivative
+      - relation: derived_from
         text: national
-      - relation: derivative
+      - relation: derived_from
         text: international
 
   - id: peace-noun
@@ -696,9 +696,9 @@ entries:
         definition_vi: hòa bình
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: peaceful
-      - relation: derivative
+      - relation: derived_from
         text: peacefully
 
   - id: shoot-verb
@@ -712,9 +712,9 @@ entries:
         definition_vi: bắn
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: shot
-      - relation: derivative
+      - relation: derived_from
         text: shooting
 
   # --- WORD PATTERNS (BASE WORDS) ---
@@ -730,7 +730,7 @@ entries:
         register: neutral
     collocations:
       - collocation: angry with somebody about
-        pattern: adj+prep+pronoun+prep
+        pattern: other
 
   - id: guilty-adjective
     headword: guilty
@@ -758,7 +758,7 @@ entries:
         register: formal
     collocations:
       - collocation: accuse somebody of
-        pattern: verb+pronoun+prep
+        pattern: other
 
   - id: blame-verb
     headword: blame
@@ -772,9 +772,9 @@ entries:
         register: neutral
     collocations:
       - collocation: blame somebody for
-        pattern: verb+pronoun+prep
+        pattern: other
       - collocation: blame something on
-        pattern: verb+noun+prep
+        pattern: other
 
   - id: criticise-verb
     headword: criticise
@@ -788,7 +788,7 @@ entries:
         register: neutral
     collocations:
       - collocation: criticise somebody for
-        pattern: verb+pronoun+prep
+        pattern: other
 
   - id: forget-verb
     headword: forget
@@ -816,7 +816,7 @@ entries:
         register: neutral
     collocations:
       - collocation: forgive somebody for
-        pattern: verb+pronoun+prep
+        pattern: other
 
   - id: invite-verb
     headword: invite
@@ -830,7 +830,7 @@ entries:
         register: neutral
     collocations:
       - collocation: invite somebody to
-        pattern: verb+pronoun+prep
+        pattern: other
 
   - id: punish-verb
     headword: punish
@@ -844,7 +844,7 @@ entries:
         register: formal
     collocations:
       - collocation: punish somebody for
-        pattern: verb+pronoun+prep
+        pattern: other
 
   - id: share-verb
     headword: share
@@ -858,7 +858,7 @@ entries:
         register: neutral
     collocations:
       - collocation: share something with
-        pattern: verb+noun+prep
+        pattern: other
 
   - id: smile-verb
     headword: smile

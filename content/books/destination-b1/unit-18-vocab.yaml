@@ -584,9 +584,9 @@ entries:
         definition_vi: sôi
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: boiler
-      - relation: derivative
+      - relation: derived_from
         text: boiling
 
   - id: chemist-noun
@@ -600,9 +600,9 @@ entries:
         definition_vi: nhà hóa học
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: chemical
-      - relation: derivative
+      - relation: derived_from
         text: chemistry
 
   - id: conclude-verb
@@ -616,7 +616,7 @@ entries:
         definition_vi: kết luận
         register: formal
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: conclusion
 
   - id: examine-verb
@@ -630,11 +630,11 @@ entries:
         definition_vi: kiểm tra, xem xét
         register: formal
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: exam
-      - relation: derivative
+      - relation: derived_from
         text: examination
-      - relation: derivative
+      - relation: derived_from
         text: examiner
 
   - id: fascinate-verb
@@ -648,9 +648,9 @@ entries:
         definition_vi: cuốn hút
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: fascination
-      - relation: derivative
+      - relation: derived_from
         text: fascinating
 
   - id: history-noun
@@ -664,9 +664,9 @@ entries:
         definition_vi: lịch sử
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: historic
-      - relation: derivative
+      - relation: derived_from
         text: historian
 
   - id: identical-adjective
@@ -680,7 +680,7 @@ entries:
         definition_vi: giống hệt
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: identically
 
   - id: long-adjective
@@ -694,7 +694,7 @@ entries:
         definition_vi: dài
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: length
 
   - id: measure-verb
@@ -708,7 +708,7 @@ entries:
         definition_vi: đo lường
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: measurement
 
   - id: science-noun
@@ -722,7 +722,7 @@ entries:
         definition_vi: khoa học
         register: neutral
     relations:
-      - relation: derivative
+      - relation: derived_from
         text: scientist
 
   # --- WORD PATTERNS (BASE WORDS) ---
