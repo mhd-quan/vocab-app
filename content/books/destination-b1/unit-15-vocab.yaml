@@ -533,7 +533,7 @@ entries:
         definition_vi: trả nợ
         register: neutral
     examples:
-      - text: I will {{pay}} you {{back}} the fifty dollars I owe you tomorrow.
+      - text: I will {{pay you back}} the fifty dollars I owe you tomorrow.
         translation: Tôi sẽ trả nợ cho bạn năm mươi đô la tôi nợ bạn vào ngày mai.
 
   - id: save-up-phrasal_verb
@@ -559,7 +559,7 @@ entries:
         definition_vi: trả lại món hàng đã mua
         register: neutral
     examples:
-      - text: The shoes were too small, so I had to {{take}} them {{back}} to the store.
+      - text: The shoes were too small, so I had to {{take them back}} to the store.
         translation: Đôi giày quá nhỏ, nên tôi đã phải trả lại chúng cho cửa hàng.
 
   - id: take-down-phrasal_verb
@@ -668,7 +668,7 @@ entries:
         text: servant
 
   - id: true-adjective
-    headword: true
+    headword: "true"
     pos: adjective
     ipa: /truː/
     cefr: A1

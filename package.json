@@ -22,9 +22,9 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate:dev": "tsx scripts/migrate-dev.ts",
     "rebuild": "electron-rebuild -f -w better-sqlite3",
-    "import": "tsx scripts/import-content.ts",
-    "import:watch": "tsx scripts/import-content.ts --watch",
-    "import:dry-run": "tsx scripts/import-content.ts --dry-run"
+    "import": "ELECTRON_RUN_AS_NODE=1 electron --import tsx scripts/import-content.ts",
+    "import:watch": "ELECTRON_RUN_AS_NODE=1 electron --import tsx scripts/import-content.ts --watch",
+    "import:dry-run": "ELECTRON_RUN_AS_NODE=1 electron --import tsx scripts/import-content.ts --dry-run"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.62.16",

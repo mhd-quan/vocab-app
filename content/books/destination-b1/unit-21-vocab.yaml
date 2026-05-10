@@ -480,7 +480,7 @@ entries:
         definition_vi: gọi lại
         register: neutral
     examples:
-      - text: I'm in a meeting right now, can I {{call}} you {{back}} later?
+      - text: I'm in a meeting right now, can I {{call you back}} later?
         translation: Hiện tại tôi đang họp, tôi có thể gọi lại cho bạn sau được không?
 
   - id: come-out-phrasal_verb

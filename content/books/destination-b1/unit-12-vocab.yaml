@@ -546,7 +546,7 @@ entries:
         definition_vi: làm thất vọng
         register: neutral
     examples:
-      - text: I promised to help him, and I don't want to {{let}} him {{down}}.
+      - text: I promised to help him, and I don't want to {{let him down}}.
         translation: Tôi đã hứa sẽ giúp anh ấy, và tôi không muốn làm anh ấy thất vọng.
 
   - id: look-after-phrasal_verb

@@ -19,7 +19,7 @@ import { closeDatabase, openDatabase } from "../electron/db";
 import { createRepositories } from "../electron/db/repositories";
 import { type ImportFileResult, ImportVocabUseCase } from "../src/application/import";
 
-const DEFAULT_GLOB = "content/books/**/*-vocab.yaml";
+const DEFAULT_GLOB = "content/books";
 
 interface CliArgs {
   dryRun: boolean;
@@ -56,8 +56,8 @@ function printUsage(): void {
   console.log(`
 Usage: npm run import [-- <path>...] [--dry-run] [--watch] [--force]
 
-  <path>      File or directory; directories are globbed for *-vocab.yaml.
-              Defaults to ${DEFAULT_GLOB}.
+  <path>      File or directory. Directories are scanned for *-vocab.yaml.
+              Defaults to content/books.
 
 Flags:
   --dry-run   Validate + show what would change, do not write.
@@ -84,14 +84,17 @@ async function expandPaths(args: string[]): Promise<string[]> {
       continue;
     }
     if (stat?.isDirectory()) {
-      for await (const file of fs.glob("**/*-vocab.yaml", { cwd: absoluteOrPattern })) {
-        out.add(path.join(absoluteOrPattern, file));
+      const files = await fs.readdir(absoluteOrPattern, { recursive: true });
+      for (const file of files) {
+        if (typeof file === "string" && (file.endsWith("-vocab.yaml") || file.endsWith("-vocab.yml"))) {
+          out.add(path.join(absoluteOrPattern, file));
+        }
       }
       continue;
     }
-    // Treat as glob pattern relative to cwd.
-    for await (const file of fs.glob(target, { cwd: process.cwd() })) {
-      out.add(path.resolve(process.cwd(), file));
+    // Treat as relative pattern or just file
+    if (target.endsWith("-vocab.yaml") || target.endsWith("-vocab.yml")) {
+       out.add(path.resolve(process.cwd(), target));
     }
   }
 

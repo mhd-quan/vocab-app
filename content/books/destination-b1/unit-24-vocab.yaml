@@ -543,7 +543,7 @@ entries:
         definition_vi: cất đi
         register: neutral
     examples:
-      - text: Please {{put}} your toys {{away}} before dinner.
+      - text: Please {{put your toys away}} before dinner.
         translation: Vui lòng cất đồ chơi của con đi trước bữa tối.
 
   - id: wake-up-phrasal_verb
