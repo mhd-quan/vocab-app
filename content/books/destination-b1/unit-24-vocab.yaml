@@ -1,0 +1,875 @@
+# Destination B1 — Unit 24: People and daily life
+book: destination-b1
+
+unit:
+  ordinal: 24
+  code: U24
+  title: People and daily life
+
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: Vocabulary, Phrasal Verbs & Patterns
+  slug: vocab-phrasal-verbs-patterns
+
+entries:
+  # --- TOPIC VOCABULARY ---
+  - id: admit-verb
+    headword: admit
+    pos: verb
+    ipa: /ədˈmɪt/
+    cefr: B1
+    tags: [communication, mind]
+    senses:
+      - definition_en: to agree that something is true, especially unwillingly
+        definition_vi: thừa nhận
+        register: neutral
+    examples:
+      - text: He finally had to {{admit}} that he was wrong.
+        translation: Cuối cùng anh ấy đã phải thừa nhận rằng mình sai.
+        cloze_hint: a____
+
+  - id: arrest-verb
+    headword: arrest
+    pos: verb
+    ipa: /əˈrest/
+    cefr: B1
+    tags: [law, actions]
+    senses:
+      - definition_en: if the police arrest someone, they take them away to ask them about a crime that they might have committed
+        definition_vi: bắt giữ
+        register: formal
+    examples:
+      - text: The police are going to {{arrest}} the man for stealing the car.
+        translation: Cảnh sát sẽ bắt giữ người đàn ông vì tội trộm xe.
+        cloze_hint: a_____
+
+  - id: charity-noun
+    headword: charity
+    pos: noun
+    ipa: /ˈtʃærəti/
+    cefr: A2
+    tags: [society, organizations]
+    senses:
+      - definition_en: an organization whose purpose is to give money, food, or help to those who need it
+        definition_vi: tổ chức từ thiện
+        register: neutral
+    examples:
+      - text: She raised a lot of money for a local cancer {{charity}}.
+        translation: Cô ấy đã quyên góp được rất nhiều tiền cho một tổ chức từ thiện về bệnh ung thư ở địa phương.
+        cloze_hint: c______
+
+  - id: commit-verb
+    headword: commit
+    pos: verb
+    ipa: /kəˈmɪt/
+    cefr: B1
+    tags: [law, actions]
+    senses:
+      - definition_en: to do something illegal or something that is considered wrong
+        definition_vi: phạm (tội)
+        register: formal
+    examples:
+      - text: People who {{commit}} serious crimes should be sent to prison.
+        translation: Những người phạm tội nghiêm trọng nên bị bỏ tù.
+        cloze_hint: c_____
+
+  - id: community-noun
+    headword: community
+    pos: noun
+    ipa: /kəˈmjuːnəti/
+    cefr: B1
+    tags: [society, people]
+    senses:
+      - definition_en: the people living in one particular area or people who are considered as a unit
+        definition_vi: cộng đồng
+        register: neutral
+    examples:
+      - text: The local {{community}} organized a festival to celebrate the new park.
+        translation: Cộng đồng địa phương đã tổ chức một lễ hội để chào mừng công viên mới.
+        cloze_hint: c________
+
+  - id: court-noun
+    headword: court
+    pos: noun
+    ipa: /kɔːt/
+    cefr: B1
+    tags: [law, places]
+    senses:
+      - definition_en: a place where trials and other legal cases happen
+        definition_vi: tòa án
+        register: formal
+    examples:
+      - text: The criminal will appear in {{court}} tomorrow morning.
+        translation: Tên tội phạm sẽ ra hầu tòa vào sáng ngày mai.
+        cloze_hint: c____
+
+  - id: criminal-noun
+    headword: criminal
+    pos: noun
+    ipa: /ˈkrɪmɪnl/
+    cefr: B1
+    tags: [law, people]
+    senses:
+      - definition_en: someone who commits a crime
+        definition_vi: tội phạm
+        register: neutral
+    examples:
+      - text: The police are searching for a dangerous {{criminal}} in the area.
+        translation: Cảnh sát đang tìm kiếm một tên tội phạm nguy hiểm trong khu vực.
+        cloze_hint: c_______
+
+  - id: culture-noun
+    headword: culture
+    pos: noun
+    ipa: /ˈkʌltʃə/
+    cefr: B1
+    tags: [society, abstract]
+    senses:
+      - definition_en: the way of life, especially the general customs and beliefs, of a particular group of people at a particular time
+        definition_vi: văn hóa
+        register: neutral
+    examples:
+      - text: It is important to respect the local {{culture}} when you travel abroad.
+        translation: Việc tôn trọng văn hóa địa phương khi bạn đi du lịch nước ngoài là rất quan trọng.
+        cloze_hint: c______
+
+  - id: familiar-adjective
+    headword: familiar
+    pos: adjective
+    ipa: /fəˈmɪliə/
+    cefr: B1
+    tags: [mind, description]
+    senses:
+      - definition_en: easy to recognize because of being seen, met, heard, etc. before
+        definition_vi: quen thuộc
+        register: neutral
+    examples:
+      - text: I saw a {{familiar}} face in the crowd at the concert.
+        translation: Tôi đã nhìn thấy một khuôn mặt quen thuộc trong đám đông tại buổi hòa nhạc.
+        cloze_hint: f_______
+
+  - id: government-noun
+    headword: government
+    pos: noun
+    ipa: /ˈɡʌvənmənt/
+    cefr: A2
+    tags: [society, politics]
+    senses:
+      - definition_en: the group of people who officially control a country
+        definition_vi: chính phủ
+        register: formal
+    examples:
+      - text: The {{government}} has introduced new laws to protect the environment.
+        translation: Chính phủ đã ban hành các luật mới để bảo vệ môi trường.
+        cloze_hint: g_________
+
+  - id: habit-noun
+    headword: habit
+    pos: noun
+    ipa: /ˈhæbɪt/
+    cefr: A2
+    tags: [actions, life]
+    senses:
+      - definition_en: something that you do often and regularly, sometimes without knowing that you are doing it
+        definition_vi: thói quen
+        register: neutral
+    examples:
+      - text: Biting your nails is a very bad {{habit}}.
+        translation: Cắn móng tay là một thói quen rất xấu.
+        cloze_hint: h____
+
+  - id: identity-card-noun
+    headword: identity card
+    pos: noun
+    ipa: /aɪˈdentəti ˌkɑːd/
+    cefr: A2
+    tags: [documents, society]
+    senses:
+      - definition_en: an official document or card with your name, date of birth, and photograph on it
+        definition_vi: chứng minh thư, thẻ căn cước
+        register: formal
+    examples:
+      - text: You must show your {{identity card}} to open a bank account.
+        translation: Bạn phải xuất trình thẻ căn cước để mở một tài khoản ngân hàng.
+        cloze_hint: i_______ c___
+
+  - id: illegal-adjective
+    headword: illegal
+    pos: adjective
+    ipa: /ɪˈliːɡl/
+    cefr: B1
+    tags: [law, description]
+    senses:
+      - definition_en: not allowed by law
+        definition_vi: bất hợp pháp
+        register: formal
+    examples:
+      - text: It is {{illegal}} to park your car in front of the hospital entrance.
+        translation: Việc đỗ xe trước lối vào bệnh viện là bất hợp pháp.
+        cloze_hint: i______
+
+  - id: politics-noun
+    headword: politics
+    pos: noun
+    ipa: /ˈpɒlətɪks/
+    cefr: B1
+    tags: [society, abstract]
+    senses:
+      - definition_en: the activities of the government, members of law-making organizations, or people who try to influence the way a country is governed
+        definition_vi: chính trị
+        register: formal
+    examples:
+      - text: He has always had a strong interest in international {{politics}}.
+        translation: Anh ấy luôn có một sự quan tâm mãnh liệt đến chính trị quốc tế.
+        cloze_hint: p_______
+
+  - id: population-noun
+    headword: population
+    pos: noun
+    ipa: /ˌpɒpjʊˈleɪʃn/
+    cefr: B1
+    tags: [society, people]
+    senses:
+      - definition_en: all the people living in a particular country, area, or place
+        definition_vi: dân số
+        register: formal
+    examples:
+      - text: The {{population}} of Vietnam is growing rapidly.
+        translation: Dân số Việt Nam đang tăng trưởng nhanh chóng.
+        cloze_hint: p_________
+
+  - id: prison-noun
+    headword: prison
+    pos: noun
+    ipa: /ˈprɪzn/
+    cefr: A2
+    tags: [law, places, formation]
+    senses:
+      - definition_en: a building where criminals are forced to live as a punishment
+        definition_vi: nhà tù
+        register: neutral
+    examples:
+      - text: He was sent to {{prison}} for five years for stealing the money.
+        translation: Anh ta đã bị tống vào nhà tù năm năm vì tội ăn cắp tiền.
+        cloze_hint: p_____
+    relations:
+      - relation: derivative
+        text: prisoner
+
+  - id: protest-verb
+    headword: protest
+    pos: verb
+    ipa: /prəˈtest/
+    cefr: B1
+    tags: [society, actions]
+    senses:
+      - definition_en: to show that you disagree with something by standing somewhere, shouting, carrying signs, etc.
+        definition_vi: phản đối, biểu tình
+        register: formal
+    examples:
+      - text: A large crowd gathered to {{protest}} against the new tax laws.
+        translation: Một đám đông lớn đã tụ tập để biểu tình phản đối các luật thuế mới.
+        cloze_hint: p______
+
+  - id: resident-noun
+    headword: resident
+    pos: noun
+    ipa: /ˈrezɪdənt/
+    cefr: B1
+    tags: [society, people]
+    senses:
+      - definition_en: a person who lives or has their home in a place
+        definition_vi: cư dân
+        register: formal
+    examples:
+      - text: The local {{residents}} were not happy about the noisy construction site.
+        translation: Các cư dân địa phương không hài lòng về công trường xây dựng ồn ào.
+        cloze_hint: r_______
+
+  - id: responsible-adjective
+    headword: responsible
+    pos: adjective
+    ipa: /rɪˈspɒnsəbl/
+    cefr: B1
+    tags: [personality, society]
+    senses:
+      - definition_en: to have control and authority over something or someone and the duty of taking care of it, him, or her
+        definition_vi: chịu trách nhiệm
+        register: neutral
+    examples:
+      - text: Parents are {{responsible}} for the safety of their children.
+        translation: Cha mẹ chịu trách nhiệm cho sự an toàn của con cái họ.
+        cloze_hint: r__________
+
+  - id: rob-verb
+    headword: rob
+    pos: verb
+    ipa: /rɒb/
+    cefr: B1
+    tags: [law, actions]
+    senses:
+      - definition_en: to take money or property illegally from a place, organization, or person, often using violence
+        definition_vi: cướp
+        register: neutral
+    examples:
+      - text: Two men tried to {{rob}} the bank yesterday afternoon.
+        translation: Hai người đàn ông đã cố gắng cướp ngân hàng vào chiều hôm qua.
+        cloze_hint: r__
+
+  - id: routine-noun
+    headword: routine
+    pos: noun
+    ipa: /ruːˈtiːn/
+    cefr: A2
+    tags: [life, time]
+    senses:
+      - definition_en: a usual or fixed way of doing things
+        definition_vi: thói quen sinh hoạt
+        register: neutral
+    examples:
+      - text: Going for a run every morning is part of my daily {{routine}}.
+        translation: Đi chạy bộ mỗi sáng là một phần trong thói quen sinh hoạt hàng ngày của tôi.
+        cloze_hint: r______
+
+  - id: schedule-noun
+    headword: schedule
+    pos: noun
+    ipa: /ˈʃedjuːl/
+    cefr: B1
+    tags: [life, time]
+    senses:
+      - definition_en: a list of planned activities or things to be done showing the times or dates when they are intended to happen
+        definition_vi: lịch trình
+        register: neutral
+    examples:
+      - text: I have a very busy {{schedule}} this week with a lot of meetings.
+        translation: Tôi có một lịch trình rất bận rộn trong tuần này với nhiều cuộc họp.
+        cloze_hint: s_______
+
+  - id: situation-noun
+    headword: situation
+    pos: noun
+    ipa: /ˌsɪtʃuˈeɪʃn/
+    cefr: A2
+    tags: [abstract]
+    senses:
+      - definition_en: the set of things that are happening and the conditions that exist at a particular time and place
+        definition_vi: tình huống
+        register: neutral
+    examples:
+      - text: We are in a difficult {{situation}} and need to make a quick decision.
+        translation: Chúng ta đang ở trong một tình huống khó khăn và cần phải đưa ra quyết định nhanh chóng.
+        cloze_hint: s________
+
+  - id: social-adjective
+    headword: social
+    pos: adjective
+    ipa: /ˈsəʊʃl/
+    cefr: B1
+    tags: [society, description]
+    senses:
+      - definition_en: relating to society and living together in an organized way
+        definition_vi: thuộc xã hội
+        register: neutral
+    examples:
+      - text: The new policy aims to solve several important {{social}} problems.
+        translation: Chính sách mới nhằm mục đích giải quyết một số vấn đề xã hội quan trọng.
+        cloze_hint: s_____
+
+  - id: society-noun
+    headword: society
+    pos: noun
+    ipa: /səˈsaɪəti/
+    cefr: B1
+    tags: [society, abstract]
+    senses:
+      - definition_en: a large group of people who live together in an organized way, making decisions about how to do things and sharing the work that needs to be done
+        definition_vi: xã hội
+        register: formal
+    examples:
+      - text: We all have a role to play in building a better {{society}}.
+        translation: Tất cả chúng ta đều có một vai trò trong việc xây dựng một xã hội tốt đẹp hơn.
+        cloze_hint: s______
+
+  - id: steal-verb
+    headword: steal
+    pos: verb
+    ipa: /stiːl/
+    cefr: A2
+    tags: [law, actions]
+    senses:
+      - definition_en: to take something without the permission or knowledge of the owner and keep it
+        definition_vi: ăn cắp
+        register: neutral
+    examples:
+      - text: The boy was caught trying to {{steal}} an apple from the market.
+        translation: Cậu bé đã bị bắt quả tang khi đang cố gắng ăn cắp một quả táo từ khu chợ.
+        cloze_hint: s____
+
+  - id: tradition-noun
+    headword: tradition
+    pos: noun
+    ipa: /trəˈdɪʃn/
+    cefr: B1
+    tags: [society, abstract]
+    senses:
+      - definition_en: a belief, principle, or way of acting that people in a particular society or group have continued to follow for a long time
+        definition_vi: truyền thống
+        register: neutral
+    examples:
+      - text: Giving lucky money during Lunar New Year is a Vietnamese {{tradition}}.
+        translation: Việc lì xì trong dịp Tết Nguyên Đán là một truyền thống của người Việt Nam.
+        cloze_hint: t________
+
+  - id: typical-adjective
+    headword: typical
+    pos: adjective
+    ipa: /ˈtɪpɪkl/
+    cefr: B1
+    tags: [description]
+    senses:
+      - definition_en: showing all the characteristics that you would usually expect from a particular group of things
+        definition_vi: điển hình
+        register: neutral
+    examples:
+      - text: It was a {{typical}} summer day, hot and sunny.
+        translation: Đó là một ngày mùa hè điển hình, nóng nực và đầy nắng.
+        cloze_hint: t______
+
+  - id: vote-verb
+    headword: vote
+    pos: verb
+    ipa: /vəʊt/
+    cefr: B1
+    tags: [politics, actions]
+    senses:
+      - definition_en: to express your choice or opinion, especially by officially writing a mark on a paper or by raising your hand
+        definition_vi: bầu cử, bỏ phiếu
+        register: formal
+    examples:
+      - text: Citizens have the right to {{vote}} for their chosen leaders.
+        translation: Công dân có quyền bỏ phiếu cho các nhà lãnh đạo mà họ đã chọn.
+        cloze_hint: v___
+
+  - id: youth-club-noun
+    headword: youth club
+    pos: noun
+    ipa: /ˈjuːθ ˌklʌb/
+    cefr: A2
+    tags: [society, places]
+    senses:
+      - definition_en: a place where older children can go to meet other children, play sports, and do other social activities
+        definition_vi: câu lạc bộ thanh niên
+        register: neutral
+    examples:
+      - text: They spend their weekends playing table tennis at the local {{youth club}}.
+        translation: Họ dành những ngày cuối tuần để chơi bóng bàn tại câu lạc bộ thanh niên địa phương.
+        cloze_hint: y____ c___
+
+  # --- PHRASAL VERBS ---
+  - id: break-in-phrasal_verb
+    headword: break in
+    pos: phrasal_verb
+    cefr: B1
+    tags: [law, actions]
+    senses:
+      - definition_en: to enter a building illegally, usually by damaging a door or window, especially for the purpose of stealing something
+        definition_vi: đột nhập
+        register: neutral
+    examples:
+      - text: Thieves managed to {{break in}} and steal the computers during the night.
+        translation: Những tên trộm đã xoay sở để đột nhập và đánh cắp các máy tính trong đêm.
+
+  - id: catch-up-phrasal_verb
+    headword: catch up
+    pos: phrasal_verb
+    cefr: B1
+    tags: [life, actions]
+    senses:
+      - definition_en: to reach the same quality or standard as someone or something else; to learn or discuss the latest news
+        definition_vi: bắt kịp (ai, tin tức)
+        register: informal
+    examples:
+      - text: We hadn't seen each other for months, so we had a lot of news to {{catch up}} on.
+        translation: Chúng tôi đã không gặp nhau nhiều tháng, nên chúng tôi có rất nhiều tin tức để bắt kịp.
+
+  - id: get-away-with-phrasal_verb
+    headword: get away with
+    pos: phrasal_verb
+    cefr: B1
+    tags: [law, actions]
+    senses:
+      - definition_en: to succeed in avoiding punishment for something
+        definition_vi: thoát tội
+        register: informal
+    examples:
+      - text: He lied to the teacher, but he didn't {{get away with}} it.
+        translation: Cậu ấy đã nói dối giáo viên, nhưng cậu ấy đã không thoát tội.
+
+  - id: get-up-phrasal_verb
+    headword: get up
+    pos: phrasal_verb
+    cefr: A1
+    tags: [life, routine]
+    senses:
+      - definition_en: to stand up; to wake up and get out of bed
+        definition_vi: thức dậy
+        register: neutral
+    examples:
+      - text: I usually {{get up}} at 6 AM to prepare for work.
+        translation: Tôi thường thức dậy lúc 6 giờ sáng để chuẩn bị đi làm.
+
+  - id: move-in-phrasal_verb
+    headword: move in
+    pos: phrasal_verb
+    cefr: B1
+    tags: [life, places]
+    senses:
+      - definition_en: to begin living in a new house or flat
+        definition_vi: chuyển đến ở
+        register: neutral
+    examples:
+      - text: We are packing our boxes and will {{move in}} to our new apartment tomorrow.
+        translation: Chúng tôi đang đóng gói các hộp và sẽ chuyển đến căn hộ mới của mình vào ngày mai.
+
+  - id: put-away-phrasal_verb
+    headword: put away
+    pos: phrasal_verb
+    cefr: B1
+    tags: [actions, objects]
+    senses:
+      - definition_en: to put something in the place or container where it is usually kept
+        definition_vi: cất đi
+        register: neutral
+    examples:
+      - text: Please {{put}} your toys {{away}} before dinner.
+        translation: Vui lòng cất đồ chơi của con đi trước bữa tối.
+
+  - id: wake-up-phrasal_verb
+    headword: wake up
+    pos: phrasal_verb
+    cefr: A1
+    tags: [life, routine]
+    senses:
+      - definition_en: to stop sleeping or to make someone stop sleeping
+        definition_vi: tỉnh giấc
+        register: neutral
+    examples:
+      - text: Set your alarm so you will {{wake up}} on time for the meeting.
+        translation: Hãy đặt báo thức để bạn sẽ tỉnh giấc đúng giờ cho cuộc họp.
+
+  - id: wash-up-phrasal_verb
+    headword: wash up
+    pos: phrasal_verb
+    cefr: A2
+    tags: [life, actions]
+    senses:
+      - definition_en: to clean plates, pans, and other things that you have used for cooking and eating
+        definition_vi: rửa bát đĩa
+        register: neutral
+    examples:
+      - text: After we finish eating, I will help you {{wash up}}.
+        translation: Sau khi chúng ta ăn xong, tôi sẽ giúp bạn rửa bát đĩa.
+
+  # --- WORD FORMATION (ROOTS & DERIVATIVES) ---
+  - id: agree-verb
+    headword: agree
+    pos: verb
+    ipa: /əˈɡriː/
+    cefr: A2
+    tags: [formation, communication]
+    senses:
+      - definition_en: to have the same opinion
+        definition_vi: đồng ý
+        register: neutral
+    relations:
+      - relation: derivative
+        text: agreement
+      - relation: derivative
+        text: disagree
+
+  - id: belief-noun
+    headword: belief
+    pos: noun
+    ipa: /bɪˈliːf/
+    cefr: B1
+    tags: [formation, mind]
+    senses:
+      - definition_en: the feeling of being certain that something exists or is true
+        definition_vi: niềm tin
+        register: neutral
+    relations:
+      - relation: derivative
+        text: believe
+      - relation: derivative
+        text: believable
+      - relation: derivative
+        text: unbelievable
+
+  - id: courage-noun
+    headword: courage
+    pos: noun
+    ipa: /ˈkʌrɪdʒ/
+    cefr: B1
+    tags: [formation, personality]
+    senses:
+      - definition_en: the ability to control your fear in a dangerous or difficult situation
+        definition_vi: lòng can đảm
+        register: neutral
+    relations:
+      - relation: derivative
+        text: courageous
+
+  - id: elect-verb
+    headword: elect
+    pos: verb
+    ipa: /ɪˈlekt/
+    cefr: B1
+    tags: [formation, politics]
+    senses:
+      - definition_en: to decide on or choose, especially to choose a person for a particular job, by voting
+        definition_vi: bầu cử
+        register: formal
+    relations:
+      - relation: derivative
+        text: election
+
+  - id: equal-adjective
+    headword: equal
+    pos: adjective
+    ipa: /ˈiːkwəl/
+    cefr: B1
+    tags: [formation, society]
+    senses:
+      - definition_en: the same in amount, number, or size; treating everyone in the same way
+        definition_vi: công bằng, bình đẳng
+        register: neutral
+    relations:
+      - relation: derivative
+        text: equality
+      - relation: derivative
+        text: unequal
+
+  - id: life-noun
+    headword: life
+    pos: noun
+    ipa: /laɪf/
+    cefr: A1
+    tags: [formation, abstract]
+    senses:
+      - definition_en: the period between birth and death, or the experience or state of being alive
+        definition_vi: cuộc sống
+        register: neutral
+    relations:
+      - relation: derivative
+        text: live
+      - relation: derivative
+        text: alive
+
+  - id: nation-noun
+    headword: nation
+    pos: noun
+    ipa: /ˈneɪʃn/
+    cefr: B1
+    tags: [formation, society]
+    senses:
+      - definition_en: a country, especially when thought of as a large group of people living in one area with their own government, language, and traditions
+        definition_vi: quốc gia
+        register: formal
+    relations:
+      - relation: derivative
+        text: nationality
+      - relation: derivative
+        text: national
+      - relation: derivative
+        text: international
+
+  - id: peace-noun
+    headword: peace
+    pos: noun
+    ipa: /piːs/
+    cefr: A2
+    tags: [formation, abstract]
+    senses:
+      - definition_en: freedom from war and violence, especially when people live and work together happily without disagreements
+        definition_vi: hòa bình
+        register: neutral
+    relations:
+      - relation: derivative
+        text: peaceful
+      - relation: derivative
+        text: peacefully
+
+  - id: shoot-verb
+    headword: shoot
+    pos: verb
+    ipa: /ʃuːt/
+    cefr: B1
+    tags: [formation, law, actions]
+    senses:
+      - definition_en: to fire a bullet or an arrow, or to hit, injure, or kill a person or animal by firing a bullet or arrow at him, her, or it
+        definition_vi: bắn
+        register: neutral
+    relations:
+      - relation: derivative
+        text: shot
+      - relation: derivative
+        text: shooting
+
+  # --- WORD PATTERNS (BASE WORDS) ---
+  - id: angry-adjective
+    headword: angry
+    pos: adjective
+    ipa: /ˈæŋɡri/
+    cefr: A1
+    tags: [patterns, feelings]
+    senses:
+      - definition_en: having a strong feeling against someone who has behaved badly, making you want to shout at them or hurt them
+        definition_vi: tức giận
+        register: neutral
+    collocations:
+      - collocation: angry with somebody about
+        pattern: adj+prep+pronoun+prep
+
+  - id: guilty-adjective
+    headword: guilty
+    pos: adjective
+    ipa: /ˈɡɪlti/
+    cefr: B1
+    tags: [patterns, law]
+    senses:
+      - definition_en: feeling guilt; responsible for breaking a law
+        definition_vi: có tội
+        register: formal
+    collocations:
+      - collocation: guilty of
+        pattern: adj+prep
+
+  - id: accuse-verb
+    headword: accuse
+    pos: verb
+    ipa: /əˈkjuːz/
+    cefr: B1
+    tags: [patterns, communication, law]
+    senses:
+      - definition_en: to say that someone has done something morally wrong, illegal, or unkind
+        definition_vi: buộc tội
+        register: formal
+    collocations:
+      - collocation: accuse somebody of
+        pattern: verb+pronoun+prep
+
+  - id: blame-verb
+    headword: blame
+    pos: verb
+    ipa: /bleɪm/
+    cefr: B1
+    tags: [patterns, communication]
+    senses:
+      - definition_en: to say or think that someone or something did something wrong or is responsible for something bad happening
+        definition_vi: đổ lỗi
+        register: neutral
+    collocations:
+      - collocation: blame somebody for
+        pattern: verb+pronoun+prep
+      - collocation: blame something on
+        pattern: verb+noun+prep
+
+  - id: criticise-verb
+    headword: criticise
+    pos: verb
+    ipa: /ˈkrɪtɪsaɪz/
+    cefr: B1
+    tags: [patterns, communication]
+    senses:
+      - definition_en: to express disapproval of someone or something
+        definition_vi: chỉ trích
+        register: neutral
+    collocations:
+      - collocation: criticise somebody for
+        pattern: verb+pronoun+prep
+
+  - id: forget-verb
+    headword: forget
+    pos: verb
+    ipa: /fəˈɡet/
+    cefr: A1
+    tags: [patterns, mind]
+    senses:
+      - definition_en: to be unable to remember a fact, something that happened, or how to do something
+        definition_vi: quên
+        register: neutral
+    collocations:
+      - collocation: forget about
+        pattern: verb+prep
+
+  - id: forgive-verb-pattern
+    headword: forgive
+    pos: verb
+    ipa: /fəˈɡɪv/
+    cefr: B1
+    tags: [patterns, mind]
+    senses:
+      - definition_en: to stop blaming or being angry with someone for something that person has done
+        definition_vi: tha thứ
+        register: neutral
+    collocations:
+      - collocation: forgive somebody for
+        pattern: verb+pronoun+prep
+
+  - id: invite-verb
+    headword: invite
+    pos: verb
+    ipa: /ɪnˈvaɪt/
+    cefr: A1
+    tags: [patterns, communication]
+    senses:
+      - definition_en: to ask or request someone to go to an event
+        definition_vi: mời
+        register: neutral
+    collocations:
+      - collocation: invite somebody to
+        pattern: verb+pronoun+prep
+
+  - id: punish-verb
+    headword: punish
+    pos: verb
+    ipa: /ˈpʌnɪʃ/
+    cefr: B1
+    tags: [patterns, law]
+    senses:
+      - definition_en: to cause someone who has done something wrong or committed a crime to suffer
+        definition_vi: trừng phạt
+        register: formal
+    collocations:
+      - collocation: punish somebody for
+        pattern: verb+pronoun+prep
+
+  - id: share-verb
+    headword: share
+    pos: verb
+    ipa: /ʃeə/
+    cefr: A1
+    tags: [patterns, actions]
+    senses:
+      - definition_en: to have or use something at the same time as someone else
+        definition_vi: chia sẻ
+        register: neutral
+    collocations:
+      - collocation: share something with
+        pattern: verb+noun+prep
+
+  - id: smile-verb
+    headword: smile
+    pos: verb
+    ipa: /smaɪl/
+    cefr: A1
+    tags: [patterns, communication]
+    senses:
+      - definition_en: to make a happy or friendly expression in which the corners of your mouth curve up
+        definition_vi: mỉm cười
+        register: neutral
+    collocations:
+      - collocation: smile at
+        pattern: verb+prep
