@@ -1,0 +1,141 @@
+book: destination-b1
+unit:
+  ordinal: 3
+  code: U03
+  title: Education & Learning
+
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: School & Studying
+  slug: school-and-studying
+
+entries:
+  - id: syllabus-noun
+    headword: syllabus
+    pos: noun
+    ipa: /ˈsɪləbəs/
+    cefr: B1
+    tags: [education, school]
+    senses:
+      - definition_en: a list of the topics, books, etc. that students should study in a particular subject
+        definition_vi: đề cương, giáo trình
+    examples:
+      - text: The history {{syllabus}} covers the 20th century.
+        translation: Đề cương môn lịch sử bao gồm thế kỷ 20.
+    forms:
+      - kind: plural
+        text: syllabuses
+        
+  - id: catch-on-phrasal_verb
+    headword: catch on
+    pos: phrasal_verb
+    cefr: B1
+    tags: [learning, understanding]
+    senses:
+      - definition_en: to understand something, especially after a long time
+        definition_vi: hiểu ra
+    examples:
+      - text: He didn't understand at first, but he quickly {{caught on}}.
+        translation: Lúc đầu anh ấy không hiểu, nhưng đã nhanh chóng hiểu ra.
+    forms:
+      - kind: past
+        text: caught on
+      - kind: past_participle
+        text: caught on
+
+  - id: degree-noun
+    headword: degree
+    pos: noun
+    ipa: /dɪˈɡriː/
+    cefr: B1
+    tags: [education, university]
+    senses:
+      - definition_en: a qualification given for completing a university course
+        definition_vi: bằng cấp (đại học)
+    examples:
+      - text: She has a {{degree}} in physics from Oxford.
+        translation: Cô ấy có bằng vật lý từ Oxford.
+    collocations:
+      - collocation: do a degree
+        pattern: verb+noun
+      - collocation: have a degree
+        pattern: verb+noun
+
+  - id: primary-adjective
+    headword: primary
+    pos: adjective
+    ipa: /ˈpraɪməri/
+    cefr: B1
+    tags: [education, school]
+    senses:
+      - definition_en: connected with the education of children between the ages of about 5 and 11
+        definition_vi: tiểu học
+    examples:
+      - text: My daughter is in her first year of {{primary}} school.
+        translation: Con gái tôi đang học năm đầu tiên ở trường tiểu học.
+    collocations:
+      - collocation: primary school
+        pattern: adj+noun
+
+  - id: term-noun
+    headword: term
+    pos: noun
+    ipa: /tɜːm/
+    cefr: B1
+    tags: [education, time]
+    senses:
+      - definition_en: one of the periods into which a year is divided at school, college, or university
+        definition_vi: học kỳ
+    examples:
+      - text: Exams will be held at the end of the spring {{term}}.
+        translation: Các kỳ thi sẽ được tổ chức vào cuối học kỳ mùa xuân.
+    relations:
+      - relation: synonym
+        text: semester
+
+  - id: revise-verb
+    headword: revise
+    pos: verb
+    ipa: /rɪˈvaɪz/
+    cefr: B1
+    tags: [studying, exams]
+    senses:
+      - definition_en: to study a subject before you take an exam
+        definition_vi: ôn tập
+    examples:
+      - text: I need to {{revise}} for my math test tomorrow.
+        translation: Tôi cần ôn tập cho bài kiểm tra toán vào ngày mai.
+    relations:
+      - relation: synonym
+        text: review
+
+  - id: drop-out-phrasal_verb
+    headword: drop out
+    pos: phrasal_verb
+    cefr: B1
+    tags: [education, school]
+    senses:
+      - definition_en: to leave school, college, etc. without finishing your studies
+        definition_vi: bỏ học
+    examples:
+      - text: He {{dropped out}} of university after only one year.
+        translation: Anh ấy đã bỏ học đại học chỉ sau một năm.
+    forms:
+      - kind: past
+        text: dropped out
+      - kind: past_participle
+        text: dropped out
+
+  - id: uniform-noun
+    headword: uniform
+    pos: noun
+    ipa: /ˈjuːnɪfɔːm/
+    cefr: B1
+    tags: [education, clothing]
+    senses:
+      - definition_en: the special set of clothes worn by all members of an organization or by children at school
+        definition_vi: đồng phục
+    examples:
+      - text: The school {{uniform}} is a blue shirt and grey trousers.
+        translation: Đồng phục trường là áo sơ mi xanh và quần tây xám.

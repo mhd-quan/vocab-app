@@ -1,0 +1,128 @@
+book: destination-b1
+unit:
+  ordinal: 5
+  code: U05
+  title: Daily Routine
+
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: Everyday life
+  slug: everyday-life
+
+entries:
+  - id: habit-noun
+    headword: habit
+    pos: noun
+    ipa: /ˈhæbɪt/
+    cefr: B1
+    tags: [routine]
+    senses:
+      - definition_en: a thing that you do often and almost without thinking, especially something that is hard to stop doing
+        definition_vi: thói quen
+    examples:
+      - text: Biting your nails is a bad {{habit}}.
+        translation: Cắn móng tay là một thói quen xấu.
+    collocations:
+      - collocation: bad habit
+        pattern: adj+noun
+      - collocation: break a habit
+        pattern: verb+noun
+
+  - id: oversleep-verb
+    headword: oversleep
+    pos: verb
+    ipa: /ˌəʊvəˈsliːp/
+    cefr: B1
+    tags: [routine, sleep]
+    senses:
+      - definition_en: to sleep longer than you intended
+        definition_vi: ngủ quên
+    examples:
+      - text: Sorry I'm late, I {{overslept}} this morning.
+        translation: Xin lỗi tôi đến muộn, sáng nay tôi ngủ quên.
+    forms:
+      - kind: past
+        text: overslept
+      - kind: past_participle
+        text: overslept
+
+  - id: chore-noun
+    headword: chore
+    pos: noun
+    ipa: /tʃɔː/
+    cefr: B1
+    tags: [routine, home]
+    senses:
+      - definition_en: a task that you do regularly
+        definition_vi: việc vặt (thường là việc nhà)
+    examples:
+      - text: I spent the whole weekend doing household {{chores}}.
+        translation: Tôi đã dành cả cuối tuần để làm việc nhà.
+    collocations:
+      - collocation: household chores
+        pattern: adj+noun
+      - collocation: do the chores
+        pattern: verb+noun
+    forms:
+      - kind: plural
+        text: chores
+
+  - id: tidy-up-phrasal_verb
+    headword: tidy up
+    pos: phrasal_verb
+    cefr: B1
+    tags: [routine, cleaning]
+    senses:
+      - definition_en: to put things back in their proper places so that everything is neat
+        definition_vi: dọn dẹp
+    examples:
+      - text: Can you {{tidy up}} your room before guests arrive?
+        translation: Con có thể dọn dẹp phòng trước khi khách đến không?
+    relations:
+      - relation: synonym
+        text: clean up
+
+  - id: commute-verb
+    headword: commute
+    pos: verb
+    ipa: /kəˈmjuːt/
+    cefr: B1
+    tags: [routine, transport]
+    senses:
+      - definition_en: to travel regularly by bus, train, car, etc. between your place of work and your home
+        definition_vi: đi làm (bằng phương tiện giao thông)
+    examples:
+      - text: She {{commutes}} to London every day.
+        translation: Cô ấy đi làm đến London mỗi ngày.
+
+  - id: regular-adjective
+    headword: regular
+    pos: adjective
+    ipa: /ˈreɡjələ/
+    cefr: B1
+    tags: [routine, time]
+    senses:
+      - definition_en: happening, doing something, or being done often or steadily
+        definition_vi: đều đặn, thường xuyên
+    examples:
+      - text: You should do some {{regular}} exercise.
+        translation: Bạn nên tập thể dục đều đặn.
+    relations:
+      - relation: antonym
+        text: irregular
+
+  - id: spare-time-noun
+    headword: spare time
+    pos: noun
+    cefr: B1
+    tags: [routine, hobbies]
+    senses:
+      - definition_en: time when you are not working or studying; free time
+        definition_vi: thời gian rảnh rỗi
+    examples:
+      - text: What do you like to do in your {{spare time}}?
+        translation: Bạn thích làm gì vào thời gian rảnh rỗi?
+    relations:
+      - relation: synonym
+        text: free time

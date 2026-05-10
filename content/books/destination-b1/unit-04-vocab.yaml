@@ -1,0 +1,139 @@
+book: destination-b1
+unit:
+  ordinal: 4
+  code: U04
+  title: Work & Jobs
+
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: Earning a living
+  slug: earning-a-living
+
+entries:
+  - id: interview-noun
+    headword: interview
+    pos: noun
+    ipa: /ˈɪntəvjuː/
+    cefr: B1
+    tags: [jobs]
+    senses:
+      - definition_en: a formal meeting at which someone is asked questions to see if they are suitable for a particular job
+        definition_vi: cuộc phỏng vấn
+    examples:
+      - text: I have a job {{interview}} tomorrow.
+        translation: Tôi có một cuộc phỏng vấn xin việc vào ngày mai.
+    collocations:
+      - collocation: job interview
+        pattern: noun+noun
+      - collocation: go for an interview
+        pattern: other
+
+  - id: step-down-phrasal_verb
+    headword: step down
+    pos: phrasal_verb
+    cefr: B1
+    tags: [jobs, management]
+    senses:
+      - definition_en: to leave an important job or position
+        definition_vi: từ chức, nghỉ hưu
+    examples:
+      - text: The CEO decided to {{step down}} after 10 years.
+        translation: Giám đốc điều hành đã quyết định từ chức sau 10 năm.
+    relations:
+      - relation: synonym
+        text: resign
+        
+  - id: employee-noun
+    headword: employee
+    pos: noun
+    ipa: /ɪmˈplɔɪiː/
+    cefr: B1
+    tags: [jobs, people]
+    senses:
+      - definition_en: a person who is paid to work for someone else
+        definition_vi: nhân viên
+    examples:
+      - text: The company has over 500 {{employees}}.
+        translation: Công ty có hơn 500 nhân viên.
+        cloze_hint: e_________
+    forms:
+      - kind: plural
+        text: employees
+    relations:
+      - relation: antonym
+        text: employer
+
+  - id: promotion-noun
+    headword: promotion
+    pos: noun
+    ipa: /prəˈməʊʃn/
+    cefr: B1
+    tags: [jobs, success]
+    senses:
+      - definition_en: a move to a more important job or rank in a company or an organization
+        definition_vi: sự thăng chức
+    examples:
+      - text: She got a {{promotion}} after working hard all year.
+        translation: Cô ấy được thăng chức sau khi làm việc chăm chỉ cả năm.
+    collocations:
+      - collocation: get a promotion
+        pattern: verb+noun
+
+  - id: apply-verb
+    headword: apply
+    pos: verb
+    ipa: /əˈplaɪ/
+    cefr: B1
+    tags: [jobs, process]
+    senses:
+      - definition_en: to make a formal request, usually in writing, for a job, a place at college, university, etc.
+        definition_vi: nộp đơn, ứng tuyển
+    examples:
+      - text: I'm going to {{apply}} for that job I saw online.
+        translation: Tôi sẽ nộp đơn cho công việc tôi thấy trên mạng.
+    collocations:
+      - collocation: apply for a job
+        pattern: other
+    forms:
+      - kind: past
+        text: applied
+      - kind: past_participle
+        text: applied
+
+  - id: salary-noun
+    headword: salary
+    pos: noun
+    ipa: /ˈsæləri/
+    cefr: B1
+    tags: [jobs, money]
+    senses:
+      - definition_en: money that employees receive for doing their job, especially professional employees or people working in an office, usually paid every month
+        definition_vi: tiền lương (tháng/năm)
+    examples:
+      - text: He was offered a starting {{salary}} of $40,000.
+        translation: Anh ấy được đề nghị mức lương khởi điểm là $40,000.
+    relations:
+      - relation: synonym
+        text: wage
+      - relation: confused_with
+        text: wage
+
+  - id: take-on-phrasal_verb
+    headword: take on
+    pos: phrasal_verb
+    cefr: B1
+    tags: [jobs, hiring]
+    senses:
+      - definition_en: to employ someone
+        definition_vi: thuê mướn
+    examples:
+      - text: We are not {{taking on}} any new staff at the moment.
+        translation: Hiện tại chúng tôi không tuyển thêm nhân viên mới.
+    forms:
+      - kind: gerund
+        text: taking on
+      - kind: past
+        text: took on
+      - kind: past_participle
+        text: taken on

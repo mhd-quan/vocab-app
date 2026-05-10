@@ -1,0 +1,144 @@
+book: destination-b1
+unit:
+  ordinal: 2
+  code: U02
+  title: Travel & Transport
+
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: On the move
+  slug: on-the-move
+
+entries:
+  - id: voyage-noun
+    headword: voyage
+    pos: noun
+    ipa: /ˈvɔɪɪdʒ/
+    cefr: B1
+    tags: [travel]
+    senses:
+      - definition_en: a long journey, especially by sea or in space
+        definition_vi: chuyến đi dài (thường bằng đường biển hoặc không gian)
+    examples:
+      - text: The Titanic sank on its maiden {{voyage}}.
+        translation: Tàu Titanic đã chìm trong chuyến đi đầu tiên của nó.
+    relations:
+      - relation: synonym
+        text: journey
+      - relation: confused_with
+        text: travel
+
+  - id: catch-up-with-phrasal_verb
+    headword: catch up with
+    pos: phrasal_verb
+    cefr: B1
+    tags: [movement]
+    senses:
+      - definition_en: to reach the same point or level as someone or something
+        definition_vi: bắt kịp
+    examples:
+      - text: He ran hard to {{catch up with}} the others.
+        translation: Anh ấy đã chạy rất nhanh để bắt kịp những người khác.
+
+  - id: platform-noun
+    headword: platform
+    pos: noun
+    ipa: /ˈplætfɔːm/
+    cefr: B1
+    tags: [transport, train]
+    senses:
+      - definition_en: the area in a railway station where you get on and off the train
+        definition_vi: sân ga
+    examples:
+      - text: The train to London will depart from {{platform}} 4.
+        translation: Chuyến tàu đi London sẽ khởi hành từ sân ga số 4.
+    collocations:
+      - collocation: arrive at the platform
+        pattern: other
+
+  - id: passenger-noun
+    headword: passenger
+    pos: noun
+    ipa: /ˈpæsɪndʒə/
+    cefr: B1
+    tags: [people, transport]
+    senses:
+      - definition_en: a person who is travelling in a vehicle but is not driving it, flying it, or working on it
+        definition_vi: hành khách
+    examples:
+      - text: All {{passengers}} must fasten their seatbelts.
+        translation: Tất cả hành khách phải thắt dây an toàn.
+        cloze_hint: p_________
+    forms:
+      - kind: plural
+        text: passengers
+
+  - id: depart-verb
+    headword: depart
+    pos: verb
+    ipa: /dɪˈpɑːt/
+    cefr: B1
+    tags: [transport]
+    senses:
+      - definition_en: to leave a place, especially to start a journey
+        definition_vi: khởi hành
+        register: formal
+    examples:
+      - text: Flights for Rome {{depart}} from Terminal 3.
+        translation: Các chuyến bay đi Rome khởi hành từ Nhà ga số 3.
+    relations:
+      - relation: synonym
+        text: leave
+      - relation: antonym
+        text: arrive
+
+  - id: timetable-noun
+    headword: timetable
+    pos: noun
+    ipa: /ˈtaɪmteɪbl/
+    cefr: B1
+    tags: [transport, planning]
+    senses:
+      - definition_en: a list of the times when vehicles such as buses or trains leave and arrive
+        definition_vi: thời gian biểu, lịch trình
+    examples:
+      - text: Have you checked the train {{timetable}}?
+        translation: Bạn đã kiểm tra lịch trình tàu chưa?
+    relations:
+      - relation: synonym
+        text: schedule
+
+  - id: abroad-adverb
+    headword: abroad
+    pos: adverb
+    ipa: /əˈbrɔːd/
+    cefr: B1
+    tags: [travel]
+    senses:
+      - definition_en: in or to a foreign country or countries
+        definition_vi: ở/đi nước ngoài
+    examples:
+      - text: We always go {{abroad}} for our holidays.
+        translation: Chúng tôi luôn đi nước ngoài vào kỳ nghỉ.
+    collocations:
+      - collocation: go abroad
+        pattern: other
+      - collocation: travel abroad
+        pattern: other
+
+  - id: border-noun
+    headword: border
+    pos: noun
+    ipa: /ˈbɔːdə/
+    cefr: B1
+    tags: [travel, places]
+    senses:
+      - definition_en: the official line that separates two countries or regions
+        definition_vi: biên giới
+    examples:
+      - text: They crossed the {{border}} illegally.
+        translation: Họ đã vượt biên trái phép.
+    collocations:
+      - collocation: cross the border
+        pattern: verb+noun
