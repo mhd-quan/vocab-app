@@ -60,6 +60,7 @@ export function StudentProfilePicker() {
                     <div className="flex items-center justify-between gap-3">
                       <Avatar
                         name={student.displayName ?? student.name}
+                        avatarSeed={student.avatarSeed}
                         color={student.color}
                         size="lg"
                       />

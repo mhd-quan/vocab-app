@@ -87,6 +87,12 @@ describe("IPC procedure registry", () => {
     it("accepts valid inputs", () => {
       const proc = findProcedure("students.create");
       expect(() => proc.inputSchema.parse({ name: "Alice", color: "#1a2b3c" })).not.toThrow();
+      expect(() =>
+        proc.inputSchema.parse({
+          name: "Alice",
+          avatarSeed: "image:data:image/webp;base64,abc",
+        }),
+      ).not.toThrow();
     });
   });
 

@@ -36,4 +36,21 @@ describe("Avatar", () => {
     // No inline color in the surface fallback path.
     expect(span.getAttribute("style")).toBeNull();
   });
+
+  it("renders emoji avatar seeds ahead of initials", () => {
+    render(<Avatar name="Alice Cooper" avatarSeed="emoji:🔥" color="#1a2b3c" />);
+    expect(screen.getByText("🔥")).toBeInTheDocument();
+    expect(screen.queryByText("AC")).toBeNull();
+  });
+
+  it("renders image avatar seeds without applying an inline background color", () => {
+    const dataUrl = "data:image/png;base64,abc";
+    const { container } = render(
+      <Avatar name="Alice Cooper" avatarSeed={`image:${dataUrl}`} color="#1a2b3c" />,
+    );
+
+    const img = container.querySelector("img");
+    expect(img).toHaveAttribute("src", dataUrl);
+    expect(img?.parentElement).not.toHaveStyle({ backgroundColor: "#1a2b3c" });
+  });
 });

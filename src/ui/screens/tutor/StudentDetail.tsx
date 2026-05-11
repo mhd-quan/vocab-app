@@ -131,6 +131,7 @@ export function TutorStudentDetail() {
           <BentoCard className="flex items-center gap-4 p-6" tone="focus">
             <Avatar
               name={student?.displayName ?? student?.name ?? "?"}
+              avatarSeed={student?.avatarSeed ?? null}
               color={student?.color ?? null}
               size="lg"
             />

@@ -96,6 +96,7 @@ function StudentTable({
       id: number;
       name: string;
       displayName: string | null;
+      avatarSeed?: string | null;
       color: string | null;
     };
     totalSeen: number;
@@ -135,6 +136,7 @@ function StudentRow({
       id: number;
       name: string;
       displayName: string | null;
+      avatarSeed?: string | null;
       color: string | null;
     };
     totalSeen: number;
@@ -153,7 +155,12 @@ function StudentRow({
           params={{ studentId: String(row.student.id) }}
           className="flex items-center gap-3 hover:text-accent"
         >
-          <Avatar name={display} color={row.student.color} size="sm" />
+          <Avatar
+            name={display}
+            avatarSeed={row.student.avatarSeed ?? null}
+            color={row.student.color}
+            size="sm"
+          />
           <span className="font-medium text-app">{display}</span>
         </Link>
       </td>

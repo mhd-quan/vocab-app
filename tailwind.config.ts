@@ -26,6 +26,11 @@ const config: Config = {
         epic: "rgb(var(--color-epic) / <alpha-value>)",
         mastery: "rgb(var(--color-mastery) / <alpha-value>)",
         focus: "rgb(var(--color-focus) / <alpha-value>)",
+        sky: "rgb(var(--color-sky) / <alpha-value>)",
+        coral: "rgb(var(--color-coral) / <alpha-value>)",
+        lime: "rgb(var(--color-lime) / <alpha-value>)",
+        pink: "rgb(var(--color-pink) / <alpha-value>)",
+        ember: "rgb(var(--color-ember) / <alpha-value>)",
       },
       backgroundColor: {
         app: "rgb(var(--color-surface-0) / <alpha-value>)",

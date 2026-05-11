@@ -12,7 +12,12 @@ export type BadgeTone =
   | "rare"
   | "epic"
   | "mastery"
-  | "focus";
+  | "focus"
+  | "sky"
+  | "coral"
+  | "lime"
+  | "pink"
+  | "ember";
 
 export interface BadgeProps {
   tone?: BadgeTone;
@@ -33,6 +38,11 @@ const TONES: Record<BadgeTone, string> = {
   epic: "border-epic/40 bg-epic/10 text-epic",
   mastery: "border-mastery/40 bg-mastery/10 text-mastery",
   focus: "border-focus/40 bg-focus/10 text-focus",
+  sky: "border-sky/40 bg-sky/10 text-sky",
+  coral: "border-coral/40 bg-coral/10 text-coral",
+  lime: "border-lime/40 bg-lime/10 text-lime",
+  pink: "border-pink/40 bg-pink/10 text-pink",
+  ember: "border-ember/40 bg-ember/10 text-ember",
 };
 
 export function Badge({ tone = "neutral", children, className, uppercase }: BadgeProps) {
