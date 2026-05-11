@@ -30,7 +30,7 @@ export function StudentLayout() {
             className="text-muted hover:text-app"
             aria-label="Switch to tutor"
           >
-            <LockIcon />
+            <LockIcon className="h-[22px] w-[22px]" />
             <span>Tutor mode</span>
           </Button>
         </div>

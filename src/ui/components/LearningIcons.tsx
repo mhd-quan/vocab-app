@@ -23,13 +23,14 @@ export function SeenIcon({ className }: IconProps) {
   return (
     <Svg className={className}>
       <path
-        d="M5 6.5h9.5a3.5 3.5 0 0 1 0 7H5a3 3 0 0 1 0-6h9.5"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="2"
+        d="M5.2 5.2h9.8a4.6 4.6 0 0 1 0 9.2H5.4a2.6 2.6 0 0 0 0 5.2h10.9a1.1 1.1 0 1 0 0-2.2H5.4a.4.4 0 0 1 0-.8H15a6.8 6.8 0 0 0 0-13.6H5.2a1.1 1.1 0 1 0 0 2.2Z"
+        fill="currentColor"
       />
-      <path d="M8 17.5h8" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
+      <path
+        d="M8.4 7.4h5.5a1 1 0 1 1 0 2H8.4a1 1 0 1 1 0-2Zm0 3.7h3.8a1 1 0 1 1 0 2H8.4a1 1 0 1 1 0-2Z"
+        fill="rgb(var(--color-surface-0))"
+        opacity="0.75"
+      />
     </Svg>
   );
 }
@@ -37,13 +38,9 @@ export function SeenIcon({ className }: IconProps) {
 export function DueIcon({ className }: IconProps) {
   return (
     <Svg className={className}>
-      <circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" strokeWidth="2" />
       <path
-        d="M12 8v4l3 2"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="2"
+        d="M12 2.8a9.2 9.2 0 1 0 9.2 9.2A9.2 9.2 0 0 0 12 2.8Zm1 4.7v4l3 1.9a1.1 1.1 0 0 1-1.2 1.8l-3.5-2.3a1.1 1.1 0 0 1-.5-.9V7.5a1.1 1.1 0 1 1 2.2 0Z"
+        fill="currentColor"
       />
     </Svg>
   );
@@ -52,14 +49,19 @@ export function DueIcon({ className }: IconProps) {
 export function AccuracyIcon({ className }: IconProps) {
   return (
     <Svg className={className}>
-      <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2" />
-      <circle cx="12" cy="12" r="3.2" fill="currentColor" opacity="0.22" />
       <path
-        d="m14.5 9.5-3.2 4-1.8-1.7"
+        d="M12 2.8a9.2 9.2 0 1 0 9.2 9.2A9.2 9.2 0 0 0 12 2.8Zm0 3.1a6.1 6.1 0 1 1-6.1 6.1A6.1 6.1 0 0 1 12 5.9Z"
+        fill="currentColor"
+        opacity="0.95"
+      />
+      <path d="M12 8.9a3.1 3.1 0 1 0 3.1 3.1A3.1 3.1 0 0 0 12 8.9Z" fill="currentColor" />
+      <path
+        d="m14.8 9.6-3.4 4.3-2-1.9"
         fill="none"
-        stroke="currentColor"
+        stroke="rgb(var(--color-surface-0))"
         strokeLinecap="round"
-        strokeWidth="2"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
       />
     </Svg>
   );
@@ -69,13 +71,14 @@ export function LessonIcon({ className }: IconProps) {
   return (
     <Svg className={className}>
       <path
-        d="M5 5.5h8.5A3.5 3.5 0 0 1 17 9v10H8.5A3.5 3.5 0 0 1 5 15.5z"
-        fill="none"
-        stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="2"
+        d="M5.5 3.3h8.2a4.8 4.8 0 0 1 4.8 4.8v12.6H9.2a4.8 4.8 0 0 1-4.8-4.8V4.4c0-.6.5-1.1 1.1-1.1Z"
+        fill="currentColor"
       />
-      <path d="M8 9h5M8 12h4" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
+      <path
+        d="M8.5 8h6.1a1 1 0 1 1 0 2H8.5a1 1 0 0 1 0-2Zm0 3.7h4.7a1 1 0 1 1 0 2H8.5a1 1 0 1 1 0-2Z"
+        fill="rgb(var(--color-surface-0))"
+        opacity="0.78"
+      />
     </Svg>
   );
 }

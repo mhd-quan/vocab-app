@@ -1,5 +1,5 @@
 /**
- * CLI: import vocab YAML files into the local SQLite DB.
+ * CLI: import authored YAML files into the local SQLite DB.
  *
  *   npm run import                       # imports all YAML in content/books/
  *   npm run import -- ./content/books/destination-b1
@@ -56,7 +56,8 @@ function printUsage(): void {
   console.log(`
 Usage: npm run import [-- <path>...] [--dry-run] [--watch] [--force]
 
-  <path>      File or directory. Directories are scanned for *-vocab.yaml / *-vocab.yml.
+  <path>      File or directory. Directories are scanned for *-vocab.yaml, *-grammar.yaml,
+              and their .yml variants.
               Defaults to content/books.
 
 Flags:
@@ -86,14 +87,14 @@ async function expandPaths(args: string[]): Promise<string[]> {
     if (stat?.isDirectory()) {
       const files = await fs.readdir(absoluteOrPattern, { recursive: true });
       for (const file of files) {
-        if (typeof file === "string" && isVocabYamlFile(file)) {
+        if (typeof file === "string" && isContentYamlFile(file)) {
           out.add(path.join(absoluteOrPattern, file));
         }
       }
       continue;
     }
     // Treat as relative pattern or just file
-    if (isVocabYamlFile(target)) {
+    if (isContentYamlFile(target)) {
       out.add(path.resolve(process.cwd(), target));
     }
   }
@@ -106,9 +107,14 @@ function isYamlFile(filePath: string): boolean {
   return lower.endsWith(".yaml") || lower.endsWith(".yml");
 }
 
-function isVocabYamlFile(filePath: string): boolean {
+function isContentYamlFile(filePath: string): boolean {
   const lower = filePath.toLowerCase();
-  return lower.endsWith("-vocab.yaml") || lower.endsWith("-vocab.yml");
+  return (
+    lower.endsWith("-vocab.yaml") ||
+    lower.endsWith("-vocab.yml") ||
+    lower.endsWith("-grammar.yaml") ||
+    lower.endsWith("-grammar.yml")
+  );
 }
 
 async function safeStat(p: string) {
@@ -185,7 +191,7 @@ async function main(): Promise<void> {
   try {
     const files = await expandPaths(args.positionals);
     if (files.length === 0) {
-      console.log(`No vocab YAML files matched. Default pattern: ${DEFAULT_GLOB}`);
+      console.log(`No content YAML files matched. Default pattern: ${DEFAULT_GLOB}`);
     }
 
     const results = await runOnce(usecase, files, args);

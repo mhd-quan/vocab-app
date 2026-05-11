@@ -3,8 +3,10 @@ import path from "node:path";
 import yaml from "js-yaml";
 import { ZodError } from "zod";
 import type { Repositories } from "../../../electron/db/repositories";
+import { type ParsedContentFile, parseContentFile } from "./content.parse";
+import { GrammarParseError } from "./grammar.parse";
 import { hashContent, sha256Hex } from "./hash";
-import { type ParsedVocabFile, VocabParseError, parseVocabFile } from "./vocab.parse";
+import { type ParsedVocabFile, VocabParseError } from "./vocab.parse";
 
 export interface ImportOptions {
   /** Validate + show a plan; do not write to the DB. */
@@ -45,11 +47,11 @@ export class ImportVocabUseCase {
   constructor(private readonly deps: ImportVocabUseCaseDeps) {}
 
   /**
-   * Import one vocab YAML file. The whole operation is structured around an
+   * Import one authored YAML file. The whole operation is structured around an
    * `import_runs` row so re-running on an unchanged file is a no-op
    * (skipped_unchanged) and partial failures are recoverable.
    *
-   * Inside a single file we run book/unit/lesson upserts plus all entry
+   * Inside a single file we run book/unit/lesson upserts plus all content
    * upserts in one transaction — either everything from the file lands or
    * nothing does. Other files in a batch import are independent.
    */
@@ -96,18 +98,18 @@ export class ImportVocabUseCase {
       return baseResult;
     }
 
-    let parsed: ParsedVocabFile;
+    let parsed: ParsedContentFile;
     try {
-      parsed = parseVocabFile(yamlData);
+      parsed = parseContentFile(yamlData);
     } catch (err) {
       baseResult.errors.push(formatParseError(err));
       baseResult.durationMs = Date.now() - start;
       return baseResult;
     }
 
-    baseResult.bookCode = parsed.book;
-    baseResult.unitCode = parsed.unit.code;
-    baseResult.lessonSlug = parsed.lesson.slug;
+    baseResult.bookCode = parsed.file.book;
+    baseResult.unitCode = parsed.file.unit.code;
+    baseResult.lessonSlug = parsed.file.lesson.slug;
 
     if (opts.dryRun) {
       // Plan-only: classify each entry as inserted/updated/skipped against
@@ -160,14 +162,15 @@ export class ImportVocabUseCase {
     return baseResult;
   }
 
-  private applyParsedFile(parsed: ParsedVocabFile, runId: number): ImportItemResult[] {
+  private applyParsedFile(parsed: ParsedContentFile, runId: number): ImportItemResult[] {
     const items: ImportItemResult[] = [];
     const { repos } = this.deps;
+    const file = parsed.file;
 
-    const existingBook = repos.curriculum.getBookByCode(parsed.book);
+    const existingBook = repos.curriculum.getBookByCode(file.book);
     const book = repos.curriculum.upsertBook({
-      code: parsed.book,
-      title: parsed.bookTitle ?? existingBook?.title ?? deriveTitle(parsed.book),
+      code: file.book,
+      title: file.bookTitle ?? existingBook?.title ?? deriveTitle(file.book),
     });
     repos.imports.logItem({
       runId,
@@ -179,10 +182,10 @@ export class ImportVocabUseCase {
 
     const unit = repos.curriculum.upsertUnit({
       bookId: book.id,
-      ordinal: parsed.unit.ordinal,
-      code: parsed.unit.code,
-      title: parsed.unit.title,
-      summaryMd: parsed.unit.summary_md ?? null,
+      ordinal: file.unit.ordinal,
+      code: file.unit.code,
+      title: file.unit.title,
+      summaryMd: file.unit.summary_md ?? null,
     });
     repos.imports.logItem({
       runId,
@@ -194,10 +197,10 @@ export class ImportVocabUseCase {
 
     const lesson = repos.curriculum.upsertLesson({
       unitId: unit.id,
-      ordinal: parsed.lesson.ordinal,
-      kind: parsed.lesson.kind,
-      title: parsed.lesson.title,
-      slug: parsed.lesson.slug,
+      ordinal: file.lesson.ordinal,
+      kind: file.lesson.kind,
+      title: file.lesson.title,
+      slug: file.lesson.slug,
     });
     repos.imports.logItem({
       runId,
@@ -207,37 +210,74 @@ export class ImportVocabUseCase {
       action: "updated",
     });
 
-    for (const entry of parsed.entries) {
-      try {
-        const upsertInput = entry.toUpsertInput(lesson.id);
-        const result = repos.vocab.upsertEntryWithChildren(upsertInput);
-        items.push({ sourceId: entry.sourceId, action: result.action });
-        repos.imports.logItem({
-          runId,
-          sourceId: entry.sourceId,
-          targetTable: "vocab_entries",
-          targetId: result.entryId,
-          action: result.action,
-          hash: entry.contentHash,
-        });
-      } catch (err) {
-        const message = formatError(err);
-        items.push({ sourceId: entry.sourceId, action: "failed", error: message });
-        repos.imports.logItem({
-          runId,
-          sourceId: entry.sourceId,
-          targetTable: "vocab_entries",
-          action: "failed",
-          hash: entry.contentHash,
-          error: message,
-        });
+    if (parsed.kind === "vocabulary") {
+      for (const entry of parsed.file.entries) {
+        try {
+          const upsertInput = entry.toUpsertInput(lesson.id);
+          const result = repos.vocab.upsertEntryWithChildren(upsertInput);
+          items.push({ sourceId: entry.sourceId, action: result.action });
+          repos.imports.logItem({
+            runId,
+            sourceId: entry.sourceId,
+            targetTable: "vocab_entries",
+            targetId: result.entryId,
+            action: result.action,
+            hash: entry.contentHash,
+          });
+        } catch (err) {
+          const message = formatError(err);
+          items.push({ sourceId: entry.sourceId, action: "failed", error: message });
+          repos.imports.logItem({
+            runId,
+            sourceId: entry.sourceId,
+            targetTable: "vocab_entries",
+            action: "failed",
+            hash: entry.contentHash,
+            error: message,
+          });
+        }
+      }
+    } else {
+      for (const topic of parsed.file.topics) {
+        try {
+          const upsertInput = topic.toUpsertInput(lesson.id);
+          const result = repos.grammar.upsertTopic(upsertInput);
+          items.push({ sourceId: topic.sourceId, action: result.action });
+          repos.imports.logItem({
+            runId,
+            sourceId: topic.sourceId,
+            targetTable: "grammar_topics",
+            targetId: result.topicId,
+            action: result.action,
+            hash: topic.contentHash,
+          });
+        } catch (err) {
+          const message = formatError(err);
+          items.push({ sourceId: topic.sourceId, action: "failed", error: message });
+          repos.imports.logItem({
+            runId,
+            sourceId: topic.sourceId,
+            targetTable: "grammar_topics",
+            action: "failed",
+            hash: topic.contentHash,
+            error: message,
+          });
+        }
       }
     }
 
     return items;
   }
 
-  private dryRunPlan(parsed: ParsedVocabFile): {
+  private dryRunPlan(parsed: ParsedContentFile): {
+    items: ImportItemResult[];
+    stats: ImportFileResult["stats"];
+  } {
+    if (parsed.kind === "grammar") return this.dryRunGrammarPlan(parsed);
+    return this.dryRunVocabPlan(parsed.file);
+  }
+
+  private dryRunVocabPlan(parsed: ParsedVocabFile): {
     items: ImportItemResult[];
     stats: ImportFileResult["stats"];
   } {
@@ -292,6 +332,59 @@ export class ImportVocabUseCase {
 
     return { items, stats };
   }
+
+  private dryRunGrammarPlan(parsed: Extract<ParsedContentFile, { kind: "grammar" }>): {
+    items: ImportItemResult[];
+    stats: ImportFileResult["stats"];
+  } {
+    const stats = { inserted: 0, updated: 0, skipped: 0, failed: 0 };
+    const items: ImportItemResult[] = [];
+    const { repos } = this.deps;
+    const file = parsed.file;
+
+    const book = repos.curriculum.getBookByCode(file.book);
+    if (!book) {
+      for (const topic of file.topics) {
+        items.push({ sourceId: topic.sourceId, action: "inserted" });
+        stats.inserted += 1;
+      }
+      return { items, stats };
+    }
+    const unit = repos.curriculum.listUnitsByBook(book.id).find((u) => u.code === file.unit.code);
+    const lesson = unit
+      ? repos.curriculum.listLessonsByUnit(unit.id).find((l) => l.slug === file.lesson.slug)
+      : undefined;
+
+    if (!lesson) {
+      for (const topic of file.topics) {
+        items.push({ sourceId: topic.sourceId, action: "inserted" });
+        stats.inserted += 1;
+      }
+      return { items, stats };
+    }
+
+    const existingBySource = new Map<string, string | null>(
+      repos.grammar
+        .listIdsByLesson(lesson.id)
+        .map((row) => [row.sourceId ?? `__noid_${row.id}`, row.contentHash]),
+    );
+
+    for (const topic of file.topics) {
+      const previousHash = existingBySource.get(topic.sourceId);
+      if (previousHash === undefined) {
+        items.push({ sourceId: topic.sourceId, action: "inserted" });
+        stats.inserted += 1;
+      } else if (previousHash === topic.contentHash) {
+        items.push({ sourceId: topic.sourceId, action: "skipped" });
+        stats.skipped += 1;
+      } else {
+        items.push({ sourceId: topic.sourceId, action: "updated" });
+        stats.updated += 1;
+      }
+    }
+
+    return { items, stats };
+  }
 }
 
 function formatError(err: unknown): string {
@@ -301,6 +394,9 @@ function formatError(err: unknown): string {
 
 function formatParseError(err: unknown): { sourceId?: string; message: string } {
   if (err instanceof VocabParseError) {
+    return { sourceId: err.sourceId, message: err.message };
+  }
+  if (err instanceof GrammarParseError) {
     return { sourceId: err.sourceId, message: err.message };
   }
   if (err instanceof ZodError) {

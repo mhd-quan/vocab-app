@@ -32,7 +32,7 @@ export function TutorLayout() {
           <div className="flex flex-col gap-1">
             <span className="text-xs font-semibold uppercase text-muted">Tutor</span>
             <span className="text-lg font-semibold">Vocab App</span>
-            <span className="font-mono text-[11px] text-muted-2">v0.3.1</span>
+            <span className="font-mono text-[11px] text-muted-2">v0.3.2</span>
           </div>
         }
         items={ITEMS}
@@ -44,7 +44,7 @@ export function TutorLayout() {
               className="w-full justify-start text-muted hover:text-app"
               onClick={switchToStudent}
             >
-              <StudentModeIcon />
+              <StudentModeIcon className="h-[22px] w-[22px]" />
               <span>Student practice</span>
             </Button>
             <Button
@@ -53,7 +53,7 @@ export function TutorLayout() {
               className="w-full justify-start text-muted hover:text-app"
               onClick={lock}
             >
-              <LockIcon />
+              <LockIcon className="h-[22px] w-[22px]" />
               <span>Lock</span>
             </Button>
           </div>

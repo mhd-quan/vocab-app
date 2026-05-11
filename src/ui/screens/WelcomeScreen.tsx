@@ -13,8 +13,8 @@ export function WelcomeScreen() {
       <div className="grid w-full max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
         <Button size="lg" onClick={selectTutor} className="h-24 flex-col items-start px-6 text-lg">
           <span className="flex items-center gap-3">
-            <span className="text-xl">
-              <TutorModeIcon />
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-accent-fg/15 text-accent-fg shadow-[0_10px_30px_rgb(0_0_0/0.12)]">
+              <TutorModeIcon className="h-7 w-7" />
             </span>
             <span>Tutor</span>
           </span>
@@ -27,8 +27,8 @@ export function WelcomeScreen() {
           className="h-24 flex-col items-start px-6 text-lg"
         >
           <span className="flex items-center gap-3">
-            <span className="text-xl text-muted">
-              <StudentModeIcon />
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-surface-2 text-app shadow-card">
+              <StudentModeIcon className="h-7 w-7" />
             </span>
             <span>Student</span>
           </span>

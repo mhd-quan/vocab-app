@@ -3,6 +3,7 @@ import type { ImportFileResult } from "../src/application/import";
 import type { LessonKind, PracticeMode } from "../src/data/schema";
 import type {
   Book,
+  GrammarTopic,
   ImportItem,
   ImportRun,
   ItemProgress,
@@ -104,7 +105,7 @@ interface UpdateStudentPatch {
 const api = {
   app: {
     name: "vocab-app",
-    version: "0.3.1",
+    version: "0.3.2",
     platform: process.platform,
   },
 
@@ -148,6 +149,13 @@ const api = {
       invoke<VocabEntryFull[]>("vocab.listFullByLesson", input),
     countByLesson: (input: { lessonId: number }) => invoke<number>("vocab.countByLesson", input),
     getById: (input: { id: number }) => invoke<VocabEntryFull | null>("vocab.getById", input),
+  },
+
+  grammar: {
+    listByLesson: (input: { lessonId: number }) =>
+      invoke<GrammarTopic[]>("grammar.listByLesson", input),
+    countByLesson: (input: { lessonId: number }) => invoke<number>("grammar.countByLesson", input),
+    getById: (input: { id: number }) => invoke<GrammarTopic | null>("grammar.getById", input),
   },
 
   students: {

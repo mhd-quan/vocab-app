@@ -3,10 +3,9 @@ import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqli
 import { lessons } from "./curriculum";
 
 /**
- * Stub for the first grammar pass. Patterns + examples tables land with
- * dedicated grammar import/browse work.
- * Schema is intentionally minimal here so we don't lock ourselves into
- * choices before designing the grammar editor in v0.0.2.
+ * Grammar topic rows. Fine-grained teaching artifacts such as patterns,
+ * examples, mistakes, and quick checks currently live in `metadata` so the
+ * authoring surface can evolve without a migration for every prompt type.
  */
 export const grammarTopics = sqliteTable(
   "grammar_topics",
