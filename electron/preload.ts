@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
+import type { ImportFileResult } from "../src/application/import";
 import type { LessonKind, PracticeMode } from "../src/data/schema";
 import type {
   Book,
@@ -103,14 +104,16 @@ interface UpdateStudentPatch {
 const api = {
   app: {
     name: "vocab-app",
-    version: "0.0.1",
+    version: "0.2.0",
     platform: process.platform,
   },
 
   meta: {
     ping: () => invoke<"pong">("meta.ping"),
     appInfo: () =>
-      invoke<{ name: string; version: string; schemaTablesExpected: number }>("meta.appInfo"),
+      invoke<{ name: string; version: string; schemaTablesExpected: number; dbPath: string }>(
+        "meta.appInfo",
+      ),
   },
 
   auth: {
@@ -134,6 +137,8 @@ const api = {
       invoke<Lesson[]>("curriculum.listLessonsByUnit", input),
     getLessonById: (input: { id: number }) =>
       invoke<Lesson | null>("curriculum.getLessonById", input),
+    updateBookTitle: (input: { id: number; title: string }) =>
+      invoke<void>("curriculum.updateBookTitle", input),
   },
 
   vocab: {
@@ -166,6 +171,10 @@ const api = {
   imports: {
     listRuns: (input?: { limit?: number }) => invoke<ImportRun[]>("imports.listRuns", input ?? {}),
     listItems: (input: { runId: number }) => invoke<ImportItem[]>("imports.listItems", input),
+    uploadFile: (input: { fileName: string; content: string }) =>
+      invoke<ImportFileResult>("imports.uploadFile", input),
+    openImportDialog: () =>
+      invoke<{ canceled: boolean; results: ImportFileResult[] }>("imports.openImportDialog"),
   },
 
   progress: {

@@ -16,6 +16,7 @@ function writeYaml(dir: string, name: string, body: string): string {
 
 const FILE_V1 = `
 book: destination-b1
+book_title: Destination B1
 unit: { ordinal: 1, code: U01, title: People & Relationships }
 lesson:
   ordinal: 1
@@ -43,6 +44,7 @@ entries:
 
 const FILE_V2_MODIFIED = `
 book: destination-b1
+book_title: Destination B1
 unit: { ordinal: 1, code: U01, title: People & Relationships }
 lesson:
   ordinal: 1
@@ -83,6 +85,22 @@ entries:
     pos: not-a-real-pos
 `;
 
+const FILE_WITHOUT_BOOK_TITLE = `
+book: destination-b1
+unit: { ordinal: 1, code: U01, title: People & Relationships }
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: Family
+  slug: family
+entries:
+  - id: relative-noun
+    headword: relative
+    pos: noun
+    senses:
+      - definition_en: a member of your family
+`;
+
 describe("ImportVocabUseCase", () => {
   let db: AppDatabase;
   let repos: Repositories;
@@ -112,6 +130,7 @@ describe("ImportVocabUseCase", () => {
 
     const book = repos.curriculum.getBookByCode("destination-b1");
     if (!book) throw new Error("book not found");
+    expect(book.title).toBe("Destination B1");
     const units = repos.curriculum.listUnitsByBook(book.id);
     expect(units).toHaveLength(1);
     const lessons = repos.curriculum.listLessonsByUnit(first(units).id);
@@ -253,5 +272,17 @@ describe("ImportVocabUseCase", () => {
       }
     ).n;
     expect(count).toBe(2);
+  });
+
+  it("preserves UI-edited book titles when YAML omits book_title", async () => {
+    const file = writeYaml(tmpDir, "u01.yaml", FILE_WITHOUT_BOOK_TITLE);
+    await usecase.importFile(file);
+    const book = repos.curriculum.getBookByCode("destination-b1");
+    if (!book) throw new Error("book not found");
+
+    repos.curriculum.updateBookTitle(book.id, "Custom Title");
+    await usecase.importFile(file, { force: true });
+
+    expect(repos.curriculum.getBookByCode("destination-b1")?.title).toBe("Custom Title");
   });
 });

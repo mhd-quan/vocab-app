@@ -77,3 +77,17 @@ export const StudentModeIcon = () => (
     <path d="M14 4v3" {...stroke} />
   </Svg>
 );
+
+export const TutorModeIcon = () => (
+  <Svg>
+    <path d="M3 3.5h10v7H3z" {...stroke} />
+    <path d="M5 13h6M8 10.5V13" {...stroke} />
+    <path d="M5.5 6h5M5.5 8h3" {...stroke} />
+  </Svg>
+);
+
+export const EditIcon = () => (
+  <Svg>
+    <path d="M11.5 2.5a1.5 1.5 0 0 1 2 2l-9 9-3.5 1 1-3.5 9-9z" {...stroke} />
+  </Svg>
+);

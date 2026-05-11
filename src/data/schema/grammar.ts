@@ -3,7 +3,8 @@ import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqli
 import { lessons } from "./curriculum";
 
 /**
- * Stub for v0.0.1. Patterns + examples tables land in PR for v0.0.2.
+ * Stub for the first grammar pass. Patterns + examples tables land with
+ * dedicated grammar import/browse work.
  * Schema is intentionally minimal here so we don't lock ourselves into
  * choices before designing the grammar editor in v0.0.2.
  */

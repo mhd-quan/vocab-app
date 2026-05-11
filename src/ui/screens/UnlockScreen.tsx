@@ -1,3 +1,4 @@
+import { cn } from "@/lib/cn";
 import { useAppMode } from "@/providers/AppModeProvider";
 import { Button } from "@/ui/components/Button";
 import { PinInput } from "@/ui/components/PinInput";
@@ -178,9 +179,17 @@ function SetupPinForm() {
 }
 
 function FullScreen({ children }: { children: React.ReactNode }) {
+  const isMac = window.api.app.platform === "darwin";
   return (
-    <div className="flex h-screen w-screen items-center justify-center px-6">
-      <div className="flex w-full max-w-md flex-col items-center gap-6">{children}</div>
+    <div
+      className={cn(
+        "flex h-screen w-screen items-center justify-center px-6 [-webkit-app-region:drag]",
+        isMac ? "pt-10" : "",
+      )}
+    >
+      <div className="flex w-full max-w-md flex-col items-center gap-6 [-webkit-app-region:no-drag]">
+        {children}
+      </div>
     </div>
   );
 }

@@ -46,4 +46,11 @@ export const curriculumProcedures = [
     input: idInput,
     handler: ({ id }, ctx) => ctx.repos.curriculum.getLessonById(id),
   }),
+  defineProcedure({
+    name: "curriculum.updateBookTitle",
+    input: z.object({ id: z.number().int().positive(), title: z.string().trim().min(1) }),
+    handler: ({ id, title }, ctx) => {
+      ctx.repos.curriculum.updateBookTitle(id, title);
+    },
+  }),
 ];

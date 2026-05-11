@@ -57,6 +57,15 @@ describe("parseVocabFile", () => {
     expect(parsed.entries[0]?.sourceId).toBe("custom-slug");
   });
 
+  it("accepts optional book_title metadata", () => {
+    const parsed = parseVocabFile({
+      ...baseFile,
+      book_title: "Destination B1",
+      entries: [{ headword: "x", pos: "noun" }],
+    });
+    expect(parsed.bookTitle).toBe("Destination B1");
+  });
+
   it("rejects duplicate sourceIds within a file", () => {
     expect(() =>
       parseVocabFile({

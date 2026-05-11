@@ -8,9 +8,9 @@ function ModeProbe() {
   return <span data-testid="mode">{mode}</span>;
 }
 
-function renderWithProvider() {
+function renderWithProvider(options?: { initialMode?: "locked"; initialHasPin?: boolean }) {
   return render(
-    <AppModeProvider>
+    <AppModeProvider initialMode={options?.initialMode} initialHasPin={options?.initialHasPin}>
       <UnlockScreen />
       <ModeProbe />
     </AppModeProvider>,
@@ -68,7 +68,7 @@ describe("UnlockScreen", () => {
 
   it("verify form: 'Continue to student practice' switches mode to student", async () => {
     vi.spyOn(window.api.auth, "hasPin").mockResolvedValue(true);
-    renderWithProvider();
+    renderWithProvider({ initialMode: "locked", initialHasPin: true });
     await waitFor(() => screen.getByRole("heading", { name: /welcome back/i }));
     expect(screen.getByTestId("mode")).toHaveTextContent("locked");
     fireEvent.click(screen.getByRole("button", { name: /continue to student practice/i }));

@@ -43,6 +43,8 @@ export interface BuildDeckOptions {
   sessionSeed: string;
   /** Soft cap on deck size. Defaults to all generated exercises. */
   maxExercises?: number;
+  /** Defaults to true. Disable for predictable entry/plugin order. */
+  shuffle?: boolean;
 }
 
 export interface BuildDeckResult {
@@ -82,11 +84,11 @@ export function buildDeck(opts: BuildDeckOptions): BuildDeckResult {
     }
   }
 
-  const shuffled = shuffle(exercises, rng);
+  const ordered = opts.shuffle === false ? exercises : shuffle(exercises, rng);
   const trimmed =
     typeof opts.maxExercises === "number" && opts.maxExercises >= 0
-      ? shuffled.slice(0, opts.maxExercises)
-      : shuffled;
+      ? ordered.slice(0, opts.maxExercises)
+      : ordered;
 
   return { exercises: trimmed, skipped };
 }

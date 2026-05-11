@@ -87,6 +87,7 @@ export const entryInputSchema = z
 export const vocabFileSchema = z
   .object({
     book: z.string().min(1),
+    book_title: z.string().min(1).optional(),
     unit: z
       .object({
         ordinal: z.number().int().min(1),

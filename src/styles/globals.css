@@ -4,6 +4,22 @@
 
 @layer base {
   :root {
+    --color-fg: 20 25 35;
+    --color-muted: 94 104 122;
+    --color-muted-2: 141 150 166;
+    --color-surface-0: 248 249 252;
+    --color-surface-1: 255 255 255;
+    --color-surface-2: 238 241 246;
+    --color-border-subtle: 224 229 238;
+    --color-border-strong: 195 203 218;
+    --color-accent: 70 105 225;
+    --color-accent-fg: 255 255 255;
+    --color-success: 34 150 92;
+    --color-warning: 188 132 36;
+    --color-danger: 210 58 70;
+  }
+
+  .dark {
     --color-fg: 240 244 250;
     --color-muted: 162 170 184;
     --color-muted-2: 113 122 137;
@@ -26,6 +42,8 @@
   }
 
   body {
+    background: rgb(var(--color-surface-0));
+    color: rgb(var(--color-fg));
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }

@@ -18,18 +18,20 @@ describe("AppModeProvider", () => {
     vi.restoreAllMocks();
   });
 
-  it("starts in `loading` and resolves to `locked` once hasPin probe finishes", async () => {
+  it("starts in `loading` and resolves to `welcome` once hasPin probe finishes", async () => {
     const { result } = renderHook(() => useAppMode(), { wrapper });
     expect(result.current.mode).toBe("loading");
     expect(result.current.pinReady).toBe(false);
-    await waitFor(() => expect(result.current.mode).toBe("locked"));
+    await waitFor(() => expect(result.current.mode).toBe("welcome"));
     expect(result.current.pinReady).toBe(true);
     expect(result.current.hasPin).toBe(false);
   });
 
   it("setupPin transitions mode → tutor and flips hasPin", async () => {
     const { result } = renderHook(() => useAppMode(), { wrapper });
-    await waitFor(() => expect(result.current.mode).toBe("locked"));
+    await waitFor(() => expect(result.current.mode).toBe("welcome"));
+    act(() => result.current.selectTutor());
+    expect(result.current.mode).toBe("locked");
     await act(async () => {
       await result.current.setupPin("1234");
     });
@@ -40,7 +42,9 @@ describe("AppModeProvider", () => {
   it("unlockTutor success transitions to tutor mode", async () => {
     vi.spyOn(window.api.auth, "hasPin").mockResolvedValue(true);
     const { result } = renderHook(() => useAppMode(), { wrapper });
-    await waitFor(() => expect(result.current.mode).toBe("locked"));
+    await waitFor(() => expect(result.current.mode).toBe("welcome"));
+    act(() => result.current.selectTutor());
+    expect(result.current.mode).toBe("locked");
     await act(async () => {
       const r = await result.current.unlockTutor("1234");
       expect(r.ok).toBe(true);
@@ -55,7 +59,9 @@ describe("AppModeProvider", () => {
       reason: "invalid",
     });
     const { result } = renderHook(() => useAppMode(), { wrapper });
-    await waitFor(() => expect(result.current.mode).toBe("locked"));
+    await waitFor(() => expect(result.current.mode).toBe("welcome"));
+    act(() => result.current.selectTutor());
+    expect(result.current.mode).toBe("locked");
     await act(async () => {
       const r = await result.current.unlockTutor("9999");
       expect(r.ok).toBe(false);
@@ -65,12 +71,14 @@ describe("AppModeProvider", () => {
 
   it("enterStudent + lock + switchToStudent control mode transitions", async () => {
     const { result } = renderHook(() => useAppMode(), { wrapper });
-    await waitFor(() => expect(result.current.mode).toBe("locked"));
+    await waitFor(() => expect(result.current.mode).toBe("welcome"));
 
     act(() => result.current.enterStudent());
     expect(result.current.mode).toBe("student");
 
     act(() => result.current.lock());
+    expect(result.current.mode).toBe("welcome");
+    act(() => result.current.selectTutor());
     expect(result.current.mode).toBe("locked");
 
     await act(async () => {

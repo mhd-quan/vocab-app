@@ -4,13 +4,10 @@ Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
 student practice) running as a desktop app on Windows and macOS.
 
-> **Status:** v0.0.1 — PR #10 (tutor analytics). The dashboard now
-> shows a per-student roll-up table (seen / due / accuracy / last
-> practised) instead of "Getting started"; clicking a row drills into
-> a detail screen with a 90-day GitHub-style heatmap, top-10 weak
-> words (deep-linked into the content browser), recent sessions, and
-> the unlocked achievement gallery. All aggregates ride directly on
-> `learning_events` + `item_progress` — no new tables.
+> **Status:** v0.2.0 — shell polish, welcome mode selection, editable book
+> titles, light/dark/system themes, in-app YAML import, expanded Settings,
+> and authoring templates. Tutor analytics, SRS, rewards, and import history
+> remain backed by the same local SQLite schema.
 
 ## Stack
 
@@ -52,8 +49,9 @@ vocab-app/
 │   ├── styles/
 │   └── types/            # Ambient types (window.api, etc.)
 ├── content/              # YAML content sources — versioned in git
-│   └── books/
-│       └── destination-b1/
+│   ├── books/
+│   │   └── destination-b1/
+│   └── templates/        # authoring templates + exercise reference
 ├── drizzle/              # Generated SQL migrations + meta (versioned)
 ├── scripts/
 │   ├── migrate-dev.ts    # Apply migrations without launching Electron
@@ -92,7 +90,7 @@ npm run rebuild        # rebuild better-sqlite3 against Electron's Node ABI
 npm run db:generate    # drizzle-kit generate (after editing src/data/schema)
 npm run db:migrate:dev # apply migrations to ./data/dev.db without Electron
 
-npm run import         # import all YAML in content/books/**/*-vocab.yaml
+npm run import         # import all YAML/YML in content/books/**/*-vocab.{yaml,yml}
 npm run import:dry-run # validate + show plan; no DB writes
 npm run import:watch   # re-import on file change (chokidar)
 npm run import -- ./content/books/destination-b1   # specific path
@@ -118,14 +116,14 @@ automatically on Electron startup.
 Migrations folder is bundled with the packaged app via Forge's `extraResource`,
 resolved at runtime through `electron/db/paths.ts`.
 
-### Schema overview (v0.0.1)
+### Schema overview
 
 20 tables, organized by domain:
 
 - **Curriculum**: `books`, `units`, `lessons`
 - **Vocabulary** (PR #2 focus): `vocab_entries`, `vocab_senses`,
   `vocab_examples`, `vocab_forms`, `vocab_collocations`, `vocab_relations`
-- **Grammar**: `grammar_topics` (stub — patterns/examples land in v0.0.2)
+- **Grammar**: `grammar_topics` (stub — patterns/examples land in a later grammar pass)
 - **Polymorphic content**: `content_items` (kind + ref_table + ref_id)
 - **Learner**: `students`, `enrollments`
 - **Progress** (event-sourced): `practice_sessions`, `learning_events`,
@@ -145,6 +143,7 @@ convention: `unit-NN-vocab.yaml`. Inside one file you describe one lesson:
 
 ```yaml
 book: destination-b1
+book_title: Destination B1
 unit: { ordinal: 1, code: U01, title: People & Relationships }
 lesson:
   ordinal: 1
@@ -178,6 +177,9 @@ Highlights:
   You can override or supply explicitly via `cloze_target`.
 - `id` is optional; missing ids are auto-derived from `<headword>-<pos>`.
   Keep stable across edits — it's how the importer matches existing rows.
+- `book_title` is optional. Missing titles are derived from `book`; once a
+  tutor edits a book title in the Content browser, re-imports without
+  `book_title` preserve that stored title.
 - Re-running `npm run import` on an unchanged file is a no-op (file-hash
   short-circuit). Editing one entry results in `inserted/updated/skipped`
   diff and only changed rows are touched.
@@ -186,14 +188,15 @@ Highlights:
 
 ## App shell & modes
 
-The app boots into one of three modes:
+The app boots into one of four visible modes:
 
 | Mode      | Trigger                                       | What renders                          |
 | --------- | --------------------------------------------- | ------------------------------------- |
 | `loading` | initial mount, before `auth.hasPin` resolves  | small spinner                         |
-| `locked`  | after probe; or after the tutor presses Lock  | `UnlockScreen` (setup or verify)      |
+| `welcome` | after PIN probe; or after the tutor locks     | mode selection                        |
+| `locked`  | tutor selects Tutor from welcome              | `UnlockScreen` (setup or verify)      |
 | `tutor`   | successful PIN unlock or first-time setup     | TanStack Router → `TutorLayout`       |
-| `student` | "Continue to student practice" or sidebar btn | TanStack Router → `StudentLayout`     |
+| `student` | Student on welcome or sidebar switch          | TanStack Router → `StudentLayout`     |
 
 The PIN is stored as an scrypt hash (`scrypt$1$<salt>$<key>`) in
 `app_settings.tutor_pin_hash`. There's no recovery path — clearing the local
@@ -205,6 +208,7 @@ goes through the lock screen.
 ```ts
 const { mode, hasPin, pinReady,
         unlockTutor, setupPin, changePin,
+        selectTutor, selectStudent,
         enterStudent, switchToStudent, lock } = useAppMode();
 ```
 
@@ -212,6 +216,21 @@ Routes live in `src/router.tsx` (memory history — no URL bar). Adding a new
 tutor screen = drop a component under `src/ui/screens/tutor/`, register a
 `createRoute` entry, add the sidebar item in `TutorLayout`. No other
 plumbing required.
+
+## v0.2.0 UX + settings
+
+- Theme preference is stored in `app_settings.theme` as `light`, `dark`, or
+  `system`. System mode follows `prefers-color-scheme` while the app is open.
+- Settings now includes session defaults, display density, app language,
+  definition priority, idle auto-lock, lock-on-close preference, reward sound,
+  and a local version/database summary.
+- The Imports screen supports drag/drop upload and native file selection for
+  `.yaml` and `.yml`. Imported files are copied into
+  `content/books/<book-code>/` and then processed by the same
+  `ImportVocabUseCase` used by the CLI.
+- `content/templates/` contains a validating vocab template, a grammar
+  authoring template, and an exercise reference for current and planned
+  exercise kinds.
 
 ## Exercise engine
 
@@ -357,8 +376,8 @@ See `docs/roadmap.md` (added with PR #2). Current plan:
 
 | Version | Scope                                                     |
 | ------- | --------------------------------------------------------- |
-| v0.0.1  | + import + app shell + tutor screens + exercise engine + SRS persistence + rewards + **analytics (this PR)** |
-| v0.0.2  | Grammar DB + import + browse                              |
-| v0.0.3  | In-app authoring GUI                                      |
-| v0.0.4  | More exercise types (fill-blank, matching, ordering, ...) |
-| v0.1.0  | Beta packaging (signed installers, auto-update)           |
+| v0.2.0  | Shell polish + theme system + in-app import + settings/templates |
+| v0.3.0  | Grammar DB + import + browse                              |
+| v0.4.0  | In-app authoring GUI                                      |
+| v0.5.0  | More exercise types (fill-blank, matching, ordering, ...) |
+| v1.0.0  | Beta packaging (signed installers, auto-update)           |

@@ -10,6 +10,7 @@ if (started) {
 }
 
 let db: AppDatabase | null = null;
+let mainWindow: BrowserWindow | null = null;
 
 const createMainWindow = (): BrowserWindow => {
   const win = new BrowserWindow({
@@ -17,10 +18,10 @@ const createMainWindow = (): BrowserWindow => {
     height: 900,
     minWidth: 1100,
     minHeight: 720,
-    backgroundColor: "#0b0d12",
     show: false,
     autoHideMenuBar: true,
     titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "default",
+    trafficLightPosition: { x: 16, y: 16 },
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
@@ -30,6 +31,9 @@ const createMainWindow = (): BrowserWindow => {
   });
 
   win.once("ready-to-show", () => win.show());
+  win.on("closed", () => {
+    if (mainWindow === win) mainWindow = null;
+  });
 
   win.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
@@ -50,14 +54,14 @@ app.whenReady().then(() => {
   console.log("[db] opened, applied migrations through latest");
 
   const repos = createRepositories(db);
-  registerIpcProcedures(allProcedures, { repos });
+  registerIpcProcedures(allProcedures, { repos, getMainWindow: () => mainWindow });
   console.log(`[ipc] registered ${allProcedures.length} procedures`);
 
-  createMainWindow();
+  mainWindow = createMainWindow();
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      createMainWindow();
+      mainWindow = createMainWindow();
     }
   });
 });

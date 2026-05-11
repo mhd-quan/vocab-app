@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 
-export type AppMode = "loading" | "locked" | "tutor" | "student";
+export type AppMode = "loading" | "welcome" | "locked" | "tutor" | "student";
 
 export interface AppModeState {
   mode: AppMode;
@@ -21,6 +21,8 @@ export interface AppModeState {
   setupPin: (pin: string) => Promise<void>;
   changePin: (currentPin: string, newPin: string) => Promise<void>;
   enterStudent: () => void;
+  selectTutor: () => void;
+  selectStudent: () => void;
   /** Switch from tutor → student without locking (no PIN required). */
   switchToStudent: () => void;
   /** Drop back to the lock screen; tutor will need to re-enter their PIN. */
@@ -50,12 +52,12 @@ export function AppModeProvider({ children, initialMode, initialHasPin }: AppMod
         if (cancelled) return;
         setHasPin(exists);
         setPinReady(true);
-        setMode("locked");
+        setMode("welcome");
       } catch (err) {
         console.error("[AppMode] hasPin probe failed", err);
         if (cancelled) return;
         setPinReady(true);
-        setMode("locked");
+        setMode("welcome");
       }
     })();
     return () => {
@@ -82,8 +84,10 @@ export function AppModeProvider({ children, initialMode, initialHasPin }: AppMod
   }, []);
 
   const enterStudent = useCallback(() => setMode("student"), []);
+  const selectTutor = useCallback(() => setMode("locked"), []);
+  const selectStudent = useCallback(() => setMode("student"), []);
   const switchToStudent = useCallback(() => setMode("student"), []);
-  const lock = useCallback(() => setMode("locked"), []);
+  const lock = useCallback(() => setMode("welcome"), []);
 
   const value = useMemo<AppModeState>(
     () => ({
@@ -94,10 +98,24 @@ export function AppModeProvider({ children, initialMode, initialHasPin }: AppMod
       setupPin,
       changePin,
       enterStudent,
+      selectTutor,
+      selectStudent,
       switchToStudent,
       lock,
     }),
-    [mode, hasPin, pinReady, unlockTutor, setupPin, changePin, enterStudent, switchToStudent, lock],
+    [
+      mode,
+      hasPin,
+      pinReady,
+      unlockTutor,
+      setupPin,
+      changePin,
+      enterStudent,
+      selectTutor,
+      selectStudent,
+      switchToStudent,
+      lock,
+    ],
   );
 
   return <AppModeContext.Provider value={value}>{children}</AppModeContext.Provider>;
