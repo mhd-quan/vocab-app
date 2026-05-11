@@ -12,11 +12,11 @@ export function EmptyState({ title, body, action, className }: EmptyStateProps) 
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border-subtle bg-surface-1 px-6 py-10 text-center",
+        "flex flex-col items-center justify-center gap-3 rounded-bento border border-dashed border-border-subtle bg-surface-1 px-6 py-10 text-center",
         className,
       )}
     >
-      <h3 className="text-sm font-medium">{title}</h3>
+      <h3 className="text-base font-semibold">{title}</h3>
       <p className="max-w-sm text-xs text-muted">{body}</p>
       {action ? <div className="mt-1">{action}</div> : null}
     </div>

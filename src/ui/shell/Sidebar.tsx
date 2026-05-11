@@ -22,10 +22,10 @@ export function Sidebar({ brand, items, footer, topInset }: SidebarProps) {
   const currentPath = location.pathname;
 
   return (
-    <aside className="flex h-full w-64 flex-col border-r border-border-subtle bg-surface-1">
+    <aside className="flex h-full w-64 flex-col border-r border-border-subtle bg-surface-1/95">
       {topInset && <div className="h-10 w-full shrink-0 [-webkit-app-region:drag]" />}
       <div className={cn("px-5 pb-6", topInset ? "pt-2" : "pt-6")}>{brand}</div>
-      <nav className="flex flex-1 flex-col gap-0.5 px-3" aria-label="Tutor navigation">
+      <nav className="flex flex-1 flex-col gap-1 px-3" aria-label="Tutor navigation">
         {items.map((item) => {
           const active = currentPath === item.to || currentPath.startsWith(`${item.to}/`);
           return <SidebarLink key={item.to} item={item} active={active} />;
@@ -38,11 +38,11 @@ export function Sidebar({ brand, items, footer, topInset }: SidebarProps) {
 
 function SidebarLink({ item, active }: { item: SidebarItem; active: boolean }) {
   const className = cn(
-    "group flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+    "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
     item.disabled
       ? "cursor-not-allowed text-muted-2"
       : active
-        ? "bg-surface-2 text-app"
+        ? "bg-accent/10 text-app ring-1 ring-accent/20"
         : "text-muted hover:bg-surface-2 hover:text-app",
   );
 
@@ -60,7 +60,7 @@ function SidebarLink({ item, active }: { item: SidebarItem; active: boolean }) {
     <Link to={item.to} className={className}>
       <span
         className={cn(
-          "flex h-4 w-4 items-center justify-center",
+          "flex h-5 w-5 items-center justify-center",
           active ? "text-accent" : "text-muted",
         )}
       >

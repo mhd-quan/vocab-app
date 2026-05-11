@@ -66,19 +66,21 @@ export function FlashcardCard({ exercise, onAnswer }: FlashcardCardProps) {
     <article
       data-exercise-kind="flashcard"
       data-revealed={revealed}
-      className="flex flex-col gap-6 rounded-2xl border border-border-subtle bg-surface-1 p-8 shadow-lg"
+      className="flex flex-col gap-7 rounded-bento border border-border-subtle bg-surface-1 p-8 shadow-card dark:shadow-card-dark"
     >
       <header className="flex items-center justify-between">
         <Badge tone="accent" uppercase>
           Flashcard
         </Badge>
-        <span className="text-xs uppercase tracking-widest text-muted-2">
+        <span className="text-xs font-semibold uppercase text-muted-2">
           {revealed ? "Rate your recall" : "Tap to reveal"}
         </span>
       </header>
 
-      <div className="flex flex-col items-center gap-3 text-center">
-        <h2 className="text-5xl font-semibold tracking-tight">{front.headword}</h2>
+      <div className="flex min-h-44 flex-col items-center justify-center gap-3 text-center">
+        <h2 className="max-w-full break-words text-5xl font-semibold leading-none sm:text-6xl">
+          {front.headword}
+        </h2>
         <div className="flex items-baseline gap-3 text-muted">
           <span className="font-mono text-base">{front.pos}</span>
           {front.ipa ? <span className="font-mono text-base">{front.ipa}</span> : null}
@@ -109,10 +111,10 @@ function FlashcardBack({
     <div className="flex flex-col gap-5">
       <section className="flex flex-col gap-2 border-t border-border-subtle pt-5">
         {back.definitionVi ? (
-          <p className="text-lg font-medium text-app">{back.definitionVi}</p>
+          <p className="text-xl font-semibold leading-relaxed text-app">{back.definitionVi}</p>
         ) : null}
         {back.definitionsEn.length > 0 ? (
-          <ol className="flex flex-col gap-2 text-base text-muted">
+          <ol className="flex flex-col gap-2 text-base leading-relaxed text-muted">
             {back.definitionsEn.map((def, i) => (
               <li key={`${i}-${def}`} className="flex gap-2">
                 <span className="font-mono text-sm text-muted-2">{i + 1}.</span>
@@ -124,8 +126,8 @@ function FlashcardBack({
       </section>
 
       {back.exampleText ? (
-        <section className="rounded-lg border border-border-subtle bg-surface-0/50 px-5 py-4">
-          <p className="mb-1.5 text-xs uppercase tracking-widest text-muted-2">Example</p>
+        <section className="rounded-2xl border border-border-subtle bg-surface-0/70 px-5 py-4">
+          <p className="mb-1.5 text-xs font-semibold uppercase text-muted-2">Example</p>
           <ClozeText text={back.exampleText} className="text-base" />
         </section>
       ) : null}

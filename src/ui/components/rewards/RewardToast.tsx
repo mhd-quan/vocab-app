@@ -72,13 +72,13 @@ export function RewardToast({
     >
       <div
         className={cn(
-          "pointer-events-auto flex items-center gap-3 rounded-full border px-4 py-2 shadow-lg shadow-black/20 backdrop-blur",
+          "pointer-events-auto flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-lg shadow-black/20 backdrop-blur",
           palette,
         )}
       >
         {icon ? <span className="grid h-7 w-7 place-items-center">{icon}</span> : null}
         <div className="flex flex-col leading-tight">
-          <span className="text-xs font-semibold tracking-wide text-app">{title}</span>
+          <span className="text-xs font-semibold text-app">{title}</span>
           {description ? <span className="text-[11px] text-muted">{description}</span> : null}
         </div>
       </div>

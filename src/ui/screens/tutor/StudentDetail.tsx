@@ -4,6 +4,7 @@ import { type HeatmapCell, bucketByDay } from "@/modules/analytics";
 import { type AchievementDefinition, getAchievement } from "@/modules/rewards";
 import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
+import { BentoCard } from "@/ui/components/BentoCard";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { Heatmap } from "@/ui/components/Heatmap";
 import { PageHeader } from "@/ui/components/PageHeader";
@@ -120,23 +121,39 @@ export function TutorStudentDetail() {
         subtitle="Per-student analytics: practice activity, weak words, recent sessions, achievements."
         actions={
           <Link to="/tutor/students" className="text-xs text-muted hover:text-app">
-            ← All students
+            All students
           </Link>
         }
       />
 
       <div className="flex flex-col gap-6 px-8 py-6">
-        <section className="flex items-center gap-4 rounded-lg border border-border-subtle bg-surface-1 p-5">
-          <Avatar
-            name={student?.displayName ?? student?.name ?? "?"}
-            color={student?.color ?? null}
-            size="lg"
-          />
-          <dl className="grid flex-1 grid-cols-2 gap-4 sm:grid-cols-4">
-            <Stat label="Seen" value={summary?.totalSeen ?? 0} />
-            <Stat label="Due" value={summary?.totalDue ?? 0} />
-            <Stat label="Accuracy" value={accuracyPct === null ? "—" : `${accuracyPct}%`} />
-            <Stat label="Streak" value={streak?.currentStreak ? `${streak.currentStreak}d` : "—"} />
+        <section className="grid gap-4 lg:grid-cols-[18rem_1fr]">
+          <BentoCard className="flex items-center gap-4 p-6" tone="focus">
+            <Avatar
+              name={student?.displayName ?? student?.name ?? "?"}
+              color={student?.color ?? null}
+              size="lg"
+            />
+            <div>
+              <p className="text-xs font-semibold uppercase text-focus">Profile</p>
+              <p className="mt-1 text-sm text-muted">
+                {streak?.practicedToday ? "Practised today" : "Ready for practice"}
+              </p>
+            </div>
+          </BentoCard>
+          <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <Stat label="Seen" value={summary?.totalSeen ?? 0} tone="xp" />
+            <Stat label="Due" value={summary?.totalDue ?? 0} tone="warning" />
+            <Stat
+              label="Accuracy"
+              value={accuracyPct === null ? "—" : `${accuracyPct}%`}
+              tone={accuracyPct !== null && accuracyPct >= 80 ? "success" : "accent"}
+            />
+            <Stat
+              label="Streak"
+              value={streak?.currentStreak ? `${streak.currentStreak}d` : "—"}
+              tone={streak?.currentStreak ? "mastery" : "neutral"}
+            />
           </dl>
         </section>
 
@@ -160,12 +177,20 @@ export function TutorStudentDetail() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: number | string }) {
+function Stat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number | string;
+  tone: "neutral" | "accent" | "success" | "warning" | "xp" | "mastery";
+}) {
   return (
-    <div className="flex flex-col">
-      <dt className="text-[10px] uppercase tracking-widest text-muted-2">{label}</dt>
-      <dd className="font-mono text-xl text-app">{value}</dd>
-    </div>
+    <BentoCard as="div" tone={tone} className="p-4">
+      <dt className="text-xs font-semibold uppercase text-muted-2">{label}</dt>
+      <dd className="mt-1 font-mono text-2xl text-app">{value}</dd>
+    </BentoCard>
   );
 }
 
@@ -200,7 +225,7 @@ function WeakWordsPanel({
               <Link
                 to="/tutor/content"
                 search={{ entry: row.entryId, book: row.bookId }}
-                className="flex items-center justify-between rounded-md border border-border-subtle bg-surface-0/50 px-3 py-2 text-sm transition-colors hover:border-accent/50 hover:bg-surface-2"
+                className="flex items-center justify-between rounded-2xl border border-border-subtle bg-surface-0/70 px-3 py-2.5 text-sm transition-colors hover:border-accent/50 hover:bg-surface-2"
               >
                 <span className="flex items-baseline gap-2">
                   <span className="font-medium text-app">{row.headword}</span>
@@ -256,7 +281,7 @@ function RecentSessionsPanel({
             return (
               <li
                 key={row.sessionId}
-                className="flex items-center justify-between rounded-md border border-border-subtle bg-surface-0/50 px-3 py-2 text-sm"
+                className="flex items-center justify-between rounded-2xl border border-border-subtle bg-surface-0/70 px-3 py-2.5 text-sm"
               >
                 <span className="flex items-baseline gap-2">
                   <Badge tone="muted" uppercase>
@@ -291,7 +316,7 @@ function AchievementsPanel({ ids, loading }: { ids: string[]; loading: boolean }
     .map((id) => getAchievement(id))
     .filter((d): d is AchievementDefinition => d !== null);
   return (
-    <Panel title="Achievements" caption={`${defs.length} unlocked`}>
+    <Panel title="Achievements" caption={`${defs.length} unlocked`} tone="mastery">
       {loading ? (
         <p className="text-xs text-muted">Loading…</p>
       ) : defs.length === 0 ? (
@@ -303,7 +328,7 @@ function AchievementsPanel({ ids, loading }: { ids: string[]; loading: boolean }
           {defs.map((def) => (
             <li
               key={def.id}
-              className="flex items-center gap-2 rounded-full border border-success/40 bg-success/10 px-3 py-1 text-xs text-success"
+              className="flex items-center gap-2 rounded-full border border-mastery/40 bg-mastery/10 px-3 py-1.5 text-xs text-mastery"
               title={def.description}
             >
               <AchievementIcon icon={def.icon} className="h-3.5 w-3.5" />
@@ -319,20 +344,22 @@ function AchievementsPanel({ ids, loading }: { ids: string[]; loading: boolean }
 function Panel({
   title,
   caption,
+  tone = "neutral",
   children,
 }: {
   title: string;
   caption?: string;
+  tone?: "neutral" | "mastery";
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-lg border border-border-subtle bg-surface-1 p-5">
+    <BentoCard tone={tone} className="p-5">
       <header className="mb-3 flex items-baseline justify-between gap-2">
         <h2 className="text-sm font-semibold">{title}</h2>
         {caption ? <span className="text-[10px] text-muted-2">{caption}</span> : null}
       </header>
       {children}
-    </section>
+    </BentoCard>
   );
 }
 

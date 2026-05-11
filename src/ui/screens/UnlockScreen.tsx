@@ -1,5 +1,6 @@
 import { cn } from "@/lib/cn";
 import { useAppMode } from "@/providers/AppModeProvider";
+import { Badge } from "@/ui/components/Badge";
 import { Button } from "@/ui/components/Button";
 import { PinInput } from "@/ui/components/PinInput";
 import { type FormEvent, useEffect, useRef, useState } from "react";
@@ -76,7 +77,7 @@ function VerifyPinForm() {
         {error ? (
           <p
             role="alert"
-            className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-center text-xs text-danger"
+            className="rounded-xl border border-danger/40 bg-danger/10 px-3 py-2 text-center text-xs text-danger"
           >
             {error}
           </p>
@@ -165,7 +166,7 @@ function SetupPinForm() {
         {error ? (
           <p
             role="alert"
-            className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-center text-xs text-danger"
+            className="rounded-xl border border-danger/40 bg-danger/10 px-3 py-2 text-center text-xs text-danger"
           >
             {error}
           </p>
@@ -187,7 +188,7 @@ function FullScreen({ children }: { children: React.ReactNode }) {
         isMac ? "pt-10" : "",
       )}
     >
-      <div className="flex w-full max-w-md flex-col items-center gap-6 [-webkit-app-region:no-drag]">
+      <div className="flex w-full max-w-md flex-col items-center gap-7 [-webkit-app-region:no-drag]">
         {children}
       </div>
     </div>
@@ -205,10 +206,10 @@ function Header({
 }) {
   return (
     <div className="flex flex-col items-center gap-2 text-center">
-      <span className="rounded-full border border-border-subtle bg-surface-1 px-3 py-1 text-xs font-medium uppercase tracking-widest text-muted">
+      <Badge tone="focus" uppercase>
         {eyebrow}
-      </span>
-      <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
+      </Badge>
+      <h1 className="text-4xl font-semibold leading-tight">{title}</h1>
       <p className="max-w-sm text-balance text-sm text-muted">{subtitle}</p>
     </div>
   );

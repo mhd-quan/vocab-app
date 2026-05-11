@@ -11,13 +11,13 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const VARIANT_CLASSES: Record<Variant, string> = {
   primary:
-    "bg-accent text-accent-fg hover:bg-accent/90 focus-visible:ring-accent/50 disabled:bg-accent/40",
+    "bg-accent text-accent-fg shadow-sm shadow-accent/20 hover:bg-accent/90 focus-visible:ring-accent/50 disabled:bg-accent/40 disabled:shadow-none",
   secondary:
-    "bg-surface-2 text-app border border-border-strong hover:bg-surface-1 focus-visible:ring-border-strong/60 disabled:opacity-50",
+    "border border-border-strong bg-surface-2 text-app hover:bg-surface-1 focus-visible:ring-border-strong/60 disabled:opacity-50",
   ghost:
     "bg-transparent text-app hover:bg-surface-2 focus-visible:ring-border-subtle disabled:opacity-50",
   danger:
-    "bg-danger text-app hover:bg-danger/90 focus-visible:ring-danger/50 disabled:bg-danger/40",
+    "bg-danger text-white hover:bg-danger/90 focus-visible:ring-danger/50 disabled:bg-danger/40",
 };
 
 const SIZE_CLASSES: Record<Size, string> = {
@@ -35,7 +35,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       ref={ref}
       type={type}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors",
+        "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-[background-color,border-color,color,box-shadow,transform]",
+        "active:translate-y-px",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-0",
         "disabled:cursor-not-allowed",
         VARIANT_CLASSES[variant],

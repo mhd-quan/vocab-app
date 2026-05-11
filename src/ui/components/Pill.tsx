@@ -18,7 +18,7 @@ export function Pill({ label, value, tone = "neutral" }: PillProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-mono text-xs",
+        "inline-flex items-center gap-1.5 rounded-xl border px-2.5 py-1 font-mono text-xs",
         TONES[tone],
       )}
     >

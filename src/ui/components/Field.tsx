@@ -26,14 +26,11 @@ export function Field({ label, hint, error, htmlFor, children }: FieldProps) {
   return (
     <div className="flex flex-col gap-1.5">
       {htmlFor ? (
-        <label
-          htmlFor={htmlFor}
-          className="text-xs font-medium uppercase tracking-wider text-muted"
-        >
+        <label htmlFor={htmlFor} className="text-xs font-semibold uppercase text-muted">
           {label}
         </label>
       ) : (
-        <span className="text-xs font-medium uppercase tracking-wider text-muted">{label}</span>
+        <span className="text-xs font-semibold uppercase text-muted">{label}</span>
       )}
       {children}
       {error ? (
@@ -48,7 +45,7 @@ export function Field({ label, hint, error, htmlFor, children }: FieldProps) {
 }
 
 const inputBase =
-  "w-full rounded-md border bg-surface-0 px-3 py-2 text-sm text-app placeholder:text-muted-2 " +
+  "w-full rounded-xl border bg-surface-0 px-3 py-2 text-sm text-app placeholder:text-muted-2 " +
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-1";
 
 const inputTone = (invalid: boolean | undefined) =>

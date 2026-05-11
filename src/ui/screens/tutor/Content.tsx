@@ -85,7 +85,7 @@ function BooksPane({
   return (
     <aside className="flex h-full flex-col overflow-y-auto border-r border-border-subtle bg-surface-1">
       <div className="border-b border-border-subtle px-4 py-3">
-        <h2 className="text-[10px] font-medium uppercase tracking-widest text-muted">Books</h2>
+        <h2 className="text-[10px] font-medium uppercase text-muted">Books</h2>
       </div>
       {loading ? (
         <p className="px-4 py-3 text-xs text-muted">Loading…</p>
@@ -173,7 +173,7 @@ function BookRow({
       <li>
         <form
           className={cn(
-            "rounded-md border px-2 py-2",
+            "rounded-xl border px-2 py-2",
             selected ? "border-accent bg-accent/10" : "border-border-subtle bg-surface-1",
           )}
           onSubmit={onSubmit}
@@ -210,7 +210,7 @@ function BookRow({
     <li>
       <div
         className={cn(
-          "group grid grid-cols-[1fr_auto] items-center rounded-md transition-colors",
+          "group grid grid-cols-[1fr_auto] items-center rounded-xl transition-colors",
           selected ? "bg-surface-2 text-app" : "text-muted hover:bg-surface-2 hover:text-app",
         )}
       >
@@ -397,7 +397,7 @@ function EntryButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex w-full items-baseline gap-2 rounded-md border px-3 py-2 text-left transition-colors",
+        "flex w-full items-baseline gap-2 rounded-xl border px-3 py-2 text-left transition-colors",
         selected
           ? "border-accent bg-accent/10"
           : "border-border-subtle bg-surface-1 hover:border-border-strong",
@@ -438,7 +438,7 @@ function EntryDetail({ entry }: { entry: VocabEntryFull }) {
     <article className="flex flex-col gap-5 px-5 py-5">
       <header className="flex flex-col gap-1">
         <div className="flex flex-wrap items-baseline gap-2">
-          <h3 className="text-2xl font-semibold tracking-tight">{entry.headword}</h3>
+          <h3 className="text-2xl font-semibold">{entry.headword}</h3>
           <span className="font-mono text-xs text-muted">{entry.pos}</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -473,9 +473,7 @@ function EntryDetail({ entry }: { entry: VocabEntryFull }) {
                       <span className="text-xs text-muted">{sense.definitionVi}</span>
                     ) : null}
                     {sense.register ? (
-                      <span className="text-[10px] uppercase tracking-wider text-muted-2">
-                        {sense.register}
-                      </span>
+                      <span className="text-[10px] uppercase text-muted-2">{sense.register}</span>
                     ) : null}
                   </div>
                 </li>
@@ -493,7 +491,7 @@ function EntryDetail({ entry }: { entry: VocabEntryFull }) {
               .map((ex) => (
                 <li
                   key={ex.id}
-                  className="rounded-md border border-border-subtle bg-surface-0/50 px-3 py-2"
+                  className="rounded-xl border border-border-subtle bg-surface-0/50 px-3 py-2"
                 >
                   <ClozeText text={ex.text} className="text-sm" />
                   {ex.translation ? (
@@ -514,9 +512,9 @@ function EntryDetail({ entry }: { entry: VocabEntryFull }) {
             {entry.forms.map((form) => (
               <li
                 key={form.id}
-                className="flex flex-col rounded-md border border-border-subtle bg-surface-0/50 px-3 py-1.5 text-xs"
+                className="flex flex-col rounded-xl border border-border-subtle bg-surface-0/50 px-3 py-1.5 text-xs"
               >
-                <span className="text-[10px] uppercase tracking-wider text-muted-2">
+                <span className="text-[10px] uppercase text-muted-2">
                   {form.kind.replace(/_/g, " ")}
                 </span>
                 <span className="font-medium">{form.formText}</span>
@@ -562,7 +560,7 @@ function EntryDetail({ entry }: { entry: VocabEntryFull }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-2">
-      <h4 className="text-[10px] font-medium uppercase tracking-widest text-muted">{title}</h4>
+      <h4 className="text-[10px] font-medium uppercase text-muted">{title}</h4>
       {children}
     </section>
   );
