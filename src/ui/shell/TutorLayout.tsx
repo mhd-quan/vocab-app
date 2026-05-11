@@ -30,11 +30,9 @@ export function TutorLayout() {
         topInset={isMac}
         brand={
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-medium uppercase tracking-widest text-muted">
-              Tutor
-            </span>
-            <span className="text-base font-semibold">Vocab App</span>
-            <span className="font-mono text-[10px] text-muted-2">v0.2.0</span>
+            <span className="text-xs font-semibold uppercase text-muted">Tutor</span>
+            <span className="text-lg font-semibold">Vocab App</span>
+            <span className="font-mono text-[11px] text-muted-2">v0.3.0</span>
           </div>
         }
         items={ITEMS}

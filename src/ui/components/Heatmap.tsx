@@ -11,11 +11,11 @@ export interface HeatmapProps {
 }
 
 const INTENSITY_BG: Record<HeatmapCell["intensity"], string> = {
-  0: "bg-surface-2",
-  1: "bg-accent/20",
-  2: "bg-accent/40",
-  3: "bg-accent/65",
-  4: "bg-accent/90",
+  0: "bg-surface-3/70",
+  1: "bg-focus/25",
+  2: "bg-focus/45",
+  3: "bg-success/65",
+  4: "bg-success/95",
 };
 
 /**
@@ -33,7 +33,7 @@ export function Heatmap({ cells, title, caption, className }: HeatmapProps) {
     return (
       <div
         className={cn(
-          "rounded-md border border-dashed border-border-subtle bg-surface-1 px-4 py-3 text-xs text-muted-2",
+          "rounded-bento border border-dashed border-border-subtle bg-surface-1 px-5 py-4 text-xs text-muted-2",
           className,
         )}
       >
@@ -45,10 +45,10 @@ export function Heatmap({ cells, title, caption, className }: HeatmapProps) {
   const columns = packIntoColumns(cells);
   return (
     <section
-      className={cn("rounded-md border border-border-subtle bg-surface-1 px-4 py-3", className)}
+      className={cn("rounded-bento border border-border-subtle bg-surface-1 px-5 py-4", className)}
     >
       {title || caption ? (
-        <header className="mb-2 flex items-baseline justify-between gap-2">
+        <header className="mb-3 flex items-baseline justify-between gap-2">
           {title ? <h3 className="text-sm font-semibold">{title}</h3> : <span />}
           {caption ? <span className="text-[10px] text-muted-2">{caption}</span> : null}
         </header>
@@ -73,7 +73,7 @@ function Cell({ cell }: { cell: HeatmapCell | null }) {
   return (
     <div
       title={`${cell.date} — ${cell.count} ${cell.count === 1 ? "event" : "events"}`}
-      className={cn("h-3 w-3 rounded-[2px]", INTENSITY_BG[cell.intensity])}
+      className={cn("h-3 w-3 rounded-[3px]", INTENSITY_BG[cell.intensity])}
     />
   );
 }

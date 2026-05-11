@@ -2,7 +2,9 @@ import { cn } from "@/lib/cn";
 import { type Answer, type Exercise, type GradeOutcome, gradeExercise } from "@/modules/exercises";
 import { type AchievementDefinition, getAchievement } from "@/modules/rewards";
 import { Badge } from "@/ui/components/Badge";
+import { BentoCard } from "@/ui/components/BentoCard";
 import { Button } from "@/ui/components/Button";
+import { ProgressMeter } from "@/ui/components/ProgressMeter";
 import { AchievementIcon, ConfettiBurst, RewardToast, useChime } from "@/ui/components/rewards";
 import { useCallback, useMemo, useState } from "react";
 import { FlashcardCard } from "./FlashcardCard";
@@ -191,13 +193,13 @@ export function SessionPlayer({
   if (deck.length === 0) {
     return (
       <PlayerShell contextLabel={contextLabel} onExit={onExit}>
-        <div className="rounded-2xl border border-dashed border-border-subtle bg-surface-1 px-6 py-10 text-center">
+        <BentoCard className="border-dashed px-6 py-10 text-center">
           <h2 className="text-base font-medium">No exercises in this deck</h2>
           <p className="mt-1 text-xs text-muted">
             The lesson needs vocab entries with at least one definition + a few peers for
             distractors. Re-run `npm run import` after editing the YAML.
           </p>
-        </div>
+        </BentoCard>
       </PlayerShell>
     );
   }
@@ -224,7 +226,12 @@ export function SessionPlayer({
       <ConfettiBurst fireKey={confettiKey} />
       <ToastStack toasts={toasts} onDismiss={dismissToast} />
       <div className="flex flex-col gap-4">
-        <ProgressBar current={index} total={total} />
+        <SessionStatus
+          current={index}
+          total={total}
+          correctRun={correctRun}
+          tier={cardTier(current as Exercise, correctRun)}
+        />
         <ExerciseCard
           exercise={current as Exercise}
           onAnswer={handleAnswer}
@@ -296,25 +303,47 @@ function ExerciseCard({
   }
 }
 
-function ProgressBar({ current, total }: { current: number; total: number }) {
-  const pct = total === 0 ? 0 : Math.min(100, Math.round((current / total) * 100));
-  // Visually a custom bar; semantically expose the same value via a hidden
-  // <progress>. This sidesteps a11y lint rules around role=progressbar on a
-  // non-focusable div and gives screen readers the right announcement.
+type CardTier = { label: string; tone: "rare" | "epic" | "mastery" | "accent" };
+
+function SessionStatus({
+  current,
+  total,
+  correctRun,
+  tier,
+}: {
+  current: number;
+  total: number;
+  correctRun: number;
+  tier: CardTier;
+}) {
   return (
-    <div className="flex items-center gap-3">
-      <progress className="sr-only" value={current} max={total} aria-label="Session progress" />
-      <div aria-hidden className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface-2">
-        <div
-          className="h-full rounded-full bg-accent transition-[width] duration-300"
-          style={{ width: `${pct}%` }}
-        />
+    <BentoCard as="section" className="grid gap-4 p-4 sm:grid-cols-[1fr_auto_auto] sm:items-center">
+      <div className="min-w-0">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <span className="text-xs font-semibold uppercase text-muted-2">Session progress</span>
+          <span className="font-mono text-xs text-muted">
+            {current} / {total}
+          </span>
+        </div>
+        <ProgressMeter value={current} max={total} label="Session progress" tone="accent" />
       </div>
-      <span className="font-mono text-xs text-muted">
-        {current} / {total}
-      </span>
-    </div>
+      <div className="flex items-center gap-2 rounded-2xl border border-warning/30 bg-warning/10 px-3 py-2">
+        <AchievementIcon icon="flame" className="h-4 w-4 text-warning" />
+        <span className="font-mono text-sm text-app">{correctRun}</span>
+        <span className="text-xs text-muted">streak</span>
+      </div>
+      <Badge tone={tier.tone} uppercase className="h-9 justify-center px-3">
+        {tier.label}
+      </Badge>
+    </BentoCard>
   );
+}
+
+function cardTier(exercise: Exercise, correctRun: number): CardTier {
+  if (correctRun >= 10) return { label: "Mastery card", tone: "mastery" };
+  if (correctRun >= 5) return { label: "Epic card", tone: "epic" };
+  if (exercise.kind === "multiple_choice") return { label: "Rare card", tone: "rare" };
+  return { label: "Core card", tone: "accent" };
 }
 
 function PlayerShell({
@@ -327,8 +356,8 @@ function PlayerShell({
   onExit: () => void;
 }) {
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-8">
-      <header className="flex items-center justify-between">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-8">
+      <header className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Badge tone="accent" uppercase>
             Practice

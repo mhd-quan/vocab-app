@@ -90,12 +90,12 @@ export function Modal({
         aria-modal="true"
         aria-label={title}
         className={cn(
-          "relative w-full overflow-hidden rounded-lg border border-border-subtle bg-surface-1 shadow-2xl",
+          "relative w-full overflow-hidden rounded-bento border border-border-subtle bg-surface-1 shadow-2xl",
           SIZE[size],
         )}
       >
         <header className="border-b border-border-subtle px-6 py-4">
-          <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+          <h2 className="text-lg font-semibold">{title}</h2>
           {description ? <p className="mt-1 text-sm text-muted">{description}</p> : null}
         </header>
         <div className="px-6 py-5">{children}</div>

@@ -94,7 +94,7 @@ export function ImportModal({ open, onClose, onImported }: ImportModalProps) {
           }}
           onDrop={handleDrop}
           className={cn(
-            "flex min-h-44 flex-col items-center justify-center gap-3 rounded-lg border border-dashed px-6 py-8 text-center transition-colors",
+            "flex min-h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed px-6 py-8 text-center transition-colors",
             dragging
               ? "border-accent bg-accent/10"
               : "border-border-strong bg-surface-0 hover:border-accent/70",
@@ -115,7 +115,7 @@ export function ImportModal({ open, onClose, onImported }: ImportModalProps) {
         {error ? (
           <p
             role="alert"
-            className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger"
+            className="rounded-xl border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger"
           >
             {error}
           </p>
@@ -129,13 +129,11 @@ export function ImportModal({ open, onClose, onImported }: ImportModalProps) {
 function ImportResult({ result }: { result: ImportFileResult }) {
   const stats = result.stats;
   return (
-    <section className="rounded-lg border border-border-subtle bg-surface-0 p-4">
+    <section className="rounded-2xl border border-border-subtle bg-surface-0 p-4">
       <header className="flex items-center justify-between gap-4">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold">{shortenPath(result.filePath)}</p>
-          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-2">
-            {result.status}
-          </p>
+          <p className="font-mono text-[10px] uppercase text-muted-2">{result.status}</p>
         </div>
         <div className="grid grid-cols-4 gap-2 font-mono text-xs">
           <ResultStat label="+" value={stats.inserted} />
@@ -160,7 +158,7 @@ function ImportResult({ result }: { result: ImportFileResult }) {
 
 function ResultStat({ label, value }: { label: string; value: number }) {
   return (
-    <span className="inline-flex min-w-12 items-center justify-center rounded-md border border-border-subtle bg-surface-1 px-2 py-1">
+    <span className="inline-flex min-w-12 items-center justify-center rounded-xl border border-border-subtle bg-surface-1 px-2 py-1">
       <span className="mr-1 text-muted-2">{label}</span>
       <span>{value}</span>
     </span>

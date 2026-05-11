@@ -4,6 +4,7 @@ import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
 import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
+import { BentoCard } from "@/ui/components/BentoCard";
 import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { Field, TextArea, TextInput, useFieldId } from "@/ui/components/Field";
@@ -93,7 +94,7 @@ export function TutorStudents() {
             }
           />
         ) : (
-          <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filtered.map((student) => (
               <StudentRow key={student.id} student={student} onEdit={() => openEdit(student)} />
             ))}
@@ -120,7 +121,7 @@ function TabButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "border-b-2 px-3 py-3 text-sm font-medium transition-colors",
+        "border-b-2 px-4 py-3 text-sm font-semibold transition-colors",
         active ? "border-accent text-app" : "border-transparent text-muted hover:text-app",
       )}
     >
@@ -148,7 +149,7 @@ function StudentRow({ student, onEdit }: { student: Student; onEdit: () => void 
   );
 
   return (
-    <li className="flex items-center gap-4 rounded-lg border border-border-subtle bg-surface-1 px-4 py-3">
+    <BentoCard as="li" interactive className="flex items-center gap-4 p-4">
       <Avatar name={student.displayName ?? student.name} color={student.color} size="lg" />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
@@ -203,7 +204,7 @@ function StudentRow({ student, onEdit }: { student: Student; onEdit: () => void 
           </>
         )}
       </div>
-    </li>
+    </BentoCard>
   );
 }
 
@@ -355,7 +356,7 @@ function StudentEditor({ open, onClose, editing }: StudentEditorProps) {
         </Field>
         {error ? (
           <p
-            className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-xs text-danger"
+            className="rounded-xl border border-danger/40 bg-danger/10 px-3 py-2 text-xs text-danger"
             role="alert"
           >
             {error}

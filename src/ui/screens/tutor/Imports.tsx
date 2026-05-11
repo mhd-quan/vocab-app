@@ -60,7 +60,7 @@ export function TutorImports() {
       />
       <section className="px-8 py-6">
         {dialogMessage ? (
-          <p className="mb-4 rounded-md border border-border-subtle bg-surface-1 px-3 py-2 text-sm text-muted">
+          <p className="mb-4 rounded-xl border border-border-subtle bg-surface-1 px-3 py-2 text-sm text-muted">
             {dialogMessage}
           </p>
         ) : null}
@@ -120,7 +120,7 @@ function RunRow({
       : null;
 
   return (
-    <li className="overflow-hidden rounded-lg border border-border-subtle bg-surface-1">
+    <li className="overflow-hidden rounded-2xl border border-border-subtle bg-surface-1">
       <button
         type="button"
         onClick={onToggle}
@@ -170,7 +170,7 @@ function Stat({
   return (
     <span
       className={cn(
-        "inline-flex w-12 items-center justify-center rounded-md border px-1.5 py-0.5",
+        "inline-flex w-12 items-center justify-center rounded-xl border px-1.5 py-0.5",
         tone === "success" && "border-success/40 bg-success/10 text-success",
         tone === "warning" && "border-warning/40 bg-warning/10 text-warning",
         tone === "danger" && "border-danger/40 bg-danger/10 text-danger",
@@ -209,7 +209,7 @@ function RunItems({ runId, errorLog }: { runId: number; errorLog: string | null 
         </ul>
       )}
       {errorLog ? (
-        <details className="mt-3 rounded-md border border-danger/40 bg-danger/5 p-3">
+        <details className="mt-3 rounded-xl border border-danger/40 bg-danger/5 p-3">
           <summary className="cursor-pointer text-xs text-danger">Error log</summary>
           <pre className="mt-2 whitespace-pre-wrap font-mono text-[10px] text-danger">
             {errorLog}

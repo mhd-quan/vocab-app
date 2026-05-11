@@ -69,16 +69,14 @@ function ThemeCard() {
               type="button"
               onClick={() => setTheme(option.value)}
               className={cn(
-                "rounded-md border px-3 py-3 text-left transition-colors",
+                "rounded-xl border px-3 py-3 text-left transition-colors",
                 active
                   ? "border-accent bg-accent/10 text-app"
                   : "border-border-subtle bg-surface-0 text-muted hover:border-border-strong hover:text-app",
               )}
             >
               <span className="block text-sm font-semibold">{option.label}</span>
-              <span className="mt-1 block text-[10px] uppercase tracking-wider text-muted-2">
-                {option.detail}
-              </span>
+              <span className="mt-1 block text-[10px] uppercase text-muted-2">{option.detail}</span>
             </button>
           );
         })}
@@ -350,13 +348,13 @@ function ChangePinCard() {
         {error ? (
           <p
             role="alert"
-            className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-xs text-danger"
+            className="rounded-xl border border-danger/40 bg-danger/10 px-3 py-2 text-xs text-danger"
           >
             {error}
           </p>
         ) : null}
         {success ? (
-          <output className="block rounded-md border border-success/40 bg-success/10 px-3 py-2 text-xs text-success">
+          <output className="block rounded-xl border border-success/40 bg-success/10 px-3 py-2 text-xs text-success">
             {success}
           </output>
         ) : null}
@@ -382,7 +380,7 @@ function SettingsCard({
   children: ReactNode;
 }) {
   return (
-    <article className="flex flex-col gap-4 rounded-lg border border-border-subtle bg-surface-1 p-6">
+    <article className="flex flex-col gap-4 rounded-2xl border border-border-subtle bg-surface-1 p-6">
       <header className="flex flex-col gap-1">
         <h2 className="text-base font-semibold">{title}</h2>
         <p className="text-xs text-muted">{description}</p>
@@ -411,7 +409,7 @@ function SettingSelect({
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className="h-10 rounded-md border border-border-subtle bg-surface-0 px-3 text-sm text-app outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40 disabled:opacity-60"
+        className="h-10 rounded-xl border border-border-subtle bg-surface-0 px-3 text-sm text-app outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40 disabled:opacity-60"
       >
         {options.map(([optionValue, optionLabel]) => (
           <option key={optionValue} value={optionValue}>

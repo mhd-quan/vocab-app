@@ -2,6 +2,7 @@ import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryClient";
 import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
+import { BentoCard } from "@/ui/components/BentoCard";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { PageHeader } from "@/ui/components/PageHeader";
 import { useQueries, useQuery } from "@tanstack/react-query";
@@ -39,7 +40,7 @@ export function TutorDashboard() {
         subtitle="At-a-glance corpus stats + per-student roll-up. Click a student to drill into their analytics."
       />
 
-      <section className="grid grid-cols-1 gap-3 px-8 py-6 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-1 gap-4 px-8 py-6 md:grid-cols-2 xl:grid-cols-4">
         <Stat
           label="Books"
           value={booksQ.isLoading ? "…" : String(books.length)}
@@ -67,9 +68,9 @@ export function TutorDashboard() {
 
       <section className="px-8 pb-10">
         <header className="mb-3 flex items-baseline justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">Students</h2>
+          <h2 className="text-sm font-semibold uppercase text-muted">Students</h2>
           <Link to="/tutor/students" className="text-xs text-muted hover:text-app">
-            Manage →
+            Manage
           </Link>
         </header>
         {overviewQ.isLoading ? (
@@ -104,9 +105,9 @@ function StudentTable({
   }>;
 }) {
   return (
-    <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface-1">
+    <div className="overflow-hidden rounded-bento border border-border-subtle bg-surface-1 shadow-card dark:shadow-card-dark">
       <table className="w-full text-left text-sm">
-        <thead className="border-b border-border-subtle bg-surface-2 text-[10px] uppercase tracking-widest text-muted-2">
+        <thead className="border-b border-border-subtle bg-surface-2 text-xs uppercase text-muted-2">
           <tr>
             <th className="px-4 py-2 font-medium">Student</th>
             <th className="px-4 py-2 font-medium">Seen</th>
@@ -146,7 +147,7 @@ function StudentRow({
   const totalAttempts = row.totalSeen > 0 ? Math.round(row.accuracy * 100) : null;
   return (
     <tr className="border-b border-border-subtle last:border-b-0 transition-colors hover:bg-surface-2">
-      <td className="px-4 py-2.5">
+      <td className="px-4 py-3">
         <Link
           to="/tutor/students/$studentId"
           params={{ studentId: String(row.student.id) }}
@@ -156,8 +157,8 @@ function StudentRow({
           <span className="font-medium text-app">{display}</span>
         </Link>
       </td>
-      <td className="px-4 py-2.5 font-mono text-xs text-muted">{row.totalSeen}</td>
-      <td className="px-4 py-2.5">
+      <td className="px-4 py-3 font-mono text-xs text-muted">{row.totalSeen}</td>
+      <td className="px-4 py-3">
         {row.totalDue > 0 ? (
           <Badge tone="warning" uppercase>
             {row.totalDue}
@@ -166,7 +167,7 @@ function StudentRow({
           <span className="font-mono text-xs text-muted-2">0</span>
         )}
       </td>
-      <td className="px-4 py-2.5">
+      <td className="px-4 py-3">
         {totalAttempts === null ? (
           <span className="font-mono text-xs text-muted-2">—</span>
         ) : (
@@ -178,14 +179,14 @@ function StudentRow({
           </Badge>
         )}
       </td>
-      <td className="px-4 py-2.5 text-xs text-muted">{relativeTime(row.lastPracticedAt)}</td>
-      <td className="px-4 py-2.5 text-right">
+      <td className="px-4 py-3 text-xs text-muted">{relativeTime(row.lastPracticedAt)}</td>
+      <td className="px-4 py-3 text-right">
         <Link
           to="/tutor/students/$studentId"
           params={{ studentId: String(row.student.id) }}
           className="text-xs text-muted hover:text-app"
         >
-          Open →
+          Open
         </Link>
       </td>
     </tr>
@@ -204,11 +205,16 @@ function Stat({
   to?: string;
 }) {
   const card = (
-    <div className="flex h-full flex-col justify-between rounded-lg border border-border-subtle bg-surface-1 p-5 transition-colors hover:border-border-strong">
-      <span className="text-xs font-medium uppercase tracking-wider text-muted">{label}</span>
-      <span className="mt-3 font-mono text-3xl text-app">{value}</span>
-      {hint ? <span className="mt-1 text-xs text-muted-2">{hint}</span> : null}
-    </div>
+    <BentoCard
+      as="div"
+      interactive={Boolean(to)}
+      tone={label === "Sessions" ? "focus" : label === "Students" ? "xp" : "neutral"}
+      className="flex h-full min-h-36 flex-col justify-between"
+    >
+      <span className="text-xs font-semibold uppercase text-muted">{label}</span>
+      <span className="mt-3 font-mono text-4xl text-app">{value}</span>
+      {hint ? <span className="mt-2 text-xs text-muted-2">{hint}</span> : null}
+    </BentoCard>
   );
   if (to) {
     return (

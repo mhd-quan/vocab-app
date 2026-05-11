@@ -12,15 +12,15 @@ export function StudentLayout() {
     <div className="flex h-screen w-screen flex-col bg-app">
       <header
         className={cn(
-          "flex items-center justify-between border-b border-border-subtle bg-surface-1 py-3 pr-6 [-webkit-app-region:drag]",
+          "flex items-center justify-between border-b border-border-subtle bg-surface-1/95 py-3 pr-6 shadow-sm [-webkit-app-region:drag]",
           isMac ? "pl-20" : "pl-6",
         )}
       >
         <Link to="/student" className="flex items-center gap-3 [-webkit-app-region:no-drag]">
-          <span className="rounded-full border border-border-subtle bg-surface-2 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-widest text-muted">
+          <span className="rounded-full border border-border-subtle bg-surface-2 px-2.5 py-1 text-xs font-semibold uppercase text-muted">
             Student
           </span>
-          <span className="text-sm font-semibold">Vocab App</span>
+          <span className="text-base font-semibold">Vocab App</span>
         </Link>
         <div className="flex items-center gap-2 [-webkit-app-region:no-drag]">
           <Button

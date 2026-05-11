@@ -4,7 +4,9 @@ import { queryKeys } from "@/lib/queryClient";
 import { getAchievement } from "@/modules/rewards";
 import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
+import { BentoCard } from "@/ui/components/BentoCard";
 import { EmptyState } from "@/ui/components/EmptyState";
+import { ProgressMeter } from "@/ui/components/ProgressMeter";
 import { AchievementIcon } from "@/ui/components/rewards";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
@@ -55,31 +57,38 @@ export function StudentHome() {
     enabled: Number.isFinite(id) && id > 0,
   });
 
+  const studentName = studentQ.data?.displayName ?? studentQ.data?.name ?? "Unknown student";
+
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-8 py-10">
-      <Link to="/student" className="self-start text-xs text-muted hover:text-app">
-        ← Back to profiles
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-7 px-8 py-10">
+      <Link to="/student" className="self-start text-xs font-medium text-muted hover:text-app">
+        Back to profiles
       </Link>
 
-      <header className="flex items-center gap-4">
-        <Avatar
-          name={studentQ.data?.displayName ?? studentQ.data?.name ?? "?"}
-          color={studentQ.data?.color ?? null}
-          size="lg"
-        />
-        <div className="flex flex-1 flex-col">
-          <span className="text-[10px] font-medium uppercase tracking-widest text-muted">
-            Student
-          </span>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {studentQ.isLoading
-              ? "Loading…"
-              : (studentQ.data?.displayName ?? studentQ.data?.name ?? "Unknown student")}
-          </h1>
-        </div>
-        {summaryQ.data && summaryQ.data.totalSeen > 0 ? (
+      <header className="grid gap-4 lg:grid-cols-[1.35fr_1fr]">
+        <BentoCard className="flex items-center gap-5 p-6" tone="focus">
+          <Avatar
+            name={studentQ.data?.displayName ?? studentQ.data?.name ?? "?"}
+            color={studentQ.data?.color ?? null}
+            size="lg"
+          />
+          <div className="flex min-w-0 flex-1 flex-col">
+            <Badge tone="focus" uppercase className="w-fit">
+              Student
+            </Badge>
+            <h1 className="mt-2 truncate text-4xl font-semibold leading-tight">
+              {studentQ.isLoading ? "Loading..." : studentName}
+            </h1>
+            <p className="mt-1 text-sm text-muted">Choose a lesson and keep the run alive.</p>
+          </div>
+        </BentoCard>
+        {summaryQ.data ? (
           <SummaryStats summary={summaryQ.data} streak={streakQ.data?.currentStreak ?? 0} />
-        ) : null}
+        ) : (
+          <BentoCard className="flex items-center justify-center text-sm text-muted">
+            Loading progress...
+          </BentoCard>
+        )}
       </header>
 
       {unlockedQ.data && unlockedQ.data.length > 0 ? (
@@ -109,47 +118,50 @@ function SummaryStats({
 }) {
   const accuracyPct = Math.round(summary.accuracy * 100);
   return (
-    <dl className="flex shrink-0 items-center gap-4 text-right text-xs text-muted">
-      {streak > 0 ? (
-        <div className="flex flex-col">
-          <dt className="text-[10px] uppercase tracking-widest text-muted-2">Streak</dt>
-          <dd className="flex items-center justify-end gap-1 font-mono text-sm text-warning">
-            <AchievementIcon icon="flame" className="h-3.5 w-3.5" />
-            {streak}d
-          </dd>
-        </div>
-      ) : null}
-      <div className="flex flex-col">
-        <dt className="text-[10px] uppercase tracking-widest text-muted-2">Seen</dt>
-        <dd className="font-mono text-sm text-app">{summary.totalSeen}</dd>
-      </div>
-      <div className="flex flex-col">
-        <dt className="text-[10px] uppercase tracking-widest text-muted-2">Due</dt>
-        <dd className="font-mono text-sm text-app">{summary.totalDue}</dd>
-      </div>
-      <div className="flex flex-col">
-        <dt className="text-[10px] uppercase tracking-widest text-muted-2">Accuracy</dt>
-        <dd className="font-mono text-sm text-app">{accuracyPct}%</dd>
-      </div>
+    <dl className="grid grid-cols-2 gap-3">
+      <BentoCard as="div" tone={streak > 0 ? "warning" : "neutral"} className="p-4">
+        <dt className="text-xs font-semibold uppercase text-muted-2">Streak</dt>
+        <dd className="mt-2 flex items-center gap-2 font-mono text-2xl text-app">
+          <AchievementIcon icon="flame" className="h-5 w-5 text-warning" />
+          {streak > 0 ? `${streak}d` : "0d"}
+        </dd>
+      </BentoCard>
+      <BentoCard as="div" tone="xp" className="p-4">
+        <dt className="text-xs font-semibold uppercase text-muted-2">Seen</dt>
+        <dd className="mt-2 font-mono text-2xl text-app">{summary.totalSeen}</dd>
+      </BentoCard>
+      <BentoCard as="div" tone={summary.totalDue > 0 ? "warning" : "success"} className="p-4">
+        <dt className="text-xs font-semibold uppercase text-muted-2">Due</dt>
+        <dd className="mt-2 font-mono text-2xl text-app">{summary.totalDue}</dd>
+      </BentoCard>
+      <BentoCard as="div" tone={accuracyPct >= 80 ? "success" : "accent"} className="p-4">
+        <dt className="text-xs font-semibold uppercase text-muted-2">Accuracy</dt>
+        <dd className="mt-2 font-mono text-2xl text-app">{accuracyPct}%</dd>
+        <ProgressMeter
+          value={accuracyPct}
+          max={100}
+          label="Accuracy progress"
+          tone={accuracyPct >= 80 ? "success" : "accent"}
+          className="mt-3"
+        />
+      </BentoCard>
     </dl>
   );
 }
 
 function AchievementsStrip({ ids }: { ids: string[] }) {
   return (
-    <section className="rounded-lg border border-border-subtle bg-surface-1 px-4 py-3">
-      <header className="mb-2 flex items-baseline justify-between">
-        <h2 className="text-sm font-semibold">Achievements</h2>
-        <span className="text-[10px] uppercase tracking-widest text-muted-2">
-          {ids.length} unlocked
-        </span>
+    <BentoCard tone="mastery" className="px-5 py-4">
+      <header className="mb-3 flex items-baseline justify-between">
+        <h2 className="text-base font-semibold">Achievements</h2>
+        <span className="text-xs font-semibold uppercase text-muted-2">{ids.length} unlocked</span>
       </header>
       <ul className="flex flex-wrap gap-2">
         {ids.map((id) => (
           <AchievementChip key={id} achievementId={id} />
         ))}
       </ul>
-    </section>
+    </BentoCard>
   );
 }
 
@@ -158,7 +170,7 @@ function AchievementChip({ achievementId }: { achievementId: string }) {
   if (!def) return null;
   return (
     <li
-      className="flex items-center gap-2 rounded-full border border-success/40 bg-success/10 px-3 py-1 text-xs text-success"
+      className="flex items-center gap-2 rounded-full border border-mastery/40 bg-mastery/10 px-3 py-1.5 text-xs text-mastery"
       title={def.description}
     >
       <AchievementIcon icon={def.icon} className="h-3.5 w-3.5" />
@@ -169,7 +181,7 @@ function AchievementChip({ achievementId }: { achievementId: string }) {
 
 function BookList({ studentId, books }: { studentId: number; books: Book[] }) {
   return (
-    <ul className="flex flex-col gap-6">
+    <ul className="flex flex-col gap-8">
       {books.map((book) => (
         <BookSection key={book.id} studentId={studentId} book={book} />
       ))}
@@ -185,17 +197,19 @@ function BookSection({ studentId, book }: { studentId: number; book: Book }) {
   const units = unitsQ.data ?? [];
 
   return (
-    <li className="flex flex-col gap-3">
-      <header className="flex items-baseline gap-2">
-        <h2 className="text-sm font-semibold">{book.title}</h2>
-        <span className="font-mono text-[10px] text-muted-2">{book.code}</span>
+    <li className="flex flex-col gap-4">
+      <header className="flex items-end justify-between gap-3 border-b border-border-subtle pb-3">
+        <div>
+          <h2 className="text-xl font-semibold">{book.title}</h2>
+          <span className="font-mono text-xs text-muted-2">{book.code}</span>
+        </div>
       </header>
       {unitsQ.isLoading ? (
         <p className="text-xs text-muted">Loading units…</p>
       ) : units.length === 0 ? (
         <p className="text-xs text-muted-2">No units imported yet.</p>
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="flex flex-col gap-5">
           {units.map((unit) => (
             <UnitGroup key={unit.id} studentId={studentId} unit={unit} />
           ))}
@@ -228,12 +242,14 @@ function UnitGroup({ studentId, unit }: { studentId: number; unit: Unit }) {
   if (lessons.length === 0) return null;
 
   return (
-    <li className="rounded-lg border border-border-subtle bg-surface-1 p-4">
+    <li>
       <header className="mb-3 flex items-baseline gap-2">
-        <span className="font-mono text-[11px] text-muted-2">{unit.code}</span>
-        <h3 className="text-sm font-medium">{unit.title}</h3>
+        <Badge tone="muted" uppercase>
+          {unit.code}
+        </Badge>
+        <h3 className="text-base font-semibold">{unit.title}</h3>
       </header>
-      <ul className="flex flex-col gap-2">
+      <ul className="grid grid-cols-1 gap-3 xl:grid-cols-2">
         {lessons.map((lesson, i) => {
           const stats = dueQs[i]?.data;
           const totalCount = stats?.totalCount ?? 0;
@@ -271,26 +287,39 @@ function LessonRow({
 }) {
   if (totalCount === 0) {
     return (
-      <div className="flex items-center justify-between rounded-md border border-border-subtle bg-surface-0/50 px-3 py-2 text-sm opacity-60">
+      <div className="flex min-h-28 items-center justify-between rounded-bento border border-dashed border-border-subtle bg-surface-1 px-5 py-4 text-sm opacity-70">
         <span className="text-muted">{lesson.title}</span>
-        <span className="text-[10px] text-muted-2">no entries</span>
+        <span className="text-xs text-muted-2">no entries</span>
       </div>
     );
   }
   const reviewCount = dueCount + newCount;
+  const completedCount = Math.max(totalCount - reviewCount, 0);
+  const tier = lessonTier({ dueCount, newCount, reviewCount });
   return (
     <Link
       to="/student/profile/$studentId/session/$lessonId"
       params={{ studentId: String(studentId), lessonId: String(lesson.id) }}
-      className="flex items-center justify-between rounded-md border border-border-subtle bg-surface-0/50 px-3 py-2 text-sm transition-colors hover:border-accent/50 hover:bg-surface-2"
+      className="group grid min-h-28 gap-4 rounded-bento border border-border-subtle bg-surface-1 px-5 py-4 text-sm shadow-card transition-[background-color,border-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-accent/40 hover:bg-surface-2 hover:shadow-lift sm:grid-cols-[1fr_auto]"
     >
-      <div className="flex items-center gap-2">
-        <Badge tone="accent" uppercase>
-          Vocab
-        </Badge>
-        <span className="font-medium">{lesson.title}</span>
+      <div className="flex min-w-0 flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge tone={tier.tone} uppercase>
+            {tier.label}
+          </Badge>
+          <Badge tone="accent" uppercase>
+            Vocab
+          </Badge>
+          <span className="truncate text-base font-semibold">{lesson.title}</span>
+        </div>
+        <ProgressMeter
+          value={completedCount}
+          max={totalCount}
+          label={`${lesson.title} progress`}
+          tone={reviewCount === 0 ? "success" : dueCount > 0 ? "warning" : "xp"}
+        />
       </div>
-      <div className="flex items-center gap-2 text-xs text-muted">
+      <div className="flex flex-wrap items-center gap-2 text-xs text-muted sm:justify-end">
         {dueCount > 0 ? (
           <Badge tone="warning" uppercase>
             {dueCount} due
@@ -306,11 +335,28 @@ function LessonRow({
             All caught up
           </Badge>
         ) : null}
-        <span className="font-mono text-[10px] text-muted-2">{totalCount}</span>
-        <span aria-hidden>→</span>
+        <span className="font-mono text-xs text-muted-2">{totalCount} cards</span>
+        <span aria-hidden className="text-muted-2 transition-colors group-hover:text-accent">
+          &gt;
+        </span>
       </div>
     </Link>
   );
+}
+
+function lessonTier({
+  dueCount,
+  newCount,
+  reviewCount,
+}: {
+  dueCount: number;
+  newCount: number;
+  reviewCount: number;
+}): { label: string; tone: "success" | "warning" | "xp" | "rare" } {
+  if (reviewCount === 0) return { label: "Mastery", tone: "success" };
+  if (dueCount > 0) return { label: "Focus", tone: "warning" };
+  if (newCount > 0) return { label: "New", tone: "xp" };
+  return { label: "Core", tone: "rare" };
 }
 
 // Re-export so consumers can build their own UnitWithLessons-shaped views.

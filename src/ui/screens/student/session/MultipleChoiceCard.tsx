@@ -44,18 +44,18 @@ export function MultipleChoiceCard({ exercise, onAnswer, outcome }: MultipleChoi
   return (
     <article
       data-exercise-kind="multiple_choice"
-      className="flex flex-col gap-6 rounded-2xl border border-border-subtle bg-surface-1 p-8 shadow-lg"
+      className="flex flex-col gap-7 rounded-bento border border-border-subtle bg-surface-1 p-8 shadow-card dark:shadow-card-dark"
     >
       <header className="flex items-center justify-between">
-        <Badge tone="accent" uppercase>
+        <Badge tone="rare" uppercase>
           Multiple choice
         </Badge>
-        <span className="text-xs uppercase tracking-widest text-muted-2">
-          {locked ? (outcome.correct ? "Correct ✓" : "Incorrect ✗") : "Pick the headword"}
+        <span className="text-xs font-semibold uppercase text-muted-2">
+          {locked ? (outcome.correct ? "Correct" : "Review") : "Pick the headword"}
         </span>
       </header>
 
-      <p className="text-balance text-xl font-medium leading-relaxed text-app">
+      <p className="text-balance text-2xl font-semibold leading-relaxed text-app">
         {exercise.payload.prompt}
       </p>
 
@@ -76,12 +76,14 @@ export function MultipleChoiceCard({ exercise, onAnswer, outcome }: MultipleChoi
                 aria-pressed={isPicked}
                 aria-label={`Option ${idx + 1}: ${option.text}`}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-lg border px-5 py-4 text-left text-base transition-colors",
+                  "flex min-h-16 w-full items-center gap-3 rounded-2xl border px-5 py-4 text-left text-base transition-colors",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-1",
                   tone,
                 )}
               >
-                <span className="font-mono text-xs text-muted-2">{idx + 1}</span>
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-border-subtle font-mono text-xs text-muted-2">
+                  {idx + 1}
+                </span>
                 <span className="flex-1 font-medium">{option.text}</span>
                 {locked && option.correct ? (
                   <span aria-hidden className="text-lg text-success">

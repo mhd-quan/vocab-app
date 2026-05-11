@@ -9,8 +9,8 @@ export interface AvatarProps {
 
 const SIZES: Record<NonNullable<AvatarProps["size"]>, string> = {
   sm: "h-8 w-8 text-xs",
-  md: "h-10 w-10 text-sm",
-  lg: "h-12 w-12 text-base",
+  md: "h-11 w-11 text-sm",
+  lg: "h-14 w-14 text-lg",
 };
 
 export function Avatar({ name, color, size = "md", className }: AvatarProps) {
@@ -24,6 +24,7 @@ export function Avatar({ name, color, size = "md", className }: AvatarProps) {
       aria-hidden="true"
       className={cn(
         "inline-flex select-none items-center justify-center rounded-full font-semibold uppercase",
+        "ring-2 ring-surface-1 shadow-sm",
         bg ? "" : "bg-surface-2 text-app",
         SIZES[size],
         className,

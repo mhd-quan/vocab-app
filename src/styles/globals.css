@@ -4,35 +4,47 @@
 
 @layer base {
   :root {
-    --color-fg: 20 25 35;
-    --color-muted: 94 104 122;
-    --color-muted-2: 141 150 166;
-    --color-surface-0: 248 249 252;
+    --color-fg: 24 30 42;
+    --color-muted: 83 96 113;
+    --color-muted-2: 124 137 154;
+    --color-surface-0: 244 247 250;
     --color-surface-1: 255 255 255;
-    --color-surface-2: 238 241 246;
-    --color-border-subtle: 224 229 238;
-    --color-border-strong: 195 203 218;
-    --color-accent: 70 105 225;
+    --color-surface-2: 235 240 246;
+    --color-surface-3: 224 232 241;
+    --color-border-subtle: 213 222 233;
+    --color-border-strong: 172 188 206;
+    --color-accent: 35 108 212;
     --color-accent-fg: 255 255 255;
-    --color-success: 34 150 92;
-    --color-warning: 188 132 36;
-    --color-danger: 210 58 70;
+    --color-success: 20 142 103;
+    --color-warning: 207 129 34;
+    --color-danger: 206 61 76;
+    --color-xp: 18 155 184;
+    --color-rare: 89 115 220;
+    --color-epic: 166 83 198;
+    --color-mastery: 218 163 42;
+    --color-focus: 13 148 136;
   }
 
   .dark {
-    --color-fg: 240 244 250;
-    --color-muted: 162 170 184;
-    --color-muted-2: 113 122 137;
-    --color-surface-0: 11 13 18;
-    --color-surface-1: 20 23 31;
-    --color-surface-2: 30 34 44;
-    --color-border-subtle: 38 43 55;
-    --color-border-strong: 60 67 84;
-    --color-accent: 124 156 255;
-    --color-accent-fg: 11 13 18;
-    --color-success: 80 200 140;
-    --color-warning: 240 180 80;
-    --color-danger: 240 90 100;
+    --color-fg: 241 245 249;
+    --color-muted: 156 168 184;
+    --color-muted-2: 108 121 139;
+    --color-surface-0: 13 16 23;
+    --color-surface-1: 24 29 38;
+    --color-surface-2: 36 43 55;
+    --color-surface-3: 47 56 71;
+    --color-border-subtle: 43 51 65;
+    --color-border-strong: 76 89 108;
+    --color-accent: 103 158 255;
+    --color-accent-fg: 8 12 20;
+    --color-success: 80 208 158;
+    --color-warning: 242 176 78;
+    --color-danger: 246 103 119;
+    --color-xp: 65 202 220;
+    --color-rare: 142 163 255;
+    --color-epic: 219 130 238;
+    --color-mastery: 248 200 82;
+    --color-focus: 45 212 183;
   }
 
   html,
@@ -44,6 +56,12 @@
   body {
     background: rgb(var(--color-surface-0));
     color: rgb(var(--color-fg));
+    font-family: "Atkinson Hyperlegible", "Lexend", "Inter", ui-sans-serif, system-ui, -apple-system,
+      "Segoe UI", sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-size: 16px;
+    letter-spacing: 0;
+    line-height: 1.5;
+    text-rendering: optimizeLegibility;
   }
 }
