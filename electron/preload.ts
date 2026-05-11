@@ -17,6 +17,7 @@ import type {
 } from "../src/data/types";
 import type { SelfGrade } from "../src/modules/exercises/types";
 import type { StreakStats } from "../src/modules/rewards";
+import type { GrammarTopicForPractice } from "./db/repositories/grammar";
 import type { VocabEntryFull } from "./db/repositories/vocab";
 
 const invoke = <T>(channel: string, payload?: unknown): Promise<T> =>
@@ -105,7 +106,7 @@ interface UpdateStudentPatch {
 const api = {
   app: {
     name: "vocab-app",
-    version: "0.3.2",
+    version: "0.4.0",
     platform: process.platform,
   },
 
@@ -154,6 +155,8 @@ const api = {
   grammar: {
     listByLesson: (input: { lessonId: number }) =>
       invoke<GrammarTopic[]>("grammar.listByLesson", input),
+    listPracticeByLesson: (input: { lessonId: number }) =>
+      invoke<GrammarTopicForPractice[]>("grammar.listPracticeByLesson", input),
     countByLesson: (input: { lessonId: number }) => invoke<number>("grammar.countByLesson", input),
     getById: (input: { id: number }) => invoke<GrammarTopic | null>("grammar.getById", input),
   },
@@ -203,6 +206,19 @@ const api = {
         progress: ItemProgress;
         unlockedAchievements: StudentAchievement[];
       }>("progress.recordAnswer", input),
+    recordContentAnswer: (input: {
+      studentId: number;
+      sessionId: number;
+      contentItemId: number;
+      outcome: OutcomePayload;
+      currentSessionRun?: number;
+      occurredAtIso?: string;
+    }) =>
+      invoke<{
+        event: LearningEvent;
+        progress: ItemProgress;
+        unlockedAchievements: StudentAchievement[];
+      }>("progress.recordContentAnswer", input),
     dueByLesson: (input: { studentId: number; lessonId: number; nowIso?: string }) =>
       invoke<DueLessonStats>("progress.dueByLesson", input),
     dueByStudent: (input: { studentId: number; nowIso?: string; limit?: number }) =>

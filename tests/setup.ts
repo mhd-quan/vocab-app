@@ -8,14 +8,14 @@ Object.defineProperty(window, "api", {
   value: {
     app: {
       name: "vocab-app",
-      version: "0.3.2",
+      version: "0.4.0",
       platform: "test",
     },
     meta: {
       ping: async () => "pong" as const,
       appInfo: async () => ({
         name: "vocab-app",
-        version: "0.3.2",
+        version: "0.4.0",
         schemaTablesExpected: 20,
         dbPath: ":memory:",
       }),
@@ -44,6 +44,7 @@ Object.defineProperty(window, "api", {
     },
     grammar: {
       listByLesson: async () => [],
+      listPracticeByLesson: async () => [],
       countByLesson: async () => 0,
       getById: async () => null,
     },
@@ -87,6 +88,30 @@ Object.defineProperty(window, "api", {
       }),
       endSession: async () => ({ ok: true }),
       recordAnswer: async () => ({
+        event: {
+          id: 1,
+          studentId: 1,
+          contentItemId: 1,
+          sessionId: 1,
+          kind: "answered_correct",
+          payload: null,
+          occurredAt: new Date(0),
+        },
+        progress: {
+          studentId: 1,
+          contentItemId: 1,
+          lastSeenAt: new Date(0),
+          nextDueAt: new Date(0),
+          ease: 250,
+          intervalDays: 1,
+          streak: 1,
+          totalCorrect: 1,
+          totalWrong: 0,
+          updatedAt: new Date(0),
+        },
+        unlockedAchievements: [],
+      }),
+      recordContentAnswer: async () => ({
         event: {
           id: 1,
           studentId: 1,

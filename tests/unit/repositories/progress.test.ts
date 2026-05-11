@@ -142,6 +142,39 @@ describe("ProgressRepository", () => {
     });
   });
 
+  describe("recordContentAnswer", () => {
+    it("records grammar topic progress through content_items", () => {
+      const { lesson } = seedCurriculum(db, { lessonKind: "grammar" });
+      const inserted = repos.grammar.upsertTopic({
+        lessonId: lesson.id,
+        sourceId: "present-simple",
+        slug: "present-simple",
+        title: "Present simple",
+        summaryMd: null,
+        explanationMd: null,
+        difficulty: 1,
+        tags: ["tense"],
+        metadata: null,
+        contentHash: "grammar-hash",
+      });
+      const contentItem = repos.progress.contentItemForGrammarTopic(inserted.topicId);
+      if (!contentItem) throw new Error("grammar content item not found");
+
+      const student = repos.students.create({ name: "Alice" });
+      const session = repos.progress.startSession({ studentId: student.id, mode: "grammar" });
+      const result = repos.progress.recordContentAnswer({
+        studentId: student.id,
+        sessionId: session.id,
+        contentItemId: contentItem.id,
+        outcome: correct(),
+        now: T0,
+      });
+
+      expect(result.event.contentItemId).toBe(contentItem.id);
+      expect(result.progress.totalCorrect).toBe(1);
+    });
+  });
+
   describe("dueByLesson", () => {
     it("returns zero counts for a lesson with no entries", () => {
       const { lesson } = seedCurriculum(db);
@@ -195,6 +228,31 @@ describe("ProgressRepository", () => {
       });
       expect(inside.dueCount).toBe(0);
       expect(inside.newCount).toBe(2);
+    });
+
+    it("counts grammar topics as lesson content items", () => {
+      const { lesson } = seedCurriculum(db, { lessonKind: "grammar" });
+      repos.grammar.upsertTopic({
+        lessonId: lesson.id,
+        sourceId: "present-simple",
+        slug: "present-simple",
+        title: "Present simple",
+        summaryMd: null,
+        explanationMd: null,
+        difficulty: null,
+        tags: null,
+        metadata: null,
+        contentHash: "grammar-hash",
+      });
+      const student = repos.students.create({ name: "Alice" });
+
+      const stats = repos.progress.dueByLesson({
+        studentId: student.id,
+        lessonId: lesson.id,
+        now: T0,
+      });
+
+      expect(stats).toEqual({ totalCount: 1, dueCount: 0, newCount: 1 });
     });
   });
 

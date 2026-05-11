@@ -74,6 +74,15 @@ Accepted `pos` values:
 `phrasal_verb`, `collocation`, `determiner`, `preposition`,
 `conjunction`, `pronoun`, `interjection`
 
+Rules:
+
+- Use canonical enum values exactly as written above.
+- Do not use legacy aliases such as `adj`, `adv`, `phrasal verb`,
+  `adj/verb`, or `verb/noun`.
+- For entries that can belong to more than one part of speech, choose the
+  primary card type and store the rest in `metadata.related_forms` or as
+  separate entries.
+
 Accepted `cefr` values:
 
 `A1`, `A2`, `B1`, `B2`, `C1`, `C2`
@@ -126,6 +135,39 @@ Accepted `kind` values:
 `plural`, `past`, `past_participle`, `gerund`, `third_person`,
 `comparative`, `superlative`, `infinitive`
 
+Rules:
+
+- `forms` is for inflectional forms of the same entry, such as verb tenses,
+  plurals, and adjective comparison.
+- Do not use `forms` for word-family derivations such as noun/adjective/adverb
+  forms. Use `metadata.related_forms` for that.
+
+### Word Formation Metadata
+
+Word-formation notes are accepted through `metadata.related_forms`. This keeps
+the entry compatible with the current importer while preserving the word-family
+teaching data.
+
+```yaml
+metadata:
+  related_forms:
+    - form: adaptation
+      pos: noun
+    - form: adaptable
+      pos: adjective
+    - form: adaptably
+      pos: adverb
+```
+
+Rules:
+
+- Use `form`, not `text`, inside `metadata.related_forms`.
+- `pos` inside `metadata.related_forms` is teaching metadata, but keep it
+  canonical when possible: `noun`, `verb`, `adjective`, `adverb`,
+  `phrasal_verb`, `phrase`.
+- This metadata is imported into the entry's JSON metadata; it does not create
+  separate vocab cards unless you add those as separate `entries`.
+
 ### Collocations
 
 ```yaml
@@ -176,6 +218,7 @@ Optional topic fields:
 - `examples`
 - `common_mistakes`
 - `checks`
+- `activities`
 - `metadata`
 
 Rules:
@@ -183,8 +226,10 @@ Rules:
 - `id` must match `[a-z0-9][a-z0-9_-]*`.
 - `slug` must be lowercase kebab case.
 - `difficulty` is an integer from `1` to `5`.
-- `patterns`, `examples`, `common_mistakes`, and `checks` are stored in the
-  topic metadata and rendered in the Content browser.
+- `patterns`, `examples`, `common_mistakes`, `checks`, and `activities` are
+  stored in topic metadata. Student grammar practice is built from
+  `activities`; legacy `checks` are used as simple rewrite exercises if a
+  topic has no activities.
 
 ### Grammar Patterns
 
@@ -242,13 +287,116 @@ Required: `prompt`, `answer`
 
 Optional: `explanation`
 
+### Grammar Activities
+
+Use `activities` to create the interactive grammar deck for students. A
+15-30 question session is assembled from the activities in the lesson's
+topics.
+
+Shared optional fields:
+
+- `id`
+- `prompt`
+- `instruction`
+- `hint`
+- `explanation`
+- `points`
+
+Supported `kind` values:
+
+- `fill_blank`
+- `choice`
+- `order`
+- `rewrite`
+- `prompted_sentence`
+- `error_correction`
+
+#### fill_blank
+
+```yaml
+activities:
+  - kind: fill_blank
+    sentence: She {{goes}} to school every day.
+    hint: he/she/it takes -s in present simple.
+    explanation: Use goes after she.
+```
+
+Rules:
+
+- Either mark one answer in `sentence` with `{{...}}`, or provide `answer`.
+- `accepted_answers` can add alternate correct answers.
+
+#### choice
+
+```yaml
+activities:
+  - kind: choice
+    question: He usually ___ at 7.
+    options:
+      - text: go
+      - text: goes
+        correct: true
+      - text: is going
+```
+
+Rules:
+
+- Provide at least two `options`.
+- Mark one or more options with `correct: true`, or provide `answer`.
+
+#### order
+
+```yaml
+activities:
+  - kind: order
+    prompt: Put the words in order.
+    tokens: [He, does, not, like, coffee]
+    answer: He does not like coffee.
+```
+
+#### rewrite
+
+```yaml
+activities:
+  - kind: rewrite
+    prompt: I watch TV after dinner.
+    instruction: Rewrite with he.
+    answer: He watches TV after dinner.
+```
+
+#### prompted_sentence
+
+```yaml
+activities:
+  - kind: prompted_sentence
+    instruction: Write a present continuous sentence.
+    words: [she, write, now]
+    answer: She is writing now.
+```
+
+#### error_correction
+
+```yaml
+activities:
+  - kind: error_correction
+    sentence: She go to school every day.
+    answer: She goes to school every day.
+    explanation: Add -s after she in present simple.
+```
+
+For text-graded activities, matching is case-insensitive, collapses repeated
+spaces, and ignores final sentence punctuation. Keep expected answers natural
+and add `accepted_answers` when more than one sentence is valid.
+
 ## Current Exercise Support
 
-Student practice currently builds exercises from vocabulary entries:
+Student practice currently builds these exercise types:
 
 - `flashcard`
 - `multiple_choice`
-
-Grammar topics import and render in the tutor Content browser. Grammar-specific
-student exercises can be added later without changing the YAML curriculum
-header or topic ids.
+- `grammar_fill_blank`
+- `grammar_choice`
+- `grammar_order`
+- `grammar_rewrite`
+- `grammar_prompted_sentence`
+- `grammar_error_correction`

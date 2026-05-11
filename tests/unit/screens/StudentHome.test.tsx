@@ -71,6 +71,20 @@ function lesson(): Lesson {
   };
 }
 
+function grammarLesson(): Lesson {
+  return {
+    id: 101,
+    unitId: 10,
+    ordinal: 2,
+    kind: "grammar",
+    title: "Present simple",
+    slug: "present-simple",
+    metadata: null,
+    createdAt: epoch,
+    updatedAt: epoch,
+  };
+}
+
 function renderHome() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   // Tiny memory router that mirrors the production tree shape so
@@ -150,6 +164,33 @@ describe("StudentHome", () => {
     expect(within(link).getByText(/1 new/i)).toBeInTheDocument();
     // Header summary stats.
     expect(screen.getByText("80%")).toBeInTheDocument();
+  });
+
+  it("renders grammar lessons as large lesson cards", async () => {
+    vi.spyOn(window.api.curriculum, "listLessonsByUnit").mockResolvedValue([
+      lesson(),
+      grammarLesson(),
+    ]);
+    vi.spyOn(window.api.progress, "dueByLesson").mockImplementation(async ({ lessonId }) =>
+      lessonId === 101
+        ? { totalCount: 3, dueCount: 0, newCount: 3 }
+        : { totalCount: 5, dueCount: 1, newCount: 0 },
+    );
+    vi.spyOn(window.api.progress, "studentSummary").mockResolvedValue({
+      totalSeen: 3,
+      totalCorrect: 4,
+      totalWrong: 1,
+      accuracy: 0.8,
+      totalDue: 1,
+    });
+
+    renderHome();
+
+    await waitFor(() => expect(screen.getByText("Present simple")).toBeInTheDocument());
+    const link = screen.getByRole("link", { name: /Present simple/ });
+    expect(within(link).getByText(/Grammar/i)).toBeInTheDocument();
+    expect(within(link).getByText(/3 new/i)).toBeInTheDocument();
+    expect(within(link).getByText(/3 topics/i)).toBeInTheDocument();
   });
 
   it("renders the empty curriculum state when no books are imported", async () => {

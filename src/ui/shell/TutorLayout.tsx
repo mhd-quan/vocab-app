@@ -32,7 +32,7 @@ export function TutorLayout() {
           <div className="flex flex-col gap-1">
             <span className="text-xs font-semibold uppercase text-muted">Tutor</span>
             <span className="text-lg font-semibold">Vocab App</span>
-            <span className="font-mono text-[11px] text-muted-2">v0.3.2</span>
+            <span className="font-mono text-[11px] text-muted-2">v0.4.0</span>
           </div>
         }
         items={ITEMS}

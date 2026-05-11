@@ -1,5 +1,6 @@
 import type { Book, Lesson, Unit } from "@/data/types";
 import { api } from "@/lib/api";
+import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
 import { getAchievement } from "@/modules/rewards";
 import { Avatar } from "@/ui/components/Avatar";
@@ -20,13 +21,13 @@ import { Link, useParams } from "@tanstack/react-router";
 
 interface UnitWithLessons {
   unit: Unit;
-  lessons: Array<Lesson & { vocabCount: number }>;
+  lessons: Lesson[];
 }
 
 /**
  * The student's home screen: identifies the student, then surfaces what
- * they can practise right now. Each vocab lesson shows three counters:
- *   - total entries imported,
+ * they can practise right now. Each lesson card shows three counters:
+ *   - total imported content items,
  *   - due now (item_progress.next_due_at ≤ now), and
  *   - never seen (no item_progress row yet).
  * The numbers come from `progress.dueByLesson` (PR #8).
@@ -248,7 +249,7 @@ function UnitGroup({ studentId, unit }: { studentId: number; unit: Unit }) {
     queryKey: queryKeys.curriculum.lessons(unit.id),
     queryFn: () => api.curriculum.listLessonsByUnit({ unitId: unit.id }),
   });
-  const lessons = (lessonsQ.data ?? []).filter((l) => l.kind === "vocabulary");
+  const lessons = lessonsQ.data ?? [];
 
   // Due / new / total are all derivable from one IPC call per lesson —
   // batched here via useQueries so they share the renderer's cache and
@@ -281,8 +282,9 @@ function UnitGroup({ studentId, unit }: { studentId: number; unit: Unit }) {
           const newCount = stats?.newCount ?? totalCount;
           return (
             <li key={lesson.id}>
-              <LessonRow
+              <LessonCard
                 studentId={studentId}
+                unit={unit}
                 lesson={lesson}
                 totalCount={totalCount}
                 dueCount={dueCount}
@@ -296,24 +298,43 @@ function UnitGroup({ studentId, unit }: { studentId: number; unit: Unit }) {
   );
 }
 
-function LessonRow({
+function LessonCard({
   studentId,
+  unit,
   lesson,
   totalCount,
   dueCount,
   newCount,
 }: {
   studentId: number;
+  unit: Unit;
   lesson: Lesson;
   totalCount: number;
   dueCount: number;
   newCount: number;
 }) {
+  const type = lesson.kind === "grammar" ? "Grammar" : "Vocabulary";
+  const emptyLabel = lesson.kind === "grammar" ? "no topics" : "no entries";
+  const countLabel = lesson.kind === "grammar" ? "topics" : "cards";
+  const iconTone = lesson.kind === "grammar" ? "text-focus" : "text-accent";
+  const typeTone = lesson.kind === "grammar" ? "focus" : "accent";
+
   if (totalCount === 0) {
     return (
-      <div className="flex min-h-28 items-center justify-between rounded-bento border border-dashed border-border-subtle bg-surface-1 px-5 py-4 text-sm opacity-70">
-        <span className="text-muted">{lesson.title}</span>
-        <span className="text-xs text-muted-2">no entries</span>
+      <div className="flex min-h-36 flex-col justify-between gap-3 rounded-bento border border-dashed border-border-subtle bg-surface-1 px-5 py-4 text-sm opacity-80">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge tone="muted" uppercase>
+            {unit.code}
+          </Badge>
+          <Badge tone={typeTone} uppercase>
+            {type}
+          </Badge>
+          <span className="text-base font-semibold text-app">{lesson.title}</span>
+        </div>
+        {unit.summaryMd ? (
+          <p className="line-clamp-2 text-sm text-muted">{unit.summaryMd}</p>
+        ) : null}
+        <span className="text-xs text-muted-2">{emptyLabel}</span>
       </div>
     );
   }
@@ -324,19 +345,24 @@ function LessonRow({
     <Link
       to="/student/profile/$studentId/session/$lessonId"
       params={{ studentId: String(studentId), lessonId: String(lesson.id) }}
-      className="motion-card group grid min-h-32 gap-4 rounded-bento border border-border-subtle bg-surface-1 px-5 py-4 text-sm shadow-card transition-[background-color,border-color,box-shadow,transform] [--glow-rgb:var(--color-accent)] hover:-translate-y-1 hover:border-accent/40 hover:bg-surface-2 hover:shadow-lift sm:grid-cols-[1fr_auto]"
+      className="motion-card group grid min-h-44 gap-4 rounded-bento border border-border-subtle bg-surface-1 px-5 py-4 text-sm shadow-card transition-[background-color,border-color,box-shadow,transform] [--glow-rgb:var(--color-accent)] hover:-translate-y-1 hover:border-accent/40 hover:bg-surface-2 hover:shadow-lift sm:grid-cols-[1fr_auto]"
     >
       <div className="flex min-w-0 flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone={tier.tone} uppercase>
             {tier.label}
           </Badge>
-          <Badge tone="accent" uppercase>
-            Vocab
+          <Badge tone={typeTone} uppercase>
+            {type}
           </Badge>
-          <LessonIcon className="h-6 w-6 text-accent" />
-          <span className="truncate text-base font-semibold">{lesson.title}</span>
+          <LessonIcon className={cn("h-7 w-7", iconTone)} />
+          <span className="truncate text-base font-semibold">
+            {unit.code}: {lesson.title}
+          </span>
         </div>
+        {unit.summaryMd ? (
+          <p className="line-clamp-2 max-w-2xl text-sm leading-6 text-muted">{unit.summaryMd}</p>
+        ) : null}
         <ProgressMeter
           value={completedCount}
           max={totalCount}
@@ -360,7 +386,9 @@ function LessonRow({
             All caught up
           </Badge>
         ) : null}
-        <span className="font-mono text-xs text-muted-2">{totalCount} cards</span>
+        <span className="font-mono text-xs text-muted-2">
+          {totalCount} {countLabel}
+        </span>
         <span aria-hidden className="text-muted-2 transition-colors group-hover:text-accent">
           &gt;
         </span>

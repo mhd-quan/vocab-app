@@ -38,6 +38,7 @@ export const queryKeys = {
   },
   grammar: {
     list: (lessonId: number) => ["grammar", "list", lessonId] as const,
+    practice: (lessonId: number) => ["grammar", "practice", lessonId] as const,
     count: (lessonId: number) => ["grammar", "count", lessonId] as const,
     byId: (id: number) => ["grammar", "byId", id] as const,
   },
