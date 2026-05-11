@@ -1,0 +1,160 @@
+# Vocab YAML template
+# Copy this file into content/books/<book-code>/unit-NN-vocab.yaml.
+
+book: destination-b1
+book_title: Destination B1
+
+unit:
+  ordinal: 1
+  code: U01
+  title: People & Relationships
+  summary_md: Optional short markdown summary for the unit.
+
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: Family & Friends
+  slug: family-and-friends
+
+entries:
+  - id: achievement-noun
+    headword: achievement
+    lemma: achievement
+    pos: noun
+    ipa: /əˈtʃiːvmənt/
+    cefr: B1
+    frequency_rank: 1200
+    image_ref: images/achievement.png
+    audio_ref: audio/achievement.mp3
+    tags: [school, success]
+    metadata:
+      source: template
+    senses:
+      - definition_en: something good that you have worked hard to do
+        definition_vi: thành tựu
+        register: neutral
+        domain: education
+        notes_md: Often used with academic or personal goals.
+    examples:
+      - text: Passing the exam was a real {{achievement}}.
+        translation: Vượt qua kỳ thi là một thành tựu thật sự.
+        cloze_hint: a__________
+        audio_ref: audio/examples/achievement-01.mp3
+        source_ref: teacher-made
+    forms:
+      - kind: plural
+        text: achievements
+    collocations:
+      - collocation: major achievement
+        pattern: adj+noun
+        example: Winning the prize was a major achievement.
+      - collocation: academic achievement
+        pattern: noun+noun
+    relations:
+      - relation: synonym
+        text: accomplishment
+      - relation: antonym
+        text: failure
+      - relation: hypernym
+        text: success
+      - relation: hyponym
+        text: award
+
+  - id: adapt-verb
+    headword: adapt
+    pos: verb
+    ipa: /əˈdæpt/
+    cefr: B2
+    tags: [change, work]
+    senses:
+      - definition_en: to change your behavior so that you can deal with a new situation
+        definition_vi: thích nghi
+        register: neutral
+    examples:
+      - text: New students need time to {{adapt}} to the course.
+        translation: Học sinh mới cần thời gian để thích nghi với khóa học.
+    forms:
+      - kind: past
+        text: adapted
+      - kind: past_participle
+        text: adapted
+      - kind: gerund
+        text: adapting
+      - kind: third_person
+        text: adapts
+      - kind: infinitive
+        text: to adapt
+    collocations:
+      - collocation: adapt a plan
+        pattern: verb+noun
+      - collocation: adapt to change
+        pattern: verb+prep
+      - collocation: quickly adapt
+        pattern: adv+verb
+    relations:
+      - relation: derived_from
+        text: adaptable
+      - relation: confused_with
+        text: adopt
+
+  - id: accurate-adjective
+    headword: accurate
+    pos: adjective
+    ipa: /ˈækjərət/
+    cefr: B1
+    tags: [quality]
+    senses:
+      - definition_en: correct and true in every detail
+        definition_vi: chính xác
+    examples:
+      - text: The report gives an {{accurate}} picture of the problem.
+        translation: Báo cáo đưa ra một bức tranh chính xác về vấn đề.
+    forms:
+      - kind: comparative
+        text: more accurate
+      - kind: superlative
+        text: most accurate
+    collocations:
+      - collocation: accurate in detail
+        pattern: adj+prep
+      - collocation: highly accurate
+        pattern: adv+adj
+    relations:
+      - relation: see_also
+        text: precise
+
+  - id: look-up-phrasal_verb
+    headword: look up
+    pos: phrasal_verb
+    cefr: B1
+    tags: [study]
+    senses:
+      - definition_en: to search for information in a book or online
+        definition_vi: tra cứu
+    examples:
+      - text: You should {{look up}} any word you do not know.
+        translation: Bạn nên tra cứu bất kỳ từ nào bạn không biết.
+    collocations:
+      - collocation: look up a word
+        pattern: other
+    relations:
+      - relation: synonym
+        text: search for
+
+  - id: break-the-ice-idiom
+    headword: break the ice
+    pos: idiom
+    cefr: B2
+    tags: [conversation, relationships]
+    senses:
+      - definition_en: to make people feel more relaxed in a social situation
+        definition_vi: phá vỡ sự ngại ngùng ban đầu
+    examples:
+      - text: A short game can {{break the ice}} at the start of class.
+        translation: Một trò chơi ngắn có thể phá vỡ sự ngại ngùng đầu buổi học.
+    collocations:
+      - collocation: way to break the ice
+        pattern: noun+prep
+    relations:
+      - relation: see_also
+        text: small talk

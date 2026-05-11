@@ -6,9 +6,10 @@ import { Badge } from "@/ui/components/Badge";
 import { ClozeText } from "@/ui/components/ClozeText";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { PageHeader } from "@/ui/components/PageHeader";
-import { useQuery } from "@tanstack/react-query";
+import { EditIcon } from "@/ui/shell/icons";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearch } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import type { VocabEntryFull } from "../../../../electron/db/repositories/vocab";
 
 export function TutorContent() {
@@ -98,27 +99,140 @@ function BooksPane({
       ) : (
         <ul className="flex flex-col gap-0.5 px-2 py-2">
           {books.map((book) => (
-            <li key={book.id}>
-              <button
-                type="button"
-                onClick={() => onSelect(book.id)}
-                className={cn(
-                  "w-full rounded-md px-3 py-2 text-left text-sm transition-colors",
-                  selectedId === book.id
-                    ? "bg-surface-2 text-app"
-                    : "text-muted hover:bg-surface-2 hover:text-app",
-                )}
-              >
-                <span className="block truncate font-medium">{book.title}</span>
-                <span className="block truncate font-mono text-[10px] text-muted-2">
-                  {book.code}
-                </span>
-              </button>
-            </li>
+            <BookRow
+              key={book.id}
+              book={book}
+              selected={selectedId === book.id}
+              onSelect={() => onSelect(book.id)}
+            />
           ))}
         </ul>
       )}
     </aside>
+  );
+}
+
+function BookRow({
+  book,
+  selected,
+  onSelect,
+}: {
+  book: Book;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState(book.title);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!editing) setTitle(book.title);
+  }, [book.title, editing]);
+
+  useEffect(() => {
+    if (editing) {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }
+  }, [editing]);
+
+  async function save(nextTitle: string) {
+    const trimmed = nextTitle.trim();
+    if (!trimmed) {
+      setError("Title is required.");
+      return;
+    }
+    if (trimmed === book.title) {
+      setEditing(false);
+      setError(null);
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      await api.curriculum.updateBookTitle({ id: book.id, title: trimmed });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.curriculum.books() });
+      setEditing(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update title.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    void save(title);
+  }
+
+  if (editing) {
+    return (
+      <li>
+        <form
+          className={cn(
+            "rounded-md border px-2 py-2",
+            selected ? "border-accent bg-accent/10" : "border-border-subtle bg-surface-1",
+          )}
+          onSubmit={onSubmit}
+        >
+          <input
+            ref={inputRef}
+            value={title}
+            disabled={saving}
+            onChange={(e) => setTitle(e.target.value)}
+            onBlur={() => {
+              if (!saving) void save(title);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                e.preventDefault();
+                setTitle(book.title);
+                setError(null);
+                setEditing(false);
+              }
+            }}
+            aria-label={`Edit title for ${book.code}`}
+            className="w-full rounded border border-border-subtle bg-surface-0 px-2 py-1 text-sm font-medium text-app outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/30"
+          />
+          <span className="mt-1 block truncate font-mono text-[10px] text-muted-2">
+            {book.code}
+          </span>
+          {error ? <span className="mt-1 block text-xs text-danger">{error}</span> : null}
+        </form>
+      </li>
+    );
+  }
+
+  return (
+    <li>
+      <div
+        className={cn(
+          "group grid grid-cols-[1fr_auto] items-center rounded-md transition-colors",
+          selected ? "bg-surface-2 text-app" : "text-muted hover:bg-surface-2 hover:text-app",
+        )}
+      >
+        <button
+          type="button"
+          onClick={onSelect}
+          onDoubleClick={() => setEditing(true)}
+          className="min-w-0 px-3 py-2 text-left text-sm"
+        >
+          <span className="block truncate font-medium">{book.title}</span>
+          <span className="block truncate font-mono text-[10px] text-muted-2">{book.code}</span>
+        </button>
+        <button
+          type="button"
+          aria-label={`Edit ${book.title}`}
+          onClick={() => setEditing(true)}
+          className="mr-1 inline-flex h-7 w-7 items-center justify-center rounded text-muted-2 opacity-70 transition hover:bg-surface-1 hover:text-app group-hover:opacity-100"
+        >
+          <EditIcon />
+        </button>
+      </div>
+    </li>
   );
 }
 
@@ -273,7 +387,7 @@ function EntryButton({
 }) {
   const ref = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    if (selected && ref.current) {
+    if (selected && typeof ref.current?.scrollIntoView === "function") {
       ref.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   }, [selected]);

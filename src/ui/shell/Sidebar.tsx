@@ -14,15 +14,17 @@ export interface SidebarProps {
   brand: ReactNode;
   items: SidebarItem[];
   footer?: ReactNode;
+  topInset?: boolean;
 }
 
-export function Sidebar({ brand, items, footer }: SidebarProps) {
+export function Sidebar({ brand, items, footer, topInset }: SidebarProps) {
   const { location } = useRouterState();
   const currentPath = location.pathname;
 
   return (
     <aside className="flex h-full w-64 flex-col border-r border-border-subtle bg-surface-1">
-      <div className="px-5 py-6">{brand}</div>
+      {topInset && <div className="h-10 w-full shrink-0 [-webkit-app-region:drag]" />}
+      <div className={cn("px-5 pb-6", topInset ? "pt-2" : "pt-6")}>{brand}</div>
       <nav className="flex flex-1 flex-col gap-0.5 px-3" aria-label="Tutor navigation">
         {items.map((item) => {
           const active = currentPath === item.to || currentPath.startsWith(`${item.to}/`);

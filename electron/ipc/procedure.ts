@@ -1,8 +1,10 @@
+import type { BrowserWindow } from "electron";
 import type { z } from "zod";
 import type { Repositories } from "../db/repositories";
 
 export interface ProcedureContext {
   repos: Repositories;
+  getMainWindow?: () => BrowserWindow | null;
 }
 
 export interface Procedure<TInput, TOutput> {

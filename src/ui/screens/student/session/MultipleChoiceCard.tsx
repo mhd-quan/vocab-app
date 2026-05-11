@@ -55,7 +55,9 @@ export function MultipleChoiceCard({ exercise, onAnswer, outcome }: MultipleChoi
         </span>
       </header>
 
-      <p className="text-balance text-xl font-medium leading-relaxed text-app">{exercise.payload.prompt}</p>
+      <p className="text-balance text-xl font-medium leading-relaxed text-app">
+        {exercise.payload.prompt}
+      </p>
 
       <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {exercise.payload.options.map((option, idx) => {

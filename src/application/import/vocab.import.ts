@@ -164,9 +164,10 @@ export class ImportVocabUseCase {
     const items: ImportItemResult[] = [];
     const { repos } = this.deps;
 
+    const existingBook = repos.curriculum.getBookByCode(parsed.book);
     const book = repos.curriculum.upsertBook({
       code: parsed.book,
-      title: parsed.book, // Title is set when book.yaml metadata file lands; using code as fallback.
+      title: parsed.bookTitle ?? existingBook?.title ?? deriveTitle(parsed.book),
     });
     repos.imports.logItem({
       runId,
@@ -308,6 +309,13 @@ function formatParseError(err: unknown): { sourceId?: string; message: string } 
     };
   }
   return { message: formatError(err) };
+}
+
+function deriveTitle(code: string): string {
+  return code
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
 }
 
 /**

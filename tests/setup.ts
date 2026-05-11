@@ -8,15 +8,16 @@ Object.defineProperty(window, "api", {
   value: {
     app: {
       name: "vocab-app",
-      version: "0.0.1",
+      version: "0.2.0",
       platform: "test",
     },
     meta: {
       ping: async () => "pong" as const,
       appInfo: async () => ({
         name: "vocab-app",
-        version: "0.0.1",
+        version: "0.2.0",
         schemaTablesExpected: 20,
+        dbPath: ":memory:",
       }),
     },
     auth: {
@@ -33,6 +34,7 @@ Object.defineProperty(window, "api", {
       getUnitById: async () => null,
       listLessonsByUnit: async () => [],
       getLessonById: async () => null,
+      updateBookTitle: async () => undefined,
     },
     vocab: {
       listByLesson: async () => [],
@@ -58,6 +60,16 @@ Object.defineProperty(window, "api", {
     imports: {
       listRuns: async () => [],
       listItems: async () => [],
+      uploadFile: async () => ({
+        filePath: "",
+        fileHash: "",
+        status: "failed",
+        durationMs: 0,
+        stats: { inserted: 0, updated: 0, skipped: 0, failed: 0 },
+        items: [],
+        errors: [],
+      }),
+      openImportDialog: async () => ({ canceled: true, results: [] }),
     },
     progress: {
       startSession: async () => ({
@@ -118,4 +130,28 @@ Object.defineProperty(window, "api", {
     },
   },
   writable: true,
+});
+
+Object.defineProperty(window, "matchMedia", {
+  writable: true,
+  value: (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+    addListener: () => undefined,
+    removeListener: () => undefined,
+    dispatchEvent: () => false,
+  }),
+});
+
+Object.defineProperty(window, "scrollTo", {
+  writable: true,
+  value: () => undefined,
+});
+
+Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+  writable: true,
+  value: () => undefined,
 });

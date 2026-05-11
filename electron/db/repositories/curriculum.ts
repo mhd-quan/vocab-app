@@ -105,6 +105,10 @@ export function createCurriculumRepository(db: AppDatabase) {
       return row;
     },
 
+    updateBookTitle(id: number, title: string): void {
+      db.update(books).set({ title, updatedAt: new Date() }).where(eq(books.id, id)).run();
+    },
+
     /** Insert-or-update by `(book_id, code)`. */
     upsertUnit(input: UpsertUnitInput): Unit {
       const values: NewUnit = {
