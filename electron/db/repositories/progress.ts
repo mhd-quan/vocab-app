@@ -50,6 +50,16 @@ export interface RecordAnswerInput {
   now?: Date;
 }
 
+export interface RecordContentAnswerInput {
+  studentId: number;
+  sessionId: number;
+  /** content_items.id — supports grammar_topic and future exercise rows. */
+  contentItemId: number;
+  outcome: GradeOutcome;
+  currentSessionRun?: number;
+  now?: Date;
+}
+
 export interface RecordAnswerResult {
   event: LearningEvent;
   progress: ItemProgress;
@@ -117,6 +127,128 @@ export interface TutorOverviewRow {
  * avoid baking complex aggregations until we know exactly what we need.
  */
 export function createProgressRepository(db: AppDatabase) {
+  const contentItemForEntry = (entryId: number): { id: number; lessonId: number } | null => {
+    const row = db
+      .select({ id: contentItems.id, lessonId: contentItems.lessonId })
+      .from(contentItems)
+      .where(and(eq(contentItems.refTable, "vocab_entries"), eq(contentItems.refId, entryId)))
+      .get();
+    return row ?? null;
+  };
+
+  const contentItemForGrammarTopic = (topicId: number): { id: number; lessonId: number } | null => {
+    const row = db
+      .select({ id: contentItems.id, lessonId: contentItems.lessonId })
+      .from(contentItems)
+      .where(and(eq(contentItems.refTable, "grammar_topics"), eq(contentItems.refId, topicId)))
+      .get();
+    return row ?? null;
+  };
+
+  const recordResolvedAnswer = (input: RecordContentAnswerInput): RecordAnswerResult => {
+    const now = input.now ?? new Date();
+    return db.transaction((tx) => {
+      const itemRow = tx
+        .select({ id: contentItems.id, lessonId: contentItems.lessonId })
+        .from(contentItems)
+        .where(eq(contentItems.id, input.contentItemId))
+        .get();
+      if (!itemRow) {
+        throw new Error(`No content_items row for id ${input.contentItemId} — re-run import?`);
+      }
+
+      const kind: LearningEventKind = input.outcome.correct ? "answered_correct" : "answered_wrong";
+
+      const event = tx
+        .insert(learningEvents)
+        .values({
+          studentId: input.studentId,
+          contentItemId: itemRow.id,
+          sessionId: input.sessionId,
+          kind,
+          payload: {
+            correct: input.outcome.correct,
+            selfGrade: input.outcome.selfGrade,
+            selectedIndex: input.outcome.selectedIndex,
+          },
+          occurredAt: now,
+        })
+        .returning()
+        .get();
+      if (!event) throw new Error("Failed to insert learning_event");
+
+      const prevRow = tx
+        .select()
+        .from(itemProgress)
+        .where(
+          and(
+            eq(itemProgress.studentId, input.studentId),
+            eq(itemProgress.contentItemId, itemRow.id),
+          ),
+        )
+        .get();
+
+      const quality = qualityFromOutcome(input.outcome);
+      const next = applyAnswer({
+        prev: prevRow
+          ? {
+              ease: prevRow.ease ?? 250,
+              intervalDays: prevRow.intervalDays ?? 0,
+              repetitions: prevRow.streak,
+            }
+          : null,
+        quality,
+        now,
+      });
+
+      const progressValues = {
+        studentId: input.studentId,
+        contentItemId: itemRow.id,
+        lastSeenAt: next.lastSeenAt,
+        nextDueAt: next.nextDueAt,
+        ease: next.ease,
+        intervalDays: next.intervalDays,
+        streak: next.repetitions,
+        totalCorrect: (prevRow?.totalCorrect ?? 0) + (input.outcome.correct ? 1 : 0),
+        totalWrong: (prevRow?.totalWrong ?? 0) + (input.outcome.correct ? 0 : 1),
+        updatedAt: now,
+      };
+
+      const progress = tx
+        .insert(itemProgress)
+        .values(progressValues)
+        .onConflictDoUpdate({
+          target: [itemProgress.studentId, itemProgress.contentItemId],
+          set: {
+            lastSeenAt: progressValues.lastSeenAt,
+            nextDueAt: progressValues.nextDueAt,
+            ease: progressValues.ease,
+            intervalDays: progressValues.intervalDays,
+            streak: progressValues.streak,
+            totalCorrect: progressValues.totalCorrect,
+            totalWrong: progressValues.totalWrong,
+            updatedAt: progressValues.updatedAt,
+          },
+        })
+        .returning()
+        .get();
+      if (!progress) throw new Error("Failed to upsert item_progress");
+
+      let unlockedAchievements: StudentAchievement[] = [];
+      if (input.outcome.correct) {
+        const stats = rewardsInternal.buildStats(tx, {
+          studentId: input.studentId,
+          currentSessionRun: input.currentSessionRun,
+          now,
+        });
+        const earned = evaluateAchievements(stats);
+        unlockedAchievements = rewardsInternal.persistNewlyEarned(tx, input.studentId, earned, now);
+      }
+
+      return { event, progress, unlockedAchievements };
+    });
+  };
+
   return {
     startSession({ studentId, mode }: StartSessionInput): PracticeSession {
       const row = db.insert(practiceSessions).values({ studentId, mode }).returning().get();
@@ -135,14 +267,9 @@ export function createProgressRepository(db: AppDatabase) {
      * Look up the `content_items` row for a vocab entry. There's exactly
      * one (the import pipeline creates it on first insert).
      */
-    contentItemForEntry(entryId: number): { id: number; lessonId: number } | null {
-      const row = db
-        .select({ id: contentItems.id, lessonId: contentItems.lessonId })
-        .from(contentItems)
-        .where(and(eq(contentItems.refTable, "vocab_entries"), eq(contentItems.refId, entryId)))
-        .get();
-      return row ?? null;
-    },
+    contentItemForEntry,
+
+    contentItemForGrammarTopic,
 
     /**
      * Persist an answered exercise: append a `learning_events` row and
@@ -151,120 +278,22 @@ export function createProgressRepository(db: AppDatabase) {
      * materialised progress stay consistent.
      */
     recordAnswer(input: RecordAnswerInput): RecordAnswerResult {
-      const now = input.now ?? new Date();
-      return db.transaction((tx) => {
-        const itemRow = tx
-          .select({ id: contentItems.id, lessonId: contentItems.lessonId })
-          .from(contentItems)
-          .where(
-            and(eq(contentItems.refTable, "vocab_entries"), eq(contentItems.refId, input.entryId)),
-          )
-          .get();
-        if (!itemRow) {
-          throw new Error(`No content_items row for vocab entry ${input.entryId} — re-run import?`);
-        }
-
-        const kind: LearningEventKind = input.outcome.correct
-          ? "answered_correct"
-          : "answered_wrong";
-
-        const event = tx
-          .insert(learningEvents)
-          .values({
-            studentId: input.studentId,
-            contentItemId: itemRow.id,
-            sessionId: input.sessionId,
-            kind,
-            payload: {
-              correct: input.outcome.correct,
-              selfGrade: input.outcome.selfGrade,
-              selectedIndex: input.outcome.selectedIndex,
-            },
-            occurredAt: now,
-          })
-          .returning()
-          .get();
-        if (!event) throw new Error("Failed to insert learning_event");
-
-        const prevRow = tx
-          .select()
-          .from(itemProgress)
-          .where(
-            and(
-              eq(itemProgress.studentId, input.studentId),
-              eq(itemProgress.contentItemId, itemRow.id),
-            ),
-          )
-          .get();
-
-        const quality = qualityFromOutcome(input.outcome);
-        const next = applyAnswer({
-          prev: prevRow
-            ? {
-                ease: prevRow.ease ?? 250,
-                intervalDays: prevRow.intervalDays ?? 0,
-                repetitions: prevRow.streak,
-              }
-            : null,
-          quality,
-          now,
-        });
-
-        const progressValues = {
-          studentId: input.studentId,
-          contentItemId: itemRow.id,
-          lastSeenAt: next.lastSeenAt,
-          nextDueAt: next.nextDueAt,
-          ease: next.ease,
-          intervalDays: next.intervalDays,
-          streak: next.repetitions,
-          totalCorrect: (prevRow?.totalCorrect ?? 0) + (input.outcome.correct ? 1 : 0),
-          totalWrong: (prevRow?.totalWrong ?? 0) + (input.outcome.correct ? 0 : 1),
-          updatedAt: now,
-        };
-
-        const progress = tx
-          .insert(itemProgress)
-          .values(progressValues)
-          .onConflictDoUpdate({
-            target: [itemProgress.studentId, itemProgress.contentItemId],
-            set: {
-              lastSeenAt: progressValues.lastSeenAt,
-              nextDueAt: progressValues.nextDueAt,
-              ease: progressValues.ease,
-              intervalDays: progressValues.intervalDays,
-              streak: progressValues.streak,
-              totalCorrect: progressValues.totalCorrect,
-              totalWrong: progressValues.totalWrong,
-              updatedAt: progressValues.updatedAt,
-            },
-          })
-          .returning()
-          .get();
-        if (!progress) throw new Error("Failed to upsert item_progress");
-
-        // Re-evaluate achievements inside the same transaction so the
-        // newly-written event + progress are visible. A wrong answer
-        // can never *unlock* anything new (every rule is monotonically
-        // increasing), so we skip the work in that case.
-        let unlockedAchievements: StudentAchievement[] = [];
-        if (input.outcome.correct) {
-          const stats = rewardsInternal.buildStats(tx, {
-            studentId: input.studentId,
-            currentSessionRun: input.currentSessionRun,
-            now,
-          });
-          const earned = evaluateAchievements(stats);
-          unlockedAchievements = rewardsInternal.persistNewlyEarned(
-            tx,
-            input.studentId,
-            earned,
-            now,
-          );
-        }
-
-        return { event, progress, unlockedAchievements };
+      const itemRow = contentItemForEntry(input.entryId);
+      if (!itemRow) {
+        throw new Error(`No content_items row for vocab entry ${input.entryId} — re-run import?`);
+      }
+      return recordResolvedAnswer({
+        studentId: input.studentId,
+        sessionId: input.sessionId,
+        contentItemId: itemRow.id,
+        outcome: input.outcome,
+        currentSessionRun: input.currentSessionRun,
+        now: input.now,
       });
+    },
+
+    recordContentAnswer(input: RecordContentAnswerInput): RecordAnswerResult {
+      return recordResolvedAnswer(input);
     },
 
     /**
@@ -284,7 +313,7 @@ export function createProgressRepository(db: AppDatabase) {
       const lessonItems = db
         .select({ id: contentItems.id })
         .from(contentItems)
-        .where(and(eq(contentItems.lessonId, lessonId), eq(contentItems.refTable, "vocab_entries")))
+        .where(eq(contentItems.lessonId, lessonId))
         .all();
       const totalCount = lessonItems.length;
       if (totalCount === 0) {

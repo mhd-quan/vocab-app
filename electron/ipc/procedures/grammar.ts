@@ -11,6 +11,11 @@ export const grammarProcedures = [
     handler: ({ lessonId }, ctx) => ctx.repos.grammar.listByLesson(lessonId),
   }),
   defineProcedure({
+    name: "grammar.listPracticeByLesson",
+    input: lessonIdInput,
+    handler: ({ lessonId }, ctx) => ctx.repos.grammar.listPracticeByLesson(lessonId),
+  }),
+  defineProcedure({
     name: "grammar.countByLesson",
     input: lessonIdInput,
     handler: ({ lessonId }, ctx) => ctx.repos.grammar.countByLesson(lessonId),

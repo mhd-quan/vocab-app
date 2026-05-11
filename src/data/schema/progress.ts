@@ -10,6 +10,7 @@ export const practiceModes = [
   "matching",
   "review",
   "mixed",
+  "grammar",
 ] as const;
 export type PracticeMode = (typeof practiceModes)[number];
 

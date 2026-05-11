@@ -150,6 +150,16 @@ topics:
     checks:
       - prompt: I watch -> he ...
         answer: He watches.
+    activities:
+      - kind: fill_blank
+        sentence: She {{studies}} every day.
+        explanation: Third person singular takes -s.
+      - kind: choice
+        question: He usually ___ after dinner.
+        options:
+          - text: watch
+          - text: watches
+            correct: true
 `;
 
 const GRAMMAR_FILE_V2_MODIFIED = `
@@ -368,6 +378,10 @@ describe("ImportVocabUseCase", () => {
       examples: [{ text: "She studies every day.", correct: true }],
       common_mistakes: [{ wrong: "She study.", correct: "She studies." }],
       checks: [{ prompt: "I watch -> he ...", answer: "He watches." }],
+      activities: [
+        { kind: "fill_blank", sentence: "She {{studies}} every day." },
+        { kind: "choice", question: "He usually ___ after dinner." },
+      ],
     });
 
     const refs = db.$sqlite.prepare("SELECT kind, ref_table FROM content_items").all() as Array<{

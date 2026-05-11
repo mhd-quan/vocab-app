@@ -22,6 +22,8 @@ export interface UpsertGrammarTopicResult {
   action: UpsertAction;
 }
 
+export type GrammarTopicForPractice = GrammarTopic & { contentItemId: number };
+
 export function createGrammarRepository(db: AppDatabase) {
   return {
     listByLesson(lessonId: number): GrammarTopic[] {
@@ -40,6 +42,37 @@ export function createGrammarRepository(db: AppDatabase) {
         .where(eq(grammarTopics.lessonId, lessonId))
         .all();
       return rows.length;
+    },
+
+    listPracticeByLesson(lessonId: number): GrammarTopicForPractice[] {
+      return db
+        .select({
+          id: grammarTopics.id,
+          lessonId: grammarTopics.lessonId,
+          sourceId: grammarTopics.sourceId,
+          slug: grammarTopics.slug,
+          title: grammarTopics.title,
+          summaryMd: grammarTopics.summaryMd,
+          explanationMd: grammarTopics.explanationMd,
+          difficulty: grammarTopics.difficulty,
+          tags: grammarTopics.tags,
+          metadata: grammarTopics.metadata,
+          contentHash: grammarTopics.contentHash,
+          createdAt: grammarTopics.createdAt,
+          updatedAt: grammarTopics.updatedAt,
+          contentItemId: contentItems.id,
+        })
+        .from(grammarTopics)
+        .innerJoin(
+          contentItems,
+          and(
+            eq(contentItems.refTable, "grammar_topics"),
+            eq(contentItems.refId, grammarTopics.id),
+          ),
+        )
+        .where(eq(grammarTopics.lessonId, lessonId))
+        .orderBy(asc(grammarTopics.slug))
+        .all();
     },
 
     getById(id: number): GrammarTopic | null {
@@ -94,6 +127,16 @@ export function createGrammarRepository(db: AppDatabase) {
               updatedAt: now,
             })
             .where(eq(grammarTopics.id, existing.id))
+            .run();
+          tx.update(contentItems)
+            .set({
+              lessonId: input.lessonId,
+              tags: input.tags ?? null,
+              metadata: input.metadata ?? null,
+            })
+            .where(
+              and(eq(contentItems.refTable, "grammar_topics"), eq(contentItems.refId, existing.id)),
+            )
             .run();
           return { topicId: existing.id, action: "updated" as const };
         }

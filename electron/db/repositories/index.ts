@@ -41,6 +41,7 @@ export {
 } from "./curriculum";
 export {
   createGrammarRepository,
+  type GrammarTopicForPractice,
   type GrammarRepository,
   type UpsertGrammarTopicInput,
   type UpsertGrammarTopicResult,
@@ -54,6 +55,7 @@ export {
   createProgressRepository,
   type RecentSessionRow,
   type RecordAnswerInput,
+  type RecordContentAnswerInput,
   type RecordAnswerResult,
   type TutorOverviewRow,
   type WeakItem,

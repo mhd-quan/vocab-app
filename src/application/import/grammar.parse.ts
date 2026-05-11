@@ -64,6 +64,7 @@ function parseTopic(input: GrammarTopicInput): ParsedGrammarTopic {
     examples: input.examples,
     common_mistakes: input.common_mistakes,
     checks: input.checks,
+    activities: input.activities,
   });
 
   const contentHash = hashContent({

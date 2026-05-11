@@ -6,10 +6,16 @@ import {
   buildDeck,
   defaultSessionSeed,
 } from "@/modules/exercises";
+import {
+  type GrammarExercise,
+  type GrammarPracticeResult,
+  buildGrammarDeck,
+} from "@/modules/grammarPractice";
 import { Button } from "@/ui/components/Button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { GrammarSessionPlayer } from "./session/GrammarSessionPlayer";
 import {
   SessionPlayer,
   type SessionResult,
@@ -22,14 +28,13 @@ const SESSION_MODE_KEY = "session_default_mode";
 const SESSION_SHUFFLE_KEY = "session_shuffle";
 
 /**
- * Route screen: glues lesson data → exercise engine → SessionPlayer →
- * progress persistence (PR #8) → reward feedback (PR #9).
+ * Route screen: glues lesson data → the matching practice engine/player →
+ * progress persistence → reward feedback.
  *
  *   - On mount, opens a practice_sessions row.
- *   - On every answered exercise, calls progress.recordAnswer (writes
- *     learning_events + upserts item_progress via SM-2). The response
- *     surfaces freshly-unlocked achievements which flow back to the
- *     player as toast specs.
+ *   - Vocab answers call progress.recordAnswer; grammar answers call
+ *     progress.recordContentAnswer against grammar topic content_items.
+ *     Both write learning_events + upsert item_progress via SM-2.
  *   - On exit, finalises the session row with stats.
  *
  * The deck is built once per (lesson, seed) pair so re-renders don't
@@ -55,7 +60,13 @@ export function StudentSession() {
   const entriesQ = useQuery({
     queryKey: queryKeys.vocab.full(lessonIdNum),
     queryFn: () => api.vocab.listFullByLesson({ lessonId: lessonIdNum }),
-    enabled: Number.isFinite(lessonIdNum) && lessonIdNum > 0,
+    enabled: Number.isFinite(lessonIdNum) && lessonIdNum > 0 && lessonQ.data?.kind === "vocabulary",
+  });
+
+  const grammarTopicsQ = useQuery({
+    queryKey: queryKeys.grammar.practice(lessonIdNum),
+    queryFn: () => api.grammar.listPracticeByLesson({ lessonId: lessonIdNum }),
+    enabled: Number.isFinite(lessonIdNum) && lessonIdNum > 0 && lessonQ.data?.kind === "grammar",
   });
 
   const soundQ = useQuery({
@@ -80,6 +91,7 @@ export function StudentSession() {
 
   const sessionCount = normalizeSessionCount(sessionCountQ.data);
   const sessionMode = normalizeSessionMode(sessionModeQ.data);
+  const effectiveSessionMode = lessonQ.data?.kind === "grammar" ? "grammar" : sessionMode;
   const exerciseKinds = useMemo(() => exerciseKindsForMode(sessionMode), [sessionMode]);
   const shuffleDeck = sessionShuffleQ.data !== false;
   const settingsLoading =
@@ -87,7 +99,7 @@ export function StudentSession() {
 
   const sessionStart = useMutation({
     mutationFn: (input: { studentId: number }) =>
-      api.progress.startSession({ studentId: input.studentId, mode: sessionMode }),
+      api.progress.startSession({ studentId: input.studentId, mode: effectiveSessionMode }),
   });
 
   // Open the session exactly once when student + lesson are valid.
@@ -96,13 +108,23 @@ export function StudentSession() {
   const sessionId = sessionStart.data?.id ?? null;
 
   useEffect(() => {
+    if (lessonQ.isLoading || !lessonQ.data) return;
     if (settingsLoading) return;
     if (!Number.isFinite(studentIdNum) || studentIdNum <= 0) return;
-    const key = `${studentIdNum}:${lessonIdNum}:${seed}:${sessionMode}`;
+    const key = `${studentIdNum}:${lessonIdNum}:${seed}:${effectiveSessionMode}`;
     if (openedFor.current === key) return;
     openedFor.current = key;
     sessionStart.mutate({ studentId: studentIdNum });
-  }, [settingsLoading, studentIdNum, lessonIdNum, seed, sessionMode, sessionStart.mutate]);
+  }, [
+    lessonQ.isLoading,
+    lessonQ.data,
+    settingsLoading,
+    studentIdNum,
+    lessonIdNum,
+    seed,
+    effectiveSessionMode,
+    sessionStart.mutate,
+  ]);
 
   const deck = useMemo<Exercise[]>(() => {
     if (!entriesQ.data || settingsLoading) return [];
@@ -115,6 +137,16 @@ export function StudentSession() {
     }).exercises;
   }, [entriesQ.data, exerciseKinds, seed, sessionCount, shuffleDeck, settingsLoading]);
 
+  const grammarDeck = useMemo<GrammarExercise[]>(() => {
+    if (!grammarTopicsQ.data || settingsLoading) return [];
+    return buildGrammarDeck({
+      topics: grammarTopicsQ.data,
+      sessionSeed: seed,
+      maxExercises: sessionCount,
+      shuffle: shuffleDeck,
+    }).exercises;
+  }, [grammarTopicsQ.data, seed, sessionCount, shuffleDeck, settingsLoading]);
+
   const handleResult = useCallback(
     async (result: SessionResult): Promise<SessionResultPersistence | undefined> => {
       if (sessionId === null) return undefined; // session row not open yet — drop silently
@@ -122,6 +154,26 @@ export function StudentSession() {
         studentId: studentIdNum,
         sessionId,
         entryId: result.entryId,
+        outcome: {
+          correct: result.outcome.correct,
+          feedback: result.outcome.feedback,
+          selfGrade: result.outcome.selfGrade,
+          selectedIndex: result.outcome.selectedIndex,
+        },
+        currentSessionRun: result.currentSessionRun,
+      });
+      return { unlockedAchievements: response.unlockedAchievements };
+    },
+    [sessionId, studentIdNum],
+  );
+
+  const handleGrammarResult = useCallback(
+    async (result: GrammarPracticeResult): Promise<SessionResultPersistence | undefined> => {
+      if (sessionId === null) return undefined;
+      const response = await api.progress.recordContentAnswer({
+        studentId: studentIdNum,
+        sessionId,
+        contentItemId: result.contentItemId,
         outcome: {
           correct: result.outcome.correct,
           feedback: result.outcome.feedback,
@@ -165,13 +217,38 @@ export function StudentSession() {
     );
   }
 
-  if (lessonQ.isLoading || entriesQ.isLoading || settingsLoading) {
+  const lessonKind = lessonQ.data?.kind;
+  const contentLoading =
+    lessonKind === "vocabulary"
+      ? entriesQ.isLoading
+      : lessonKind === "grammar"
+        ? grammarTopicsQ.isLoading
+        : false;
+
+  if (lessonQ.isLoading || contentLoading || settingsLoading) {
     return <p className="px-6 py-10 text-sm text-muted">Loading session…</p>;
   }
 
-  const contextLabel = lessonQ.data
-    ? `${lessonQ.data.title} · ${entriesQ.data?.length ?? 0} entries`
-    : undefined;
+  if (lessonKind === "grammar") {
+    const contextLabel = lessonQ.data
+      ? `${lessonQ.data.title} · ${grammarTopicsQ.data?.length ?? 0} topics`
+      : undefined;
+    return (
+      <GrammarSessionPlayer
+        topics={grammarTopicsQ.data ?? []}
+        deck={grammarDeck}
+        onExit={exit}
+        onResult={handleGrammarResult}
+        contextLabel={contextLabel}
+        soundEnabled={soundQ.data === true}
+      />
+    );
+  }
+
+  const contextLabel =
+    lessonKind === "vocabulary" && lessonQ.data
+      ? `${lessonQ.data.title} · ${entriesQ.data?.length ?? 0} entries`
+      : undefined;
 
   return (
     <SessionPlayer

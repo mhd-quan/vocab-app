@@ -34,6 +34,15 @@ const recordAnswerInput = z.object({
   occurredAtIso: z.string().datetime().optional(),
 });
 
+const recordContentAnswerInput = z.object({
+  studentId: z.number().int().positive(),
+  sessionId: z.number().int().positive(),
+  contentItemId: z.number().int().positive(),
+  outcome: outcomeSchema,
+  currentSessionRun: z.number().int().nonnegative().optional(),
+  occurredAtIso: z.string().datetime().optional(),
+});
+
 const dueByLessonInput = z.object({
   studentId: z.number().int().positive(),
   lessonId: z.number().int().positive(),
@@ -104,6 +113,28 @@ export const progressProcedures = [
         now,
       });
       return result;
+    },
+  }),
+
+  defineProcedure({
+    name: "progress.recordContentAnswer",
+    input: recordContentAnswerInput,
+    handler: (input, ctx) => {
+      const outcome: GradeOutcome = {
+        correct: input.outcome.correct,
+        feedback: input.outcome.feedback,
+        selfGrade: input.outcome.selfGrade,
+        selectedIndex: input.outcome.selectedIndex,
+      };
+      const now = input.occurredAtIso ? new Date(input.occurredAtIso) : new Date();
+      return ctx.repos.progress.recordContentAnswer({
+        studentId: input.studentId,
+        sessionId: input.sessionId,
+        contentItemId: input.contentItemId,
+        outcome,
+        currentSessionRun: input.currentSessionRun,
+        now,
+      });
     },
   }),
 

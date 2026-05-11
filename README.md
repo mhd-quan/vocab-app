@@ -383,6 +383,6 @@ See `docs/roadmap.md` (added with PR #2). Current plan:
 | v0.2.0  | Shell polish + theme system + in-app import + settings/templates |
 | v0.3.0  | Engagement-focused student/tutor UI redesign               |
 | v0.3.2  | Larger filled glyphs + grammar import samples/reference    |
-| v0.4.0  | In-app authoring GUI                                      |
-| v0.5.0  | More exercise types (fill-blank, matching, ordering, ...) |
+| v0.4.0  | Interactive grammar learning flow + lesson-card home      |
+| v0.5.0  | In-app authoring GUI                                      |
 | v1.0.0  | Beta packaging (signed installers, auto-update)           |
