@@ -1,6 +1,7 @@
 import { useAppMode } from "@/providers/AppModeProvider";
 import { router } from "@/router";
 import { UnlockScreen } from "@/ui/screens/UnlockScreen";
+import { WelcomeScreen } from "@/ui/screens/WelcomeScreen";
 import { RouterProvider } from "@tanstack/react-router";
 import { useEffect } from "react";
 
@@ -8,6 +9,7 @@ import { useEffect } from "react";
  * Top-level decision point: which tree do we render?
  *
  *   loading  → centered spinner (until the hasPin probe resolves)
+ *   welcome  → mode selection (tutor or student)
  *   locked   → standalone UnlockScreen (no router; locked sessions can't
  *              be navigated to deep links)
  *   tutor /
@@ -38,6 +40,9 @@ export function AppRoot() {
         <p className="text-sm text-muted">Loading…</p>
       </div>
     );
+  }
+  if (mode === "welcome") {
+    return <WelcomeScreen />;
   }
   if (mode === "locked") {
     return <UnlockScreen />;

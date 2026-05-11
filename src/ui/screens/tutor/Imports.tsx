@@ -3,12 +3,18 @@ import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
 import { Badge, type BadgeTone } from "@/ui/components/Badge";
+import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
+import { ImportModal } from "@/ui/components/ImportModal";
 import { PageHeader } from "@/ui/components/PageHeader";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 export function TutorImports() {
+  const queryClient = useQueryClient();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [dialogBusy, setDialogBusy] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState<string | null>(null);
   const runsQ = useQuery({
     queryKey: queryKeys.imports.listRuns(),
     queryFn: () => api.imports.listRuns(),
@@ -17,14 +23,47 @@ export function TutorImports() {
   const runs = runsQ.data ?? [];
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
+  async function refetchHistory() {
+    await queryClient.invalidateQueries({ queryKey: queryKeys.imports.listRuns() });
+  }
+
+  async function openNativeDialog() {
+    setDialogBusy(true);
+    setDialogMessage(null);
+    try {
+      const result = await api.imports.openImportDialog();
+      if (!result.canceled) {
+        await refetchHistory();
+        setDialogMessage(formatDialogSummary(result.results.length));
+      }
+    } catch (err) {
+      setDialogMessage(err instanceof Error ? err.message : "Import failed.");
+    } finally {
+      setDialogBusy(false);
+    }
+  }
+
   return (
     <>
       <PageHeader
         eyebrow="Tutor"
         title="Import history"
-        subtitle="Every `npm run import` invocation is logged. Click a row to inspect per-entry outcomes."
+        subtitle="Every CLI or in-app import is logged. Click a row to inspect per-entry outcomes."
+        actions={
+          <>
+            <Button variant="secondary" onClick={openNativeDialog} disabled={dialogBusy}>
+              {dialogBusy ? "Importing..." : "Browse files..."}
+            </Button>
+            <Button onClick={() => setModalOpen(true)}>Import YAML</Button>
+          </>
+        }
       />
       <section className="px-8 py-6">
+        {dialogMessage ? (
+          <p className="mb-4 rounded-md border border-border-subtle bg-surface-1 px-3 py-2 text-sm text-muted">
+            {dialogMessage}
+          </p>
+        ) : null}
         {runsQ.isLoading ? (
           <p className="text-sm text-muted">Loading…</p>
         ) : runs.length === 0 ? (
@@ -45,6 +84,11 @@ export function TutorImports() {
           </ul>
         )}
       </section>
+      <ImportModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onImported={refetchHistory}
+      />
     </>
   );
 }
@@ -206,4 +250,9 @@ function formatTimestamp(d: Date | string | null | undefined): string {
   const date = d instanceof Date ? d : new Date(d);
   if (Number.isNaN(date.getTime())) return "—";
   return date.toLocaleString();
+}
+
+function formatDialogSummary(count: number): string {
+  if (count === 0) return "No files imported.";
+  return `${count} file${count === 1 ? "" : "s"} imported.`;
 }

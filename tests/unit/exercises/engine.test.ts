@@ -73,6 +73,16 @@ describe("buildDeck", () => {
     expect(result.exercises).toHaveLength(3);
   });
 
+  it("can keep source order when shuffle is disabled", () => {
+    const result = buildDeck({
+      entries: makeEntries(2),
+      kinds: ["flashcard"],
+      sessionSeed: "seed-no-shuffle",
+      shuffle: false,
+    });
+    expect(result.exercises.map((e) => e.entryId)).toEqual([1, 2]);
+  });
+
   it("returns an empty deck when entries is empty", () => {
     const result = buildDeck({
       entries: [],

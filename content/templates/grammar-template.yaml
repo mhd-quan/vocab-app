@@ -1,0 +1,68 @@
+# Grammar YAML template
+# Grammar import is documented here so future grammar tooling has a stable authoring shape.
+
+book: destination-b1
+book_title: Destination B1
+
+unit:
+  ordinal: 1
+  code: U01
+  title: People & Relationships
+
+lesson:
+  ordinal: 2
+  kind: grammar
+  title: Present simple vs present continuous
+  slug: present-simple-vs-continuous
+
+topics:
+  - id: present-simple-routines
+    slug: present-simple-routines
+    title: Present simple for routines
+    summary_md: Use present simple for habits, routines, and general truths.
+    explanation_md: |
+      Use the base verb with I/you/we/they and add -s or -es with he/she/it.
+      Time expressions often include always, usually, often, sometimes, and every day.
+    difficulty: 1
+    tags: [tense, routines]
+    patterns:
+      - subject + base verb
+      - subject + does not + base verb
+    examples:
+      - text: She studies English every evening.
+        explanation: A repeated routine.
+      - text: They do not live near the school.
+        explanation: Negative present simple.
+
+  - id: present-continuous-now
+    slug: present-continuous-now
+    title: Present continuous for actions happening now
+    summary_md: Use present continuous for actions in progress at the moment of speaking.
+    explanation_md: |
+      Use am/is/are + verb-ing. Common time expressions include now, right now, and at the moment.
+    difficulty: 1
+    tags: [tense, now]
+    patterns:
+      - subject + am/is/are + verb-ing
+      - subject + am/is/are not + verb-ing
+    examples:
+      - text: I am reading a new book now.
+        explanation: The action is happening now.
+      - text: He is not watching TV at the moment.
+        explanation: Negative present continuous.
+
+  - id: contrast-routine-now
+    slug: contrast-routine-now
+    title: Contrasting routines and now
+    summary_md: Pick the tense based on whether the action is regular or in progress.
+    explanation_md: |
+      Use present simple for routines and present continuous for actions happening now.
+      Signal words often tell you which meaning the sentence needs.
+    difficulty: 2
+    tags: [tense, contrast]
+    patterns:
+      - subject + usually + present simple
+      - subject + is/are + verb-ing + today
+    examples:
+      - text: She usually walks to school, but today she is taking the bus.
+        explanation: A routine is contrasted with today's temporary action.

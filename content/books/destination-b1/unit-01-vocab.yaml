@@ -2,6 +2,7 @@
 # This is a starter fixture. Add more entries as you go; the importer is
 # idempotent (re-running on an unchanged file is a no-op).
 book: destination-b1
+book_title: Destination B1
 
 unit:
   ordinal: 1

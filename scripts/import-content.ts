@@ -56,7 +56,7 @@ function printUsage(): void {
   console.log(`
 Usage: npm run import [-- <path>...] [--dry-run] [--watch] [--force]
 
-  <path>      File or directory. Directories are scanned for *-vocab.yaml.
+  <path>      File or directory. Directories are scanned for *-vocab.yaml / *-vocab.yml.
               Defaults to content/books.
 
 Flags:
@@ -78,7 +78,7 @@ async function expandPaths(args: string[]): Promise<string[]> {
 
     const stat = await safeStat(absoluteOrPattern);
     if (stat?.isFile()) {
-      if (absoluteOrPattern.endsWith(".yaml") || absoluteOrPattern.endsWith(".yml")) {
+      if (isYamlFile(absoluteOrPattern)) {
         out.add(absoluteOrPattern);
       }
       continue;
@@ -86,19 +86,29 @@ async function expandPaths(args: string[]): Promise<string[]> {
     if (stat?.isDirectory()) {
       const files = await fs.readdir(absoluteOrPattern, { recursive: true });
       for (const file of files) {
-        if (typeof file === "string" && (file.endsWith("-vocab.yaml") || file.endsWith("-vocab.yml"))) {
+        if (typeof file === "string" && isVocabYamlFile(file)) {
           out.add(path.join(absoluteOrPattern, file));
         }
       }
       continue;
     }
     // Treat as relative pattern or just file
-    if (target.endsWith("-vocab.yaml") || target.endsWith("-vocab.yml")) {
-       out.add(path.resolve(process.cwd(), target));
+    if (isVocabYamlFile(target)) {
+      out.add(path.resolve(process.cwd(), target));
     }
   }
 
   return [...out].sort();
+}
+
+function isYamlFile(filePath: string): boolean {
+  const lower = filePath.toLowerCase();
+  return lower.endsWith(".yaml") || lower.endsWith(".yml");
+}
+
+function isVocabYamlFile(filePath: string): boolean {
+  const lower = filePath.toLowerCase();
+  return lower.endsWith("-vocab.yaml") || lower.endsWith("-vocab.yml");
 }
 
 async function safeStat(p: string) {

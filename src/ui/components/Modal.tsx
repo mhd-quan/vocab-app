@@ -81,7 +81,7 @@ export function Modal({
         type="button"
         aria-label="Close dialog"
         data-modal-skip-focus
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-surface-0/70 backdrop-blur-sm"
         onClick={onClose}
       />
       <div

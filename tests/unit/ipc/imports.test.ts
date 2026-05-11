@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { type AppDatabase, closeDatabase } from "../../../electron/db";
 import type { Repositories } from "../../../electron/db/repositories";
@@ -19,15 +22,26 @@ async function call<T>(name: string, input: unknown, ctx: { repos: Repositories 
 describe("imports.* procedures", () => {
   let db: AppDatabase;
   let ctx: { repos: Repositories };
+  let tmpDir: string;
+  let previousContentRoot: string | undefined;
 
   beforeEach(() => {
     const fresh = freshDb();
     db = fresh.db;
     ctx = { repos: fresh.repos };
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "vocab-app-ipc-import-"));
+    previousContentRoot = process.env.VOCAB_CONTENT_ROOT;
+    process.env.VOCAB_CONTENT_ROOT = tmpDir;
   });
 
   afterEach(() => {
     closeDatabase(db);
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    if (previousContentRoot === undefined) {
+      process.env.VOCAB_CONTENT_ROOT = undefined;
+    } else {
+      process.env.VOCAB_CONTENT_ROOT = previousContentRoot;
+    }
   });
 
   it("listRuns returns an empty array on a fresh DB", async () => {
@@ -86,5 +100,36 @@ describe("imports.* procedures", () => {
     const proc = findProcedure("imports.listItems");
     expect(() => proc.inputSchema.parse({ runId: 0 })).toThrow();
     expect(() => proc.inputSchema.parse({ runId: -5 })).toThrow();
+  });
+
+  it("uploadFile copies YAML into the book folder and imports it", async () => {
+    const result = await call<{ status: string; stats: { inserted: number } }>(
+      "imports.uploadFile",
+      {
+        fileName: "unit-01-vocab.yml",
+        content: `
+book: destination-b1
+book_title: Destination B1
+unit: { ordinal: 1, code: U01, title: Unit 1 }
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: Lesson 1
+  slug: lesson-1
+entries:
+  - id: sample-noun
+    headword: sample
+    pos: noun
+    senses:
+      - definition_en: an example
+`,
+      },
+      ctx,
+    );
+
+    expect(result.status).toBe("success");
+    expect(result.stats.inserted).toBe(1);
+    expect(fs.existsSync(path.join(tmpDir, "destination-b1", "unit-01-vocab.yml"))).toBe(true);
+    expect(ctx.repos.curriculum.getBookByCode("destination-b1")?.title).toBe("Destination B1");
   });
 });

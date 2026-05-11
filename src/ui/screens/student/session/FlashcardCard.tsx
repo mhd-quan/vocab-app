@@ -108,7 +108,9 @@ function FlashcardBack({
   return (
     <div className="flex flex-col gap-5">
       <section className="flex flex-col gap-2 border-t border-border-subtle pt-5">
-        {back.definitionVi ? <p className="text-lg font-medium text-app">{back.definitionVi}</p> : null}
+        {back.definitionVi ? (
+          <p className="text-lg font-medium text-app">{back.definitionVi}</p>
+        ) : null}
         {back.definitionsEn.length > 0 ? (
           <ol className="flex flex-col gap-2 text-base text-muted">
             {back.definitionsEn.map((def, i) => (
@@ -128,11 +130,7 @@ function FlashcardBack({
         </section>
       ) : null}
 
-      <div
-        role="group"
-        aria-label="Rate your recall"
-        className="grid grid-cols-4 gap-3"
-      >
+      <div role="group" aria-label="Rate your recall" className="grid grid-cols-4 gap-3">
         {selfGrades.map((grade) => {
           const meta = GRADE_LABELS[grade];
           return (

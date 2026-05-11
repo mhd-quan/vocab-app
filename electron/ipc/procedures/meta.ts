@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getDatabasePath } from "../../db";
 import { defineProcedure } from "../procedure";
 
 export const metaProcedures = [
@@ -12,8 +13,9 @@ export const metaProcedures = [
     input: z.void(),
     handler: () => ({
       name: "vocab-app",
-      version: "0.0.1",
+      version: "0.2.0",
       schemaTablesExpected: 20,
+      dbPath: getDatabasePath(),
     }),
   }),
 ];

@@ -16,6 +16,7 @@ import {
 
 export interface ParsedVocabFile {
   book: string;
+  bookTitle?: string;
   unit: VocabFileInput["unit"];
   lesson: VocabFileInput["lesson"];
   entries: ParsedVocabEntry[];
@@ -34,7 +35,7 @@ const CLOZE_REGEX = /\{\{\s*([^{}]+?)\s*\}\}/g;
 
 export class VocabParseError extends Error {
   constructor(
-    message: string,
+    public message: string,
     public readonly sourceId?: string,
   ) {
     super(message);
@@ -63,6 +64,7 @@ export function parseVocabFile(rawData: unknown): ParsedVocabFile {
 
   return {
     book: parsed.book,
+    bookTitle: parsed.book_title,
     unit: parsed.unit,
     lesson: parsed.lesson,
     entries,
