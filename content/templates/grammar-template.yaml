@@ -1,68 +1,137 @@
-# Grammar YAML template
-# Grammar import is documented here so future grammar tooling has a stable authoring shape.
+# Grammar import sample
+# Copy this file into content/books/<book-code>/unit-NN-grammar.yaml.
+# The parser stores patterns/examples/mistakes/checks in grammar topic metadata.
 
-book: destination-b1
-book_title: Destination B1
+book: sample-b1
+book_title: Sample B1 Authoring Pack
 
 unit:
-  ordinal: 1
-  code: U01
-  title: People & Relationships
+  ordinal: 99
+  code: U99
+  title: Full Grammar Syntax Sample
+  summary_md: Demonstrates the grammar topic fields supported by the importer and Content browser.
 
 lesson:
   ordinal: 2
   kind: grammar
-  title: Present simple vs present continuous
+  title: Present Simple vs Present Continuous
   slug: present-simple-vs-continuous
 
 topics:
   - id: present-simple-routines
     slug: present-simple-routines
     title: Present simple for routines
-    summary_md: Use present simple for habits, routines, and general truths.
+    summary_md: Use present simple for habits, routines, repeated actions, and general truths.
     explanation_md: |
-      Use the base verb with I/you/we/they and add -s or -es with he/she/it.
-      Time expressions often include always, usually, often, sometimes, and every day.
+      Use the base verb with I/you/we/they.
+      Add -s or -es with he/she/it.
+      Common time expressions: always, usually, often, sometimes, every day, on Mondays.
     difficulty: 1
-    tags: [tense, routines]
+    tags: [tense, routines, present-simple]
     patterns:
-      - subject + base verb
-      - subject + does not + base verb
+      - label: affirmative
+        form: subject + base verb
+        use: I/you/we/they routines.
+        examples:
+          - I study English every evening.
+          - They play football on Sundays.
+      - label: third-person affirmative
+        form: he/she/it + verb-s/es
+        use: One person's routine.
+        examples:
+          - She studies English every evening.
+      - label: negative
+        form: subject + do/does not + base verb
+        use: Routines that are not true.
+        examples:
+          - He does not live near the school.
     examples:
       - text: She studies English every evening.
+        translation: Cô ấy học tiếng Anh mỗi tối.
         explanation: A repeated routine.
-      - text: They do not live near the school.
-        explanation: Negative present simple.
+        correct: true
+      - text: She study English every evening.
+        explanation: Missing -s after she.
+        correct: false
+        note: Use studies with she.
+    common_mistakes:
+      - wrong: She study English every evening.
+        correct: She studies English every evening.
+        note: Add -s or -es for he/she/it in present simple.
+    checks:
+      - prompt: "Rewrite with he: I watch TV after dinner."
+        answer: He watches TV after dinner.
+        explanation: watch becomes watches after he.
+    metadata:
+      teacher_note: Start with routines students can act out.
+      vietnamese_contrast: Distinguish repeated habit from action happening now.
 
   - id: present-continuous-now
     slug: present-continuous-now
     title: Present continuous for actions happening now
     summary_md: Use present continuous for actions in progress at the moment of speaking.
     explanation_md: |
-      Use am/is/are + verb-ing. Common time expressions include now, right now, and at the moment.
+      Use am/is/are + verb-ing.
+      Common time expressions: now, right now, at the moment, today.
     difficulty: 1
-    tags: [tense, now]
+    tags: [tense, now, present-continuous]
     patterns:
-      - subject + am/is/are + verb-ing
-      - subject + am/is/are not + verb-ing
+      - label: affirmative
+        form: subject + am/is/are + verb-ing
+        use: Actions happening now.
+        examples:
+          - I am reading a new book now.
+          - They are playing outside.
+      - label: negative
+        form: subject + am/is/are not + verb-ing
+        use: Actions not happening now.
+        examples:
+          - He is not watching TV at the moment.
     examples:
       - text: I am reading a new book now.
+        translation: Tôi đang đọc một cuốn sách mới.
         explanation: The action is happening now.
-      - text: He is not watching TV at the moment.
-        explanation: Negative present continuous.
+        correct: true
+      - text: I read a new book now.
+        explanation: Use present continuous with now.
+        correct: false
+    common_mistakes:
+      - wrong: He watching TV.
+        correct: He is watching TV.
+        note: Present continuous needs am/is/are.
+    checks:
+      - prompt: Make a sentence with she / write / now.
+        answer: She is writing now.
 
   - id: contrast-routine-now
     slug: contrast-routine-now
     title: Contrasting routines and now
-    summary_md: Pick the tense based on whether the action is regular or in progress.
+    summary_md: Choose the tense based on whether the action is regular or in progress.
     explanation_md: |
-      Use present simple for routines and present continuous for actions happening now.
+      Present simple = regular routine or general truth.
+      Present continuous = temporary action happening now or around now.
       Signal words often tell you which meaning the sentence needs.
     difficulty: 2
-    tags: [tense, contrast]
+    tags: [tense, contrast, signal-words]
     patterns:
-      - subject + usually + present simple
-      - subject + is/are + verb-ing + today
+      - label: routine plus temporary action
+        form: subject + usually + present simple, but today + present continuous
+        examples:
+          - She usually walks to school, but today she is taking the bus.
+      - label: permanent versus temporary
+        form: present simple for facts; present continuous for temporary change
+        examples:
+          - He works in Hanoi, but this week he is working from home.
     examples:
       - text: She usually walks to school, but today she is taking the bus.
+        translation: Cô ấy thường đi bộ đến trường, nhưng hôm nay cô ấy đang đi xe buýt.
         explanation: A routine is contrasted with today's temporary action.
+        correct: true
+    common_mistakes:
+      - wrong: She usually is walking to school.
+        correct: She usually walks to school.
+        note: Usually points to present simple.
+    checks:
+      - prompt: "Choose the right form: He usually (go/goes/is going) to class at 7."
+        answer: goes
+        explanation: Usually describes a routine.

@@ -1,5 +1,6 @@
 import type { AppDatabase } from "../client";
 import { type CurriculumRepository, createCurriculumRepository } from "./curriculum";
+import { type GrammarRepository, createGrammarRepository } from "./grammar";
 import { type ImportRepository, createImportRepository } from "./import";
 import { type ProgressRepository, createProgressRepository } from "./progress";
 import { type RewardsRepository, createRewardsRepository } from "./rewards";
@@ -9,6 +10,7 @@ import { type VocabRepository, createVocabRepository } from "./vocab";
 
 export interface Repositories {
   curriculum: CurriculumRepository;
+  grammar: GrammarRepository;
   vocab: VocabRepository;
   students: StudentsRepository;
   settings: SettingsRepository;
@@ -20,6 +22,7 @@ export interface Repositories {
 export function createRepositories(db: AppDatabase): Repositories {
   return {
     curriculum: createCurriculumRepository(db),
+    grammar: createGrammarRepository(db),
     vocab: createVocabRepository(db),
     students: createStudentsRepository(db),
     settings: createSettingsRepository(db),
@@ -36,6 +39,12 @@ export {
   type UpsertLessonInput,
   type UpsertUnitInput,
 } from "./curriculum";
+export {
+  createGrammarRepository,
+  type GrammarRepository,
+  type UpsertGrammarTopicInput,
+  type UpsertGrammarTopicResult,
+} from "./grammar";
 export { type ImportRepository, createImportRepository } from "./import";
 export {
   type DailyActivityCell,

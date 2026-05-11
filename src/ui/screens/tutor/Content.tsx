@@ -1,4 +1,4 @@
-import type { Book, Lesson, Unit } from "@/data/types";
+import type { Book, GrammarTopic, Lesson, Unit } from "@/data/types";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
@@ -12,12 +12,16 @@ import { useSearch } from "@tanstack/react-router";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import type { VocabEntryFull } from "../../../../electron/db/repositories/vocab";
 
+type ContentSelection = { kind: "vocabulary"; id: number } | { kind: "grammar"; id: number } | null;
+
 export function TutorContent() {
   // Deep-link entry-points: analytics weak-word rows pass `?entry=` (and
   // optionally `?book=`) so the browser opens scrolled to that word.
   const search = useSearch({ from: "/tutor/content" });
   const [selectedBookId, setSelectedBookId] = useState<number | null>(search.book ?? null);
-  const [selectedEntryId, setSelectedEntryId] = useState<number | null>(search.entry ?? null);
+  const [selection, setSelection] = useState<ContentSelection>(
+    search.entry ? { kind: "vocabulary", id: search.entry } : null,
+  );
 
   const booksQ = useQuery({
     queryKey: queryKeys.curriculum.books(),
@@ -28,7 +32,7 @@ export function TutorContent() {
   // words on the same screen swaps both fields atomically.
   useEffect(() => {
     if (search.book !== undefined) setSelectedBookId(search.book);
-    if (search.entry !== undefined) setSelectedEntryId(search.entry);
+    if (search.entry !== undefined) setSelection({ kind: "vocabulary", id: search.entry });
   }, [search.book, search.entry]);
 
   // Auto-select the first book once data lands — only when nothing was
@@ -45,7 +49,7 @@ export function TutorContent() {
       <PageHeader
         eyebrow="Tutor"
         title="Content browser"
-        subtitle="Books → units → lessons → vocabulary entries. Read-only — author content via YAML and `npm run import`."
+        subtitle="Books → units → lessons → vocab entries and grammar topics. Read-only — author content via YAML and `npm run import`."
       />
 
       <div className="grid h-[calc(100vh-9rem)] grid-cols-[14rem_1fr_22rem] border-t border-border-subtle">
@@ -55,17 +59,13 @@ export function TutorContent() {
           selectedId={selectedBookId}
           onSelect={(id) => {
             setSelectedBookId(id);
-            setSelectedEntryId(null);
+            setSelection(null);
           }}
         />
 
-        <LessonsPane
-          bookId={selectedBookId}
-          selectedEntryId={selectedEntryId}
-          onSelectEntry={setSelectedEntryId}
-        />
+        <LessonsPane bookId={selectedBookId} selection={selection} onSelectContent={setSelection} />
 
-        <EntryPane entryId={selectedEntryId} />
+        <DetailPane selection={selection} />
       </div>
     </>
   );
@@ -238,12 +238,12 @@ function BookRow({
 
 function LessonsPane({
   bookId,
-  selectedEntryId,
-  onSelectEntry,
+  selection,
+  onSelectContent,
 }: {
   bookId: number | null;
-  selectedEntryId: number | null;
-  onSelectEntry: (id: number) => void;
+  selection: ContentSelection;
+  onSelectContent: (selection: ContentSelection) => void;
 }) {
   const unitsQ = useQuery({
     queryKey: queryKeys.curriculum.units(bookId ?? -1),
@@ -269,7 +269,7 @@ function LessonsPane({
       <div className="p-6">
         <EmptyState
           title="No units in this book"
-          body="Vocab YAML files create the unit + lesson rows on import."
+          body="Vocab and grammar YAML files create unit + lesson rows on import."
         />
       </div>
     );
@@ -282,8 +282,8 @@ function LessonsPane({
           <UnitGroupRow
             key={unit.id}
             unit={unit}
-            selectedEntryId={selectedEntryId}
-            onSelectEntry={onSelectEntry}
+            selection={selection}
+            onSelectContent={onSelectContent}
           />
         ))}
       </ul>
@@ -293,12 +293,12 @@ function LessonsPane({
 
 function UnitGroupRow({
   unit,
-  selectedEntryId,
-  onSelectEntry,
+  selection,
+  onSelectContent,
 }: {
   unit: Unit;
-  selectedEntryId: number | null;
-  onSelectEntry: (id: number) => void;
+  selection: ContentSelection;
+  onSelectContent: (selection: ContentSelection) => void;
 }) {
   const lessonsQ = useQuery({
     queryKey: queryKeys.curriculum.lessons(unit.id),
@@ -319,8 +319,8 @@ function UnitGroupRow({
             <LessonRow
               key={lesson.id}
               lesson={lesson}
-              selectedEntryId={selectedEntryId}
-              onSelectEntry={onSelectEntry}
+              selection={selection}
+              onSelectContent={onSelectContent}
             />
           ))
         )}
@@ -331,42 +331,63 @@ function UnitGroupRow({
 
 function LessonRow({
   lesson,
-  selectedEntryId,
-  onSelectEntry,
+  selection,
+  onSelectContent,
 }: {
   lesson: Lesson;
-  selectedEntryId: number | null;
-  onSelectEntry: (id: number) => void;
+  selection: ContentSelection;
+  onSelectContent: (selection: ContentSelection) => void;
 }) {
   const entriesQ = useQuery({
     queryKey: queryKeys.vocab.list(lesson.id),
     queryFn: () => api.vocab.listByLesson({ lessonId: lesson.id }),
     enabled: lesson.kind === "vocabulary",
   });
+  const topicsQ = useQuery({
+    queryKey: queryKeys.grammar.list(lesson.id),
+    queryFn: () => api.grammar.listByLesson({ lessonId: lesson.id }),
+    enabled: lesson.kind === "grammar",
+  });
   const entries = entriesQ.data ?? [];
+  const topics = topicsQ.data ?? [];
+  const count = lesson.kind === "grammar" ? topics.length : entries.length;
   return (
     <section className="px-6">
       <header className="mb-2 flex items-center gap-2">
-        <Badge tone={lesson.kind === "vocabulary" ? "accent" : "muted"} uppercase>
+        <Badge tone={lesson.kind === "vocabulary" ? "accent" : "focus"} uppercase>
           {lesson.kind}
         </Badge>
         <h4 className="text-xs font-medium text-app">{lesson.title}</h4>
-        <span className="text-[10px] text-muted-2">({entries.length})</span>
+        <span className="text-[10px] text-muted-2">({count})</span>
       </header>
-      {lesson.kind !== "vocabulary" ? (
-        <p className="text-xs text-muted-2">{lesson.kind} content lands when its module ships.</p>
-      ) : entriesQ.isLoading ? (
+      {lesson.kind === "vocabulary" && entriesQ.isLoading ? (
         <p className="text-xs text-muted">Loading…</p>
-      ) : entries.length === 0 ? (
+      ) : lesson.kind === "grammar" && topicsQ.isLoading ? (
+        <p className="text-xs text-muted">Loading…</p>
+      ) : lesson.kind === "vocabulary" && entries.length === 0 ? (
         <p className="text-xs text-muted-2">No entries imported for this lesson yet.</p>
-      ) : (
+      ) : lesson.kind === "grammar" && topics.length === 0 ? (
+        <p className="text-xs text-muted-2">No grammar topics imported for this lesson yet.</p>
+      ) : lesson.kind === "vocabulary" ? (
         <ul className="grid grid-cols-1 gap-1 sm:grid-cols-2">
           {entries.map((entry) => (
             <li key={entry.id}>
               <EntryButton
                 entry={entry}
-                selected={selectedEntryId === entry.id}
-                onClick={() => onSelectEntry(entry.id)}
+                selected={selection?.kind === "vocabulary" && selection.id === entry.id}
+                onClick={() => onSelectContent({ kind: "vocabulary", id: entry.id })}
+              />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <ul className="grid grid-cols-1 gap-1">
+          {topics.map((topic) => (
+            <li key={topic.id}>
+              <TopicButton
+                topic={topic}
+                selected={selection?.kind === "grammar" && selection.id === topic.id}
+                onClick={() => onSelectContent({ kind: "grammar", id: topic.id })}
               />
             </li>
           ))}
@@ -409,26 +430,74 @@ function EntryButton({
   );
 }
 
-function EntryPane({ entryId }: { entryId: number | null }) {
+function TopicButton({
+  topic,
+  selected,
+  onClick,
+}: {
+  topic: GrammarTopic;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  const ref = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (selected && typeof ref.current?.scrollIntoView === "function") {
+      ref.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [selected]);
+  return (
+    <button
+      ref={ref}
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex w-full items-baseline gap-2 rounded-xl border px-3 py-2 text-left transition-colors",
+        selected
+          ? "border-focus bg-focus/10"
+          : "border-border-subtle bg-surface-1 hover:border-border-strong",
+      )}
+    >
+      <span className="truncate text-sm font-medium">{topic.title}</span>
+      {topic.difficulty ? (
+        <span className="font-mono text-[10px] text-muted-2">L{topic.difficulty}</span>
+      ) : null}
+    </button>
+  );
+}
+
+function DetailPane({ selection }: { selection: ContentSelection }) {
+  const entryId = selection?.kind === "vocabulary" ? selection.id : null;
+  const topicId = selection?.kind === "grammar" ? selection.id : null;
   const entryQ = useQuery({
     queryKey: ["vocab", "byId", entryId ?? -1],
     queryFn: () => api.vocab.getById({ id: entryId as number }),
     enabled: entryId !== null,
   });
+  const topicQ = useQuery({
+    queryKey: queryKeys.grammar.byId(topicId ?? -1),
+    queryFn: () => api.grammar.getById({ id: topicId as number }),
+    enabled: topicId !== null,
+  });
 
   return (
     <aside className="h-full overflow-y-auto border-l border-border-subtle bg-surface-1">
-      {entryId === null ? (
+      {selection === null ? (
         <div className="flex h-full items-center justify-center px-6 text-center">
-          <p className="text-xs text-muted">Pick an entry on the left to see its details.</p>
+          <p className="text-xs text-muted">Pick a vocab entry or grammar topic to see details.</p>
         </div>
-      ) : entryQ.isLoading ? (
+      ) : selection.kind === "vocabulary" && entryQ.isLoading ? (
         <p className="px-6 py-4 text-xs text-muted">Loading entry…</p>
-      ) : !entryQ.data ? (
+      ) : selection.kind === "grammar" && topicQ.isLoading ? (
+        <p className="px-6 py-4 text-xs text-muted">Loading topic…</p>
+      ) : selection.kind === "vocabulary" && !entryQ.data ? (
         <p className="px-6 py-4 text-xs text-danger">Entry not found.</p>
-      ) : (
+      ) : selection.kind === "grammar" && !topicQ.data ? (
+        <p className="px-6 py-4 text-xs text-danger">Topic not found.</p>
+      ) : selection.kind === "vocabulary" && entryQ.data ? (
         <EntryDetail entry={entryQ.data} />
-      )}
+      ) : topicQ.data ? (
+        <GrammarTopicDetail topic={topicQ.data} />
+      ) : null}
     </aside>
   );
 }
@@ -557,6 +626,134 @@ function EntryDetail({ entry }: { entry: VocabEntryFull }) {
   );
 }
 
+function GrammarTopicDetail({ topic }: { topic: GrammarTopic }) {
+  const metadata = topic.metadata ?? {};
+  const patterns = readPatternList(metadata.patterns);
+  const examples = readExampleList(metadata.examples);
+  const mistakes = readMistakeList(metadata.common_mistakes);
+  const checks = readCheckList(metadata.checks);
+
+  return (
+    <article className="flex flex-col gap-5 px-5 py-5">
+      <header className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-baseline gap-2">
+          <h3 className="text-2xl font-semibold">{topic.title}</h3>
+          <span className="font-mono text-xs text-muted">{topic.slug}</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {topic.difficulty ? (
+            <Badge tone="focus" uppercase>
+              Level {topic.difficulty}
+            </Badge>
+          ) : null}
+          {(topic.tags ?? []).map((tag) => (
+            <Badge key={tag} tone="muted">
+              #{tag}
+            </Badge>
+          ))}
+        </div>
+      </header>
+
+      {topic.summaryMd ? (
+        <Section title="Summary">
+          <p className="text-sm text-app">{topic.summaryMd}</p>
+        </Section>
+      ) : null}
+
+      {topic.explanationMd ? (
+        <Section title="Explanation">
+          <div className="whitespace-pre-wrap text-sm leading-6 text-app">
+            {topic.explanationMd}
+          </div>
+        </Section>
+      ) : null}
+
+      {patterns.length > 0 ? (
+        <Section title="Patterns">
+          <ul className="flex flex-col gap-2">
+            {patterns.map((pattern, i) => (
+              <li
+                key={`${pattern.form}-${i}`}
+                className="rounded-xl border border-border-subtle bg-surface-0/50 px-3 py-2 text-sm"
+              >
+                <div className="flex flex-wrap items-baseline gap-2">
+                  {pattern.label ? (
+                    <span className="text-[10px] font-semibold uppercase text-muted-2">
+                      {pattern.label}
+                    </span>
+                  ) : null}
+                  <span className="font-mono text-app">{pattern.form}</span>
+                </div>
+                {pattern.use ? <p className="mt-1 text-xs text-muted">{pattern.use}</p> : null}
+                {pattern.examples.length > 0 ? (
+                  <ul className="mt-2 flex flex-col gap-1">
+                    {pattern.examples.map((example) => (
+                      <li key={example} className="text-xs text-muted">
+                        {example}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
+
+      {examples.length > 0 ? (
+        <Section title="Examples">
+          <ul className="flex flex-col gap-2">
+            {examples.map((example, i) => (
+              <li
+                key={`${example.text}-${i}`}
+                className="rounded-xl border border-border-subtle bg-surface-0/50 px-3 py-2"
+              >
+                <p className="text-sm text-app">{example.text}</p>
+                {example.translation ? (
+                  <p className="mt-1 text-xs text-muted">{example.translation}</p>
+                ) : null}
+                {example.explanation ? (
+                  <p className="mt-1 text-xs text-muted-2">{example.explanation}</p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
+
+      {mistakes.length > 0 ? (
+        <Section title="Common Mistakes">
+          <ul className="flex flex-col gap-2">
+            {mistakes.map((mistake, i) => (
+              <li key={`${mistake.wrong}-${i}`} className="text-sm">
+                <p className="text-danger">{mistake.wrong}</p>
+                <p className="text-success">{mistake.correct}</p>
+                {mistake.note ? <p className="text-xs text-muted">{mistake.note}</p> : null}
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
+
+      {checks.length > 0 ? (
+        <Section title="Checks">
+          <ul className="flex flex-col gap-2">
+            {checks.map((check, i) => (
+              <li key={`${check.prompt}-${i}`} className="rounded-xl bg-surface-0/50 px-3 py-2">
+                <p className="text-sm text-app">{check.prompt}</p>
+                <p className="mt-1 text-xs text-success">{check.answer}</p>
+                {check.explanation ? (
+                  <p className="mt-1 text-xs text-muted">{check.explanation}</p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
+    </article>
+  );
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-2">
@@ -564,4 +761,96 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       {children}
     </section>
   );
+}
+
+interface PatternView {
+  label: string | null;
+  form: string;
+  use: string | null;
+  examples: string[];
+}
+
+interface ExampleView {
+  text: string;
+  translation: string | null;
+  explanation: string | null;
+}
+
+interface MistakeView {
+  wrong: string;
+  correct: string;
+  note: string | null;
+}
+
+interface CheckView {
+  prompt: string;
+  answer: string;
+  explanation: string | null;
+}
+
+function readPatternList(value: unknown): PatternView[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item): PatternView[] => {
+    if (!item || typeof item !== "object") return [];
+    const row = item as Record<string, unknown>;
+    if (typeof row.form !== "string") return [];
+    return [
+      {
+        label: typeof row.label === "string" ? row.label : null,
+        form: row.form,
+        use: typeof row.use === "string" ? row.use : null,
+        examples: Array.isArray(row.examples)
+          ? row.examples.filter((example): example is string => typeof example === "string")
+          : [],
+      },
+    ];
+  });
+}
+
+function readExampleList(value: unknown): ExampleView[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item): ExampleView[] => {
+    if (!item || typeof item !== "object") return [];
+    const row = item as Record<string, unknown>;
+    if (typeof row.text !== "string") return [];
+    return [
+      {
+        text: row.text,
+        translation: typeof row.translation === "string" ? row.translation : null,
+        explanation: typeof row.explanation === "string" ? row.explanation : null,
+      },
+    ];
+  });
+}
+
+function readMistakeList(value: unknown): MistakeView[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item): MistakeView[] => {
+    if (!item || typeof item !== "object") return [];
+    const row = item as Record<string, unknown>;
+    if (typeof row.wrong !== "string" || typeof row.correct !== "string") return [];
+    return [
+      {
+        wrong: row.wrong,
+        correct: row.correct,
+        note: typeof row.note === "string" ? row.note : null,
+      },
+    ];
+  });
+}
+
+function readCheckList(value: unknown): CheckView[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item): CheckView[] => {
+    if (!item || typeof item !== "object") return [];
+    const row = item as Record<string, unknown>;
+    if (typeof row.prompt !== "string" || typeof row.answer !== "string") return [];
+    return [
+      {
+        prompt: row.prompt,
+        answer: row.answer,
+        explanation: typeof row.explanation === "string" ? row.explanation : null,
+      },
+    ];
+  });
 }

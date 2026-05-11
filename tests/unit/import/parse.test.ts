@@ -1,11 +1,23 @@
 import { describe, expect, it } from "vitest";
 import { ZodError } from "zod";
-import { VocabParseError, parseVocabFile } from "../../../src/application/import";
+import {
+  GrammarParseError,
+  VocabParseError,
+  parseContentFile,
+  parseGrammarFile,
+  parseVocabFile,
+} from "../../../src/application/import";
 
 const baseFile = {
   book: "destination-b1",
   unit: { ordinal: 1, code: "U01", title: "U" },
   lesson: { ordinal: 1, kind: "vocabulary", title: "L", slug: "l" },
+} as const;
+
+const baseGrammarFile = {
+  book: "destination-b1",
+  unit: { ordinal: 1, code: "U01", title: "U" },
+  lesson: { ordinal: 2, kind: "grammar", title: "G", slug: "g" },
 } as const;
 
 describe("parseVocabFile", () => {
@@ -203,5 +215,78 @@ describe("cloze parsing", () => {
       ],
     });
     expect(parsed.entries[0]?.toUpsertInput(1).examples[0]?.clozeTarget).toBeNull();
+  });
+});
+
+describe("parseGrammarFile", () => {
+  it("parses grammar topics and folds rich teaching fields into metadata", () => {
+    const parsed = parseGrammarFile({
+      ...baseGrammarFile,
+      topics: [
+        {
+          id: "present-simple-routines",
+          slug: "present-simple-routines",
+          title: "Present simple for routines",
+          summary_md: "Habits and routines.",
+          explanation_md: "Use base verb; add -s for he/she/it.",
+          difficulty: 1,
+          tags: ["tense"],
+          patterns: [{ label: "affirmative", form: "subject + base verb" }],
+          examples: [{ text: "She studies daily.", correct: true }],
+          common_mistakes: [{ wrong: "She study.", correct: "She studies." }],
+          checks: [{ prompt: "I watch -> he ...", answer: "He watches." }],
+          metadata: { teacher_note: "Act it out." },
+        },
+      ],
+    });
+
+    const topic = parsed.topics[0];
+    expect(topic?.sourceId).toBe("present-simple-routines");
+    expect(topic?.toUpsertInput(1)).toMatchObject({
+      lessonId: 1,
+      title: "Present simple for routines",
+      difficulty: 1,
+      tags: ["tense"],
+      metadata: {
+        teacher_note: "Act it out.",
+        patterns: [{ label: "affirmative", form: "subject + base verb" }],
+        examples: [{ text: "She studies daily.", correct: true }],
+        common_mistakes: [{ wrong: "She study.", correct: "She studies." }],
+        checks: [{ prompt: "I watch -> he ...", answer: "He watches." }],
+      },
+    });
+  });
+
+  it("rejects duplicate topic ids and slugs", () => {
+    expect(() =>
+      parseGrammarFile({
+        ...baseGrammarFile,
+        topics: [
+          { id: "x", slug: "x", title: "X" },
+          { id: "x", slug: "y", title: "Y" },
+        ],
+      }),
+    ).toThrow(GrammarParseError);
+
+    expect(() =>
+      parseGrammarFile({
+        ...baseGrammarFile,
+        topics: [
+          { id: "x", slug: "same", title: "X" },
+          { id: "y", slug: "same", title: "Y" },
+        ],
+      }),
+    ).toThrow(GrammarParseError);
+  });
+});
+
+describe("parseContentFile", () => {
+  it("routes by lesson kind", () => {
+    expect(parseContentFile({ ...baseFile, entries: [{ headword: "x", pos: "noun" }] }).kind).toBe(
+      "vocabulary",
+    );
+    expect(parseContentFile({ ...baseGrammarFile, topics: [{ slug: "g", title: "G" }] }).kind).toBe(
+      "grammar",
+    );
   });
 });

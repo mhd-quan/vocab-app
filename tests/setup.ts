@@ -8,14 +8,14 @@ Object.defineProperty(window, "api", {
   value: {
     app: {
       name: "vocab-app",
-      version: "0.3.1",
+      version: "0.3.2",
       platform: "test",
     },
     meta: {
       ping: async () => "pong" as const,
       appInfo: async () => ({
         name: "vocab-app",
-        version: "0.3.1",
+        version: "0.3.2",
         schemaTablesExpected: 20,
         dbPath: ":memory:",
       }),
@@ -39,6 +39,11 @@ Object.defineProperty(window, "api", {
     vocab: {
       listByLesson: async () => [],
       listFullByLesson: async () => [],
+      countByLesson: async () => 0,
+      getById: async () => null,
+    },
+    grammar: {
+      listByLesson: async () => [],
       countByLesson: async () => 0,
       getById: async () => null,
     },

@@ -1,20 +1,21 @@
-# Vocab YAML template
+# Vocab import sample
 # Copy this file into content/books/<book-code>/unit-NN-vocab.yaml.
+# The file intentionally exercises every currently accepted vocab enum.
 
-book: destination-b1
-book_title: Destination B1
+book: sample-b1
+book_title: Sample B1 Authoring Pack
 
 unit:
-  ordinal: 1
-  code: U01
-  title: People & Relationships
-  summary_md: Optional short markdown summary for the unit.
+  ordinal: 99
+  code: U99
+  title: Full Vocabulary Syntax Sample
+  summary_md: Demonstrates all vocab fields, POS values, form kinds, collocation patterns, and relation kinds.
 
 lesson:
   ordinal: 1
   kind: vocabulary
-  title: Family & Friends
-  slug: family-and-friends
+  title: Vocab Import Surface
+  slug: vocab-import-surface
 
 entries:
   - id: achievement-noun
@@ -26,9 +27,10 @@ entries:
     frequency_rank: 1200
     image_ref: images/achievement.png
     audio_ref: audio/achievement.mp3
-    tags: [school, success]
+    tags: [school, success, noun]
     metadata:
       source: template
+      rarity: common
     senses:
       - definition_en: something good that you have worked hard to do
         definition_vi: thành tựu
@@ -62,14 +64,15 @@ entries:
 
   - id: adapt-verb
     headword: adapt
+    lemma: adapt
     pos: verb
     ipa: /əˈdæpt/
     cefr: B2
-    tags: [change, work]
+    tags: [change, work, verb]
     senses:
       - definition_en: to change your behavior so that you can deal with a new situation
         definition_vi: thích nghi
-        register: neutral
+        register: formal
     examples:
       - text: New students need time to {{adapt}} to the course.
         translation: Học sinh mới cần thời gian để thích nghi với khóa học.
@@ -99,13 +102,15 @@ entries:
 
   - id: accurate-adjective
     headword: accurate
+    lemma: accurate
     pos: adjective
     ipa: /ˈækjərət/
     cefr: B1
-    tags: [quality]
+    tags: [quality, adjective]
     senses:
       - definition_en: correct and true in every detail
         definition_vi: chính xác
+        register: academic
     examples:
       - text: The report gives an {{accurate}} picture of the problem.
         translation: Báo cáo đưa ra một bức tranh chính xác về vấn đề.
@@ -123,38 +128,128 @@ entries:
       - relation: see_also
         text: precise
 
-  - id: look-up-phrasal_verb
-    headword: look up
-    pos: phrasal_verb
-    cefr: B1
-    tags: [study]
+  - id: carefully-adverb
+    headword: carefully
+    lemma: carefully
+    pos: adverb
+    cefr: A2
+    tags: [adverb, manner]
     senses:
-      - definition_en: to search for information in a book or online
-        definition_vi: tra cứu
+      - definition_en: with a lot of attention or thought
+        definition_vi: một cách cẩn thận
+        register: neutral
     examples:
-      - text: You should {{look up}} any word you do not know.
-        translation: Bạn nên tra cứu bất kỳ từ nào bạn không biết.
+      - text: Read the instructions {{carefully}} before you answer.
+
+  - id: as-a-result-phrase
+    headword: as a result
+    pos: phrase
+    cefr: B1
+    tags: [linking, phrase]
+    senses:
+      - definition_en: because of something that happened before
+        definition_vi: kết quả là
+        register: formal
+    examples:
+      - text: It rained heavily; {{as a result}}, the match was cancelled.
     collocations:
-      - collocation: look up a word
-        pattern: other
-    relations:
-      - relation: synonym
-        text: search for
+      - collocation: as a result of
+        pattern: noun+prep
 
   - id: break-the-ice-idiom
     headword: break the ice
     pos: idiom
     cefr: B2
-    tags: [conversation, relationships]
+    tags: [conversation, idiom]
     senses:
       - definition_en: to make people feel more relaxed in a social situation
         definition_vi: phá vỡ sự ngại ngùng ban đầu
+        register: informal
     examples:
       - text: A short game can {{break the ice}} at the start of class.
-        translation: Một trò chơi ngắn có thể phá vỡ sự ngại ngùng đầu buổi học.
     collocations:
-      - collocation: way to break the ice
-        pattern: noun+prep
+      - collocation: a way to break the ice
+        pattern: other
+
+  - id: look-up-phrasal_verb
+    headword: look up
+    lemma: look up
+    pos: phrasal_verb
+    cefr: B1
+    tags: [study, phrasal_verb]
+    senses:
+      - definition_en: to search for information in a book or online
+        definition_vi: tra cứu
+        register: neutral
+    examples:
+      - text: You should {{look up}} any word you do not know.
     relations:
-      - relation: see_also
-        text: small talk
+      - relation: synonym
+        text: search for
+
+  - id: heavy-rain-collocation
+    headword: heavy rain
+    pos: collocation
+    cefr: A2
+    tags: [weather, collocation]
+    senses:
+      - definition_en: a lot of rain
+        definition_vi: mưa to
+    examples:
+      - text: The road was flooded after the {{heavy rain}}.
+
+  - id: either-determiner
+    headword: either
+    pos: determiner
+    cefr: B1
+    tags: [choice, determiner]
+    senses:
+      - definition_en: one or the other of two things
+        definition_vi: một trong hai
+    examples:
+      - text: You can choose {{either}} answer.
+
+  - id: in-spite-of-preposition
+    headword: in spite of
+    pos: preposition
+    cefr: B1
+    tags: [contrast, preposition]
+    senses:
+      - definition_en: despite something
+        definition_vi: mặc dù
+    examples:
+      - text: She smiled {{in spite of}} the bad news.
+
+  - id: although-conjunction
+    headword: although
+    pos: conjunction
+    cefr: A2
+    tags: [contrast, conjunction]
+    senses:
+      - definition_en: used to introduce a fact that makes another fact surprising
+        definition_vi: mặc dù
+    examples:
+      - text: "{{Although}} it was late, we kept studying."
+
+  - id: theirs-pronoun
+    headword: theirs
+    pos: pronoun
+    cefr: A2
+    tags: [possession, pronoun]
+    senses:
+      - definition_en: belonging to them
+        definition_vi: của họ
+    examples:
+      - text: This book is ours, and that one is {{theirs}}.
+
+  - id: wow-interjection
+    headword: wow
+    pos: interjection
+    cefr: A1
+    tags: [reaction, interjection]
+    senses:
+      - definition_en: used to show surprise or admiration
+        definition_vi: ôi, chà
+        register: slang
+    examples:
+      - text: "{{Wow}}, your pronunciation is much better today!"

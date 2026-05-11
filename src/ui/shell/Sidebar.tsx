@@ -38,18 +38,20 @@ export function Sidebar({ brand, items, footer, topInset }: SidebarProps) {
 
 function SidebarLink({ item, active }: { item: SidebarItem; active: boolean }) {
   const className = cn(
-    "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+    "group flex items-center gap-3 rounded-2xl px-2.5 py-2.5 text-sm font-medium transition-[background-color,color,box-shadow,transform]",
     item.disabled
       ? "cursor-not-allowed text-muted-2"
       : active
-        ? "bg-accent/10 text-app ring-1 ring-accent/20"
-        : "text-muted hover:bg-surface-2 hover:text-app",
+        ? "bg-accent/10 text-app shadow-[0_0_0_1px_rgb(var(--color-accent)/0.18),0_10px_34px_rgb(var(--color-accent)/0.12)]"
+        : "text-muted hover:-translate-y-0.5 hover:bg-surface-2 hover:text-app",
   );
 
   if (item.disabled) {
     return (
       <span aria-disabled className={className}>
-        <span className="flex h-4 w-4 items-center justify-center text-muted-2">{item.icon}</span>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-surface-2 text-muted-2">
+          {item.icon}
+        </span>
         <span className="flex-1">{item.label}</span>
         {item.hint ? <span className="text-[10px] text-muted-2">{item.hint}</span> : null}
       </span>
@@ -60,8 +62,10 @@ function SidebarLink({ item, active }: { item: SidebarItem; active: boolean }) {
     <Link to={item.to} className={className}>
       <span
         className={cn(
-          "flex h-5 w-5 items-center justify-center",
-          active ? "text-accent" : "text-muted",
+          "flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl transition-[background-color,color,box-shadow]",
+          active
+            ? "bg-accent text-accent-fg shadow-[0_8px_22px_rgb(var(--color-accent)/0.24)]"
+            : "bg-surface-2/80 text-muted group-hover:bg-surface-3 group-hover:text-app",
         )}
       >
         {item.icon}

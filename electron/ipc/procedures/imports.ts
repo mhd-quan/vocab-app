@@ -6,7 +6,7 @@ import { z } from "zod";
 import {
   type ImportFileResult,
   ImportVocabUseCase,
-  parseVocabFile,
+  parseContentFile,
 } from "../../../src/application/import";
 import type { Repositories } from "../../db/repositories";
 import { defineProcedure } from "../procedure";
@@ -82,8 +82,8 @@ async function importContent(
     }
 
     const safeName = safeYamlFileName(fileName);
-    const parsed = parseVocabFile(yaml.load(content));
-    const destinationDir = path.join(getContentBooksRoot(), parsed.book);
+    const parsed = parseContentFile(yaml.load(content));
+    const destinationDir = path.join(getContentBooksRoot(), parsed.file.book);
     const destinationPath = path.join(destinationDir, safeName);
 
     await fs.mkdir(destinationDir, { recursive: true });

@@ -1,4 +1,17 @@
 export { canonicalJson, hashContent, sha256Hex } from "./hash";
+export { type ParsedContentFile, parseContentFile } from "./content.parse";
+export {
+  type GrammarFileInput,
+  type GrammarTopicInput,
+  grammarFileSchema,
+  grammarTopicInputSchema,
+} from "./grammar.schema";
+export {
+  GrammarParseError,
+  type ParsedGrammarFile,
+  type ParsedGrammarTopic,
+  parseGrammarFile,
+} from "./grammar.parse";
 export {
   type ImportFileResult,
   type ImportItemResult,

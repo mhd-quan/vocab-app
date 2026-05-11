@@ -101,6 +101,56 @@ entries:
       - definition_en: a member of your family
 `;
 
+const GRAMMAR_FILE_V1 = `
+book: destination-b1
+book_title: Destination B1
+unit: { ordinal: 1, code: U01, title: People & Relationships }
+lesson:
+  ordinal: 2
+  kind: grammar
+  title: Present simple
+  slug: present-simple
+topics:
+  - id: present-simple-routines
+    slug: present-simple-routines
+    title: Present simple for routines
+    summary_md: Habits and routines.
+    explanation_md: Use the base verb; add -s for he/she/it.
+    difficulty: 1
+    tags: [tense, routines]
+    patterns:
+      - label: affirmative
+        form: subject + base verb
+    examples:
+      - text: She studies every day.
+        correct: true
+    common_mistakes:
+      - wrong: She study.
+        correct: She studies.
+    checks:
+      - prompt: I watch -> he ...
+        answer: He watches.
+`;
+
+const GRAMMAR_FILE_V2_MODIFIED = `
+book: destination-b1
+book_title: Destination B1
+unit: { ordinal: 1, code: U01, title: People & Relationships }
+lesson:
+  ordinal: 2
+  kind: grammar
+  title: Present simple
+  slug: present-simple
+topics:
+  - id: present-simple-routines
+    slug: present-simple-routines
+    title: Present simple for routines
+    summary_md: Habits and routines. UPDATED.
+    explanation_md: Use the base verb; add -s for he/she/it.
+    difficulty: 1
+    tags: [tense, routines]
+`;
+
 describe("ImportVocabUseCase", () => {
   let db: AppDatabase;
   let repos: Repositories;
@@ -258,6 +308,51 @@ describe("ImportVocabUseCase", () => {
     }>;
     expect(refs).toHaveLength(2);
     expect(refs.every((r) => r.kind === "vocab_entry")).toBe(true);
+  });
+
+  it("imports grammar topics and stores rich teaching metadata", async () => {
+    const file = writeYaml(tmpDir, "u01-grammar.yaml", GRAMMAR_FILE_V1);
+    const result = await usecase.importFile(file);
+
+    expect(result.status).toBe("success");
+    expect(result.stats).toEqual({ inserted: 1, updated: 0, skipped: 0, failed: 0 });
+
+    const book = repos.curriculum.getBookByCode("destination-b1");
+    if (!book) throw new Error("book not found");
+    const unit = first(repos.curriculum.listUnitsByBook(book.id));
+    const lesson = repos.curriculum
+      .listLessonsByUnit(unit.id, "grammar")
+      .find((row) => row.slug === "present-simple");
+    if (!lesson) throw new Error("grammar lesson not found");
+
+    const topics = repos.grammar.listByLesson(lesson.id);
+    expect(topics).toHaveLength(1);
+    expect(topics[0]?.title).toBe("Present simple for routines");
+    expect(topics[0]?.metadata).toMatchObject({
+      patterns: [{ label: "affirmative", form: "subject + base verb" }],
+      examples: [{ text: "She studies every day.", correct: true }],
+      common_mistakes: [{ wrong: "She study.", correct: "She studies." }],
+      checks: [{ prompt: "I watch -> he ...", answer: "He watches." }],
+    });
+
+    const refs = db.$sqlite.prepare("SELECT kind, ref_table FROM content_items").all() as Array<{
+      kind: string;
+      ref_table: string;
+    }>;
+    expect(refs).toEqual([{ kind: "grammar_topic", ref_table: "grammar_topics" }]);
+  });
+
+  it("dry-run and update planning work for grammar topics", async () => {
+    const file = writeYaml(tmpDir, "u01-grammar.yaml", GRAMMAR_FILE_V1);
+    await usecase.importFile(file);
+
+    fs.writeFileSync(file, GRAMMAR_FILE_V2_MODIFIED, "utf8");
+    const plan = await usecase.importFile(file, { dryRun: true });
+    expect(plan.stats).toEqual({ inserted: 0, updated: 1, skipped: 0, failed: 0 });
+    expect(repos.grammar.listByLesson(1)[0]?.summaryMd).not.toContain("UPDATED");
+
+    const result = await usecase.importFile(file);
+    expect(result.stats).toEqual({ inserted: 0, updated: 1, skipped: 0, failed: 0 });
   });
 
   it("updating an entry preserves its content_items row (no duplicate)", async () => {

@@ -90,7 +90,7 @@ npm run rebuild        # rebuild better-sqlite3 against Electron's Node ABI
 npm run db:generate    # drizzle-kit generate (after editing src/data/schema)
 npm run db:migrate:dev # apply migrations to ./data/dev.db without Electron
 
-npm run import         # import all YAML/YML in content/books/**/*-vocab.{yaml,yml}
+npm run import         # import all YAML/YML in content/books/**/*-(vocab|grammar).{yaml,yml}
 npm run import:dry-run # validate + show plan; no DB writes
 npm run import:watch   # re-import on file change (chokidar)
 npm run import -- ./content/books/destination-b1   # specific path
@@ -123,7 +123,7 @@ resolved at runtime through `electron/db/paths.ts`.
 - **Curriculum**: `books`, `units`, `lessons`
 - **Vocabulary** (PR #2 focus): `vocab_entries`, `vocab_senses`,
   `vocab_examples`, `vocab_forms`, `vocab_collocations`, `vocab_relations`
-- **Grammar**: `grammar_topics` (stub — patterns/examples land in a later grammar pass)
+- **Grammar**: `grammar_topics` with authoring metadata for patterns, examples, mistakes, and checks
 - **Polymorphic content**: `content_items` (kind + ref_table + ref_id)
 - **Learner**: `students`, `enrollments`
 - **Progress** (event-sourced): `practice_sessions`, `learning_events`,
@@ -135,6 +135,10 @@ resolved at runtime through `electron/db/paths.ts`.
 Adding a new content kind later (custom exercise type, listening clip, …) is
 a single migration that adds the concrete table plus a row in `content_items`
 — no downstream change to progress or session code.
+
+## Authoring content
+
+See `content/templates/IMPORT-SYNTAX.md` for the full accepted YAML surface.
 
 ## Authoring vocab content
 
@@ -228,8 +232,8 @@ plumbing required.
   `.yaml` and `.yml`. Imported files are copied into
   `content/books/<book-code>/` and then processed by the same
   `ImportVocabUseCase` used by the CLI.
-- `content/templates/` contains a validating vocab template, a grammar
-  authoring template, and an exercise reference for current and planned
+- `content/templates/` contains validating vocab and grammar templates,
+  `IMPORT-SYNTAX.md`, and an exercise reference for current and planned
   exercise kinds.
 
 ## Exercise engine
@@ -377,7 +381,8 @@ See `docs/roadmap.md` (added with PR #2). Current plan:
 | Version | Scope                                                     |
 | ------- | --------------------------------------------------------- |
 | v0.2.0  | Shell polish + theme system + in-app import + settings/templates |
-| v0.3.0  | Grammar DB + import + browse                              |
+| v0.3.0  | Engagement-focused student/tutor UI redesign               |
+| v0.3.2  | Larger filled glyphs + grammar import samples/reference    |
 | v0.4.0  | In-app authoring GUI                                      |
 | v0.5.0  | More exercise types (fill-blank, matching, ordering, ...) |
 | v1.0.0  | Beta packaging (signed installers, auto-update)           |

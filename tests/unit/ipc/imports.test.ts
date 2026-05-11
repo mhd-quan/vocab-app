@@ -132,4 +132,40 @@ entries:
     expect(fs.existsSync(path.join(tmpDir, "destination-b1", "unit-01-vocab.yml"))).toBe(true);
     expect(ctx.repos.curriculum.getBookByCode("destination-b1")?.title).toBe("Destination B1");
   });
+
+  it("uploadFile routes grammar YAML into the grammar importer", async () => {
+    const result = await call<{ status: string; stats: { inserted: number } }>(
+      "imports.uploadFile",
+      {
+        fileName: "unit-01-grammar.yml",
+        content: `
+book: destination-b1
+book_title: Destination B1
+unit: { ordinal: 1, code: U01, title: Unit 1 }
+lesson:
+  ordinal: 2
+  kind: grammar
+  title: Present simple
+  slug: present-simple
+topics:
+  - id: present-simple-routines
+    slug: present-simple-routines
+    title: Present simple for routines
+    difficulty: 1
+`,
+      },
+      ctx,
+    );
+
+    expect(result.status).toBe("success");
+    expect(result.stats.inserted).toBe(1);
+    expect(fs.existsSync(path.join(tmpDir, "destination-b1", "unit-01-grammar.yml"))).toBe(true);
+    const book = ctx.repos.curriculum.getBookByCode("destination-b1");
+    if (!book) throw new Error("book not found");
+    const unit = ctx.repos.curriculum.listUnitsByBook(book.id)[0];
+    if (!unit) throw new Error("unit not found");
+    const lesson = ctx.repos.curriculum.listLessonsByUnit(unit.id, "grammar")[0];
+    if (!lesson) throw new Error("lesson not found");
+    expect(ctx.repos.grammar.listByLesson(lesson.id)[0]?.title).toBe("Present simple for routines");
+  });
 });

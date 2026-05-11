@@ -130,7 +130,7 @@ function SummaryStats({
       <BentoCard as="div" tone={streak > 0 ? "ember" : "neutral"} className="p-4" interactive>
         <dt className="flex items-center justify-between gap-2 text-xs font-semibold uppercase text-muted-2">
           <span>Streak</span>
-          <StreakFlame streak={streak} className="h-6 w-6" />
+          <StreakFlame streak={streak} className="h-7 w-7" />
         </dt>
         <dd className="mt-2 flex items-center gap-2 font-mono text-2xl text-app">
           {streak > 0 ? `${streak}d` : "0d"}
@@ -139,7 +139,7 @@ function SummaryStats({
       <BentoCard as="div" tone="sky" className="p-4" interactive>
         <dt className="flex items-center justify-between gap-2 text-xs font-semibold uppercase text-muted-2">
           <span>Seen</span>
-          <SeenIcon className="h-6 w-6 text-sky" />
+          <SeenIcon className="h-7 w-7 text-sky" />
         </dt>
         <dd className="mt-2 font-mono text-2xl text-app">{summary.totalSeen}</dd>
       </BentoCard>
@@ -151,14 +151,14 @@ function SummaryStats({
       >
         <dt className="flex items-center justify-between gap-2 text-xs font-semibold uppercase text-muted-2">
           <span>Due</span>
-          <DueIcon className={summary.totalDue > 0 ? "h-6 w-6 text-coral" : "h-6 w-6 text-lime"} />
+          <DueIcon className={summary.totalDue > 0 ? "h-7 w-7 text-coral" : "h-7 w-7 text-lime"} />
         </dt>
         <dd className="mt-2 font-mono text-2xl text-app">{summary.totalDue}</dd>
       </BentoCard>
       <BentoCard as="div" tone={accuracyPct >= 80 ? "success" : "rare"} className="p-4" interactive>
         <dt className="flex items-center justify-between gap-2 text-xs font-semibold uppercase text-muted-2">
           <span>Accuracy</span>
-          <AccuracyIcon className="h-6 w-6 text-rare" />
+          <AccuracyIcon className="h-7 w-7 text-rare" />
         </dt>
         <dd className="mt-2 font-mono text-2xl text-app">{accuracyPct}%</dd>
         <ProgressMeter
@@ -197,7 +197,7 @@ function AchievementChip({ achievementId }: { achievementId: string }) {
       className="flex items-center gap-2 rounded-full border border-mastery/40 bg-mastery/10 px-3 py-1.5 text-xs text-mastery"
       title={def.description}
     >
-      <AchievementIcon icon={def.icon} className="h-3.5 w-3.5" />
+      <AchievementIcon icon={def.icon} className="h-4 w-4" />
       <span className="font-medium text-app">{def.title}</span>
     </li>
   );
@@ -334,7 +334,7 @@ function LessonRow({
           <Badge tone="accent" uppercase>
             Vocab
           </Badge>
-          <LessonIcon className="h-5 w-5 text-accent" />
+          <LessonIcon className="h-6 w-6 text-accent" />
           <span className="truncate text-base font-semibold">{lesson.title}</span>
         </div>
         <ProgressMeter

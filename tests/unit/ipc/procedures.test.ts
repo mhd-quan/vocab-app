@@ -7,6 +7,7 @@ import { defineProcedure } from "../../../electron/ipc/procedure";
 import {
   authProcedures,
   curriculumProcedures,
+  grammarProcedures,
   importsProcedures,
   metaProcedures,
   progressProcedures,
@@ -53,6 +54,7 @@ describe("IPC procedure registry", () => {
       metaProcedures.length +
         authProcedures.length +
         curriculumProcedures.length +
+        grammarProcedures.length +
         vocabProcedures.length +
         studentsProcedures.length +
         settingsProcedures.length +
@@ -111,6 +113,26 @@ describe("IPC procedure registry", () => {
         ctx,
       );
       expect(result).toBeNull();
+    });
+  });
+
+  describe("grammar", () => {
+    it("listByLesson delegates to the grammar repository", async () => {
+      const { lesson } = seedCurriculum(db, { lessonKind: "grammar" });
+      ctx.repos.grammar.upsertTopic({
+        lessonId: lesson.id,
+        sourceId: "present-simple",
+        slug: "present-simple",
+        title: "Present simple",
+        contentHash: "h1",
+      });
+
+      const topics = await call<Array<{ title: string }>>(
+        "grammar.listByLesson",
+        { lessonId: lesson.id },
+        ctx,
+      );
+      expect(topics.map((topic) => topic.title)).toEqual(["Present simple"]);
     });
   });
 

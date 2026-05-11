@@ -76,7 +76,7 @@ export function RewardToast({
           palette,
         )}
       >
-        {icon ? <span className="grid h-7 w-7 place-items-center">{icon}</span> : null}
+        {icon ? <span className="grid h-8 w-8 place-items-center">{icon}</span> : null}
         <div className="flex flex-col leading-tight">
           <span className="text-xs font-semibold text-app">{title}</span>
           {description ? <span className="text-[11px] text-muted">{description}</span> : null}
