@@ -76,7 +76,8 @@ export function MultipleChoiceCard({ exercise, onAnswer, outcome }: MultipleChoi
                 aria-pressed={isPicked}
                 aria-label={`Option ${idx + 1}: ${option.text}`}
                 className={cn(
-                  "flex min-h-16 w-full items-center gap-3 rounded-2xl border px-5 py-4 text-left text-base transition-colors",
+                  "flex min-h-16 w-full items-center gap-3 rounded-2xl border px-5 py-4 text-left text-base transition-[background-color,border-color,color,box-shadow,transform]",
+                  !locked && "hover:-translate-y-0.5 hover:shadow-lift",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-1",
                   tone,
                 )}
@@ -115,10 +116,10 @@ function optionTone({
 }): string {
   if (!locked) {
     return isPicked
-      ? "border-accent bg-accent/10 text-app"
+      ? "border-accent bg-accent/10 text-app shadow-[0_0_0_4px_rgb(var(--color-accent)/0.12)]"
       : "border-border-subtle bg-surface-0/50 text-app hover:border-border-strong hover:bg-surface-2";
   }
-  if (option.correct) return "border-success/60 bg-success/10 text-success";
-  if (isPicked) return "border-danger/60 bg-danger/10 text-danger";
+  if (option.correct) return "answer-correct border-success/60 bg-success/10 text-success";
+  if (isPicked) return "answer-wrong border-danger/60 bg-danger/10 text-danger";
   return "border-border-subtle bg-surface-0/30 text-muted";
 }

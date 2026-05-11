@@ -23,6 +23,11 @@
     --color-epic: 166 83 198;
     --color-mastery: 218 163 42;
     --color-focus: 13 148 136;
+    --color-sky: 32 139 230;
+    --color-coral: 232 91 86;
+    --color-lime: 106 164 57;
+    --color-pink: 215 91 158;
+    --color-ember: 236 111 36;
   }
 
   .dark {
@@ -45,6 +50,11 @@
     --color-epic: 219 130 238;
     --color-mastery: 248 200 82;
     --color-focus: 45 212 183;
+    --color-sky: 87 181 255;
+    --color-coral: 255 128 121;
+    --color-lime: 157 216 92;
+    --color-pink: 245 132 194;
+    --color-ember: 255 158 74;
   }
 
   html,
@@ -63,5 +73,117 @@
     letter-spacing: 0;
     line-height: 1.5;
     text-rendering: optimizeLegibility;
+  }
+}
+
+@layer utilities {
+  .motion-card {
+    --glow-rgb: var(--color-accent);
+    position: relative;
+    transform: translateZ(0);
+  }
+
+  .motion-card::after {
+    border-radius: inherit;
+    box-shadow: 0 20px 70px rgb(var(--glow-rgb) / 0.2);
+    content: "";
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    transition: opacity 180ms ease;
+    z-index: -1;
+  }
+
+  .motion-card:hover::after,
+  .motion-card:focus-within::after {
+    opacity: 1;
+  }
+
+  .motion-enter {
+    animation: panel-in 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .progress-shimmer {
+    background-image: linear-gradient(
+      110deg,
+      rgb(255 255 255 / 0) 0%,
+      rgb(255 255 255 / 0.32) 46%,
+      rgb(255 255 255 / 0) 72%
+    );
+    background-size: 220% 100%;
+    animation: progress-shimmer 1.4s ease-in-out infinite;
+  }
+
+  .answer-correct {
+    animation: answer-pop 420ms cubic-bezier(0.18, 1.4, 0.36, 1) both;
+  }
+
+  .answer-wrong {
+    animation: answer-shake 360ms ease both;
+  }
+
+  .streak-glow {
+    animation: streak-pulse 1.9s ease-in-out infinite;
+  }
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes progress-shimmer {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
+}
+
+@keyframes answer-pop {
+  0% {
+    transform: scale(0.985);
+  }
+  52% {
+    transform: scale(1.025);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes answer-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  24% {
+    transform: translateX(-4px);
+  }
+  48% {
+    transform: translateX(4px);
+  }
+  72% {
+    transform: translateX(-2px);
+  }
+}
+
+@keyframes streak-pulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 rgb(var(--color-ember) / 0));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgb(var(--color-ember) / 0.35));
+    transform: scale(1.06);
   }
 }

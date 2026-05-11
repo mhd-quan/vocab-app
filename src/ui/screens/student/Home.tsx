@@ -6,6 +6,13 @@ import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
 import { EmptyState } from "@/ui/components/EmptyState";
+import {
+  AccuracyIcon,
+  DueIcon,
+  LessonIcon,
+  SeenIcon,
+  StreakFlame,
+} from "@/ui/components/LearningIcons";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
 import { AchievementIcon } from "@/ui/components/rewards";
 import { useQueries, useQuery } from "@tanstack/react-query";
@@ -65,10 +72,11 @@ export function StudentHome() {
         Back to profiles
       </Link>
 
-      <header className="grid gap-4 lg:grid-cols-[1.35fr_1fr]">
-        <BentoCard className="flex items-center gap-5 p-6" tone="focus">
+      <header className="grid gap-4 lg:grid-cols-[1.25fr_1fr]">
+        <BentoCard className="flex items-center gap-5 p-6" interactive tone="focus">
           <Avatar
             name={studentQ.data?.displayName ?? studentQ.data?.name ?? "?"}
+            avatarSeed={studentQ.data?.avatarSeed ?? null}
             color={studentQ.data?.color ?? null}
             size="lg"
           />
@@ -119,29 +127,45 @@ function SummaryStats({
   const accuracyPct = Math.round(summary.accuracy * 100);
   return (
     <dl className="grid grid-cols-2 gap-3">
-      <BentoCard as="div" tone={streak > 0 ? "warning" : "neutral"} className="p-4">
-        <dt className="text-xs font-semibold uppercase text-muted-2">Streak</dt>
+      <BentoCard as="div" tone={streak > 0 ? "ember" : "neutral"} className="p-4" interactive>
+        <dt className="flex items-center justify-between gap-2 text-xs font-semibold uppercase text-muted-2">
+          <span>Streak</span>
+          <StreakFlame streak={streak} className="h-6 w-6" />
+        </dt>
         <dd className="mt-2 flex items-center gap-2 font-mono text-2xl text-app">
-          <AchievementIcon icon="flame" className="h-5 w-5 text-warning" />
           {streak > 0 ? `${streak}d` : "0d"}
         </dd>
       </BentoCard>
-      <BentoCard as="div" tone="xp" className="p-4">
-        <dt className="text-xs font-semibold uppercase text-muted-2">Seen</dt>
+      <BentoCard as="div" tone="sky" className="p-4" interactive>
+        <dt className="flex items-center justify-between gap-2 text-xs font-semibold uppercase text-muted-2">
+          <span>Seen</span>
+          <SeenIcon className="h-6 w-6 text-sky" />
+        </dt>
         <dd className="mt-2 font-mono text-2xl text-app">{summary.totalSeen}</dd>
       </BentoCard>
-      <BentoCard as="div" tone={summary.totalDue > 0 ? "warning" : "success"} className="p-4">
-        <dt className="text-xs font-semibold uppercase text-muted-2">Due</dt>
+      <BentoCard
+        as="div"
+        tone={summary.totalDue > 0 ? "coral" : "lime"}
+        className="p-4"
+        interactive
+      >
+        <dt className="flex items-center justify-between gap-2 text-xs font-semibold uppercase text-muted-2">
+          <span>Due</span>
+          <DueIcon className={summary.totalDue > 0 ? "h-6 w-6 text-coral" : "h-6 w-6 text-lime"} />
+        </dt>
         <dd className="mt-2 font-mono text-2xl text-app">{summary.totalDue}</dd>
       </BentoCard>
-      <BentoCard as="div" tone={accuracyPct >= 80 ? "success" : "accent"} className="p-4">
-        <dt className="text-xs font-semibold uppercase text-muted-2">Accuracy</dt>
+      <BentoCard as="div" tone={accuracyPct >= 80 ? "success" : "rare"} className="p-4" interactive>
+        <dt className="flex items-center justify-between gap-2 text-xs font-semibold uppercase text-muted-2">
+          <span>Accuracy</span>
+          <AccuracyIcon className="h-6 w-6 text-rare" />
+        </dt>
         <dd className="mt-2 font-mono text-2xl text-app">{accuracyPct}%</dd>
         <ProgressMeter
           value={accuracyPct}
           max={100}
           label="Accuracy progress"
-          tone={accuracyPct >= 80 ? "success" : "accent"}
+          tone={accuracyPct >= 80 ? "success" : "rare"}
           className="mt-3"
         />
       </BentoCard>
@@ -209,7 +233,7 @@ function BookSection({ studentId, book }: { studentId: number; book: Book }) {
       ) : units.length === 0 ? (
         <p className="text-xs text-muted-2">No units imported yet.</p>
       ) : (
-        <ul className="flex flex-col gap-5">
+        <ul className="grid grid-cols-1 gap-x-6 gap-y-7 xl:grid-cols-2">
           {units.map((unit) => (
             <UnitGroup key={unit.id} studentId={studentId} unit={unit} />
           ))}
@@ -249,7 +273,7 @@ function UnitGroup({ studentId, unit }: { studentId: number; unit: Unit }) {
         </Badge>
         <h3 className="text-base font-semibold">{unit.title}</h3>
       </header>
-      <ul className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-3">
         {lessons.map((lesson, i) => {
           const stats = dueQs[i]?.data;
           const totalCount = stats?.totalCount ?? 0;
@@ -300,7 +324,7 @@ function LessonRow({
     <Link
       to="/student/profile/$studentId/session/$lessonId"
       params={{ studentId: String(studentId), lessonId: String(lesson.id) }}
-      className="group grid min-h-28 gap-4 rounded-bento border border-border-subtle bg-surface-1 px-5 py-4 text-sm shadow-card transition-[background-color,border-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-accent/40 hover:bg-surface-2 hover:shadow-lift sm:grid-cols-[1fr_auto]"
+      className="motion-card group grid min-h-32 gap-4 rounded-bento border border-border-subtle bg-surface-1 px-5 py-4 text-sm shadow-card transition-[background-color,border-color,box-shadow,transform] [--glow-rgb:var(--color-accent)] hover:-translate-y-1 hover:border-accent/40 hover:bg-surface-2 hover:shadow-lift sm:grid-cols-[1fr_auto]"
     >
       <div className="flex min-w-0 flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
@@ -310,6 +334,7 @@ function LessonRow({
           <Badge tone="accent" uppercase>
             Vocab
           </Badge>
+          <LessonIcon className="h-5 w-5 text-accent" />
           <span className="truncate text-base font-semibold">{lesson.title}</span>
         </div>
         <ProgressMeter

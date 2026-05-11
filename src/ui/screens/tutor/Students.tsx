@@ -12,20 +12,26 @@ import { Modal } from "@/ui/components/Modal";
 import { PageHeader } from "@/ui/components/PageHeader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 type Tab = "active" | "archived";
 
 const COLOR_OPTIONS = [
   "#7c9cff", // accent
-  "#7ee2c4",
-  "#f6c177",
-  "#ea9aaa",
-  "#c4a7e7",
-  "#9ccfd8",
-  "#a3be8c",
-  "#bf616a",
+  "#41cadc", // xp
+  "#ff9e4a", // ember
+  "#f584c2", // pink
+  "#9dd85c", // lime
+  "#db82ee", // epic
+  "#57b5ff", // sky
+  "#ff8079", // coral
+  "#f8c852", // mastery
+  "#2dd4b7", // focus
 ];
+
+const EMOJI_OPTIONS = ["⭐", "🔥", "⚡", "🚀", "🎯", "🧠", "📚", "🌈", "🍀", "💎", "🎮", "🏆"];
+const MAX_AVATAR_FILE_BYTES = 5 * 1024 * 1024;
+const MAX_AVATAR_SEED_CHARS = 180_000;
 
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
@@ -150,7 +156,12 @@ function StudentRow({ student, onEdit }: { student: Student; onEdit: () => void 
 
   return (
     <BentoCard as="li" interactive className="flex items-center gap-4 p-4">
-      <Avatar name={student.displayName ?? student.name} color={student.color} size="lg" />
+      <Avatar
+        name={student.displayName ?? student.name}
+        avatarSeed={student.avatarSeed}
+        color={student.color}
+        size="lg"
+      />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           {archived ? (
@@ -219,9 +230,12 @@ function StudentEditor({ open, onClose, editing }: StudentEditorProps) {
   const isEdit = editing !== null;
   const [name, setName] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [avatarSeed, setAvatarSeed] = useState<string | null>(null);
   const [color, setColor] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const nameId = useFieldId("name");
   const displayId = useFieldId("display");
@@ -232,11 +246,13 @@ function StudentEditor({ open, onClose, editing }: StudentEditorProps) {
     if (editing) {
       setName(editing.name);
       setDisplayName(editing.displayName ?? "");
+      setAvatarSeed(editing.avatarSeed ?? null);
       setColor(editing.color ?? null);
       setNotes(editing.notes ?? "");
     } else {
       setName("");
       setDisplayName("");
+      setAvatarSeed(null);
       setColor(COLOR_OPTIONS[0] ?? null);
       setNotes("");
     }
@@ -282,6 +298,7 @@ function StudentEditor({ open, onClose, editing }: StudentEditorProps) {
         patch: {
           name: trimmedName,
           displayName: displayName.trim() || null,
+          avatarSeed,
           color: color || null,
           notes: notes.trim() || null,
         },
@@ -290,9 +307,33 @@ function StudentEditor({ open, onClose, editing }: StudentEditorProps) {
       create.mutate({
         name: trimmedName,
         ...(displayName.trim() ? { displayName: displayName.trim() } : {}),
+        ...(avatarSeed ? { avatarSeed } : {}),
         ...(color ? { color } : {}),
         ...(notes.trim() ? { notes: notes.trim() } : {}),
       });
+    }
+  }
+
+  async function onAvatarFile(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setError(null);
+    if (!file.type.startsWith("image/")) {
+      setError("Avatar must be an image file");
+      return;
+    }
+    if (file.size > MAX_AVATAR_FILE_BYTES) {
+      setError("Avatar image must be 5 MB or smaller");
+      return;
+    }
+    setAvatarBusy(true);
+    try {
+      setAvatarSeed(await fileToAvatarSeed(file));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load avatar image");
+    } finally {
+      setAvatarBusy(false);
     }
   }
 
@@ -319,6 +360,63 @@ function StudentEditor({ open, onClose, editing }: StudentEditorProps) {
       }
     >
       <form id="student-form" className="flex flex-col gap-4" onSubmit={onSubmit}>
+        <Field label="Avatar">
+          <div className="flex flex-col gap-3 rounded-2xl border border-border-subtle bg-surface-0/70 p-4">
+            <div className="flex items-center gap-4">
+              <Avatar
+                name={displayName.trim() || name.trim() || "Student"}
+                avatarSeed={avatarSeed}
+                color={color}
+                size="lg"
+                className="h-16 w-16 text-xl"
+              />
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={avatarBusy}
+                >
+                  {avatarBusy ? "Loading..." : "Upload photo"}
+                </Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setAvatarSeed(null)}>
+                  Initials
+                </Button>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="sr-only"
+                onChange={onAvatarFile}
+              />
+            </div>
+            <div className="grid grid-cols-6 gap-2 sm:grid-cols-12">
+              {EMOJI_OPTIONS.map((emoji) => {
+                const seed = `emoji:${emoji}`;
+                const selected = avatarSeed === seed;
+                return (
+                  <button
+                    key={emoji}
+                    type="button"
+                    aria-label={`Avatar ${emoji}`}
+                    aria-pressed={selected}
+                    onClick={() => setAvatarSeed(seed)}
+                    className={cn(
+                      "grid h-9 w-9 place-items-center rounded-full border text-lg transition-[background-color,border-color,box-shadow,transform]",
+                      selected
+                        ? "border-accent bg-accent/10 shadow-[0_0_0_4px_rgb(var(--color-accent)/0.12)]"
+                        : "border-border-subtle bg-surface-1 hover:-translate-y-0.5 hover:border-accent/40",
+                    )}
+                  >
+                    {emoji}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </Field>
         <Field label="Name" htmlFor={nameId} hint="Full name. Required.">
           <TextInput
             id={nameId}
@@ -404,4 +502,45 @@ function ColorSwatches({
       ))}
     </div>
   );
+}
+
+async function fileToAvatarSeed(file: File): Promise<string> {
+  const source = await readFileAsDataUrl(file);
+  const img = await loadImage(source);
+  const side = Math.min(img.naturalWidth || img.width, img.naturalHeight || img.height);
+  const sx = ((img.naturalWidth || img.width) - side) / 2;
+  const sy = ((img.naturalHeight || img.height) - side) / 2;
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Could not prepare avatar image");
+  ctx.drawImage(img, sx, sy, side, side, 0, 0, 256, 256);
+  const dataUrl = canvas.toDataURL("image/webp", 0.86);
+  const seed = `image:${dataUrl}`;
+  if (seed.length > MAX_AVATAR_SEED_CHARS) {
+    throw new Error("Avatar image is too large after resizing");
+  }
+  return seed;
+}
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") resolve(reader.result);
+      else reject(new Error("Could not read avatar image"));
+    };
+    reader.onerror = () => reject(new Error("Could not read avatar image"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Could not load avatar image"));
+    img.src = src;
+  });
 }

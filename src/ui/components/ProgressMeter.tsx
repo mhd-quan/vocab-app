@@ -1,6 +1,18 @@
 import { cn } from "@/lib/cn";
 
-type ProgressTone = "accent" | "success" | "warning" | "xp" | "rare" | "epic" | "mastery";
+type ProgressTone =
+  | "accent"
+  | "success"
+  | "warning"
+  | "xp"
+  | "rare"
+  | "epic"
+  | "mastery"
+  | "sky"
+  | "coral"
+  | "lime"
+  | "pink"
+  | "ember";
 
 export interface ProgressMeterProps {
   value: number;
@@ -19,6 +31,11 @@ const TONES: Record<ProgressTone, string> = {
   rare: "bg-rare",
   epic: "bg-epic",
   mastery: "bg-mastery",
+  sky: "bg-sky",
+  coral: "bg-coral",
+  lime: "bg-lime",
+  pink: "bg-pink",
+  ember: "bg-ember",
 };
 
 export function ProgressMeter({
@@ -38,7 +55,10 @@ export function ProgressMeter({
       <progress className="sr-only" value={clampedValue} max={safeMax} aria-label={label} />
       <div aria-hidden className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface-3/80">
         <div
-          className={cn("h-full rounded-full transition-[width] duration-300", TONES[tone])}
+          className={cn(
+            "progress-shimmer h-full rounded-full transition-[width] duration-500 ease-out",
+            TONES[tone],
+          )}
           style={{ width: `${pct}%` }}
         />
       </div>

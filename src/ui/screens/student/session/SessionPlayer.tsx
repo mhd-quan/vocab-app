@@ -4,6 +4,7 @@ import { type AchievementDefinition, getAchievement } from "@/modules/rewards";
 import { Badge } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
 import { Button } from "@/ui/components/Button";
+import { StreakFlame } from "@/ui/components/LearningIcons";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
 import { AchievementIcon, ConfettiBurst, RewardToast, useChime } from "@/ui/components/rewards";
 import { useCallback, useMemo, useState } from "react";
@@ -328,7 +329,7 @@ function SessionStatus({
         <ProgressMeter value={current} max={total} label="Session progress" tone="accent" />
       </div>
       <div className="flex items-center gap-2 rounded-2xl border border-warning/30 bg-warning/10 px-3 py-2">
-        <AchievementIcon icon="flame" className="h-4 w-4 text-warning" />
+        <StreakFlame streak={correctRun} className="h-5 w-5" />
         <span className="font-mono text-sm text-app">{correctRun}</span>
         <span className="text-xs text-muted">streak</span>
       </div>
