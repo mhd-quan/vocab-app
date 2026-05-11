@@ -78,6 +78,20 @@ describe("parseVocabFile", () => {
     expect(parsed.bookTitle).toBe("Destination B1");
   });
 
+  it("accepts prep+noun collocation patterns", () => {
+    const parsed = parseVocabFile({
+      ...baseFile,
+      entries: [
+        {
+          headword: "pressure",
+          pos: "noun",
+          collocations: [{ collocation: "under pressure", pattern: "prep+noun" }],
+        },
+      ],
+    });
+    expect(parsed.entries[0]?.toUpsertInput(1).collocations[0]?.pattern).toBe("prep+noun");
+  });
+
   it("rejects duplicate sourceIds within a file", () => {
     expect(() =>
       parseVocabFile({
