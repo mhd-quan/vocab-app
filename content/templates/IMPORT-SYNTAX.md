@@ -134,12 +134,14 @@ collocations:
     pattern: verb+prep
     example: Good learners adapt to change.
     notes_md: Optional markdown note.
+  - collocation: under pressure
+    pattern: prep+noun
 ```
 
 Accepted `pattern` values:
 
 `verb+noun`, `adj+noun`, `noun+noun`, `verb+prep`, `adj+prep`,
-`noun+prep`, `adv+adj`, `adv+verb`, `other`
+`noun+prep`, `prep+noun`, `adv+adj`, `adv+verb`, `other`
 
 ### Relations
 

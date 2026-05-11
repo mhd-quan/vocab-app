@@ -101,6 +101,26 @@ entries:
       - definition_en: a member of your family
 `;
 
+const FILE_WITH_PREP_NOUN = `
+book: destination-b1
+book_title: Destination B1
+unit: { ordinal: 27, code: U27, title: Working and earning }
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: Working and earning
+  slug: working-and-earning
+entries:
+  - id: pressure-noun
+    headword: pressure
+    pos: noun
+    senses:
+      - definition_en: a difficult situation that makes you feel worried or unhappy
+    collocations:
+      - collocation: under pressure
+        pattern: prep+noun
+`;
+
 const GRAMMAR_FILE_V1 = `
 book: destination-b1
 book_title: Destination B1
@@ -260,6 +280,21 @@ describe("ImportVocabUseCase", () => {
     const relative = repos.vocab.listFullByLesson(lesson.id).find((e) => e.headword === "relative");
     if (!relative) throw new Error("relative not found");
     expect(relative.senses[0]?.definitionEn).not.toContain("UPDATED");
+  });
+
+  it("imports prep+noun collocations", async () => {
+    const file = writeYaml(tmpDir, "u27.yaml", FILE_WITH_PREP_NOUN);
+    const result = await usecase.importFile(file);
+
+    expect(result.status).toBe("success");
+    expect(result.stats).toEqual({ inserted: 1, updated: 0, skipped: 0, failed: 0 });
+
+    const book = repos.curriculum.getBookByCode("destination-b1");
+    if (!book) throw new Error("book not found");
+    const unit = first(repos.curriculum.listUnitsByBook(book.id));
+    const lesson = first(repos.curriculum.listLessonsByUnit(unit.id));
+    const entry = repos.vocab.listFullByLesson(lesson.id)[0];
+    expect(entry?.collocations[0]?.pattern).toBe("prep+noun");
   });
 
   it("logs an import_runs row + import_items per entry on success", async () => {

@@ -9,7 +9,7 @@ unit:
   ordinal: 99
   code: U99
   title: Full Vocabulary Syntax Sample
-  summary_md: Demonstrates all vocab fields, POS values, form kinds, collocation patterns, and relation kinds.
+  summary_md: Demonstrates all vocab fields, POS values, form kinds, collocation patterns including prep+noun, and relation kinds.
 
 lesson:
   ordinal: 1
@@ -170,6 +170,25 @@ entries:
     collocations:
       - collocation: a way to break the ice
         pattern: other
+
+  - id: pressure-noun
+    headword: pressure
+    lemma: pressure
+    pos: noun
+    cefr: B1
+    tags: [work, stress, noun]
+    senses:
+      - definition_en: a difficult situation that makes you feel worried or unhappy
+        definition_vi: áp lực
+        register: neutral
+    examples:
+      - text: She is under a lot of {{pressure}} at work right now.
+        translation: Cô ấy đang chịu rất nhiều áp lực trong công việc ngay lúc này.
+    collocations:
+      - collocation: under pressure
+        pattern: prep+noun
+      - collocation: put pressure on
+        pattern: verb+noun
 
   - id: look-up-phrasal_verb
     headword: look up

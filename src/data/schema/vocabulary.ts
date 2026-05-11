@@ -140,6 +140,7 @@ export const collocationPatterns = [
   "verb+prep",
   "adj+prep",
   "noun+prep",
+  "prep+noun",
   "adv+adj",
   "adv+verb",
   "other",
