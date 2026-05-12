@@ -92,6 +92,24 @@ describe("parseVocabFile", () => {
     expect(parsed.entries[0]?.toUpsertInput(1).collocations[0]?.pattern).toBe("prep+noun");
   });
 
+  it("accepts word-pattern entries as vocab cards", () => {
+    const parsed = parseVocabFile({
+      ...baseFile,
+      entries: [
+        {
+          id: "inform-sb-about-sth-pattern",
+          headword: "inform sb about sth",
+          pos: "pattern",
+          tags: ["word-pattern"],
+          senses: [{ definition_en: "give someone facts or information" }],
+        },
+      ],
+    });
+    const input = parsed.entries[0]?.toUpsertInput(1);
+    expect(input?.pos).toBe("pattern");
+    expect(input?.tags).toEqual(["word-pattern"]);
+  });
+
   it("rejects duplicate sourceIds within a file", () => {
     expect(() =>
       parseVocabFile({
@@ -188,19 +206,22 @@ describe("cloze parsing", () => {
     ).toThrow(VocabParseError);
   });
 
-  it("rejects multiple {{cloze}} markers in one example", () => {
-    expect(() =>
-      parseVocabFile({
-        ...baseFile,
-        entries: [
-          {
-            headword: "x",
-            pos: "noun",
-            examples: [{ text: "Has {{two}} different {{markers}}." }],
-          },
-        ],
-      }),
-    ).toThrow(VocabParseError);
+  it("accepts multiple {{cloze}} markers and joins the inferred target", () => {
+    const parsed = parseVocabFile({
+      ...baseFile,
+      entries: [
+        {
+          headword: "look up",
+          pos: "pattern",
+          examples: [{ text: "Please {{look}} the word {{up}}." }],
+        },
+      ],
+    });
+
+    const upsert = parsed.entries[0]?.toUpsertInput(1);
+    expect(upsert?.examples[0]?.clozeTarget).toBe("look up");
+    expect(upsert?.examples[0]?.text).toContain("{{look}}");
+    expect(upsert?.examples[0]?.text).toContain("{{up}}");
   });
 
   it("trims whitespace around cloze content", () => {

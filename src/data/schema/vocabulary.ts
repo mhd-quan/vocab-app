@@ -11,6 +11,7 @@ export const partsOfSpeech = [
   "idiom",
   "phrasal_verb",
   "collocation",
+  "pattern",
   "determiner",
   "preposition",
   "conjunction",

@@ -71,7 +71,7 @@ Optional entry fields:
 Accepted `pos` values:
 
 `noun`, `verb`, `adjective`, `adverb`, `phrase`, `idiom`,
-`phrasal_verb`, `collocation`, `determiner`, `preposition`,
+`phrasal_verb`, `collocation`, `pattern`, `determiner`, `preposition`,
 `conjunction`, `pronoun`, `interjection`
 
 Rules:
@@ -82,6 +82,8 @@ Rules:
 - For entries that can belong to more than one part of speech, choose the
   primary card type and store the rest in `metadata.related_forms` or as
   separate entries.
+- Use `pattern` for word-pattern cards such as `inform sb about sth`,
+  `believe in sth`, or `surprised at sth`.
 
 Accepted `cefr` values:
 
@@ -117,9 +119,12 @@ examples:
 
 Rules:
 
-- One `{{cloze}}` marker is supported per example.
+- One or more `{{cloze}}` markers are supported per example.
 - `cloze_target` is optional and inferred from `{{...}}`.
-- If both are present, `cloze_target` must exactly match the marker text.
+- If multiple markers are present, the inferred `cloze_target` joins them with
+  spaces, e.g. `{{look}} it {{up}}` becomes `look up`.
+- If both marker text and `cloze_target` are present, `cloze_target` must
+  exactly match the inferred target.
 
 ### Forms
 
