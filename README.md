@@ -4,7 +4,7 @@ Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
 student practice) running as a desktop app on Windows and macOS.
 
-> **Status:** v0.6.1 — tutor assignments, vocabulary/grammar student flows,
+> **Status:** v0.6.2 — tutor assignments, vocabulary/grammar student flows,
 > SRS progress, rewards, in-app YAML import, settings, and authoring templates
 > remain backed by the same local SQLite schema.
 
@@ -396,4 +396,5 @@ See `docs/roadmap.md` (added with PR #2). Current plan:
 | v0.5.1  | Assignment/runtime polish + settings cleanup + focused authoring templates |
 | v0.6.0  | Vocabulary direct launch + grammar-only study layer + flashcard-first new words |
 | v0.6.1  | Remove vocab study-page flash + retire vocab study-page starter |
+| v0.6.2  | Include native SQLite runtime deps in packaged Windows/macOS apps |
 | v1.0.0  | Beta packaging (signed installers, auto-update)           |
