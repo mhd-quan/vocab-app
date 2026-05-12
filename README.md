@@ -4,9 +4,8 @@ Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
 student practice) running as a desktop app on Windows and macOS.
 
-> **Status:** v0.2.0 — shell polish, welcome mode selection, editable book
-> titles, light/dark/system themes, in-app YAML import, expanded Settings,
-> and authoring templates. Tutor analytics, SRS, rewards, and import history
+> **Status:** v0.6.1 — tutor assignments, vocabulary/grammar student flows,
+> SRS progress, rewards, in-app YAML import, settings, and authoring templates
 > remain backed by the same local SQLite schema.
 
 ## Stack
@@ -263,7 +262,11 @@ Adding a new kind = three steps:
 
 Decks are deterministic for a given `sessionSeed`: `buildDeck` hashes
 the seed → mulberry32 PRNG → Fisher–Yates shuffle. Two calls with the
-same seed produce the same deck in the same order.
+same seed produce the same deck in the same order. Vocabulary-only units
+launch directly into the session route; the unit study/practice layer is
+reserved for grammar units. For vocabulary sessions, entries that have no
+student progress are placed in a flashcard-only intro phase before any
+recognition/review exercise can be generated for that word.
 
 Currently shipping kinds:
 
@@ -391,4 +394,6 @@ See `docs/roadmap.md` (added with PR #2). Current plan:
 | v0.4.0  | Interactive grammar learning flow + lesson-card home      |
 | v0.5.0  | Tutor unit assignments + section-based study + authoring GUI |
 | v0.5.1  | Assignment/runtime polish + settings cleanup + focused authoring templates |
+| v0.6.0  | Vocabulary direct launch + grammar-only study layer + flashcard-first new words |
+| v0.6.1  | Remove vocab study-page flash + retire vocab study-page starter |
 | v1.0.0  | Beta packaging (signed installers, auto-update)           |

@@ -354,7 +354,7 @@ function formatAssignmentSaveError(error: unknown): string {
     message.includes("No handler registered") &&
     message.includes("students.replaceUnitAssignments")
   ) {
-    return "Assignment saving is unavailable in this running app process. Restart the app once so the v0.5.1 tutor handlers load, then try again.";
+    return "Assignment saving is unavailable in this running app process. Restart the app once so the latest tutor handlers load, then try again.";
   }
   return message || "Could not save assignments.";
 }

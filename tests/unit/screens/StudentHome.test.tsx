@@ -105,8 +105,15 @@ function renderHome() {
     path: "profile/$studentId/unit/$unitId",
     component: () => null,
   });
+  const sessionRoute = createRoute({
+    getParentRoute: () => studentRoute,
+    path: "profile/$studentId/session/$lessonId",
+    component: () => null,
+  });
   const router = createRouter({
-    routeTree: rootRoute.addChildren([studentRoute.addChildren([profileRoute, unitRoute])]),
+    routeTree: rootRoute.addChildren([
+      studentRoute.addChildren([profileRoute, unitRoute, sessionRoute]),
+    ]),
     history: createMemoryHistory({ initialEntries: ["/student/profile/1"] }),
   });
   return render(
@@ -145,6 +152,10 @@ describe("StudentHome", () => {
     await waitFor(() => expect(screen.getByText("Alice")).toBeInTheDocument());
     expect(screen.getByText("Destination B1")).toBeInTheDocument();
     await waitFor(() => expect(screen.getByText(/No cards yet/i)).toBeInTheDocument());
+    expect(screen.getByRole("link", { name: /People/ })).toHaveAttribute(
+      "href",
+      "/student/profile/1/session/100",
+    );
   });
 
   it("renders due / new badges when the assigned unit has progress", async () => {
@@ -194,6 +205,7 @@ describe("StudentHome", () => {
     expect(within(link).getByText(/Grammar/i)).toBeInTheDocument();
     expect(within(link).getByText(/3 new/i)).toBeInTheDocument();
     expect(within(link).getByText(/8 items/i)).toBeInTheDocument();
+    expect(link).toHaveAttribute("href", "/student/profile/1/unit/10");
   });
 
   it("renders the empty assignment state when no books are assigned", async () => {

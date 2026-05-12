@@ -63,13 +63,15 @@ Use the full templates when checking the entire accepted field surface:
 - `vocab-template.yaml`
 - `grammar-template.yaml`
 
-Use the focused starters when building actual lesson content:
+Use the focused starter when building actual lesson content:
 
-- `vocab-study-page-template.yaml` shows how to seed a vocabulary lesson so
-  the student Unit Study page can split cards into core vocabulary, phrasal
-  verbs, phrases/collocations, word patterns, and word formation.
 - `revision-practice-grammar-template.yaml` shows the current import-safe
   way to create exercise/revision sessions through grammar activities.
+
+Vocabulary-only units use `vocab-template.yaml` and launch directly into the
+student session route. Do not create a separate vocabulary study-page lesson;
+section filtering is reserved for mixed grammar/vocabulary units that still
+need the unit study layer.
 
 ## Vocabulary Files
 

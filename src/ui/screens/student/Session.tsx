@@ -70,6 +70,18 @@ export function StudentSession() {
     enabled: Number.isFinite(lessonIdNum) && lessonIdNum > 0 && lessonQ.data?.kind === "vocabulary",
   });
 
+  const seenEntryIdsQ = useQuery({
+    queryKey: queryKeys.progress.seenEntryIdsByLesson(studentIdNum, lessonIdNum),
+    queryFn: () =>
+      api.progress.seenEntryIdsByLesson({ studentId: studentIdNum, lessonId: lessonIdNum }),
+    enabled:
+      Number.isFinite(studentIdNum) &&
+      studentIdNum > 0 &&
+      Number.isFinite(lessonIdNum) &&
+      lessonIdNum > 0 &&
+      lessonQ.data?.kind === "vocabulary",
+  });
+
   const grammarTopicsQ = useQuery({
     queryKey: queryKeys.grammar.practice(lessonIdNum),
     queryFn: () => api.grammar.listPracticeByLesson({ lessonId: lessonIdNum }),
@@ -148,7 +160,7 @@ export function StudentSession() {
   }, [entriesQ.data, selectedSections]);
 
   const deck = useMemo<Exercise[]>(() => {
-    if (!entriesQ.data || settingsLoading) return [];
+    if (!entriesQ.data || settingsLoading || seenEntryIdsQ.isLoading) return [];
     return buildDeck({
       entries: filteredEntries,
       kinds: exerciseKinds,
@@ -156,6 +168,8 @@ export function StudentSession() {
       maxExercises: sessionCount,
       definitionPriority,
       shuffle: shuffleDeck,
+      seenEntryIds: seenEntryIdsQ.data ?? [],
+      requireFlashcardForNew: true,
     }).exercises;
   }, [
     entriesQ.data,
@@ -165,6 +179,8 @@ export function StudentSession() {
     sessionCount,
     definitionPriority,
     shuffleDeck,
+    seenEntryIdsQ.data,
+    seenEntryIdsQ.isLoading,
     settingsLoading,
   ]);
 
@@ -251,7 +267,7 @@ export function StudentSession() {
   const lessonKind = lessonQ.data?.kind;
   const contentLoading =
     lessonKind === "vocabulary"
-      ? entriesQ.isLoading
+      ? entriesQ.isLoading || seenEntryIdsQ.isLoading
       : lessonKind === "grammar"
         ? grammarTopicsQ.isLoading
         : false;

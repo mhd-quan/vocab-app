@@ -276,6 +276,8 @@ function AssignedUnitCard({ studentId, unit }: { studentId: number; unit: Unit }
     { totalCount: 0, dueCount: 0, newCount: 0, hasGrammar: false, hasVocab: false },
   );
 
+  const vocabLesson = lessons.find((lesson) => lesson.kind === "vocabulary") ?? null;
+  const shouldStartVocabDirectly = totals.hasVocab && !totals.hasGrammar && vocabLesson !== null;
   const reviewCount = totals.dueCount + totals.newCount;
   const completedCount = Math.max(totals.totalCount - reviewCount, 0);
   const tier = unitTier({
@@ -284,12 +286,8 @@ function AssignedUnitCard({ studentId, unit }: { studentId: number; unit: Unit }
     reviewCount,
   });
 
-  return (
-    <Link
-      to="/student/profile/$studentId/unit/$unitId"
-      params={{ studentId: String(studentId), unitId: String(unit.id) }}
-      className="motion-card group grid min-h-48 gap-4 rounded-bento border border-border-subtle bg-surface-1 px-5 py-5 text-sm shadow-card transition-[background-color,border-color,box-shadow,transform] [--glow-rgb:var(--color-accent)] hover:-translate-y-1 hover:border-accent/40 hover:bg-surface-2 hover:shadow-lift sm:grid-cols-[1fr_auto]"
-    >
+  const content = (
+    <>
       <div className="flex min-w-0 flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone={tier.tone} uppercase>
@@ -352,6 +350,31 @@ function AssignedUnitCard({ studentId, unit }: { studentId: number; unit: Unit }
           &gt;
         </span>
       </div>
+    </>
+  );
+
+  const className =
+    "motion-card group grid min-h-48 gap-4 rounded-bento border border-border-subtle bg-surface-1 px-5 py-5 text-sm shadow-card transition-[background-color,border-color,box-shadow,transform] [--glow-rgb:var(--color-accent)] hover:-translate-y-1 hover:border-accent/40 hover:bg-surface-2 hover:shadow-lift sm:grid-cols-[1fr_auto]";
+
+  if (shouldStartVocabDirectly && vocabLesson) {
+    return (
+      <Link
+        to="/student/profile/$studentId/session/$lessonId"
+        params={{ studentId: String(studentId), lessonId: String(vocabLesson.id) }}
+        className={className}
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <Link
+      to="/student/profile/$studentId/unit/$unitId"
+      params={{ studentId: String(studentId), unitId: String(unit.id) }}
+      className={className}
+    >
+      {content}
     </Link>
   );
 }

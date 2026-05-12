@@ -39,11 +39,14 @@ export function StudentUnitStudy() {
   const lessons = lessonsQ.data ?? [];
   const vocabLesson = lessons.find((lesson) => lesson.kind === "vocabulary") ?? null;
   const grammarLessons = lessons.filter((lesson) => lesson.kind === "grammar");
+  const isVocabOnlyUnit = lessons.length > 0 && vocabLesson !== null && grammarLessons.length === 0;
+  const shouldRedirectToVocabSession =
+    Number.isFinite(studentIdNum) && studentIdNum > 0 && isVocabOnlyUnit;
 
   const entriesQ = useQuery({
     queryKey: vocabLesson ? queryKeys.vocab.list(vocabLesson.id) : ["vocab", "list", "none"],
     queryFn: () => api.vocab.listByLesson({ lessonId: vocabLesson?.id ?? 0 }),
-    enabled: Boolean(vocabLesson),
+    enabled: Boolean(vocabLesson) && !isVocabOnlyUnit,
   });
 
   const entries = entriesQ.data ?? [];
@@ -65,6 +68,15 @@ export function StudentUnitStudy() {
       return retained.length > 0 ? retained : availableSections.map((section) => section.id);
     });
   }, [availableSections]);
+
+  useEffect(() => {
+    if (!shouldRedirectToVocabSession || !vocabLesson) return;
+    void navigate({
+      to: "/student/profile/$studentId/session/$lessonId",
+      params: { studentId: String(studentIdNum), lessonId: String(vocabLesson.id) },
+      replace: true,
+    });
+  }, [navigate, shouldRedirectToVocabSession, studentIdNum, vocabLesson]);
 
   const toggleSection = (sectionId: VocabStudySectionId) => {
     setSelected((prev) =>
@@ -91,6 +103,10 @@ export function StudentUnitStudy() {
 
   if (unitQ.isLoading || lessonsQ.isLoading) {
     return <p className="px-6 py-10 text-sm text-muted">Loading unit…</p>;
+  }
+
+  if (shouldRedirectToVocabSession) {
+    return <p className="px-6 py-10 text-sm text-muted">Starting vocabulary session…</p>;
   }
 
   const unit = unitQ.data;

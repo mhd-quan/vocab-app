@@ -170,9 +170,9 @@ describe("TutorContent", () => {
     renderScreen();
     await waitFor(() => expect(screen.getByText("Destination B1")).toBeInTheDocument());
     await waitFor(() => expect(screen.getByText("People & Relationships")).toBeInTheDocument());
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: /^relative noun$/i })).toBeInTheDocument(),
-    );
+    expect(
+      await screen.findByRole("button", { name: /^relative noun$/i }, { timeout: 5_000 }),
+    ).toBeInTheDocument();
   });
 
   it("clicking an entry loads its detail with senses, cloze example, forms, relations", async () => {

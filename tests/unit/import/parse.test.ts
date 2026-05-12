@@ -383,7 +383,8 @@ describe("parseContentFile", () => {
 
 describe("authoring templates", () => {
   it.each([
-    ["vocab-study-page-template.yaml", "vocabulary"],
+    ["vocab-template.yaml", "vocabulary"],
+    ["grammar-template.yaml", "grammar"],
     ["revision-practice-grammar-template.yaml", "grammar"],
   ])("keeps %s aligned with the importer schema", (fileName, expectedKind) => {
     const templatePath = path.join(process.cwd(), "content", "templates", fileName);

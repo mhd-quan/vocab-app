@@ -106,3 +106,5 @@ export interface ExercisePlugin<TExercise extends Exercise, TAnswer> {
 }
 
 export type AnyExercisePlugin = ExercisePlugin<Exercise, Answer>;
+
+export type BuildSkipReason = "build_returned_null" | "requires_flashcard_first";
