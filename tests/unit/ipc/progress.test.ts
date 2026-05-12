@@ -116,6 +116,28 @@ describe("progress.* procedures", () => {
     expect(stats).toEqual({ totalCount: 3, dueCount: 1, newCount: 2 });
   });
 
+  it("seenEntryIdsByLesson returns seen vocab ids for flashcard-first routing", async () => {
+    const { lesson } = seedCurriculum(db);
+    const alpha = seedEntry(ctx.repos, lesson.id, "alpha");
+    seedEntry(ctx.repos, lesson.id, "beta");
+    const student = ctx.repos.students.create({ name: "Alice" });
+    const session = ctx.repos.progress.startSession({ studentId: student.id, mode: "mixed" });
+    ctx.repos.progress.recordAnswer({
+      studentId: student.id,
+      sessionId: session.id,
+      entryId: alpha.entryId,
+      outcome: correctOutcome,
+      now: new Date("2026-01-01T00:00:00.000Z"),
+    });
+
+    const seen = await call<number[]>(
+      "progress.seenEntryIdsByLesson",
+      { studentId: student.id, lessonId: lesson.id },
+      ctx,
+    );
+    expect(seen).toEqual([alpha.entryId]);
+  });
+
   it("dueByStudent returns due items only, ordered oldest first", async () => {
     const { lesson } = seedCurriculum(db);
     const a = seedEntry(ctx.repos, lesson.id, "alpha");

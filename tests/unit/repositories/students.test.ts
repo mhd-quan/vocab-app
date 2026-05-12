@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { type AppDatabase, closeDatabase } from "../../../electron/db";
 import type { Repositories } from "../../../electron/db/repositories";
-import { freshDb } from "../../helpers";
+import { units } from "../../../src/data/schema";
+import { first, freshDb, seedCurriculum } from "../../helpers";
 
 describe("StudentsRepository", () => {
   let db: AppDatabase;
@@ -56,5 +57,51 @@ describe("StudentsRepository", () => {
     const a = repos.students.create({ name: "Alice" });
     repos.students.archive(a.id);
     expect(() => repos.students.update(a.id, { name: "Renamed" })).toThrow();
+  });
+
+  it("replaces assigned units by book and lists only assigned curriculum", () => {
+    const { book, unit } = seedCurriculum(db);
+    const secondUnit = first(
+      db
+        .insert(units)
+        .values({ bookId: book.id, ordinal: 2, code: "U02", title: "Unit 2" })
+        .returning()
+        .all(),
+    );
+    const student = repos.students.create({ name: "Alice" });
+
+    repos.students.replaceUnitAssignments({
+      studentId: student.id,
+      bookId: book.id,
+      unitIds: [unit.id, secondUnit.id],
+    });
+
+    expect(repos.students.listAssignedBooks(student.id).map((row) => row.id)).toEqual([book.id]);
+    expect(repos.students.listAssignedUnits(student.id, book.id).map((row) => row.id)).toEqual([
+      unit.id,
+      secondUnit.id,
+    ]);
+
+    repos.students.replaceUnitAssignments({
+      studentId: student.id,
+      bookId: book.id,
+      unitIds: [secondUnit.id],
+    });
+
+    expect(repos.students.listAssignedUnitIds(student.id, book.id)).toEqual([secondUnit.id]);
+  });
+
+  it("rejects assignment to a unit outside the selected book", () => {
+    const firstBook = seedCurriculum(db, { bookCode: "book-a" });
+    const secondBook = seedCurriculum(db, { bookCode: "book-b" });
+    const student = repos.students.create({ name: "Alice" });
+
+    expect(() =>
+      repos.students.replaceUnitAssignments({
+        studentId: student.id,
+        bookId: firstBook.book.id,
+        unitIds: [secondBook.unit.id],
+      }),
+    ).toThrow(/does not belong/);
   });
 });

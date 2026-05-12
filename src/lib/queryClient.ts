@@ -30,6 +30,7 @@ export const queryKeys = {
     books: () => ["curriculum", "books"] as const,
     units: (bookId: number) => ["curriculum", "units", bookId] as const,
     lessons: (unitId: number) => ["curriculum", "lessons", unitId] as const,
+    lessonById: (lessonId: number) => ["curriculum", "lesson", lessonId] as const,
   },
   vocab: {
     list: (lessonId: number) => ["vocab", "list", lessonId] as const,
@@ -46,6 +47,11 @@ export const queryKeys = {
     listActive: () => ["students", "listActive"] as const,
     listAll: () => ["students", "listAll"] as const,
     byId: (id: number) => ["students", "byId", id] as const,
+    assignedBooks: (studentId: number) => ["students", "assignedBooks", studentId] as const,
+    assignedUnits: (studentId: number, bookId: number) =>
+      ["students", "assignedUnits", studentId, bookId] as const,
+    assignedUnitIds: (studentId: number, bookId?: number) =>
+      ["students", "assignedUnitIds", studentId, bookId ?? "all"] as const,
   },
   imports: {
     listRuns: (limit?: number) => ["imports", "listRuns", limit ?? "default"] as const,
@@ -54,6 +60,8 @@ export const queryKeys = {
   progress: {
     dueByLesson: (studentId: number, lessonId: number) =>
       ["progress", "dueByLesson", studentId, lessonId] as const,
+    seenEntryIdsByLesson: (studentId: number, lessonId: number) =>
+      ["progress", "seenEntryIdsByLesson", studentId, lessonId] as const,
     dueByStudent: (studentId: number) => ["progress", "dueByStudent", studentId] as const,
     summary: (studentId: number) => ["progress", "summary", studentId] as const,
     weakItems: (studentId: number) => ["progress", "weakItems", studentId] as const,

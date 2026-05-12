@@ -8,15 +8,15 @@ Object.defineProperty(window, "api", {
   value: {
     app: {
       name: "vocab-app",
-      version: "0.4.0",
+      version: "0.6.2",
       platform: "test",
     },
     meta: {
       ping: async () => "pong" as const,
       appInfo: async () => ({
         name: "vocab-app",
-        version: "0.4.0",
-        schemaTablesExpected: 20,
+        version: "0.6.2",
+        schemaTablesExpected: 21,
         dbPath: ":memory:",
       }),
     },
@@ -56,6 +56,10 @@ Object.defineProperty(window, "api", {
       update: async () => null,
       archive: async () => ({ ok: true }),
       restore: async () => ({ ok: true }),
+      listAssignedBooks: async () => [],
+      listAssignedUnits: async () => [],
+      listAssignedUnitIds: async () => [],
+      replaceUnitAssignments: async () => [],
     },
     settings: {
       get: async () => null,
@@ -136,6 +140,7 @@ Object.defineProperty(window, "api", {
         unlockedAchievements: [],
       }),
       dueByLesson: async () => ({ totalCount: 0, dueCount: 0, newCount: 0 }),
+      seenEntryIdsByLesson: async () => [],
       dueByStudent: async () => [],
       studentSummary: async () => ({
         totalSeen: 0,

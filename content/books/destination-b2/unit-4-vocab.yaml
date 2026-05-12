@@ -1,0 +1,1842 @@
+book: destination-b2
+book_title: Destination B2 Grammar and Vocabulary
+unit:
+  ordinal: 4
+  code: U04
+  title: "Hobbies, sport and games"
+  summary_md: "Comprehensive vocabulary unit covering sports, games, hobbies, phrasal verbs, collocations, word patterns, and word formation."
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: "Hobbies, sport and games Vocabulary"
+  slug: hobbies-sport-and-games
+entries:
+  # ==========================================
+  # TOPIC VOCABULARY IN CONTRAST
+  # ==========================================
+  - id: pitch-noun
+    headword: pitch
+    pos: noun
+    cefr: B2
+    tags: [sport, place]
+    senses:
+      - definition_en: an area of ground specially prepared and marked for playing a sports game
+        definition_vi: sân cỏ đã kẻ vạch (bóng đá, bóng bầu dục)
+    examples:
+      - text: "Fans invaded the {{pitch}} after the game."
+
+  - id: track-noun
+    headword: track
+    pos: noun
+    cefr: B2
+    tags: [sport, place]
+    senses:
+      - definition_en: a piece of ground used for running or racing
+        definition_vi: đường chạy điền kinh, đường đua
+    examples:
+      - text: "The runners are making their way around the {{track}}."
+
+  - id: court-noun
+    headword: court
+    pos: noun
+    cefr: B1
+    tags: [sport, place]
+    senses:
+      - definition_en: an area drawn out on the ground used for playing sports such as tennis and basketball
+        definition_vi: sân chơi có kẻ vạch (tennis, bóng rổ, cầu lông)
+    examples:
+      - text: "He won the match on the tennis {{court}}."
+
+  - id: course-noun
+    headword: course
+    pos: noun
+    cefr: B1
+    tags: [sport, place]
+    senses:
+      - definition_en: a large area of land designed for playing golf on
+        definition_vi: sân gôn
+    examples:
+      - text: "He set a new {{course}} record at the tournament."
+
+  - id: ring-noun
+    headword: ring
+    pos: noun
+    cefr: B2
+    tags: [sport, place]
+    senses:
+      - definition_en: a raised area surrounded by ropes where people take part in boxing or wrestling
+        definition_vi: võ đài, sới vật
+    examples:
+      - text: "The boxer was knocked down in the center of the {{ring}}."
+
+  - id: rink-noun
+    headword: rink
+    pos: noun
+    cefr: B2
+    tags: [sport, place]
+    senses:
+      - definition_en: a large, flat surface, of ice or other hard material, for skating
+        definition_vi: sân trượt băng, sân trượt patin
+    examples:
+      - text: "He skated a figure of eight in the ice {{rink}}."
+
+  - id: win-verb
+    headword: win
+    pos: verb
+    cefr: A2
+    tags: [sport, competition]
+    senses:
+      - definition_en: to achieve first position and/or get a prize in a competition
+        definition_vi: chiến thắng, giành phần thắng (giải thưởng, cuộc thi)
+    examples:
+      - text: "Which team do you think will {{win}} the match?"
+
+  - id: beat-verb
+    headword: beat
+    pos: verb
+    cefr: B1
+    tags: [sport, competition]
+    senses:
+      - definition_en: to defeat or do better than someone
+        definition_vi: đánh bại (ai đó)
+    examples:
+      - text: "Simon always {{beats}} me at tennis."
+
+  - id: score-verb
+    headword: score
+    pos: verb
+    cefr: A2
+    tags: [sport, competition]
+    senses:
+      - definition_en: to win or get a point, goal, etc. in a competition or sport
+        definition_vi: ghi bàn, ghi điểm
+    examples:
+      - text: "He has {{scored}} 12 goals so far this season."
+
+  - id: play-noun
+    headword: play
+    pos: noun
+    cefr: A2
+    tags: [entertainment, theatre]
+    senses:
+      - definition_en: a piece of writing intended to be acted in a theatre
+        definition_vi: vở kịch
+    examples:
+      - text: "She wrote a {{play}} for the students to perform."
+
+  - id: game-noun
+    headword: game
+    pos: noun
+    cefr: A1
+    tags: [entertainment, sport]
+    senses:
+      - definition_en: an entertaining activity or sport played according to rules
+        definition_vi: trò chơi, ván đấu, trận đấu
+    examples:
+      - text: "We played a {{game}} of chess."
+
+  - id: spectator-noun
+    headword: spectator
+    pos: noun
+    cefr: B1
+    tags: [people, sport]
+    senses:
+      - definition_en: a person who watches an activity, especially a sports event, without taking part
+        definition_vi: khán giả (xem trực tiếp tại sân vận động)
+    examples:
+      - text: "There were over 40,000 cheering {{spectators}}."
+
+  - id: viewer-noun
+    headword: viewer
+    pos: noun
+    cefr: B1
+    tags: [people, media]
+    senses:
+      - definition_en: a person who watches something, especially television
+        definition_vi: người xem (qua truyền hình)
+    examples:
+      - text: "Millions of {{viewers}} watched the final."
+
+  - id: umpire-noun
+    headword: umpire
+    pos: noun
+    cefr: B2
+    tags: [people, sport]
+    senses:
+      - definition_en: a person who enforces the rules in sports like tennis or baseball
+        definition_vi: trọng tài (trong các môn như tennis, bóng chày)
+    examples:
+      - text: "The {{umpire}} called the ball out."
+
+  - id: referee-noun
+    headword: referee
+    pos: noun
+    cefr: B2
+    tags: [people, sport]
+    senses:
+      - definition_en: a person who is in charge of a sports game like football or boxing
+        definition_vi: trọng tài (trong bóng đá, quyền anh)
+    examples:
+      - text: "The {{referee}} blew his whistle."
+
+  - id: final-noun
+    headword: final
+    pos: noun
+    cefr: A2
+    tags: [sport, event]
+    senses:
+      - definition_en: the last in a series of games or competitions
+        definition_vi: trận chung kết
+    examples:
+      - text: "We reached the tennis {{final}}."
+
+  - id: finale-noun
+    headword: finale
+    pos: noun
+    cefr: B2
+    tags: [entertainment, event]
+    senses:
+      - definition_en: the last part of a performance, usually exciting
+        definition_vi: hồi kết, màn bế mạc (âm nhạc, nghệ thuật)
+    examples:
+      - text: "The festival ended with a spectacular {{finale}}."
+
+  - id: end-noun
+    headword: end
+    pos: noun
+    cefr: A1
+    tags: [time, event]
+    senses:
+      - definition_en: the time when a situation or an event stops
+        definition_vi: sự kết thúc, thời điểm kết thúc
+    examples:
+      - text: "I stayed until the {{end}} of the game."
+
+  - id: ending-noun
+    headword: ending
+    pos: noun
+    cefr: A2
+    tags: [entertainment, literature]
+    senses:
+      - definition_en: the last part of a story or film
+        definition_vi: cái kết, phần cuối (của bộ phim, câu chuyện)
+    examples:
+      - text: "I prefer movies with a happy {{ending}}."
+
+  - id: bat-noun
+    headword: bat
+    pos: noun
+    cefr: B1
+    tags: [sport, equipment]
+    senses:
+      - definition_en: a wooden object used for hitting the ball in baseball, cricket, or table tennis
+        definition_vi: gậy đánh bóng (bóng chày, bóng bàn, cricket)
+    examples:
+      - text: "He swung the baseball {{bat}}."
+
+  - id: stick-noun
+    headword: stick
+    pos: noun
+    cefr: A2
+    tags: [sport, equipment]
+    senses:
+      - definition_en: a long thin piece of wood used in playing hockey
+        definition_vi: gậy (khúc côn cầu)
+    examples:
+      - text: "You need a hockey {{stick}}."
+
+  - id: rod-noun
+    headword: rod
+    pos: noun
+    cefr: B1
+    tags: [sport, equipment]
+    senses:
+      - definition_en: a long thin pole used for fishing
+        definition_vi: cần câu
+    examples:
+      - text: "We sat by the river with our fishing {{rods}}."
+
+  - id: racket-noun
+    headword: racket
+    pos: noun
+    cefr: A2
+    tags: [sport, equipment]
+    senses:
+      - definition_en: an object used for hitting the ball in tennis or badminton
+        definition_vi: cây vợt (tennis, cầu lông)
+    examples:
+      - text: "I bought a new tennis {{racket}}."
+
+  - id: amateur-adjective
+    headword: amateur
+    pos: adjective
+    cefr: B2
+    tags: [sport, status]
+    senses:
+      - definition_en: taking part in an activity for pleasure, not as a job
+        definition_vi: nghiệp dư (không chuyên)
+    examples:
+      - text: "He was an {{amateur}} photographer."
+
+  - id: professional-adjective
+    headword: professional
+    pos: adjective
+    cefr: B1
+    tags: [sport, status]
+    senses:
+      - definition_en: playing a sport or doing an activity for money
+        definition_vi: chuyên nghiệp
+    examples:
+      - text: "She is a {{professional}} tennis player."
+
+  - id: sport-noun
+    headword: sport
+    pos: noun
+    cefr: A1
+    tags: [sport, generic]
+    senses:
+      - definition_en: a game or activity needing physical effort and skill
+        definition_vi: thể thao (nói chung)
+    examples:
+      - text: "Football is a popular {{sport}}."
+
+  - id: athletics-noun
+    headword: athletics
+    pos: noun
+    cefr: B1
+    tags: [sport, activity]
+    senses:
+      - definition_en: sports including running, jumping, and throwing
+        definition_vi: môn điền kinh
+    examples:
+      - text: "She loves watching {{athletics}}."
+
+  - id: interval-noun
+    headword: interval
+    pos: noun
+    cefr: B2
+    tags: [time, event]
+    senses:
+      - definition_en: a short period between the parts of a performance or a play
+        definition_vi: giờ giải lao (trong rạp hát, buổi hòa nhạc)
+    examples:
+      - text: "There is a 20-minute {{interval}} after the first act."
+
+  - id: half-time-noun
+    headword: half time
+    pos: noun
+    cefr: B1
+    tags: [time, sport]
+    senses:
+      - definition_en: a short rest period between the two parts of a sports game
+        definition_vi: giờ nghỉ giữa hiệp (thể thao)
+    examples:
+      - text: "The manager gave a speech at {{half time}}."
+
+  - id: draw-noun
+    headword: draw
+    pos: noun
+    cefr: B2
+    tags: [sport, result]
+    senses:
+      - definition_en: a situation in which each team in a game has equal points
+        definition_vi: trận hòa
+    examples:
+      - text: "The match ended in a {{draw}}."
+
+  - id: equal-verb
+    headword: equal
+    pos: verb
+    cefr: B1
+    tags: [sport, result]
+    senses:
+      - definition_en: to achieve the same standard, level, or amount as someone or something else
+        definition_vi: bằng, san bằng (tỉ số, kỷ lục)
+    examples:
+      - text: "He {{equalled}} the world record."
+
+  - id: competitor-noun
+    headword: competitor
+    pos: noun
+    cefr: B1
+    tags: [people, competition]
+    senses:
+      - definition_en: a person or team competing against others
+        definition_vi: người thi đấu
+    examples:
+      - text: "There were 500 {{competitors}} in the marathon."
+
+  - id: opponent-noun
+    headword: opponent
+    pos: noun
+    cefr: B2
+    tags: [people, competition]
+    senses:
+      - definition_en: a person who someone is competing against in a sports event or game
+        definition_vi: đối thủ (trực tiếp đối đầu)
+    examples:
+      - text: "He beat his {{opponent}} easily."
+
+  # ==========================================
+  # PHRASAL VERBS
+  # ==========================================
+  - id: bring-forward-phrasal
+    headword: bring forward
+    pos: verb
+    cefr: B2
+    tags: [time, phrasal_verb]
+    senses:
+      - definition_en: to change the date/time of an event so it happens earlier
+        definition_vi: dời lên sớm hơn
+    examples:
+      - text: "The meeting has been {{brought forward}} to Monday."
+
+  - id: carry-on-phrasal
+    headword: carry on
+    pos: verb
+    cefr: B1
+    tags: [action, phrasal_verb]
+    senses:
+      - definition_en: to continue
+        definition_vi: tiếp tục
+    examples:
+      - text: "Please {{carry on}} with your work."
+
+  - id: get-round-to-phrasal
+    headword: get round to
+    pos: verb
+    cefr: B2
+    tags: [action, phrasal_verb]
+    senses:
+      - definition_en: to start doing something that you have planned to do for a long time
+        definition_vi: rốt cuộc cũng có thời gian để bắt tay vào làm việc gì
+    examples:
+      - text: "I finally {{got round to}} reading that book."
+
+  - id: get-up-to-phrasal
+    headword: get up to
+    pos: verb
+    cefr: B2
+    tags: [action, phrasal_verb]
+    senses:
+      - definition_en: to do something you should not do
+        definition_vi: giở trò, làm chuyện gì đó (sai trái, mờ ám)
+    examples:
+      - text: "What did the kids {{get up to}} while I was out?"
+
+  - id: go-in-for-phrasal
+    headword: go in for
+    pos: verb
+    cefr: B2
+    tags: [competition, phrasal_verb]
+    senses:
+      - definition_en: to enter a competition, or to enjoy a particular thing
+        definition_vi: tham gia (cuộc thi), có hứng thú/sở thích làm gì
+    examples:
+      - text: "I'm going to {{go in for}} the photography competition."
+
+  - id: go-off-phrasal
+    headword: go off
+    pos: verb
+    cefr: B2
+    tags: [feelings, phrasal_verb]
+    senses:
+      - definition_en: to stop liking someone or something
+        definition_vi: chán, không còn thích nữa
+    examples:
+      - text: "I've {{gone off}} coffee recently."
+
+  - id: join-in-phrasal
+    headword: join in
+    pos: verb
+    cefr: B1
+    tags: [action, phrasal_verb]
+    senses:
+      - definition_en: to participate, to become involved in an activity
+        definition_vi: tham gia vào
+    examples:
+      - text: "Feel free to {{join in}} the game."
+
+  - id: knock-out-phrasal
+    headword: knock out
+    pos: verb
+    cefr: B2
+    tags: [sport, phrasal_verb]
+    senses:
+      - definition_en: to defeat a person or team so they can no longer take part
+        definition_vi: loại (khỏi cuộc thi), đánh nốc ao
+    examples:
+      - text: "Our team was {{knocked out}} in the semi-finals."
+
+  - id: look-out-phrasal
+    headword: look out
+    pos: verb
+    cefr: B1
+    tags: [warning, phrasal_verb]
+    senses:
+      - definition_en: be careful
+        definition_vi: cẩn thận, coi chừng
+    examples:
+      - text: "{{Look out}}! There's a car coming."
+
+  - id: pull-out-phrasal
+    headword: pull out
+    pos: verb
+    cefr: B2
+    tags: [action, phrasal_verb]
+    senses:
+      - definition_en: to stop being involved in an activity
+        definition_vi: rút lui khỏi
+    examples:
+      - text: "He had to {{pull out}} of the race due to injury."
+
+  - id: put-off-phrasal
+    headword: put off
+    pos: verb
+    cefr: B1
+    tags: [time, phrasal_verb]
+    senses:
+      - definition_en: to delay an event
+        definition_vi: trì hoãn
+    examples:
+      - text: "Never {{put off}} until tomorrow what you can do today."
+
+  - id: put-up-with-phrasal
+    headword: put up with
+    pos: verb
+    cefr: B2
+    tags: [feelings, phrasal_verb]
+    senses:
+      - definition_en: to tolerate
+        definition_vi: chịu đựng
+    examples:
+      - text: "I can't {{put up with}} this noise any longer."
+
+  - id: take-to-phrasal
+    headword: take to
+    pos: verb
+    cefr: B2
+    tags: [habit, phrasal_verb]
+    senses:
+      - definition_en: to start doing something as a habit
+        definition_vi: bắt đầu có thói quen làm gì
+    examples:
+      - text: "He's {{taken to}} staying up very late."
+
+  - id: take-up-phrasal
+    headword: take up
+    pos: verb
+    cefr: B1
+    tags: [hobby, phrasal_verb]
+    senses:
+      - definition_en: to start a new hobby, sport, or job
+        definition_vi: bắt đầu một sở thích, thể thao
+    examples:
+      - text: "I decided to {{take up}} tennis."
+
+  # ==========================================
+  # PHRASES AND COLLOCATIONS
+  # ==========================================
+  - id: make-the-best-of-phrase
+    headword: make the best of sth
+    pos: phrase
+    cefr: B2
+    tags: [collocation, best]
+    senses:
+      - definition_en: to deal with a bad situation as well as you can
+        definition_vi: tận dụng tốt nhất một tình huống xấu
+    examples:
+      - text: "It's raining, but we'll {{make the best of it}}."
+
+  - id: do-your-best-phrase
+    headword: do your best
+    pos: phrase
+    cefr: B1
+    tags: [collocation, best]
+    senses:
+      - definition_en: to try as hard as you can
+        definition_vi: cố gắng hết sức
+    examples:
+      - text: "Just {{do your best}} in the exam."
+
+  - id: the-best-at-phrase
+    headword: the best at sth/doing
+    pos: phrase
+    cefr: A2
+    tags: [collocation, best]
+    senses:
+      - definition_en: being more skilled than anyone else at something
+        definition_vi: giỏi nhất ở việc gì
+    examples:
+      - text: "She is {{the best at playing}} chess in our school."
+
+  - id: have-a-chance-to-do-phrase
+    headword: have/take/get a chance to do
+    pos: phrase
+    cefr: A2
+    tags: [collocation, chance]
+    senses:
+      - definition_en: to have the opportunity to do something
+        definition_vi: có/chớp lấy cơ hội để làm gì
+    examples:
+      - text: "I didn't {{get a chance to speak}} to him."
+
+  - id: have-a-chance-of-doing-phrase
+    headword: have a chance of doing
+    pos: phrase
+    cefr: B1
+    tags: [collocation, chance]
+    senses:
+      - definition_en: to have the possibility of achieving something
+        definition_vi: có khả năng/cơ hội làm gì
+    examples:
+      - text: "Do we {{have a chance of winning}}?"
+
+  - id: some-chance-of-doing-phrase
+    headword: some/little/etc chance of (your) doing
+    pos: phrase
+    cefr: B2
+    tags: [collocation, chance]
+    senses:
+      - definition_en: referring to the degree of probability of something happening
+        definition_vi: có chút/có ít cơ hội/khả năng xảy ra việc gì
+    examples:
+      - text: "There is {{little chance of him passing}} the test."
+
+  - id: the-chances-of-doing-phrase
+    headword: the chances of (your) doing
+    pos: phrase
+    cefr: B2
+    tags: [collocation, chance]
+    senses:
+      - definition_en: the likelihood that something will happen
+        definition_vi: khả năng xảy ra của việc gì
+    examples:
+      - text: "What are {{the chances of you coming}} early?"
+
+  - id: take-a-chance-on-phrase
+    headword: take a chance (on sth)
+    pos: phrase
+    cefr: B2
+    tags: [collocation, chance]
+    senses:
+      - definition_en: to do something that involves risks
+        definition_vi: đánh liều, thử vận may (với cái gì)
+    examples:
+      - text: "Let's {{take a chance on}} the weather and go to the beach."
+
+  - id: chance-of-a-lifetime-phrase
+    headword: chance of a lifetime
+    pos: phrase
+    cefr: B2
+    tags: [collocation, chance]
+    senses:
+      - definition_en: a great and rare opportunity
+        definition_vi: cơ hội ngàn năm có một
+    examples:
+      - text: "This trip is the {{chance of a lifetime}}."
+
+  - id: your-go-phrase
+    headword: your go
+    pos: phrase
+    cefr: A2
+    tags: [collocation, go]
+    senses:
+      - definition_en: someone's turn to do something (in a game)
+        definition_vi: lượt của bạn
+    examples:
+      - text: "Roll the dice, it's {{your go}}."
+
+  - id: have-a-go-phrase
+    headword: have a go
+    pos: phrase
+    cefr: B1
+    tags: [collocation, go]
+    senses:
+      - definition_en: to try to do something
+        definition_vi: thử làm việc gì
+    examples:
+      - text: "I'd like to {{have a go}} at surfing."
+
+  - id: in-height-phrase
+    headword: in height
+    pos: phrase
+    cefr: B1
+    tags: [collocation, height]
+    senses:
+      - definition_en: referring to how tall something is
+        definition_vi: có chiều cao là (đơn vị đo lường)
+    examples:
+      - text: "The tree is three meters {{in height}}."
+
+  - id: afraid-of-heights-phrase
+    headword: afraid of heights
+    pos: phrase
+    cefr: B1
+    tags: [collocation, height]
+    senses:
+      - definition_en: having a phobia of high places
+        definition_vi: sợ độ cao
+    examples:
+      - text: "I can't climb up there, I'm {{afraid of heights}}."
+
+  - id: height-of-sth-phrase
+    headword: height of sth
+    pos: phrase
+    cefr: B2
+    tags: [collocation, height]
+    senses:
+      - definition_en: the extreme or highest point of something
+        definition_vi: đỉnh điểm của cái gì (sự nghiệp, mùa hè...)
+    examples:
+      - text: "He is at the {{height of his career}}."
+
+  - id: mad-about-phrase
+    headword: mad about/on sth/sb/doing
+    pos: phrase
+    cefr: B1
+    tags: [collocation, mad]
+    senses:
+      - definition_en: to like someone or something very much
+        definition_vi: cực kỳ thích, phát cuồng vì
+    examples:
+      - text: "My brother is {{mad about football}}."
+
+  - id: go-mad-phrase
+    headword: go/become mad
+    pos: phrase
+    cefr: B2
+    tags: [collocation, mad]
+    senses:
+      - definition_en: to become very angry or mentally ill
+        definition_vi: trở nên phát điên, tức điên
+    examples:
+      - text: "She'll {{go mad}} when she finds out."
+
+  - id: take-pleasure-in-phrase
+    headword: take pleasure in sth/doing
+    pos: phrase
+    cefr: B2
+    tags: [collocation, pleasure]
+    senses:
+      - definition_en: to find something enjoyable
+        definition_vi: tìm thấy niềm vui trong việc gì
+    examples:
+      - text: "He {{takes pleasure in helping}} others."
+
+  - id: gain-pleasure-from-phrase
+    headword: gain/get pleasure from sth/doing
+    pos: phrase
+    cefr: B2
+    tags: [collocation, pleasure]
+    senses:
+      - definition_en: to derive happiness from something
+        definition_vi: có được niềm vui từ việc gì
+    examples:
+      - text: "I {{get a lot of pleasure from reading}}."
+
+  - id: popular-with-phrase
+    headword: popular with/among
+    pos: phrase
+    cefr: B1
+    tags: [collocation, popular]
+    senses:
+      - definition_en: liked by a particular group of people
+        definition_vi: được yêu thích/phổ biến trong giới (ai đó)
+    examples:
+      - text: "The teacher is very {{popular with}} his students."
+
+  - id: opposite-side-phrase
+    headword: (on) the opposite side
+    pos: phrase
+    cefr: B1
+    tags: [collocation, side]
+    senses:
+      - definition_en: facing something or someone else
+        definition_vi: (ở) phía đối diện
+    examples:
+      - text: "They live on the {{opposite side}} of the street."
+
+  - id: far-side-phrase
+    headword: (on) the far side
+    pos: phrase
+    cefr: B2
+    tags: [collocation, side]
+    senses:
+      - definition_en: the side that is furthest from you
+        definition_vi: (ở) bờ bên kia, phía xa
+    examples:
+      - text: "The boat is on the {{far side}} of the lake."
+
+  - id: side-with-phrase
+    headword: side with sb
+    pos: phrase
+    cefr: B2
+    tags: [collocation, side]
+    senses:
+      - definition_en: to support one person or group in an argument
+        definition_vi: đứng về phía ai, bênh vực ai
+    examples:
+      - text: "Why do you always {{side with him}}?"
+
+  - id: winning-side-phrase
+    headword: on the winning/losing side
+    pos: phrase
+    cefr: B1
+    tags: [collocation, side]
+    senses:
+      - definition_en: to be part of the team that wins/loses
+        definition_vi: ở phe thắng/thua
+    examples:
+      - text: "I am glad we were on the {{winning side}}."
+
+  - id: have-a-talent-phrase
+    headword: have a talent (for sth/doing)
+    pos: phrase
+    cefr: B1
+    tags: [collocation, talent]
+    senses:
+      - definition_en: to have a natural ability to do something well
+        definition_vi: có tài năng về việc gì
+    examples:
+      - text: "She {{has a talent for painting}}."
+
+  - id: talent-contest-phrase
+    headword: talent contest
+    pos: phrase
+    cefr: A2
+    tags: [collocation, talent]
+    senses:
+      - definition_en: a competition to find people with special skills
+        definition_vi: cuộc thi tìm kiếm tài năng
+    examples:
+      - text: "He entered a local {{talent contest}}."
+
+  - id: on-time-phrase
+    headword: on time
+    pos: phrase
+    cefr: A2
+    tags: [collocation, time]
+    senses:
+      - definition_en: happening at the correct time, not late
+        definition_vi: đúng giờ
+    examples:
+      - text: "The train arrived exactly {{on time}}."
+
+  - id: in-time-phrase
+    headword: (just) in time
+    pos: phrase
+    cefr: A2
+    tags: [collocation, time]
+    senses:
+      - definition_en: early enough
+        definition_vi: (vừa) kịp lúc
+    examples:
+      - text: "We arrived {{just in time}} for the movie."
+
+  - id: whole-time-phrase
+    headword: the whole time
+    pos: phrase
+    cefr: A2
+    tags: [collocation, time]
+    senses:
+      - definition_en: during all of a particular period
+        definition_vi: toàn bộ thời gian, suốt cả lúc đó
+    examples:
+      - text: "It rained {{the whole time}} we were there."
+
+  - id: high-time-phrase
+    headword: high/about time
+    pos: phrase
+    cefr: B2
+    tags: [collocation, time]
+    senses:
+      - definition_en: used to say it is time to do something that should have been done
+        definition_vi: đã đến lúc (cấp bách) phải làm gì
+    examples:
+      - text: "It's {{high time}} you got a job."
+
+  - id: take-your-time-phrase
+    headword: take your time (doing)
+    pos: phrase
+    cefr: B1
+    tags: [collocation, time]
+    senses:
+      - definition_en: to not hurry
+        definition_vi: cứ từ từ mà làm, không cần vội
+    examples:
+      - text: "{{Take your time}} reading the contract."
+
+  - id: take-time-to-do-phrase
+    headword: take time to do
+    pos: phrase
+    cefr: B1
+    tags: [collocation, time]
+    senses:
+      - definition_en: to require a certain amount of time
+        definition_vi: mất thời gian để làm gì
+    examples:
+      - text: "It {{takes time to learn}} a new language."
+
+  - id: takes-up-time-phrase
+    headword: sth takes up (your) time
+    pos: phrase
+    cefr: B1
+    tags: [collocation, time]
+    senses:
+      - definition_en: something occupies your time
+        definition_vi: việc gì đó chiếm/ngốn (của bạn) nhiều thời gian
+    examples:
+      - text: "Commuting {{takes up a lot of my time}}."
+
+  - id: spend-time-doing-phrase
+    headword: spend time doing
+    pos: phrase
+    cefr: A2
+    tags: [collocation, time]
+    senses:
+      - definition_en: to use time doing an activity
+        definition_vi: dành thời gian làm gì
+    examples:
+      - text: "I {{spend time playing}} video games."
+
+  - id: spend-time-on-phrase
+    headword: spend time on
+    pos: phrase
+    cefr: A2
+    tags: [collocation, time]
+    senses:
+      - definition_en: to dedicate time to something
+        definition_vi: dành thời gian cho việc gì
+    examples:
+      - text: "She {{spends a lot of time on}} her homework."
+
+  - id: at-a-certain-time-phrase
+    headword: at/for a certain time
+    pos: phrase
+    cefr: B1
+    tags: [collocation, time]
+    senses:
+      - definition_en: at a specific moment / for a specific duration
+        definition_vi: vào/trong một khoảng thời gian nhất định
+    examples:
+      - text: "The alarm is set {{for a certain time}}."
+
+  - id: time-passes-phrase
+    headword: time passes
+    pos: phrase
+    cefr: B1
+    tags: [collocation, time]
+    senses:
+      - definition_en: time goes by
+        definition_vi: thời gian trôi qua
+    examples:
+      - text: "As {{time passes}}, the pain will fade."
+
+  - id: find-time-to-do-phrase
+    headword: find time to do
+    pos: phrase
+    cefr: B1
+    tags: [collocation, time]
+    senses:
+      - definition_en: to make enough time to do something
+        definition_vi: sắp xếp/tìm thời gian để làm gì
+    examples:
+      - text: "I can't {{find time to read}} nowadays."
+
+  - id: make-time-for-phrase
+    headword: make/find time for
+    pos: phrase
+    cefr: B2
+    tags: [collocation, time]
+    senses:
+      - definition_en: to prioritize time for someone or something
+        definition_vi: sắp xếp thời gian cho (ai/việc gì)
+    examples:
+      - text: "You should {{make time for}} your family."
+
+  - id: for-the-time-being-phrase
+    headword: for the time being
+    pos: phrase
+    cefr: B2
+    tags: [collocation, time]
+    senses:
+      - definition_en: for now, temporarily
+        definition_vi: tạm thời, trong lúc này
+    examples:
+      - text: "I'm staying at a hotel {{for the time being}}."
+
+  - id: have-a-good-time-phrase
+    headword: have a good/nice time (doing)
+    pos: phrase
+    cefr: A1
+    tags: [collocation, time]
+    senses:
+      - definition_en: to enjoy yourself
+        definition_vi: có khoảng thời gian vui vẻ (khi làm gì)
+    examples:
+      - text: "Did you {{have a good time at}} the party?"
+
+  - id: tell-the-time-phrase
+    headword: tell the time
+    pos: phrase
+    cefr: A2
+    tags: [collocation, time]
+    senses:
+      - definition_en: to read a clock and know what time it is
+        definition_vi: xem giờ, biết xem đồng hồ
+    examples:
+      - text: "My son has just learned how to {{tell the time}}."
+
+  - id: free-time-phrase
+    headword: free/spare/leisure time
+    pos: phrase
+    cefr: A1
+    tags: [collocation, time]
+    senses:
+      - definition_en: time when you are not working
+        definition_vi: thời gian rảnh rỗi
+    examples:
+      - text: "What do you do in your {{spare time}}?"
+
+  - id: turn-around-phrase
+    headword: turn (a)round/away
+    pos: phrase
+    cefr: B1
+    tags: [collocation, turn]
+    senses:
+      - definition_en: to move so as to face in the opposite direction
+        definition_vi: quay lại, quay mặt đi
+    examples:
+      - text: "He {{turned away}} so she wouldn't see him cry."
+
+  - id: turn-over-phrase
+    headword: turn sth over
+    pos: phrase
+    cefr: B1
+    tags: [collocation, turn]
+    senses:
+      - definition_en: to flip something
+        definition_vi: lật ngược cái gì lại
+    examples:
+      - text: "Please {{turn the page over}}."
+
+  - id: in-turn-phrase
+    headword: in turn
+    pos: phrase
+    cefr: B2
+    tags: [collocation, turn]
+    senses:
+      - definition_en: one after the other
+        definition_vi: lần lượt
+    examples:
+      - text: "They answered the questions {{in turn}}."
+
+  - id: take-turns-phrase
+    headword: take turns
+    pos: phrase
+    cefr: B1
+    tags: [collocation, turn]
+    senses:
+      - definition_en: alternate doing something
+        definition_vi: luân phiên, thay phiên nhau
+    examples:
+      - text: "We {{take turns}} driving."
+
+  - id: take-it-in-turns-phrase
+    headword: take it in turn(s) (to do)
+    pos: phrase
+    cefr: B2
+    tags: [collocation, turn]
+    senses:
+      - definition_en: to do something alternately
+        definition_vi: thay phiên nhau (làm gì)
+    examples:
+      - text: "The kids {{took it in turns to use}} the swing."
+
+  - id: your-turn-phrase
+    headword: your turn (to do)
+    pos: phrase
+    cefr: A2
+    tags: [collocation, turn]
+    senses:
+      - definition_en: the time when it is your chance to do something
+        definition_vi: đến lượt bạn (làm gì)
+    examples:
+      - text: "It's {{your turn to wash}} the dishes."
+
+  # ==========================================
+  # WORD PATTERNS
+  # ==========================================
+  - id: compete-against-pattern
+    headword: compete against/with sb
+    pos: phrase
+    cefr: B2
+    tags: [word_pattern, compete]
+    senses:
+      - definition_en: to strive to outdo another person
+        definition_vi: thi đấu, cạnh tranh với ai
+    examples:
+      - text: "We are {{competing against}} the best teams."
+
+  - id: compete-for-pattern
+    headword: compete for/in sth
+    pos: phrase
+    cefr: B2
+    tags: [word_pattern, compete]
+    senses:
+      - definition_en: to strive to gain something / participate in a competition
+        definition_vi: cạnh tranh vì cái gì / tham gia trong cái gì
+    examples:
+      - text: "Athletes {{compete for}} the gold medal."
+
+  - id: concentrate-on-pattern
+    headword: concentrate on sth/doing
+    pos: phrase
+    cefr: B1
+    tags: [word_pattern, concentrate]
+    senses:
+      - definition_en: to direct your attention or your efforts towards a particular activity
+        definition_vi: tập trung vào việc gì
+    examples:
+      - text: "I need to {{concentrate on studying}}."
+
+  - id: difficult-to-do-pattern
+    headword: difficult to do
+    pos: phrase
+    cefr: A2
+    tags: [word_pattern, difficult]
+    senses:
+      - definition_en: not easy to do
+        definition_vi: khó để làm gì
+    examples:
+      - text: "This puzzle is very {{difficult to solve}}."
+
+  - id: find-difficult-pattern
+    headword: find sth difficult
+    pos: phrase
+    cefr: B1
+    tags: [word_pattern, difficult]
+    senses:
+      - definition_en: to perceive something as hard
+        definition_vi: thấy cái gì đó khó khăn
+    examples:
+      - text: "Many students {{find math difficult}}."
+
+  - id: find-it-difficult-pattern
+    headword: find it difficult to do
+    pos: phrase
+    cefr: B1
+    tags: [word_pattern, difficult]
+    senses:
+      - definition_en: to experience difficulty in doing something
+        definition_vi: thấy khó khăn khi làm gì
+    examples:
+      - text: "I {{find it difficult to understand}} him."
+
+  - id: fond-of-pattern
+    headword: fond of sth/sb/doing
+    pos: phrase
+    cefr: B1
+    tags: [word_pattern, fond]
+    senses:
+      - definition_en: having a strong preference or liking
+        definition_vi: thích (ai/cái gì/làm gì)
+    examples:
+      - text: "She is very {{fond of horses}}."
+
+  - id: free-to-do-pattern
+    headword: free to do
+    pos: phrase
+    cefr: A2
+    tags: [word_pattern, free]
+    senses:
+      - definition_en: having the liberty to do something
+        definition_vi: tự do, rảnh rỗi để làm gì
+    examples:
+      - text: "You are {{free to leave}} whenever you want."
+
+  - id: free-from-pattern
+    headword: free from/of sth
+    pos: phrase
+    cefr: B2
+    tags: [word_pattern, free]
+    senses:
+      - definition_en: without something (often bad)
+        definition_vi: thoát khỏi, không chứa (chất gì đó)
+    examples:
+      - text: "This product is {{free of artificial colors}}."
+
+  - id: free-for-pattern
+    headword: free for sth
+    pos: phrase
+    cefr: B1
+    tags: [word_pattern, free]
+    senses:
+      - definition_en: available for something
+        definition_vi: rảnh rỗi cho việc gì
+    examples:
+      - text: "Are you {{free for lunch}} tomorrow?"
+
+  - id: interested-in-pattern
+    headword: interested in sth/doing
+    pos: phrase
+    cefr: A2
+    tags: [word_pattern, interested]
+    senses:
+      - definition_en: wanting to know more about something
+        definition_vi: quan tâm, hứng thú với việc gì
+    examples:
+      - text: "He is {{interested in learning}} guitar."
+
+  - id: involve-pattern
+    headword: involve sth/doing
+    pos: phrase
+    cefr: B2
+    tags: [word_pattern, involve]
+    senses:
+      - definition_en: to include something as a necessary part
+        definition_vi: bao gồm, đòi hỏi phải (làm gì)
+    examples:
+      - text: "The job {{involves travelling}} a lot."
+
+  - id: involved-in-pattern
+    headword: involved in sth/doing
+    pos: phrase
+    cefr: B2
+    tags: [word_pattern, involve]
+    senses:
+      - definition_en: taking part in something
+        definition_vi: dính líu, tham gia vào việc gì
+    examples:
+      - text: "She is highly {{involved in charity work}}."
+
+  - id: listen-to-pattern
+    headword: listen to sth/sb
+    pos: phrase
+    cefr: A1
+    tags: [word_pattern, listen]
+    senses:
+      - definition_en: to pay attention to sound
+        definition_vi: lắng nghe ai/cái gì
+    examples:
+      - text: "I love to {{listen to music}}."
+
+  - id: love-doing-pattern
+    headword: love sth/sb/doing
+    pos: phrase
+    cefr: A1
+    tags: [word_pattern, love]
+    senses:
+      - definition_en: to have a strong affection for
+        definition_vi: yêu thích (ai/cái gì/làm gì)
+    examples:
+      - text: "She {{loves swimming}}."
+
+  - id: love-to-do-pattern
+    headword: love to do
+    pos: phrase
+    cefr: A1
+    tags: [word_pattern, love]
+    senses:
+      - definition_en: to very much like to do something
+        definition_vi: rất thích làm gì
+    examples:
+      - text: "I would {{love to visit}} Paris."
+
+  - id: mean-to-do-pattern
+    headword: mean to do
+    pos: phrase
+    cefr: B1
+    tags: [word_pattern, mean]
+    senses:
+      - definition_en: to intend to do something
+        definition_vi: có ý định, cố ý làm gì
+    examples:
+      - text: "I didn't {{mean to hurt}} you."
+
+  - id: means-that-pattern
+    headword: it/this means that
+    pos: phrase
+    cefr: A2
+    tags: [word_pattern, mean]
+    senses:
+      - definition_en: to have a particular result
+        definition_vi: điều này có nghĩa là
+    examples:
+      - text: "The bus is late, so {{it means that}} we will miss the start."
+
+  - id: means-doing-pattern
+    headword: it/this means sth/doing
+    pos: phrase
+    cefr: B1
+    tags: [word_pattern, mean]
+    senses:
+      - definition_en: to have as a consequence
+        definition_vi: đồng nghĩa với việc (phải làm gì)
+    examples:
+      - text: "Getting a puppy {{means taking}} it for walks."
+
+  - id: prefer-to-do-pattern
+    headword: prefer to do (rather than [to] do)
+    pos: phrase
+    cefr: B1
+    tags: [word_pattern, prefer]
+    senses:
+      - definition_en: to like doing one thing more than another
+        definition_vi: thích làm việc này (hơn là làm việc kia)
+    examples:
+      - text: "I {{prefer to stay}} at home rather than go out."
+
+  - id: prefer-sth-pattern
+    headword: prefer sth (rather than sth)
+    pos: phrase
+    cefr: B1
+    tags: [word_pattern, prefer]
+    senses:
+      - definition_en: to like one thing more than another
+        definition_vi: thích cái này (hơn cái kia)
+    examples:
+      - text: "I {{prefer tea}} rather than coffee."
+
+  - id: prefer-doing-pattern
+    headword: prefer sth/doing (to sth/doing)
+    pos: phrase
+    cefr: B1
+    tags: [word_pattern, prefer]
+    senses:
+      - definition_en: to like doing one activity more than another
+        definition_vi: thích làm việc này (hơn việc kia) - dùng V-ing
+    examples:
+      - text: "I {{prefer reading to watching}} TV."
+
+  - id: stop-doing-pattern
+    headword: stop sth/doing
+    pos: phrase
+    cefr: A2
+    tags: [word_pattern, stop]
+    senses:
+      - definition_en: to finish doing an action completely
+        definition_vi: ngừng hẳn việc đang làm
+    examples:
+      - text: "Please {{stop talking}}."
+
+  - id: stop-to-do-pattern
+    headword: stop to do
+    pos: phrase
+    cefr: B1
+    tags: [word_pattern, stop]
+    senses:
+      - definition_en: to pause an activity in order to do something else
+        definition_vi: dừng lại (để làm việc khác)
+    examples:
+      - text: "On the way home, I {{stopped to buy}} some milk."
+
+  - id: stop-sb-from-pattern
+    headword: stop sb from doing
+    pos: phrase
+    cefr: B1
+    tags: [word_pattern, stop]
+    senses:
+      - definition_en: to prevent someone from doing something
+        definition_vi: ngăn cản ai làm việc gì
+    examples:
+      - text: "The rain didn't {{stop us from enjoying}} the trip."
+
+  - id: make-sure-that-pattern
+    headword: make/be sure/certain that
+    pos: phrase
+    cefr: B1
+    tags: [word_pattern, sure, certain]
+    senses:
+      - definition_en: to check that something is true/has been done
+        definition_vi: đảm bảo chắc chắn rằng
+    examples:
+      - text: "Please {{make sure that}} the door is locked."
+
+  - id: sure-to-do-pattern
+    headword: sure/certain to do
+    pos: phrase
+    cefr: B2
+    tags: [word_pattern, sure, certain]
+    senses:
+      - definition_en: guaranteed to happen
+        definition_vi: chắc chắn sẽ làm gì/xảy ra
+    examples:
+      - text: "He is {{sure to win}} the race."
+
+  - id: be-sure-of-pattern
+    headword: be sure/certain of sth
+    pos: phrase
+    cefr: B1
+    tags: [word_pattern, sure, certain]
+    senses:
+      - definition_en: to have no doubt about something
+        definition_vi: chắc chắn về điều gì
+    examples:
+      - text: "I am not {{sure of the answer}}."
+
+  # ==========================================
+  # WORD FORMATION
+  # ==========================================
+  - id: allow-verb
+    headword: allow
+    pos: verb
+    cefr: B1
+    tags: [word_formation]
+    senses:
+      - definition_en: to give permission for someone to do something
+        definition_vi: cho phép
+    examples:
+      - text: "Smoking is not {{allowed}} here."
+
+  - id: allowance-noun
+    headword: allowance
+    pos: noun
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: an amount of money given regularly
+        definition_vi: tiền trợ cấp, tiền tiêu vặt
+    examples:
+      - text: "He gets a weekly {{allowance}} from his parents."
+
+  - id: allowable-adjective
+    headword: allowable
+    pos: adjective
+    cefr: C1
+    tags: [word_formation]
+    senses:
+      - definition_en: allowed by law or a set of rules
+        definition_vi: được phép, hợp lệ
+    examples:
+      - text: "These are the maximum {{allowable}} limits."
+
+  - id: associate-verb
+    headword: associate
+    pos: verb
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: to connect someone or something in your mind
+        definition_vi: liên kết, liên tưởng
+    examples:
+      - text: "Most people {{associate}} this brand with good quality."
+
+  - id: disassociate-verb
+    headword: disassociate
+    pos: verb
+    cefr: C1
+    tags: [word_formation]
+    senses:
+      - definition_en: to disconnect or separate
+        definition_vi: tách rời, không liên quan
+    examples:
+      - text: "He tried to {{disassociate}} himself from the scandal."
+
+  - id: association-noun
+    headword: association
+    pos: noun
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: an organization of people with the same interests
+        definition_vi: hiệp hội, sự liên kết
+    examples:
+      - text: "He is a member of the football {{association}}."
+
+  - id: associated-adjective
+    headword: (un)associated
+    pos: adjective
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: (not) connected
+        definition_vi: (không) có liên quan
+    examples:
+      - text: "There are many risks {{associated}} with smoking."
+
+  - id: compete-verb
+    headword: compete
+    pos: verb
+    cefr: B1
+    tags: [word_formation]
+    senses:
+      - definition_en: to try to win against others
+        definition_vi: thi đấu, cạnh tranh
+    examples:
+      - text: "She will {{compete}} in the Olympics."
+
+  - id: competition-noun
+    headword: competition
+    pos: noun
+    cefr: A2
+    tags: [word_formation]
+    senses:
+      - definition_en: an event in which people compete
+        definition_vi: cuộc thi, sự cạnh tranh
+    examples:
+      - text: "There is fierce {{competition}} for the job."
+
+  - id: competitive-adjective
+    headword: competitive(ly)
+    pos: adjective
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: involving competition
+        definition_vi: có tính cạnh tranh
+    examples:
+      - text: "He is a very {{competitive}} person."
+
+  - id: enjoy-verb
+    headword: enjoy
+    pos: verb
+    cefr: A1
+    tags: [word_formation]
+    senses:
+      - definition_en: to get pleasure from something
+        definition_vi: tận hưởng, thích thú
+    examples:
+      - text: "I really {{enjoyed}} the movie."
+
+  - id: enjoyment-noun
+    headword: enjoyment
+    pos: noun
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: the feeling of enjoying something
+        definition_vi: sự thích thú, niềm vui sướng
+    examples:
+      - text: "He read the book for pure {{enjoyment}}."
+
+  - id: enjoyable-adjective
+    headword: enjoyable
+    pos: adjective
+    cefr: B1
+    tags: [word_formation]
+    senses:
+      - definition_en: providing joy and pleasure
+        definition_vi: thú vị
+    examples:
+      - text: "We had an {{enjoyable}} evening."
+
+  - id: equip-verb
+    headword: equip
+    pos: verb
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: to provide a person or a place with objects that are necessary
+        definition_vi: trang bị
+    examples:
+      - text: "They need to {{equip}} the school with new computers."
+
+  - id: equipment-noun
+    headword: equipment
+    pos: noun
+    cefr: B1
+    tags: [word_formation]
+    senses:
+      - definition_en: the set of necessary tools, clothing, etc.
+        definition_vi: thiết bị, dụng cụ (danh từ không đếm được)
+    examples:
+      - text: "You need special {{equipment}} to go scuba diving."
+
+  - id: equipped-adjective
+    headword: equipped
+    pos: adjective
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: having the necessary tools or skills
+        definition_vi: được trang bị
+    examples:
+      - text: "The room is fully {{equipped}} with modern appliances."
+
+  - id: fortune-noun
+    headword: fortune
+    pos: noun
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: chance or luck / a large amount of money
+        definition_vi: vận may / tài sản lớn
+    examples:
+      - text: "He made a {{fortune}} in real estate."
+
+  - id: misfortune-noun
+    headword: misfortune
+    pos: noun
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: bad luck, or an unlucky event
+        definition_vi: điều không may, sự xui xẻo
+    examples:
+      - text: "It's a great {{misfortune}} to lose your house."
+
+  - id: fortunate-adjective
+    headword: (un)fortunate(ly)
+    pos: adjective
+    cefr: B1
+    tags: [word_formation]
+    senses:
+      - definition_en: lucky
+        definition_vi: (không) may mắn
+    examples:
+      - text: "We are {{fortunate}} to have such good friends."
+
+  - id: interest-noun
+    headword: interest
+    pos: noun
+    cefr: A2
+    tags: [word_formation]
+    senses:
+      - definition_en: the feeling of wanting to give your attention to something
+        definition_vi: sự quan tâm, sở thích
+    examples:
+      - text: "He showed no {{interest}} in politics."
+
+  - id: interesting-adjective
+    headword: (un)interesting(ly)
+    pos: adjective
+    cefr: A1
+    tags: [word_formation]
+    senses:
+      - definition_en: keeping your attention
+        definition_vi: (không) thú vị
+    examples:
+      - text: "That is a very {{interesting}} book."
+
+  - id: know-verb
+    headword: know
+    pos: verb
+    cefr: A1
+    tags: [word_formation]
+    senses:
+      - definition_en: to have information in your mind
+        definition_vi: biết
+    examples:
+      - text: "Do you {{know}} the answer?"
+
+  - id: knowledge-noun
+    headword: knowledge
+    pos: noun
+    cefr: B1
+    tags: [word_formation]
+    senses:
+      - definition_en: understanding or information that has been obtained
+        definition_vi: kiến thức
+    examples:
+      - text: "Her {{knowledge}} of history is impressive."
+
+  - id: knowledgeable-adjective
+    headword: (un)knowledgeable
+    pos: adjective
+    cefr: C1
+    tags: [word_formation]
+    senses:
+      - definition_en: knowing a lot
+        definition_vi: (không) am hiểu, có kiến thức
+    examples:
+      - text: "He is very {{knowledgeable}} about art."
+
+  - id: lose-verb
+    headword: lose
+    pos: verb
+    cefr: A1
+    tags: [word_formation]
+    senses:
+      - definition_en: to no longer have something; to fail to win
+        definition_vi: mất, đánh mất; thua
+    examples:
+      - text: "Don't {{lose}} your keys."
+
+  - id: lost-adjective
+    headword: lost
+    pos: adjective
+    cefr: A2
+    tags: [word_formation]
+    senses:
+      - definition_en: unable to find your way; missing
+        definition_vi: bị lạc, bị mất
+    examples:
+      - text: "I think we are {{lost}}."
+
+  - id: loss-noun
+    headword: loss
+    pos: noun
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: the fact that you no longer have something
+        definition_vi: sự mất mát, sự thua lỗ
+    examples:
+      - text: "The company reported a huge financial {{loss}}."
+
+  - id: maintain-verb
+    headword: maintain
+    pos: verb
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: to keep something in good condition
+        definition_vi: duy trì, bảo trì
+    examples:
+      - text: "It is hard to {{maintain}} a large house."
+
+  - id: maintenance-noun
+    headword: maintenance
+    pos: noun
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: the work needed to keep something in good condition
+        definition_vi: sự bảo trì, tiền chu cấp
+    examples:
+      - text: "Car {{maintenance}} is very expensive."
+
+  - id: medal-noun
+    headword: medal
+    pos: noun
+    cefr: B1
+    tags: [word_formation]
+    senses:
+      - definition_en: a metal disc given as a prize in a competition
+        definition_vi: huy chương
+    examples:
+      - text: "She won a gold {{medal}} in swimming."
+
+  - id: medallist-noun
+    headword: medallist
+    pos: noun
+    cefr: C1
+    tags: [word_formation]
+    senses:
+      - definition_en: someone who has won a medal
+        definition_vi: người đạt huy chương
+    examples:
+      - text: "He is an Olympic gold {{medallist}}."
+
+  - id: medallion-noun
+    headword: medallion
+    pos: noun
+    cefr: C2
+    tags: [word_formation]
+    senses:
+      - definition_en: a large medal
+        definition_vi: mề đay, mặt dây chuyền hình huy chương
+    examples:
+      - text: "He wore a gold {{medallion}} around his neck."
+
+  - id: oppose-verb
+    headword: oppose
+    pos: verb
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: to disagree with something or someone
+        definition_vi: phản đối
+    examples:
+      - text: "Many people {{oppose}} the new law."
+
+  - id: opposition-noun
+    headword: opposition
+    pos: noun
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: strong disagreement
+        definition_vi: sự phản đối, phe đối lập
+    examples:
+      - text: "There is strong {{opposition}} to the plan."
+
+  - id: opposite-adjective
+    headword: opposite
+    pos: adjective
+    cefr: A2
+    tags: [word_formation]
+    senses:
+      - definition_en: completely different; facing
+        definition_vi: đối lập, đối diện
+    examples:
+      - text: "They have completely {{opposite}} views."
+
+  - id: opposing-adjective
+    headword: opposing
+    pos: adjective
+    cefr: C1
+    tags: [word_formation]
+    senses:
+      - definition_en: competing or arguing against each other
+        definition_vi: đối lập, đối địch (đội bạn)
+    examples:
+      - text: "The player from the {{opposing}} team was sent off."
+
+  - id: practice-noun
+    headword: practice
+    pos: noun
+    cefr: A2
+    tags: [word_formation]
+    senses:
+      - definition_en: action rather than thought or ideas
+        definition_vi: sự thực hành, buổi tập luyện
+    examples:
+      - text: "It takes a lot of {{practice}} to play the piano well."
+
+  - id: practise-verb
+    headword: practise
+    pos: verb
+    cefr: A2
+    tags: [word_formation]
+    senses:
+      - definition_en: to do or play something regularly in order to become better
+        definition_vi: thực hành, tập luyện
+    examples:
+      - text: "You must {{practise}} every day."
+
+  - id: practical-adjective
+    headword: practical(ly)
+    pos: adjective
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: relating to experience, real situations, or actions
+        definition_vi: thực tế, mang tính thực hành
+    examples:
+      - text: "She has a lot of {{practical}} experience."
+
+  - id: train-verb
+    headword: train
+    pos: verb
+    cefr: B1
+    tags: [word_formation]
+    senses:
+      - definition_en: to learn the skills you need to do a job; to prepare for a sports event
+        definition_vi: đào tạo, huấn luyện, tập luyện thể thao
+    examples:
+      - text: "He is {{training}} for the marathon."
+
+  - id: retrain-verb
+    headword: retrain
+    pos: verb
+    cefr: C1
+    tags: [word_formation]
+    senses:
+      - definition_en: to teach someone a new skill so they can do a different job
+        definition_vi: đào tạo lại
+    examples:
+      - text: "He decided to {{retrain}} as a teacher."
+
+  - id: trainer-noun
+    headword: trainer
+    pos: noun
+    cefr: B1
+    tags: [word_formation]
+    senses:
+      - definition_en: a person who teaches skills to people or animals
+        definition_vi: huấn luyện viên
+    examples:
+      - text: "She hired a personal {{trainer}} at the gym."

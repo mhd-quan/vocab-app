@@ -197,8 +197,9 @@ export function SessionPlayer({
         <BentoCard className="border-dashed px-6 py-10 text-center">
           <h2 className="text-base font-medium">No exercises in this deck</h2>
           <p className="mt-1 text-xs text-muted">
-            The lesson needs vocab entries with at least one definition + a few peers for
-            distractors. Re-run `npm run import` after editing the YAML.
+            This lesson needs vocabulary entries with at least one definition. New words start as
+            flashcards first; multiple-choice review appears when there are enough peer headwords
+            for answer options. Re-run `npm run import` after editing the YAML.
           </p>
         </BentoCard>
       </PlayerShell>

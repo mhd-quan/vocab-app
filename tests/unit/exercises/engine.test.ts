@@ -101,6 +101,56 @@ describe("buildDeck", () => {
     });
     expect(result.exercises.every((e) => e.kind === "flashcard")).toBe(true);
   });
+
+  it("introduces unseen entries with flashcards before review exercises", () => {
+    const result = buildDeck({
+      entries: makeEntries(5),
+      kinds: ["flashcard", "multiple_choice"],
+      sessionSeed: "seed-intro",
+      seenEntryIds: [1, 2],
+      requireFlashcardForNew: true,
+      shuffle: false,
+    });
+
+    expect(result.exercises.map((e) => `${e.entryId}:${e.kind}`)).toEqual([
+      "3:flashcard",
+      "4:flashcard",
+      "5:flashcard",
+      "1:flashcard",
+      "1:multiple_choice",
+      "2:flashcard",
+      "2:multiple_choice",
+    ]);
+    expect(result.skipped).toEqual([
+      { entryId: 3, kind: "multiple_choice", reason: "requires_flashcard_first" },
+      { entryId: 4, kind: "multiple_choice", reason: "requires_flashcard_first" },
+      { entryId: 5, kind: "multiple_choice", reason: "requires_flashcard_first" },
+    ]);
+  });
+
+  it("forces flashcards for unseen entries even when the selected mode is multiple-choice", () => {
+    const result = buildDeck({
+      entries: makeEntries(4),
+      kinds: ["multiple_choice"],
+      sessionSeed: "seed-new-mc",
+      seenEntryIds: [],
+      requireFlashcardForNew: true,
+      shuffle: false,
+    });
+
+    expect(result.exercises.map((e) => e.kind)).toEqual([
+      "flashcard",
+      "flashcard",
+      "flashcard",
+      "flashcard",
+    ]);
+    expect(result.skipped).toEqual([
+      { entryId: 1, kind: "multiple_choice", reason: "requires_flashcard_first" },
+      { entryId: 2, kind: "multiple_choice", reason: "requires_flashcard_first" },
+      { entryId: 3, kind: "multiple_choice", reason: "requires_flashcard_first" },
+      { entryId: 4, kind: "multiple_choice", reason: "requires_flashcard_first" },
+    ]);
+  });
 });
 
 describe("getPlugin", () => {

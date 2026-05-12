@@ -43,6 +43,14 @@ describe("multipleChoicePlugin.build", () => {
     expect(ex?.payload.prompt).toBe("a member of your family");
   });
 
+  it("uses the VI definition as the prompt when definition priority is vi_first", () => {
+    const ex = multipleChoicePlugin.build(makeEntry(), {
+      ...makeCtx(),
+      definitionPriority: "vi_first",
+    });
+    expect(ex?.payload.prompt).toBe("người thân");
+  });
+
   it("is deterministic for a fixed RNG seed", () => {
     const a = multipleChoicePlugin.build(makeEntry(), makeCtx());
     const b = multipleChoicePlugin.build(makeEntry(), makeCtx());

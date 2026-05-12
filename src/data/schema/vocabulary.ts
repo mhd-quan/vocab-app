@@ -11,11 +11,20 @@ export const partsOfSpeech = [
   "idiom",
   "phrasal_verb",
   "collocation",
+  "pattern",
   "determiner",
   "preposition",
   "conjunction",
   "pronoun",
   "interjection",
+  "article",
+  "auxiliary",
+  "modal",
+  "number",
+  "abbreviation",
+  "prefix",
+  "suffix",
+  "root",
 ] as const;
 export type PartOfSpeech = (typeof partsOfSpeech)[number];
 
@@ -62,7 +71,15 @@ export const vocabEntries = sqliteTable(
   }),
 );
 
-export const vocabRegisters = ["formal", "informal", "neutral", "slang", "academic"] as const;
+export const vocabRegisters = [
+  "formal",
+  "informal",
+  "neutral",
+  "slang",
+  "academic",
+  "technical",
+  "literary",
+] as const;
 export type VocabRegister = (typeof vocabRegisters)[number];
 
 export const vocabSenses = sqliteTable(
@@ -114,6 +131,16 @@ export const vocabFormKinds = [
   "comparative",
   "superlative",
   "infinitive",
+  "noun",
+  "verb",
+  "adjective",
+  "adverb",
+  "opposite",
+  "prefix",
+  "suffix",
+  "root",
+  "compound",
+  "derivative",
 ] as const;
 export type VocabFormKind = (typeof vocabFormKinds)[number];
 
@@ -141,6 +168,15 @@ export const collocationPatterns = [
   "adj+prep",
   "noun+prep",
   "prep+noun",
+  "verb+object+prep",
+  "verb+object+infinitive",
+  "verb+object+bare_infinitive",
+  "verb+gerund",
+  "verb+infinitive",
+  "adj+infinitive",
+  "adj+that_clause",
+  "noun+of+noun",
+  "be+adj+prep",
   "adv+adj",
   "adv+verb",
   "other",
@@ -170,8 +206,14 @@ export const vocabRelationKinds = [
   "see_also",
   "derived_from",
   "confused_with",
+  "false_friend",
   "hypernym",
   "hyponym",
+  "word_family",
+  "topic_family",
+  "variant",
+  "prefix_of",
+  "suffix_of",
 ] as const;
 export type VocabRelationKind = (typeof vocabRelationKinds)[number];
 

@@ -150,13 +150,13 @@ function parseEntry(input: EntryInput): ParsedVocabEntry {
 
 function parseExample(input: ExampleYamlInput, index: number, sourceId: string): ExampleInput {
   const matches = [...input.text.matchAll(CLOZE_REGEX)];
-  if (matches.length > 1) {
-    throw new VocabParseError(
-      `Example #${index + 1} for "${sourceId}" has ${matches.length} {{cloze}} markers; only one is supported`,
-      sourceId,
-    );
-  }
-  const inferred = matches[0]?.[1]?.trim();
+  const inferred =
+    matches.length > 0
+      ? matches
+          .map((match) => match[1]?.trim())
+          .filter((value): value is string => Boolean(value))
+          .join(" ")
+      : undefined;
 
   if (input.cloze_target && inferred && input.cloze_target !== inferred) {
     throw new VocabParseError(

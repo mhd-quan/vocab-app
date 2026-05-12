@@ -186,6 +186,7 @@ export class ImportVocabUseCase {
       code: file.unit.code,
       title: file.unit.title,
       summaryMd: file.unit.summary_md ?? null,
+      metadata: file.unit.metadata ?? null,
     });
     repos.imports.logItem({
       runId,
@@ -201,6 +202,7 @@ export class ImportVocabUseCase {
       kind: file.lesson.kind,
       title: file.lesson.title,
       slug: file.lesson.slug,
+      metadata: file.lesson.metadata ?? null,
     });
     repos.imports.logItem({
       runId,

@@ -107,22 +107,34 @@ function FlashcardBack({
   back: FlashcardExercise["payload"]["back"];
   onAnswer: (grade: SelfGrade) => void;
 }) {
+  const englishBlock =
+    back.definitionsEn.length > 0 ? (
+      <ol className="flex flex-col gap-2 text-base leading-relaxed text-muted">
+        {back.definitionsEn.map((def, i) => (
+          <li key={`${i}-${def}`} className="flex gap-2">
+            <span className="font-mono text-sm text-muted-2">{i + 1}.</span>
+            <span>{def}</span>
+          </li>
+        ))}
+      </ol>
+    ) : null;
+  const vietnameseBlock = back.definitionVi ? (
+    <p className="text-xl font-semibold leading-relaxed text-app">{back.definitionVi}</p>
+  ) : null;
   return (
     <div className="flex flex-col gap-5">
       <section className="flex flex-col gap-2 border-t border-border-subtle pt-5">
-        {back.definitionVi ? (
-          <p className="text-xl font-semibold leading-relaxed text-app">{back.definitionVi}</p>
-        ) : null}
-        {back.definitionsEn.length > 0 ? (
-          <ol className="flex flex-col gap-2 text-base leading-relaxed text-muted">
-            {back.definitionsEn.map((def, i) => (
-              <li key={`${i}-${def}`} className="flex gap-2">
-                <span className="font-mono text-sm text-muted-2">{i + 1}.</span>
-                <span>{def}</span>
-              </li>
-            ))}
-          </ol>
-        ) : null}
+        {back.definitionPriority === "vi_first" ? (
+          <>
+            {vietnameseBlock}
+            {englishBlock}
+          </>
+        ) : (
+          <>
+            {englishBlock}
+            {vietnameseBlock}
+          </>
+        )}
       </section>
 
       {back.exampleText ? (

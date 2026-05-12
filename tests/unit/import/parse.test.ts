@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import path from "node:path";
+import yaml from "js-yaml";
 import { describe, expect, it } from "vitest";
 import { ZodError } from "zod";
 import {
@@ -78,6 +81,18 @@ describe("parseVocabFile", () => {
     expect(parsed.bookTitle).toBe("Destination B1");
   });
 
+  it("accepts unit and lesson metadata for curriculum rows", () => {
+    const parsed = parseVocabFile({
+      ...baseFile,
+      unit: { ...baseFile.unit, metadata: { source: "template" } },
+      lesson: { ...baseFile.lesson, metadata: { study_surface: "unit_page" } },
+      entries: [{ headword: "x", pos: "noun" }],
+    });
+
+    expect(parsed.unit.metadata).toEqual({ source: "template" });
+    expect(parsed.lesson.metadata).toEqual({ study_surface: "unit_page" });
+  });
+
   it("accepts prep+noun collocation patterns", () => {
     const parsed = parseVocabFile({
       ...baseFile,
@@ -90,6 +105,46 @@ describe("parseVocabFile", () => {
       ],
     });
     expect(parsed.entries[0]?.toUpsertInput(1).collocations[0]?.pattern).toBe("prep+noun");
+  });
+
+  it("accepts word-pattern entries as vocab cards", () => {
+    const parsed = parseVocabFile({
+      ...baseFile,
+      entries: [
+        {
+          id: "inform-sb-about-sth-pattern",
+          headword: "inform sb about sth",
+          pos: "pattern",
+          tags: ["word-pattern"],
+          senses: [{ definition_en: "give someone facts or information" }],
+        },
+      ],
+    });
+    const input = parsed.entries[0]?.toUpsertInput(1);
+    expect(input?.pos).toBe("pattern");
+    expect(input?.tags).toEqual(["word-pattern"]);
+  });
+
+  it("normalizes legacy `form` keys and expanded word-formation kinds", () => {
+    const parsed = parseVocabFile({
+      ...baseFile,
+      entries: [
+        {
+          id: "adapt-verb",
+          headword: "adapt",
+          pos: "verb",
+          forms: [
+            { kind: "noun", form: "adaptation" },
+            { kind: "adjective", text: "adaptable" },
+          ],
+        },
+      ],
+    });
+
+    expect(parsed.entries[0]?.toUpsertInput(1).forms).toEqual([
+      { kind: "noun", formText: "adaptation", ipa: null },
+      { kind: "adjective", formText: "adaptable", ipa: null },
+    ]);
   });
 
   it("rejects duplicate sourceIds within a file", () => {
@@ -188,19 +243,22 @@ describe("cloze parsing", () => {
     ).toThrow(VocabParseError);
   });
 
-  it("rejects multiple {{cloze}} markers in one example", () => {
-    expect(() =>
-      parseVocabFile({
-        ...baseFile,
-        entries: [
-          {
-            headword: "x",
-            pos: "noun",
-            examples: [{ text: "Has {{two}} different {{markers}}." }],
-          },
-        ],
-      }),
-    ).toThrow(VocabParseError);
+  it("accepts multiple {{cloze}} markers and joins the inferred target", () => {
+    const parsed = parseVocabFile({
+      ...baseFile,
+      entries: [
+        {
+          headword: "look up",
+          pos: "pattern",
+          examples: [{ text: "Please {{look}} the word {{up}}." }],
+        },
+      ],
+    });
+
+    const upsert = parsed.entries[0]?.toUpsertInput(1);
+    expect(upsert?.examples[0]?.clozeTarget).toBe("look up");
+    expect(upsert?.examples[0]?.text).toContain("{{look}}");
+    expect(upsert?.examples[0]?.text).toContain("{{up}}");
   });
 
   it("trims whitespace around cloze content", () => {
@@ -233,6 +291,18 @@ describe("cloze parsing", () => {
 });
 
 describe("parseGrammarFile", () => {
+  it("accepts unit and lesson metadata for grammar curriculum rows", () => {
+    const parsed = parseGrammarFile({
+      ...baseGrammarFile,
+      unit: { ...baseGrammarFile.unit, metadata: { source: "template" } },
+      lesson: { ...baseGrammarFile.lesson, metadata: { practice_intent: "revision" } },
+      topics: [{ slug: "g", title: "G" }],
+    });
+
+    expect(parsed.unit.metadata).toEqual({ source: "template" });
+    expect(parsed.lesson.metadata).toEqual({ practice_intent: "revision" });
+  });
+
   it("parses grammar topics and folds rich teaching fields into metadata", () => {
     const parsed = parseGrammarFile({
       ...baseGrammarFile,
@@ -244,7 +314,10 @@ describe("parseGrammarFile", () => {
           summary_md: "Habits and routines.",
           explanation_md: "Use base verb; add -s for he/she/it.",
           difficulty: 1,
+          estimated_minutes: 10,
           tags: ["tense"],
+          objectives: ["Describe routines."],
+          teacher_notes: "Act it out.",
           patterns: [{ label: "affirmative", form: "subject + base verb" }],
           examples: [{ text: "She studies daily.", correct: true }],
           common_mistakes: [{ wrong: "She study.", correct: "She studies." }],
@@ -263,6 +336,9 @@ describe("parseGrammarFile", () => {
       tags: ["tense"],
       metadata: {
         teacher_note: "Act it out.",
+        teacher_notes: "Act it out.",
+        estimated_minutes: 10,
+        objectives: ["Describe routines."],
         patterns: [{ label: "affirmative", form: "subject + base verb" }],
         examples: [{ text: "She studies daily.", correct: true }],
         common_mistakes: [{ wrong: "She study.", correct: "She studies." }],
@@ -302,5 +378,17 @@ describe("parseContentFile", () => {
     expect(parseContentFile({ ...baseGrammarFile, topics: [{ slug: "g", title: "G" }] }).kind).toBe(
       "grammar",
     );
+  });
+});
+
+describe("authoring templates", () => {
+  it.each([
+    ["vocab-template.yaml", "vocabulary"],
+    ["grammar-template.yaml", "grammar"],
+    ["revision-practice-grammar-template.yaml", "grammar"],
+  ])("keeps %s aligned with the importer schema", (fileName, expectedKind) => {
+    const templatePath = path.join(process.cwd(), "content", "templates", fileName);
+    const raw = yaml.load(fs.readFileSync(templatePath, "utf8"));
+    expect(parseContentFile(raw).kind).toBe(expectedKind);
   });
 });

@@ -41,10 +41,19 @@ export const senseInputSchema = z
 export const formInputSchema = z
   .object({
     kind: z.enum(vocabFormKinds),
-    text: z.string().min(1),
+    text: z.string().min(1).optional(),
+    form: z.string().min(1).optional(),
     ipa: z.string().optional(),
   })
-  .strict();
+  .strict()
+  .refine((value) => value.text || value.form, {
+    message: "form must include `text` (preferred) or legacy `form`",
+  })
+  .transform((value) => ({
+    kind: value.kind,
+    text: value.text ?? value.form ?? "",
+    ipa: value.ipa,
+  }));
 
 export const collocationInputSchema = z
   .object({
@@ -94,6 +103,7 @@ export const vocabFileSchema = z
         code: z.string().min(1),
         title: z.string().min(1),
         summary_md: z.string().optional(),
+        metadata: z.record(z.unknown()).optional(),
       })
       .strict(),
     lesson: z
@@ -102,6 +112,7 @@ export const vocabFileSchema = z
         kind: z.literal("vocabulary"),
         title: z.string().min(1),
         slug: z.string().regex(slugRegex, "slug must be lowercase-kebab"),
+        metadata: z.record(z.unknown()).optional(),
       })
       .strict(),
     entries: z.array(entryInputSchema).min(1, "file must contain at least one entry"),

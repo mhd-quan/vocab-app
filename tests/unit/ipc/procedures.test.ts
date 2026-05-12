@@ -16,7 +16,8 @@ import {
   studentsProcedures,
   vocabProcedures,
 } from "../../../electron/ipc/procedures";
-import { freshDb, seedCurriculum } from "../../helpers";
+import { units } from "../../../src/data/schema";
+import { first, freshDb, seedCurriculum } from "../../helpers";
 
 function findProcedure(name: string) {
   const proc = allProcedures.find((p) => p.name === name);
@@ -71,7 +72,7 @@ describe("IPC procedure registry", () => {
 
     it("appInfo returns the expected schema-tables count", async () => {
       const info = await call<{ schemaTablesExpected: number }>("meta.appInfo", undefined, ctx);
-      expect(info.schemaTablesExpected).toBe(20);
+      expect(info.schemaTablesExpected).toBe(21);
     });
   });
 
@@ -155,6 +156,31 @@ describe("IPC procedure registry", () => {
       await call("students.archive", { id: created.id }, ctx);
       const list = await call<unknown[]>("students.listActive", undefined, ctx);
       expect(list).toHaveLength(0);
+    });
+
+    it("replaces unit assignments through IPC handlers", async () => {
+      const { book, unit } = seedCurriculum(db);
+      const secondUnit = first(
+        db
+          .insert(units)
+          .values({ bookId: book.id, ordinal: 2, code: "U02", title: "Unit 2" })
+          .returning()
+          .all(),
+      );
+      const student = await call<{ id: number }>("students.create", { name: "Alice" }, ctx);
+
+      await call(
+        "students.replaceUnitAssignments",
+        { studentId: student.id, bookId: book.id, unitIds: [unit.id, secondUnit.id] },
+        ctx,
+      );
+
+      const assigned = await call<number[]>(
+        "students.listAssignedUnitIds",
+        { studentId: student.id, bookId: book.id },
+        ctx,
+      );
+      expect(assigned).toEqual([unit.id, secondUnit.id]);
     });
   });
 

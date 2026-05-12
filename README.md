@@ -4,9 +4,8 @@ Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
 student practice) running as a desktop app on Windows and macOS.
 
-> **Status:** v0.2.0 — shell polish, welcome mode selection, editable book
-> titles, light/dark/system themes, in-app YAML import, expanded Settings,
-> and authoring templates. Tutor analytics, SRS, rewards, and import history
+> **Status:** v0.6.2 — tutor assignments, vocabulary/grammar student flows,
+> SRS progress, rewards, in-app YAML import, settings, and authoring templates
 > remain backed by the same local SQLite schema.
 
 ## Stack
@@ -233,8 +232,8 @@ plumbing required.
   `content/books/<book-code>/` and then processed by the same
   `ImportVocabUseCase` used by the CLI.
 - `content/templates/` contains validating vocab and grammar templates,
-  `IMPORT-SYNTAX.md`, and an exercise reference for current and planned
-  exercise kinds.
+  focused vocab-study and revision-practice starters, `IMPORT-SYNTAX.md`,
+  and an exercise reference for current and planned exercise kinds.
 
 ## Exercise engine
 
@@ -263,7 +262,11 @@ Adding a new kind = three steps:
 
 Decks are deterministic for a given `sessionSeed`: `buildDeck` hashes
 the seed → mulberry32 PRNG → Fisher–Yates shuffle. Two calls with the
-same seed produce the same deck in the same order.
+same seed produce the same deck in the same order. Vocabulary-only units
+launch directly into the session route; the unit study/practice layer is
+reserved for grammar units. For vocabulary sessions, entries that have no
+student progress are placed in a flashcard-only intro phase before any
+recognition/review exercise can be generated for that word.
 
 Currently shipping kinds:
 
@@ -271,6 +274,11 @@ Currently shipping kinds:
   the grade flows through to SRS in PR #8.
 - **multiple_choice** — definition prompt + 4 headword options, one
   correct; auto-graded.
+- **grammar activities** — grammar lessons can supply `fill_blank`,
+  `choice`, `order`, `rewrite`, `prompted_sentence`, and
+  `error_correction` activities. For now, unit revision/exercise pages should
+  be authored as `lesson.kind: grammar`; `revision` and `exercise` are reserved
+  lesson enum values, not importable file kinds yet.
 
 ## Spaced repetition
 
@@ -384,5 +392,9 @@ See `docs/roadmap.md` (added with PR #2). Current plan:
 | v0.3.0  | Engagement-focused student/tutor UI redesign               |
 | v0.3.2  | Larger filled glyphs + grammar import samples/reference    |
 | v0.4.0  | Interactive grammar learning flow + lesson-card home      |
-| v0.5.0  | In-app authoring GUI                                      |
+| v0.5.0  | Tutor unit assignments + section-based study + authoring GUI |
+| v0.5.1  | Assignment/runtime polish + settings cleanup + focused authoring templates |
+| v0.6.0  | Vocabulary direct launch + grammar-only study layer + flashcard-first new words |
+| v0.6.1  | Remove vocab study-page flash + retire vocab study-page starter |
+| v0.6.2  | Include native SQLite runtime deps in packaged Windows/macOS apps |
 | v1.0.0  | Beta packaging (signed installers, auto-update)           |

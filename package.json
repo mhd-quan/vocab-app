@@ -1,6 +1,6 @@
 {
   "name": "vocab-app",
-  "version": "0.4.0",
+  "version": "0.6.2",
   "description": "Interactive vocabulary & grammar tutoring platform for Destination B1/B2",
   "main": ".vite/build/main.js",
   "private": true,
@@ -19,6 +19,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "verify:artifacts": "tsx scripts/verify-package-artifacts.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate:dev": "tsx scripts/migrate-dev.ts",
     "rebuild": "electron-rebuild -f -w better-sqlite3",

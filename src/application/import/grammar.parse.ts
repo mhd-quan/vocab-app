@@ -65,6 +65,12 @@ function parseTopic(input: GrammarTopicInput): ParsedGrammarTopic {
     common_mistakes: input.common_mistakes,
     checks: input.checks,
     activities: input.activities,
+    objectives: input.objectives,
+    prerequisites: input.prerequisites,
+    teacher_notes: input.teacher_notes,
+    contrast_notes: input.contrast_notes,
+    exam_notes: input.exam_notes,
+    estimated_minutes: input.estimated_minutes,
   });
 
   const contentHash = hashContent({
@@ -75,6 +81,9 @@ function parseTopic(input: GrammarTopicInput): ParsedGrammarTopic {
     explanationMd: input.explanation_md,
     difficulty: input.difficulty,
     tags: input.tags,
+    objectives: input.objectives,
+    prerequisites: input.prerequisites,
+    estimatedMinutes: input.estimated_minutes,
     metadata,
   });
 

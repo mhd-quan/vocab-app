@@ -1,6 +1,7 @@
 # Vocab import sample
 # Copy this file into content/books/<book-code>/unit-NN-vocab.yaml.
-# The file intentionally exercises every currently accepted vocab enum.
+# The file intentionally exercises the common vocab enum surface, study-section
+# tags, and the normalized metadata shape used for word-formation notes.
 
 book: sample-b1
 book_title: Sample B1 Authoring Pack
@@ -9,7 +10,7 @@ unit:
   ordinal: 99
   code: U99
   title: Full Vocabulary Syntax Sample
-  summary_md: Demonstrates all vocab fields, POS values, form kinds, collocation patterns including prep+noun, and relation kinds.
+  summary_md: Demonstrates vocab fields, study-section tags, expanded POS/form enums, collocation patterns including prep+noun, and relation kinds.
 
 lesson:
   ordinal: 1
@@ -27,7 +28,7 @@ entries:
     frequency_rank: 1200
     image_ref: images/achievement.png
     audio_ref: audio/achievement.mp3
-    tags: [school, success, noun]
+    tags: [vocabulary, school, success, noun]
     metadata:
       source: template
       rarity: common
@@ -69,6 +70,12 @@ entries:
     ipa: /əˈdæpt/
     cefr: B2
     tags: [change, work, verb]
+    metadata:
+      related_forms:
+        - form: adaptable
+          pos: adjective
+        - form: adaptation
+          pos: noun
     senses:
       - definition_en: to change your behavior so that you can deal with a new situation
         definition_vi: thích nghi
@@ -87,6 +94,12 @@ entries:
         text: adapts
       - kind: infinitive
         text: to adapt
+      - kind: noun
+        text: adaptation
+      - kind: adjective
+        text: adaptable
+      - kind: adverb
+        text: adaptably
     collocations:
       - collocation: adapt a plan
         pattern: verb+noun
@@ -99,6 +112,8 @@ entries:
         text: adaptable
       - relation: confused_with
         text: adopt
+      - relation: word_family
+        text: adaptation
 
   - id: accurate-adjective
     headword: accurate
@@ -134,6 +149,12 @@ entries:
     pos: adverb
     cefr: A2
     tags: [adverb, manner]
+    metadata:
+      related_forms:
+        - form: careful
+          pos: adjective
+        - form: care
+          pos: noun
     senses:
       - definition_en: with a lot of attention or thought
         definition_vi: một cách cẩn thận
@@ -195,7 +216,7 @@ entries:
     lemma: look up
     pos: phrasal_verb
     cefr: B1
-    tags: [study, phrasal_verb]
+    tags: [study, phrasal-verb]
     senses:
       - definition_en: to search for information in a book or online
         definition_vi: tra cứu
@@ -216,6 +237,53 @@ entries:
         definition_vi: mưa to
     examples:
       - text: The road was flooded after the {{heavy rain}}.
+
+  - id: insist-on-pattern
+    headword: insist on
+    pos: pattern
+    cefr: B2
+    tags: [word-pattern]
+    senses:
+      - definition_en: to demand or say firmly that something must happen
+        definition_vi: khăng khăng yêu cầu
+    examples:
+      - text: She {{insisted on}} paying for the tickets.
+    collocations:
+      - collocation: insist on doing something
+        pattern: verb+gerund
+
+  - id: could-modal
+    headword: could
+    pos: modal
+    cefr: A2
+    tags: [grammar-vocab, modal]
+    senses:
+      - definition_en: used to talk about possibility, ability, or polite requests
+        definition_vi: có thể
+    examples:
+      - text: We {{could}} meet after class.
+
+  - id: the-article
+    headword: the
+    pos: article
+    cefr: A1
+    tags: [grammar-vocab, article]
+    senses:
+      - definition_en: used before a noun when it is clear which thing is meant
+        definition_vi: mạo từ xác định
+    examples:
+      - text: Please close {{the}} door.
+
+  - id: re-prefix
+    headword: re-
+    pos: prefix
+    cefr: B1
+    tags: [word-formation]
+    senses:
+      - definition_en: again
+        definition_vi: lại, một lần nữa
+    examples:
+      - text: Rebuild means to {{re-}}build something.
 
   - id: either-determiner
     headword: either

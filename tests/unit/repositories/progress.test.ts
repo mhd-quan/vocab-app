@@ -256,6 +256,59 @@ describe("ProgressRepository", () => {
     });
   });
 
+  describe("seenEntryIdsByLesson", () => {
+    it("returns only vocab entries already seen by the student in the lesson", () => {
+      const { lesson: firstLesson } = seedCurriculum(db);
+      const { lesson: secondLesson } = seedCurriculum(db, { bookCode: "destination-b2" });
+      const [alpha, beta] = seedEntries(repos, firstLesson.id, ["alpha", "beta", "gamma"]);
+      const [outside] = seedEntries(repos, secondLesson.id, ["outside"]);
+      if (!alpha || !beta || !outside) throw new Error("seed mismatch");
+      const student = repos.students.create({ name: "Alice" });
+      const otherStudent = repos.students.create({ name: "Bob" });
+      const session = repos.progress.startSession({ studentId: student.id, mode: "mixed" });
+      const otherSession = repos.progress.startSession({
+        studentId: otherStudent.id,
+        mode: "mixed",
+      });
+
+      repos.progress.recordAnswer({
+        studentId: student.id,
+        sessionId: session.id,
+        entryId: beta.entryId,
+        outcome: correct(),
+        now: T0,
+      });
+      repos.progress.recordAnswer({
+        studentId: student.id,
+        sessionId: session.id,
+        entryId: alpha.entryId,
+        outcome: correct(),
+        now: T0,
+      });
+      repos.progress.recordAnswer({
+        studentId: student.id,
+        sessionId: session.id,
+        entryId: outside.entryId,
+        outcome: correct(),
+        now: T0,
+      });
+      repos.progress.recordAnswer({
+        studentId: otherStudent.id,
+        sessionId: otherSession.id,
+        entryId: alpha.entryId,
+        outcome: correct(),
+        now: T0,
+      });
+
+      expect(
+        repos.progress.seenEntryIdsByLesson({
+          studentId: student.id,
+          lessonId: firstLesson.id,
+        }),
+      ).toEqual([alpha.entryId, beta.entryId]);
+    });
+  });
+
   describe("dueByStudent", () => {
     it("returns due items with headword + lesson id, sorted oldest first", () => {
       const { lesson } = seedCurriculum(db);

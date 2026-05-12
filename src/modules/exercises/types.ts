@@ -18,6 +18,7 @@
 import type { VocabEntryFull } from "../../../electron/db/repositories/vocab";
 
 export type ExerciseKind = "flashcard" | "multiple_choice";
+export type DefinitionPriority = "en_first" | "vi_first";
 
 /** Self-grade scale used by flashcards (matches FSRS / Anki conventions). */
 export const selfGrades = ["again", "hard", "good", "easy"] as const;
@@ -41,6 +42,7 @@ export interface FlashcardPayload {
     /** Primary EN definition; secondary defs render below in a list. */
     definitionsEn: string[];
     definitionVi: string | null;
+    definitionPriority: DefinitionPriority;
     /** First example's text — already contains `{{cloze}}` markers. */
     exampleText: string | null;
   };
@@ -88,6 +90,8 @@ export interface GradeOutcome {
 export interface BuildContext {
   /** Pool of headwords usable as distractors (excludes the target). */
   distractorPool: string[];
+  /** Learner-facing definition order preference. */
+  definitionPriority?: DefinitionPriority;
   /** Seeded RNG (mulberry32) — pass-through to plugins for deterministic tests. */
   rng: () => number;
   /** Seed string baked into exercise ids so a deck can be replayed. */
@@ -102,3 +106,5 @@ export interface ExercisePlugin<TExercise extends Exercise, TAnswer> {
 }
 
 export type AnyExercisePlugin = ExercisePlugin<Exercise, Answer>;
+
+export type BuildSkipReason = "build_returned_null" | "requires_flashcard_first";

@@ -1,0 +1,113 @@
+# Revision practice starter
+# Copy to content/books/<book-code>/unit-NN-grammar.yaml.
+#
+# Important: this uses lesson.kind: grammar because the current importer and
+# student practice runtime build exercise/revision sessions from grammar
+# topic activities. The DB enum already reserves lesson.kind values such as
+# exercise and revision, but those are not import-backed lesson files yet.
+
+book: sample-b1
+book_title: Sample B1 Authoring Pack
+
+unit:
+  ordinal: 7
+  code: U07
+  title: Revision Practice Starter
+  summary_md: A compact revision lesson built from grammar activities.
+  metadata:
+    authoring_template: revision-practice
+
+lesson:
+  ordinal: 2
+  kind: grammar
+  title: Unit Revision Practice
+  slug: unit-revision-practice
+  metadata:
+    practice_intent: revision
+    recommended_mode: grammar
+
+topics:
+  - id: present-tenses-revision
+    slug: present-tenses-revision
+    title: Present tenses revision
+    summary_md: Choose between present simple and present continuous in common exam prompts.
+    explanation_md: |
+      Present simple describes routines, facts, and repeated actions.
+      Present continuous describes actions happening now or temporary situations.
+    difficulty: 2
+    estimated_minutes: 15
+    tags: [revision, tense, present-simple, present-continuous]
+    objectives:
+      - Pick the tense that matches the time signal.
+      - Correct common subject-verb agreement mistakes.
+    activities:
+      - id: present-choice-01
+        kind: choice
+        question: She usually ___ to school by bus.
+        options:
+          - text: go
+          - text: goes
+            correct: true
+            explanation: Usually describes a routine, and she takes goes.
+          - text: is going
+        explanation: Use present simple for routines.
+
+      - id: present-fill-01
+        kind: fill_blank
+        sentence: Look! They {{are playing}} football in the park.
+        accepted_answers:
+          - are playing
+        hint: Use am/is/are + verb-ing for something happening now.
+        explanation: Look points to an action in progress.
+
+      - id: present-order-01
+        kind: order
+        prompt: Put the words in the correct order.
+        tokens: [She, does, not, watch, TV, on, weekdays]
+        answer: She does not watch TV on weekdays.
+
+      - id: present-rewrite-01
+        kind: rewrite
+        prompt: I study English every evening.
+        instruction: Rewrite the sentence with she.
+        answer: She studies English every evening.
+        explanation: Add -s or -es after she in present simple.
+
+      - id: present-error-01
+        kind: error_correction
+        sentence: He watching TV right now.
+        answer: He is watching TV right now.
+        explanation: Present continuous needs am/is/are.
+
+  - id: word-patterns-revision
+    slug: word-patterns-revision
+    title: Word patterns revision
+    summary_md: Practise common verb and adjective patterns from the unit.
+    difficulty: 2
+    tags: [revision, word-pattern]
+    activities:
+      - id: pattern-fill-01
+        kind: fill_blank
+        sentence: She insisted {{on paying}} for the tickets.
+        accepted_answers:
+          - on paying
+        hint: insist + on + -ing.
+
+      - id: pattern-choice-01
+        kind: choice
+        question: I am interested ___ joining the club.
+        options:
+          - text: at
+          - text: in
+            correct: true
+          - text: for
+        explanation: interested in + noun or -ing form.
+
+      - id: pattern-prompted-01
+        kind: prompted_sentence
+        instruction: Write a sentence using interested in and learning.
+        words: [interested, in, learning]
+        answer: I am interested in learning English.
+        accepted_answers:
+          - She is interested in learning English.
+          - He is interested in learning English.

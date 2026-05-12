@@ -25,12 +25,9 @@ interface UnitWithLessons {
 }
 
 /**
- * The student's home screen: identifies the student, then surfaces what
- * they can practise right now. Each lesson card shows three counters:
- *   - total imported content items,
- *   - due now (item_progress.next_due_at ≤ now), and
- *   - never seen (no item_progress row yet).
- * The numbers come from `progress.dueByLesson` (PR #8).
+ * Student home is intentionally unit-first. Tutors decide which units a
+ * learner can see; the learner picks a unit, then chooses the exact section
+ * to practise on the unit study screen.
  */
 export function StudentHome() {
   const { studentId } = useParams({ from: "/student/profile/$studentId" });
@@ -43,8 +40,9 @@ export function StudentHome() {
   });
 
   const booksQ = useQuery({
-    queryKey: queryKeys.curriculum.books(),
-    queryFn: () => api.curriculum.listBooks(),
+    queryKey: queryKeys.students.assignedBooks(id),
+    queryFn: () => api.students.listAssignedBooks({ studentId: id }),
+    enabled: Number.isFinite(id) && id > 0,
   });
 
   const summaryQ = useQuery({
@@ -105,11 +103,11 @@ export function StudentHome() {
       ) : null}
 
       {booksQ.isLoading ? (
-        <p className="text-sm text-muted">Loading lessons…</p>
+        <p className="text-sm text-muted">Loading assigned units…</p>
       ) : (booksQ.data ?? []).length === 0 ? (
         <EmptyState
-          title="No content yet"
-          body="Switch to tutor mode and run `npm run import` to load vocabulary lessons."
+          title="No assigned units yet"
+          body="Ask your tutor to assign a book unit before starting practice."
         />
       ) : (
         <BookList studentId={id} books={booksQ.data ?? []} />
@@ -216,8 +214,8 @@ function BookList({ studentId, books }: { studentId: number; books: Book[] }) {
 
 function BookSection({ studentId, book }: { studentId: number; book: Book }) {
   const unitsQ = useQuery({
-    queryKey: queryKeys.curriculum.units(book.id),
-    queryFn: () => api.curriculum.listUnitsByBook({ bookId: book.id }),
+    queryKey: queryKeys.students.assignedUnits(studentId, book.id),
+    queryFn: () => api.students.listAssignedUnits({ studentId, bookId: book.id }),
   });
   const units = unitsQ.data ?? [];
 
@@ -232,11 +230,11 @@ function BookSection({ studentId, book }: { studentId: number; book: Book }) {
       {unitsQ.isLoading ? (
         <p className="text-xs text-muted">Loading units…</p>
       ) : units.length === 0 ? (
-        <p className="text-xs text-muted-2">No units imported yet.</p>
+        <p className="text-xs text-muted-2">No assigned units in this book.</p>
       ) : (
         <ul className="grid grid-cols-1 gap-x-6 gap-y-7 xl:grid-cols-2">
           {units.map((unit) => (
-            <UnitGroup key={unit.id} studentId={studentId} unit={unit} />
+            <AssignedUnitCard key={unit.id} studentId={studentId} unit={unit} />
           ))}
         </ul>
       )}
@@ -244,7 +242,7 @@ function BookSection({ studentId, book }: { studentId: number; book: Book }) {
   );
 }
 
-function UnitGroup({ studentId, unit }: { studentId: number; unit: Unit }) {
+function AssignedUnitCard({ studentId, unit }: { studentId: number; unit: Unit }) {
   const lessonsQ = useQuery({
     queryKey: queryKeys.curriculum.lessons(unit.id),
     queryFn: () => api.curriculum.listLessonsByUnit({ unitId: unit.id }),
@@ -264,100 +262,50 @@ function UnitGroup({ studentId, unit }: { studentId: number; unit: Unit }) {
   if (lessonsQ.isLoading) {
     return <p className="text-xs text-muted">Loading lessons…</p>;
   }
-  if (lessons.length === 0) return null;
 
-  return (
-    <li>
-      <header className="mb-3 flex items-baseline gap-2">
-        <Badge tone="muted" uppercase>
-          {unit.code}
-        </Badge>
-        <h3 className="text-base font-semibold">{unit.title}</h3>
-      </header>
-      <ul className="grid grid-cols-1 gap-3">
-        {lessons.map((lesson, i) => {
-          const stats = dueQs[i]?.data;
-          const totalCount = stats?.totalCount ?? 0;
-          const dueCount = stats?.dueCount ?? 0;
-          const newCount = stats?.newCount ?? totalCount;
-          return (
-            <li key={lesson.id}>
-              <LessonCard
-                studentId={studentId}
-                unit={unit}
-                lesson={lesson}
-                totalCount={totalCount}
-                dueCount={dueCount}
-                newCount={newCount}
-              />
-            </li>
-          );
-        })}
-      </ul>
-    </li>
+  const totals = lessons.reduce(
+    (acc, lesson, index) => {
+      const stats = dueQs[index]?.data;
+      acc.totalCount += stats?.totalCount ?? 0;
+      acc.dueCount += stats?.dueCount ?? 0;
+      acc.newCount += stats?.newCount ?? stats?.totalCount ?? 0;
+      if (lesson.kind === "grammar") acc.hasGrammar = true;
+      if (lesson.kind === "vocabulary") acc.hasVocab = true;
+      return acc;
+    },
+    { totalCount: 0, dueCount: 0, newCount: 0, hasGrammar: false, hasVocab: false },
   );
-}
 
-function LessonCard({
-  studentId,
-  unit,
-  lesson,
-  totalCount,
-  dueCount,
-  newCount,
-}: {
-  studentId: number;
-  unit: Unit;
-  lesson: Lesson;
-  totalCount: number;
-  dueCount: number;
-  newCount: number;
-}) {
-  const type = lesson.kind === "grammar" ? "Grammar" : "Vocabulary";
-  const emptyLabel = lesson.kind === "grammar" ? "no topics" : "no entries";
-  const countLabel = lesson.kind === "grammar" ? "topics" : "cards";
-  const iconTone = lesson.kind === "grammar" ? "text-focus" : "text-accent";
-  const typeTone = lesson.kind === "grammar" ? "focus" : "accent";
+  const vocabLesson = lessons.find((lesson) => lesson.kind === "vocabulary") ?? null;
+  const shouldStartVocabDirectly = totals.hasVocab && !totals.hasGrammar && vocabLesson !== null;
+  const reviewCount = totals.dueCount + totals.newCount;
+  const completedCount = Math.max(totals.totalCount - reviewCount, 0);
+  const tier = unitTier({
+    dueCount: totals.dueCount,
+    newCount: totals.newCount,
+    reviewCount,
+  });
 
-  if (totalCount === 0) {
-    return (
-      <div className="flex min-h-36 flex-col justify-between gap-3 rounded-bento border border-dashed border-border-subtle bg-surface-1 px-5 py-4 text-sm opacity-80">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge tone="muted" uppercase>
-            {unit.code}
-          </Badge>
-          <Badge tone={typeTone} uppercase>
-            {type}
-          </Badge>
-          <span className="text-base font-semibold text-app">{lesson.title}</span>
-        </div>
-        {unit.summaryMd ? (
-          <p className="line-clamp-2 text-sm text-muted">{unit.summaryMd}</p>
-        ) : null}
-        <span className="text-xs text-muted-2">{emptyLabel}</span>
-      </div>
-    );
-  }
-  const reviewCount = dueCount + newCount;
-  const completedCount = Math.max(totalCount - reviewCount, 0);
-  const tier = lessonTier({ dueCount, newCount, reviewCount });
-  return (
-    <Link
-      to="/student/profile/$studentId/session/$lessonId"
-      params={{ studentId: String(studentId), lessonId: String(lesson.id) }}
-      className="motion-card group grid min-h-44 gap-4 rounded-bento border border-border-subtle bg-surface-1 px-5 py-4 text-sm shadow-card transition-[background-color,border-color,box-shadow,transform] [--glow-rgb:var(--color-accent)] hover:-translate-y-1 hover:border-accent/40 hover:bg-surface-2 hover:shadow-lift sm:grid-cols-[1fr_auto]"
-    >
+  const content = (
+    <>
       <div className="flex min-w-0 flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone={tier.tone} uppercase>
             {tier.label}
           </Badge>
-          <Badge tone={typeTone} uppercase>
-            {type}
-          </Badge>
-          <LessonIcon className={cn("h-7 w-7", iconTone)} />
+          {totals.hasVocab ? (
+            <Badge tone="xp" uppercase>
+              Vocabulary
+            </Badge>
+          ) : null}
+          {totals.hasGrammar ? (
+            <Badge tone="focus" uppercase>
+              Grammar
+            </Badge>
+          ) : null}
+          <LessonIcon className={cn("h-8 w-8 text-accent")} />
           <span className="truncate text-base font-semibold">
-            {unit.code}: {lesson.title}
+            {unit.code}: {unit.title}
           </span>
         </div>
         {unit.summaryMd ? (
@@ -365,39 +313,73 @@ function LessonCard({
         ) : null}
         <ProgressMeter
           value={completedCount}
-          max={totalCount}
-          label={`${lesson.title} progress`}
-          tone={reviewCount === 0 ? "success" : dueCount > 0 ? "warning" : "xp"}
+          max={totals.totalCount}
+          label={`${unit.title} progress`}
+          tone={
+            reviewCount === 0 && totals.totalCount > 0
+              ? "success"
+              : totals.dueCount > 0
+                ? "warning"
+                : "xp"
+          }
         />
       </div>
       <div className="flex flex-wrap items-center gap-2 text-xs text-muted sm:justify-end">
-        {dueCount > 0 ? (
+        {totals.dueCount > 0 ? (
           <Badge tone="warning" uppercase>
-            {dueCount} due
+            {totals.dueCount} due
           </Badge>
         ) : null}
-        {newCount > 0 ? (
+        {totals.newCount > 0 ? (
           <Badge tone="muted" uppercase>
-            {newCount} new
+            {totals.newCount} new
           </Badge>
         ) : null}
-        {reviewCount === 0 ? (
+        {reviewCount === 0 && totals.totalCount > 0 ? (
           <Badge tone="success" uppercase>
             All caught up
           </Badge>
         ) : null}
-        <span className="font-mono text-xs text-muted-2">
-          {totalCount} {countLabel}
-        </span>
+        {totals.totalCount === 0 ? (
+          <Badge tone="muted" uppercase>
+            No cards yet
+          </Badge>
+        ) : null}
+        <span className="font-mono text-xs text-muted-2">{totals.totalCount} items</span>
         <span aria-hidden className="text-muted-2 transition-colors group-hover:text-accent">
           &gt;
         </span>
       </div>
+    </>
+  );
+
+  const className =
+    "motion-card group grid min-h-48 gap-4 rounded-bento border border-border-subtle bg-surface-1 px-5 py-5 text-sm shadow-card transition-[background-color,border-color,box-shadow,transform] [--glow-rgb:var(--color-accent)] hover:-translate-y-1 hover:border-accent/40 hover:bg-surface-2 hover:shadow-lift sm:grid-cols-[1fr_auto]";
+
+  if (shouldStartVocabDirectly && vocabLesson) {
+    return (
+      <Link
+        to="/student/profile/$studentId/session/$lessonId"
+        params={{ studentId: String(studentId), lessonId: String(vocabLesson.id) }}
+        className={className}
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <Link
+      to="/student/profile/$studentId/unit/$unitId"
+      params={{ studentId: String(studentId), unitId: String(unit.id) }}
+      className={className}
+    >
+      {content}
     </Link>
   );
 }
 
-function lessonTier({
+function unitTier({
   dueCount,
   newCount,
   reviewCount,

@@ -13,6 +13,12 @@ Use these suffixes so directory imports can discover files:
 The in-app importer accepts any `.yaml` or `.yml` file, then routes by
 `lesson.kind`.
 
+Current import-backed lesson kinds are `vocabulary` and `grammar`. The
+database enum also reserves `mixed`, `reading`, `listening`, `revision`,
+`exercise`, and `exam_practice`, but those kinds do not have concrete import
+parsers or student-runtime screens yet. For v0.5.x, author revision/exercise
+practice as `lesson.kind: grammar` with `topics[].activities`.
+
 ## Shared Header
 
 Both vocab and grammar files share the same top-level curriculum shape:
@@ -25,11 +31,15 @@ unit:
   code: U01
   title: Unit title
   summary_md: Optional markdown summary.
+  metadata:
+    source: optional metadata
 lesson:
   ordinal: 1
   kind: vocabulary # or grammar
   title: Lesson title
   slug: lowercase-kebab-slug
+  metadata:
+    authoring_notes: optional metadata
 ```
 
 Rules:
@@ -39,8 +49,29 @@ Rules:
   edited title or derives one from `book`.
 - `unit.ordinal` and `lesson.ordinal` are positive integers.
 - `lesson.slug` must be lowercase kebab case: `present-simple`.
+- `unit.metadata` and `lesson.metadata` are optional JSON objects persisted
+  with the curriculum rows. Keep learner-facing text in `title` or
+  `summary_md`; use metadata for authoring hints, source tags, and workflow
+  notes.
 - Re-importing an unchanged file is skipped by file hash.
 - Entries/topics are matched inside a lesson by stable `id`.
+
+## Templates
+
+Use the full templates when checking the entire accepted field surface:
+
+- `vocab-template.yaml`
+- `grammar-template.yaml`
+
+Use the focused starter when building actual lesson content:
+
+- `revision-practice-grammar-template.yaml` shows the current import-safe
+  way to create exercise/revision sessions through grammar activities.
+
+Vocabulary-only units use `vocab-template.yaml` and launch directly into the
+student session route. Do not create a separate vocabulary study-page lesson;
+section filtering is reserved for mixed grammar/vocabulary units that still
+need the unit study layer.
 
 ## Vocabulary Files
 
@@ -71,8 +102,9 @@ Optional entry fields:
 Accepted `pos` values:
 
 `noun`, `verb`, `adjective`, `adverb`, `phrase`, `idiom`,
-`phrasal_verb`, `collocation`, `determiner`, `preposition`,
-`conjunction`, `pronoun`, `interjection`
+`phrasal_verb`, `collocation`, `pattern`, `determiner`, `preposition`,
+`conjunction`, `pronoun`, `interjection`, `article`, `auxiliary`, `modal`,
+`number`, `abbreviation`, `prefix`, `suffix`, `root`
 
 Rules:
 
@@ -82,6 +114,8 @@ Rules:
 - For entries that can belong to more than one part of speech, choose the
   primary card type and store the rest in `metadata.related_forms` or as
   separate entries.
+- Use `pattern` for word-pattern cards such as `inform sb about sth`,
+  `believe in sth`, or `surprised at sth`.
 
 Accepted `cefr` values:
 
@@ -102,7 +136,8 @@ senses:
 
 Accepted `register` values:
 
-`formal`, `informal`, `neutral`, `slang`, `academic`
+`formal`, `informal`, `neutral`, `slang`, `academic`, `technical`,
+`literary`
 
 ### Examples And Cloze
 
@@ -117,9 +152,12 @@ examples:
 
 Rules:
 
-- One `{{cloze}}` marker is supported per example.
+- One or more `{{cloze}}` markers are supported per example.
 - `cloze_target` is optional and inferred from `{{...}}`.
-- If both are present, `cloze_target` must exactly match the marker text.
+- If multiple markers are present, the inferred `cloze_target` joins them with
+  spaces, e.g. `{{look}} it {{up}}` becomes `look up`.
+- If both marker text and `cloze_target` are present, `cloze_target` must
+  exactly match the inferred target.
 
 ### Forms
 
@@ -128,19 +166,23 @@ forms:
   - kind: past
     text: adapted
     ipa: /əˈdæptɪd/
+  - kind: noun
+    text: adaptation
 ```
 
 Accepted `kind` values:
 
 `plural`, `past`, `past_participle`, `gerund`, `third_person`,
-`comparative`, `superlative`, `infinitive`
+`comparative`, `superlative`, `infinitive`, `noun`, `verb`, `adjective`,
+`adverb`, `opposite`, `prefix`, `suffix`, `root`, `compound`, `derivative`
 
 Rules:
 
-- `forms` is for inflectional forms of the same entry, such as verb tenses,
-  plurals, and adjective comparison.
-- Do not use `forms` for word-family derivations such as noun/adjective/adverb
-  forms. Use `metadata.related_forms` for that.
+- Prefer `text`. The importer also accepts legacy `form` and normalizes it to
+  `text`.
+- Use inflectional kinds for tenses/plurals/comparison.
+- Use `noun`, `verb`, `adjective`, `adverb`, `opposite`, `prefix`, `suffix`,
+  `root`, `compound`, or `derivative` when the entry is a word-formation card.
 
 ### Word Formation Metadata
 
@@ -183,7 +225,10 @@ collocations:
 Accepted `pattern` values:
 
 `verb+noun`, `adj+noun`, `noun+noun`, `verb+prep`, `adj+prep`,
-`noun+prep`, `prep+noun`, `adv+adj`, `adv+verb`, `other`
+`noun+prep`, `prep+noun`, `verb+object+prep`,
+`verb+object+infinitive`, `verb+object+bare_infinitive`, `verb+gerund`,
+`verb+infinitive`, `adj+infinitive`, `adj+that_clause`, `noun+of+noun`,
+`be+adj+prep`, `adv+adj`, `adv+verb`, `other`
 
 ### Relations
 
@@ -196,7 +241,24 @@ relations:
 Accepted `relation` values:
 
 `synonym`, `antonym`, `see_also`, `derived_from`, `confused_with`,
-`hypernym`, `hyponym`
+`false_friend`, `hypernym`, `hyponym`, `word_family`, `topic_family`,
+`variant`, `prefix_of`, `suffix_of`
+
+### Study Section Tags
+
+The student unit screen can filter practice by section. Use these canonical
+tags where possible:
+
+- Core vocabulary: `vocabulary`
+- Phrasal verbs: `phrasal-verb` or `phrasal_verb`; `pos: phrasal_verb` also
+  counts.
+- Phrases & collocations: `collocation`, `phrase`, or
+  `phrases-collocations`; `pos: phrase`, `idiom`, or `collocation` also
+  counts.
+- Word patterns: `word-pattern` or `word_pattern`; `pos: pattern` also
+  counts.
+- Word formation: `word-formation` or a non-empty `metadata.related_forms`
+  array.
 
 ## Grammar Files
 
@@ -213,7 +275,13 @@ Optional topic fields:
 - `summary_md`
 - `explanation_md`
 - `difficulty`
+- `estimated_minutes`
 - `tags`
+- `objectives`
+- `prerequisites`
+- `teacher_notes`
+- `contrast_notes`
+- `exam_notes`
 - `patterns`
 - `examples`
 - `common_mistakes`
@@ -226,6 +294,7 @@ Rules:
 - `id` must match `[a-z0-9][a-z0-9_-]*`.
 - `slug` must be lowercase kebab case.
 - `difficulty` is an integer from `1` to `5`.
+- `estimated_minutes` is a positive integer.
 - `patterns`, `examples`, `common_mistakes`, `checks`, and `activities` are
   stored in topic metadata. Student grammar practice is built from
   `activities`; legacy `checks` are used as simple rewrite exercises if a
@@ -300,7 +369,10 @@ Shared optional fields:
 - `instruction`
 - `hint`
 - `explanation`
+- `tags`
+- `source_ref`
 - `points`
+- `metadata`
 
 Supported `kind` values:
 

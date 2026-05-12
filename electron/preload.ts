@@ -13,6 +13,7 @@ import type {
   Student,
   StudentAchievement,
   Unit,
+  UnitAssignment,
   VocabEntry,
 } from "../src/data/types";
 import type { SelfGrade } from "../src/modules/exercises/types";
@@ -106,7 +107,7 @@ interface UpdateStudentPatch {
 const api = {
   app: {
     name: "vocab-app",
-    version: "0.4.0",
+    version: "0.6.2",
     platform: process.platform,
   },
 
@@ -170,6 +171,14 @@ const api = {
       invoke<Student>("students.update", input),
     archive: (input: { id: number }) => invoke<{ ok: true }>("students.archive", input),
     restore: (input: { id: number }) => invoke<{ ok: true }>("students.restore", input),
+    listAssignedBooks: (input: { studentId: number }) =>
+      invoke<Book[]>("students.listAssignedBooks", input),
+    listAssignedUnits: (input: { studentId: number; bookId: number }) =>
+      invoke<Unit[]>("students.listAssignedUnits", input),
+    listAssignedUnitIds: (input: { studentId: number; bookId?: number }) =>
+      invoke<number[]>("students.listAssignedUnitIds", input),
+    replaceUnitAssignments: (input: { studentId: number; bookId: number; unitIds: number[] }) =>
+      invoke<UnitAssignment[]>("students.replaceUnitAssignments", input),
   },
 
   settings: {
@@ -221,6 +230,8 @@ const api = {
       }>("progress.recordContentAnswer", input),
     dueByLesson: (input: { studentId: number; lessonId: number; nowIso?: string }) =>
       invoke<DueLessonStats>("progress.dueByLesson", input),
+    seenEntryIdsByLesson: (input: { studentId: number; lessonId: number }) =>
+      invoke<number[]>("progress.seenEntryIdsByLesson", input),
     dueByStudent: (input: { studentId: number; nowIso?: string; limit?: number }) =>
       invoke<DueItem[]>("progress.dueByStudent", input),
     studentSummary: (input: { studentId: number }) =>

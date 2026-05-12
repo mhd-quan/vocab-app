@@ -50,6 +50,11 @@ const dueByLessonInput = z.object({
   nowIso: z.string().datetime().optional(),
 });
 
+const seenEntryIdsByLessonInput = z.object({
+  studentId: z.number().int().positive(),
+  lessonId: z.number().int().positive(),
+});
+
 const dueByStudentInput = z.object({
   studentId: z.number().int().positive(),
   nowIso: z.string().datetime().optional(),
@@ -145,6 +150,13 @@ export const progressProcedures = [
       const now = nowIso ? new Date(nowIso) : new Date();
       return ctx.repos.progress.dueByLesson({ studentId, lessonId, now });
     },
+  }),
+
+  defineProcedure({
+    name: "progress.seenEntryIdsByLesson",
+    input: seenEntryIdsByLessonInput,
+    handler: ({ studentId, lessonId }, ctx) =>
+      ctx.repos.progress.seenEntryIdsByLesson({ studentId, lessonId }),
   }),
 
   defineProcedure({

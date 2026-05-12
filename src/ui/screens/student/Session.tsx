@@ -11,9 +11,10 @@ import {
   type GrammarPracticeResult,
   buildGrammarDeck,
 } from "@/modules/grammarPractice";
+import { filterVocabEntriesBySections, parseStudySectionParam } from "@/modules/studySections";
 import { Button } from "@/ui/components/Button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate, useParams } from "@tanstack/react-router";
+import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GrammarSessionPlayer } from "./session/GrammarSessionPlayer";
 import {
@@ -26,6 +27,7 @@ const SOUND_KEY = "rewards_sound_enabled";
 const SESSION_COUNT_KEY = "session_default_count";
 const SESSION_MODE_KEY = "session_default_mode";
 const SESSION_SHUFFLE_KEY = "session_shuffle";
+const DEFINITION_PRIORITY_KEY = "definition_priority";
 
 /**
  * Route screen: glues lesson data → the matching practice engine/player →
@@ -46,13 +48,18 @@ export function StudentSession() {
   });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const search = useSearch({ from: "/student/profile/$studentId/session/$lessonId" });
   const lessonIdNum = Number(lessonId);
   const studentIdNum = Number(studentId);
+  const selectedSections = useMemo(
+    () => parseStudySectionParam(search.sections),
+    [search.sections],
+  );
 
   const [seed] = useState(() => defaultSessionSeed(lessonIdNum));
 
   const lessonQ = useQuery({
-    queryKey: queryKeys.curriculum.lessons(lessonIdNum),
+    queryKey: queryKeys.curriculum.lessonById(lessonIdNum),
     queryFn: () => api.curriculum.getLessonById({ id: lessonIdNum }),
     enabled: Number.isFinite(lessonIdNum) && lessonIdNum > 0,
   });
@@ -61,6 +68,18 @@ export function StudentSession() {
     queryKey: queryKeys.vocab.full(lessonIdNum),
     queryFn: () => api.vocab.listFullByLesson({ lessonId: lessonIdNum }),
     enabled: Number.isFinite(lessonIdNum) && lessonIdNum > 0 && lessonQ.data?.kind === "vocabulary",
+  });
+
+  const seenEntryIdsQ = useQuery({
+    queryKey: queryKeys.progress.seenEntryIdsByLesson(studentIdNum, lessonIdNum),
+    queryFn: () =>
+      api.progress.seenEntryIdsByLesson({ studentId: studentIdNum, lessonId: lessonIdNum }),
+    enabled:
+      Number.isFinite(studentIdNum) &&
+      studentIdNum > 0 &&
+      Number.isFinite(lessonIdNum) &&
+      lessonIdNum > 0 &&
+      lessonQ.data?.kind === "vocabulary",
   });
 
   const grammarTopicsQ = useQuery({
@@ -89,13 +108,22 @@ export function StudentSession() {
     queryFn: () => api.settings.get<boolean>({ key: SESSION_SHUFFLE_KEY }),
   });
 
+  const definitionPriorityQ = useQuery({
+    queryKey: ["settings", "get", DEFINITION_PRIORITY_KEY],
+    queryFn: () => api.settings.get<string>({ key: DEFINITION_PRIORITY_KEY }),
+  });
+
   const sessionCount = normalizeSessionCount(sessionCountQ.data);
   const sessionMode = normalizeSessionMode(sessionModeQ.data);
+  const definitionPriority = normalizeDefinitionPriority(definitionPriorityQ.data);
   const effectiveSessionMode = lessonQ.data?.kind === "grammar" ? "grammar" : sessionMode;
   const exerciseKinds = useMemo(() => exerciseKindsForMode(sessionMode), [sessionMode]);
   const shuffleDeck = sessionShuffleQ.data !== false;
   const settingsLoading =
-    sessionCountQ.isLoading || sessionModeQ.isLoading || sessionShuffleQ.isLoading;
+    sessionCountQ.isLoading ||
+    sessionModeQ.isLoading ||
+    sessionShuffleQ.isLoading ||
+    definitionPriorityQ.isLoading;
 
   const sessionStart = useMutation({
     mutationFn: (input: { studentId: number }) =>
@@ -126,16 +154,35 @@ export function StudentSession() {
     sessionStart.mutate,
   ]);
 
+  const filteredEntries = useMemo(() => {
+    if (!entriesQ.data) return [];
+    return filterVocabEntriesBySections(entriesQ.data, selectedSections);
+  }, [entriesQ.data, selectedSections]);
+
   const deck = useMemo<Exercise[]>(() => {
-    if (!entriesQ.data || settingsLoading) return [];
+    if (!entriesQ.data || settingsLoading || seenEntryIdsQ.isLoading) return [];
     return buildDeck({
-      entries: entriesQ.data,
+      entries: filteredEntries,
       kinds: exerciseKinds,
       sessionSeed: seed,
       maxExercises: sessionCount,
+      definitionPriority,
       shuffle: shuffleDeck,
+      seenEntryIds: seenEntryIdsQ.data ?? [],
+      requireFlashcardForNew: true,
     }).exercises;
-  }, [entriesQ.data, exerciseKinds, seed, sessionCount, shuffleDeck, settingsLoading]);
+  }, [
+    entriesQ.data,
+    filteredEntries,
+    exerciseKinds,
+    seed,
+    sessionCount,
+    definitionPriority,
+    shuffleDeck,
+    seenEntryIdsQ.data,
+    seenEntryIdsQ.isLoading,
+    settingsLoading,
+  ]);
 
   const grammarDeck = useMemo<GrammarExercise[]>(() => {
     if (!grammarTopicsQ.data || settingsLoading) return [];
@@ -220,13 +267,24 @@ export function StudentSession() {
   const lessonKind = lessonQ.data?.kind;
   const contentLoading =
     lessonKind === "vocabulary"
-      ? entriesQ.isLoading
+      ? entriesQ.isLoading || seenEntryIdsQ.isLoading
       : lessonKind === "grammar"
         ? grammarTopicsQ.isLoading
         : false;
 
   if (lessonQ.isLoading || contentLoading || settingsLoading) {
     return <p className="px-6 py-10 text-sm text-muted">Loading session…</p>;
+  }
+
+  if (!lessonQ.data) {
+    return (
+      <div className="mx-auto max-w-md px-6 py-10 text-center">
+        <p className="text-sm text-danger">Lesson not found.</p>
+        <Button className="mt-4" variant="secondary" onClick={exit}>
+          Back
+        </Button>
+      </div>
+    );
   }
 
   if (lessonKind === "grammar") {
@@ -247,7 +305,7 @@ export function StudentSession() {
 
   const contextLabel =
     lessonKind === "vocabulary" && lessonQ.data
-      ? `${lessonQ.data.title} · ${entriesQ.data?.length ?? 0} entries`
+      ? `${lessonQ.data.title} · ${filteredEntries.length}/${entriesQ.data?.length ?? 0} entries`
       : undefined;
 
   return (
@@ -270,6 +328,10 @@ function normalizeSessionMode(value: unknown): "mixed" | "flashcard" | "multiple
   return value === "flashcard" || value === "multiple_choice" || value === "mixed"
     ? value
     : "mixed";
+}
+
+function normalizeDefinitionPriority(value: unknown): "en_first" | "vi_first" {
+  return value === "vi_first" ? "vi_first" : "en_first";
 }
 
 function exerciseKindsForMode(mode: "mixed" | "flashcard" | "multiple_choice"): ExerciseKind[] {

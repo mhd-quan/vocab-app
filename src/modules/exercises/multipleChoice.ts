@@ -26,11 +26,8 @@ export const multipleChoicePlugin: ExercisePlugin<
   kind: "multiple_choice",
 
   build(entry: VocabEntryFull, ctx: BuildContext): MultipleChoiceExercise | null {
-    const prompt = entry.senses
-      .slice()
-      .sort((a, b) => a.ordinal - b.ordinal)
-      .find((s) => s.definitionEn)
-      ?.definitionEn?.trim();
+    const senses = entry.senses.slice().sort((a, b) => a.ordinal - b.ordinal);
+    const prompt = selectPrompt(senses, ctx.definitionPriority ?? "en_first");
     if (!prompt) return null;
 
     const targetLower = entry.headword.toLowerCase();
@@ -66,3 +63,18 @@ export const multipleChoicePlugin: ExercisePlugin<
     };
   },
 };
+
+function selectPrompt(
+  senses: VocabEntryFull["senses"],
+  priority: "en_first" | "vi_first",
+): string | null {
+  const preferred =
+    priority === "vi_first"
+      ? senses.find((s) => s.definitionVi)?.definitionVi?.trim()
+      : senses.find((s) => s.definitionEn)?.definitionEn?.trim();
+  if (preferred) return preferred;
+
+  return priority === "vi_first"
+    ? (senses.find((s) => s.definitionEn)?.definitionEn?.trim() ?? null)
+    : (senses.find((s) => s.definitionVi)?.definitionVi?.trim() ?? null);
+}

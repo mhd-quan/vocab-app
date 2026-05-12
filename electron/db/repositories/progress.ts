@@ -342,6 +342,36 @@ export function createProgressRepository(db: AppDatabase) {
     },
 
     /**
+     * Vocab entries in a lesson that already have a progress snapshot for
+     * this student. StudentSession uses this to keep brand-new entries in a
+     * flashcard-first intro phase before recognition drills.
+     */
+    seenEntryIdsByLesson({
+      studentId,
+      lessonId,
+    }: {
+      studentId: number;
+      lessonId: number;
+    }): number[] {
+      const rows = db
+        .select({ entryId: vocabEntries.id })
+        .from(itemProgress)
+        .innerJoin(contentItems, eq(itemProgress.contentItemId, contentItems.id))
+        .innerJoin(vocabEntries, eq(contentItems.refId, vocabEntries.id))
+        .where(
+          and(
+            eq(itemProgress.studentId, studentId),
+            eq(contentItems.refTable, "vocab_entries"),
+            eq(contentItems.lessonId, lessonId),
+            eq(vocabEntries.lessonId, lessonId),
+          ),
+        )
+        .orderBy(asc(vocabEntries.id))
+        .all();
+      return rows.map((row) => row.entryId);
+    },
+
+    /**
      * Items currently due for a student across the whole curriculum.
      * Sorted oldest-due-first; a NULL `next_due_at` (just-inserted
      * brand-new) is treated as "due now".

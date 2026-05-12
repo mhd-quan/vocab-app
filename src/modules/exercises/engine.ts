@@ -6,6 +6,8 @@ import type {
   Answer,
   AnyExercisePlugin,
   BuildContext,
+  BuildSkipReason,
+  DefinitionPriority,
   Exercise,
   ExerciseKind,
   GradeOutcome,
@@ -43,48 +45,87 @@ export interface BuildDeckOptions {
   sessionSeed: string;
   /** Soft cap on deck size. Defaults to all generated exercises. */
   maxExercises?: number;
+  /** Which language should be preferred when both EN and VI definitions exist. */
+  definitionPriority?: DefinitionPriority;
   /** Defaults to true. Disable for predictable entry/plugin order. */
   shuffle?: boolean;
+  /** Entries that already have progress for the active student. */
+  seenEntryIds?: Iterable<number>;
+  /** New entries must be introduced by flashcard before review kinds. */
+  requireFlashcardForNew?: boolean;
 }
 
 export interface BuildDeckResult {
   exercises: Exercise[];
   /** Per-entry, per-kind reasons we skipped — surfaced in dev for debugging. */
-  skipped: Array<{ entryId: number; kind: ExerciseKind; reason: "build_returned_null" }>;
+  skipped: Array<{ entryId: number; kind: ExerciseKind; reason: BuildSkipReason }>;
 }
 
 /**
  * Generate an exercise deck deterministically from a seed.
  *
  * Strategy: for each entry, ask each requested plugin to build an
- * exercise. Collect the successes, shuffle once with the seeded RNG so
- * adjacent items aren't always the same kind, and trim to `maxExercises`.
+ * exercise. Collect the successes, shuffle with the seeded RNG so adjacent
+ * items aren't always the same kind, and trim to `maxExercises`.
+ *
+ * When `requireFlashcardForNew` is enabled, entries missing from
+ * `seenEntryIds` are put through a flashcard-only intro phase. This
+ * keeps a brand-new word's first contact explanatory before the student
+ * sees recall/recognition drills.
  */
 export function buildDeck(opts: BuildDeckOptions): BuildDeckResult {
   const rng = rngFromSeed(opts.sessionSeed);
   const distractorPool = opts.entries.map((e) => e.headword);
+  const seenEntryIds = new Set(opts.seenEntryIds ?? []);
+  const shouldGateNewEntries = opts.requireFlashcardForNew === true;
 
-  const exercises: Exercise[] = [];
+  const introExercises: Exercise[] = [];
+  const reviewExercises: Exercise[] = [];
   const skipped: BuildDeckResult["skipped"] = [];
 
+  const buildForKind = (entry: VocabEntryFull, kind: ExerciseKind): Exercise | null => {
+    const plugin = getPlugin(kind);
+    const ctx: BuildContext = {
+      distractorPool,
+      definitionPriority: opts.definitionPriority ?? "en_first",
+      rng,
+      sessionSeed: opts.sessionSeed,
+    };
+    return plugin.build(entry, ctx);
+  };
+
   for (const entry of opts.entries) {
+    const isNewEntry = shouldGateNewEntries && !seenEntryIds.has(entry.id);
+    if (isNewEntry) {
+      const flashcard = buildForKind(entry, "flashcard");
+      if (flashcard) {
+        introExercises.push(flashcard);
+      } else {
+        skipped.push({ entryId: entry.id, kind: "flashcard", reason: "build_returned_null" });
+      }
+
+      for (const kind of opts.kinds) {
+        if (kind !== "flashcard") {
+          skipped.push({ entryId: entry.id, kind, reason: "requires_flashcard_first" });
+        }
+      }
+      continue;
+    }
+
     for (const kind of opts.kinds) {
-      const plugin = getPlugin(kind);
-      const ctx: BuildContext = {
-        distractorPool,
-        rng,
-        sessionSeed: opts.sessionSeed,
-      };
-      const exercise = plugin.build(entry, ctx);
+      const exercise = buildForKind(entry, kind);
       if (exercise) {
-        exercises.push(exercise);
+        reviewExercises.push(exercise);
       } else {
         skipped.push({ entryId: entry.id, kind, reason: "build_returned_null" });
       }
     }
   }
 
-  const ordered = opts.shuffle === false ? exercises : shuffle(exercises, rng);
+  const ordered =
+    opts.shuffle === false
+      ? [...introExercises, ...reviewExercises]
+      : [...shuffle(introExercises, rng), ...shuffle(reviewExercises, rng)];
   const trimmed =
     typeof opts.maxExercises === "number" && opts.maxExercises >= 0
       ? ordered.slice(0, opts.maxExercises)

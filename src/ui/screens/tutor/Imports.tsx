@@ -1,13 +1,15 @@
+import type { ImportFileResult } from "@/application/import";
 import type { ImportRun } from "@/data/types";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
 import { Badge, type BadgeTone } from "@/ui/components/Badge";
+import { BentoCard } from "@/ui/components/BentoCard";
 import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { ImportModal } from "@/ui/components/ImportModal";
 import { PageHeader } from "@/ui/components/PageHeader";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 export function TutorImports() {
@@ -59,6 +61,7 @@ export function TutorImports() {
         }
       />
       <section className="px-8 py-6">
+        <AuthoringPanel onImported={refetchHistory} />
         {dialogMessage ? (
           <p className="mb-4 rounded-xl border border-border-subtle bg-surface-1 px-3 py-2 text-sm text-muted">
             {dialogMessage}
@@ -90,6 +93,96 @@ export function TutorImports() {
         onImported={refetchHistory}
       />
     </>
+  );
+}
+
+type AuthoringKind = "vocabulary" | "grammar";
+
+function AuthoringPanel({ onImported }: { onImported: () => Promise<void> }) {
+  const [kind, setKind] = useState<AuthoringKind>("vocabulary");
+  const [fileName, setFileName] = useState("unit-draft-vocab.yaml");
+  const [content, setContent] = useState(VOCAB_AUTHORING_TEMPLATE);
+
+  const importDraft = useMutation({
+    mutationFn: () => api.imports.uploadFile({ fileName, content }),
+    onSuccess: async () => {
+      await onImported();
+    },
+  });
+
+  const switchKind = (next: AuthoringKind) => {
+    setKind(next);
+    setFileName(next === "vocabulary" ? "unit-draft-vocab.yaml" : "unit-draft-grammar.yaml");
+    setContent(next === "vocabulary" ? VOCAB_AUTHORING_TEMPLATE : GRAMMAR_AUTHORING_TEMPLATE);
+    importDraft.reset();
+  };
+
+  return (
+    <BentoCard className="mb-6 flex flex-col gap-4 p-5" tone="focus">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <Badge tone="focus" uppercase>
+            Authoring
+          </Badge>
+          <h2 className="mt-2 text-lg font-semibold">Draft and import YAML in app</h2>
+          <p className="mt-1 text-sm leading-6 text-muted">
+            Use this editor for quick lessons; full syntax remains documented in the templates.
+          </p>
+        </div>
+        <div className="flex rounded-2xl border border-border-subtle bg-surface-0 p-1">
+          {(["vocabulary", "grammar"] as const).map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => switchKind(option)}
+              className={cn(
+                "rounded-xl px-3 py-2 text-xs font-semibold uppercase transition",
+                kind === option ? "bg-accent text-accent-fg" : "text-muted hover:text-app",
+              )}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      </header>
+
+      <label className="flex flex-col gap-1 text-xs font-semibold uppercase text-muted-2">
+        File name
+        <input
+          value={fileName}
+          onChange={(event) => setFileName(event.target.value)}
+          className="min-h-11 rounded-2xl border border-border-strong bg-surface-0 px-3 font-mono text-sm normal-case text-app outline-none focus:border-accent"
+        />
+      </label>
+
+      <textarea
+        value={content}
+        onChange={(event) => setContent(event.target.value)}
+        spellCheck={false}
+        className="min-h-[22rem] rounded-2xl border border-border-strong bg-surface-0 p-4 font-mono text-xs leading-6 text-app outline-none focus:border-accent"
+      />
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="text-xs text-muted">
+          {importDraft.data
+            ? formatAuthoringResult(importDraft.data)
+            : "Imports are saved into content/books/<book-code>."}
+        </div>
+        <Button onClick={() => importDraft.mutate()} disabled={importDraft.isPending}>
+          {importDraft.isPending ? "Importing..." : "Validate & import"}
+        </Button>
+      </div>
+      {importDraft.isError ? (
+        <p className="text-xs text-danger">
+          {importDraft.error instanceof Error ? importDraft.error.message : "Import failed."}
+        </p>
+      ) : null}
+      {importDraft.data?.errors.length ? (
+        <pre className="max-h-40 overflow-auto rounded-xl border border-danger/30 bg-danger/5 p-3 whitespace-pre-wrap font-mono text-[10px] text-danger">
+          {importDraft.data.errors.map((err) => err.message).join("\n")}
+        </pre>
+      ) : null}
+    </BentoCard>
   );
 }
 
@@ -256,3 +349,83 @@ function formatDialogSummary(count: number): string {
   if (count === 0) return "No files imported.";
   return `${count} file${count === 1 ? "" : "s"} imported.`;
 }
+
+function formatAuthoringResult(result: ImportFileResult): string {
+  return `${result.status}: +${result.stats.inserted} ~${result.stats.updated} =${result.stats.skipped} !${result.stats.failed}`;
+}
+
+const VOCAB_AUTHORING_TEMPLATE = `book: destination-b2
+book_title: Destination B2
+
+unit:
+  ordinal: 1
+  code: U01
+  title: Unit title
+  summary_md: One-sentence topic overview for the learner.
+
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: Vocabulary
+  slug: vocabulary
+
+entries:
+  - id: sample-word-noun
+    headword: sample word
+    lemma: sample word
+    pos: noun
+    cefr: B2
+    tags: [vocabulary]
+    senses:
+      - definition_en: a short definition
+        definition_vi: nghia ngan gon
+        register: neutral
+    examples:
+      - text: This is a {{sample word}} in context.
+        translation: Day la mot vi du trong ngu canh.
+`;
+
+const GRAMMAR_AUTHORING_TEMPLATE = `book: destination-b2
+book_title: Destination B2
+
+unit:
+  ordinal: 1
+  code: U01
+  title: Unit title
+  summary_md: Grammar focus and why it matters.
+
+lesson:
+  ordinal: 2
+  kind: grammar
+  title: Grammar focus
+  slug: grammar-focus
+
+topics:
+  - id: grammar-focus-basic
+    slug: grammar-focus-basic
+    title: Grammar focus
+    summary_md: Short learner-facing overview.
+    explanation_md: |
+      Explain the rule in concise teacher language.
+    difficulty: 2
+    tags: [grammar, practice]
+    patterns:
+      - label: core form
+        form: subject + verb + object
+        use: Use this form for the target meaning.
+    activities:
+      - kind: fill_blank
+        sentence: She {{studies}} English every evening.
+        hint: Think about subject-verb agreement.
+      - kind: choice
+        question: He usually ___ TV after dinner.
+        options:
+          - text: watch
+          - text: watches
+            correct: true
+          - text: is watching
+      - kind: rewrite
+        prompt: I watch TV after dinner.
+        instruction: Rewrite with he.
+        answer: He watches TV after dinner.
+`;
