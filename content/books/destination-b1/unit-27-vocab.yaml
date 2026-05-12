@@ -1,0 +1,1480 @@
+book: destination-b1
+book_title: Destination B1 Grammar and Vocabulary
+
+unit:
+  ordinal: 27
+  code: U27
+  title: Working and earning
+  summary_md: Vocabulary related to work, earning, business, phrasal verbs, prepositional phrases, word formation, and word patterns.
+
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: Working and earning
+  slug: working-and-earning
+
+entries:
+  - id: ambition-noun
+    headword: ambition
+    lemma: ambition
+    pos: noun
+    ipa: /æmˈbɪʃn/
+    cefr: B1
+    tags: [work, goal, noun]
+    senses:
+      - definition_en: "something that you very much want to achieve"
+        definition_vi: "tham vọng, hoài bão"
+        register: neutral
+    examples:
+      - text: "His main {{ambition}} is to become a successful businessman."
+        translation: "Tham vọng chính của anh ấy là trở thành một doanh nhân thành đạt."
+    forms:
+      - kind: plural
+        text: ambitions
+    collocations:
+      - collocation: "achieve an ambition"
+        pattern: verb+noun
+      - collocation: "lifelong ambition"
+        pattern: adj+noun
+    relations:
+      - relation: derived_from
+        text: "ambitious"
+
+  - id: application-noun
+    headword: application
+    lemma: application
+    pos: noun
+    ipa: /ˌæplɪˈkeɪʃn/
+    cefr: B1
+    tags: [work, process, noun]
+    senses:
+      - definition_en: "a formal, usually written, request for something such as a job, place at university, or permission to do something"
+        definition_vi: "đơn xin (việc, học, vv)"
+        register: formal
+    examples:
+      - text: "I sent off my {{application}} for the manager's job yesterday."
+        translation: "Tôi đã gửi đơn xin việc cho vị trí quản lý vào ngày hôm qua."
+    forms:
+      - kind: plural
+        text: applications
+    collocations:
+      - collocation: "job application"
+        pattern: noun+noun
+      - collocation: "fill out an application"
+        pattern: verb+noun
+    relations:
+      - relation: derived_from
+        text: "apply"
+
+  - id: bank-account-phrase
+    headword: bank account
+    lemma: bank account
+    pos: phrase
+    cefr: A2
+    tags: [money, finance, phrase]
+    senses:
+      - definition_en: "an arrangement with a bank in which the bank keeps your money safe"
+        definition_vi: "tài khoản ngân hàng"
+        register: neutral
+    examples:
+      - text: "My salary is paid directly into my {{bank account}}."
+        translation: "Lương của tôi được trả trực tiếp vào tài khoản ngân hàng."
+    collocations:
+      - collocation: "open a bank account"
+        pattern: verb+noun
+      - collocation: "close a bank account"
+        pattern: verb+noun
+
+  - id: boss-noun
+    headword: boss
+    lemma: boss
+    pos: noun
+    ipa: /bɒs/
+    cefr: A2
+    tags: [work, people, noun]
+    senses:
+      - definition_en: "the person who is in charge of an organization and who tells others what to do"
+        definition_vi: "sếp, ông chủ"
+        register: informal
+    examples:
+      - text: "I'll have to ask my {{boss}} for a day off."
+        translation: "Tôi sẽ phải xin sếp nghỉ một ngày."
+    relations:
+      - relation: derived_from
+        text: "bossy"
+      - relation: synonym
+        text: "manager"
+
+  - id: career-noun
+    headword: career
+    lemma: career
+    pos: noun
+    ipa: /kəˈrɪər/
+    cefr: B1
+    tags: [work, noun]
+    senses:
+      - definition_en: "the job or series of jobs that you do during your working life"
+        definition_vi: "sự nghiệp"
+        register: neutral
+    examples:
+      - text: "She wants to pursue a {{career}} in medicine."
+        translation: "Cô ấy muốn theo đuổi sự nghiệp y khoa."
+    collocations:
+      - collocation: "successful career"
+        pattern: adj+noun
+      - collocation: "career path"
+        pattern: noun+noun
+    relations:
+      - relation: synonym
+        text: "profession"
+
+  - id: colleague-noun
+    headword: colleague
+    lemma: colleague
+    pos: noun
+    ipa: /ˈkɒliːɡ/
+    cefr: A2
+    tags: [work, people, noun]
+    senses:
+      - definition_en: "one of a group of people who work together"
+        definition_vi: "đồng nghiệp"
+        register: neutral
+    examples:
+      - text: "I get along well with all my {{colleagues}} at work."
+        translation: "Tôi rất hòa đồng với tất cả đồng nghiệp tại nơi làm việc."
+    forms:
+      - kind: plural
+        text: colleagues
+    relations:
+      - relation: synonym
+        text: "co-worker"
+
+  - id: company-noun
+    headword: company
+    lemma: company
+    pos: noun
+    ipa: /ˈkʌmpəni/
+    cefr: A2
+    tags: [work, business, noun]
+    senses:
+      - definition_en: "an organization that sells goods or services in order to make money"
+        definition_vi: "công ty"
+        register: neutral
+    examples:
+      - text: "He works for a large software {{company}}."
+        translation: "Anh ấy làm việc cho một công ty phần mềm lớn."
+    forms:
+      - kind: plural
+        text: companies
+    relations:
+      - relation: synonym
+        text: "firm"
+      - relation: synonym
+        text: "business"
+
+  - id: contract-noun
+    headword: contract
+    lemma: contract
+    pos: noun
+    ipa: /ˈkɒntrækt/
+    cefr: B1
+    tags: [work, law, noun]
+    senses:
+      - definition_en: "a legal document that states and explains a formal agreement between two different people or groups"
+        definition_vi: "hợp đồng"
+        register: formal
+    examples:
+      - text: "Make sure you read the {{contract}} carefully before signing."
+        translation: "Hãy chắc chắn rằng bạn đọc kỹ hợp đồng trước khi ký."
+    forms:
+      - kind: plural
+        text: contracts
+    collocations:
+      - collocation: "sign a contract"
+        pattern: verb+noun
+      - collocation: "employment contract"
+        pattern: noun+noun
+
+  - id: department-noun
+    headword: department
+    lemma: department
+    pos: noun
+    ipa: /dɪˈpɑːtmənt/
+    cefr: A2
+    tags: [work, organization, noun]
+    senses:
+      - definition_en: "a part of an organization such as a school, business, or government that deals with a particular area of study or work"
+        definition_vi: "phòng ban, bộ phận"
+        register: neutral
+    examples:
+      - text: "She is the head of the marketing {{department}}."
+        translation: "Cô ấy là trưởng bộ phận marketing."
+    forms:
+      - kind: plural
+        text: departments
+
+  - id: deserve-verb
+    headword: deserve
+    lemma: deserve
+    pos: verb
+    ipa: /dɪˈzɜːv/
+    cefr: B1
+    tags: [work, reward, verb]
+    senses:
+      - definition_en: "to have earned or to be given something because of the way you have behaved or the qualities you have"
+        definition_vi: "xứng đáng"
+        register: neutral
+    examples:
+      - text: "After all that hard work, you {{deserve}} a holiday."
+        translation: "Sau tất cả những công việc khó khăn đó, bạn xứng đáng có một kỳ nghỉ."
+    forms:
+      - kind: past
+        text: deserved
+      - kind: past_participle
+        text: deserved
+      - kind: gerund
+        text: deserving
+      - kind: third_person
+        text: deserves
+    collocations:
+      - collocation: "well deserved"
+        pattern: adv+verb
+
+  - id: earn-verb
+    headword: earn
+    lemma: earn
+    pos: verb
+    ipa: /ɜːn/
+    cefr: A2
+    tags: [work, money, verb]
+    senses:
+      - definition_en: "to receive money as payment for work that you do"
+        definition_vi: "kiếm được (tiền)"
+        register: neutral
+    examples:
+      - text: "How much do you {{earn}} in your new job?"
+        translation: "Bạn kiếm được bao nhiêu trong công việc mới?"
+    forms:
+      - kind: past
+        text: earned
+      - kind: gerund
+        text: earning
+      - kind: third_person
+        text: earns
+    collocations:
+      - collocation: "earn a living"
+        pattern: verb+noun
+      - collocation: "earn money"
+        pattern: verb+noun
+    relations:
+      - relation: derived_from
+        text: "earnings"
+
+  - id: fame-noun
+    headword: fame
+    lemma: fame
+    pos: noun
+    ipa: /feɪm/
+    cefr: B1
+    tags: [success, noun]
+    senses:
+      - definition_en: "the state of being known or recognized by many people because of your achievements, skills, etc."
+        definition_vi: "sự nổi tiếng, danh tiếng"
+        register: neutral
+    examples:
+      - text: "She moved to Hollywood in search of wealth and {{fame}}."
+        translation: "Cô chuyển đến Hollywood để tìm kiếm sự giàu có và danh tiếng."
+    relations:
+      - relation: derived_from
+        text: "famous"
+
+  - id: goal-noun
+    headword: goal
+    lemma: goal
+    pos: noun
+    ipa: /ɡəʊl/
+    cefr: A2
+    tags: [work, ambition, noun]
+    senses:
+      - definition_en: "an aim or purpose"
+        definition_vi: "mục tiêu"
+        register: neutral
+    examples:
+      - text: "His main {{goal}} in life is to become a doctor."
+        translation: "Mục tiêu chính của anh ấy trong cuộc sống là trở thành một bác sĩ."
+    forms:
+      - kind: plural
+        text: goals
+    collocations:
+      - collocation: "achieve a goal"
+        pattern: verb+noun
+      - collocation: "set a goal"
+        pattern: verb+noun
+
+  - id: impress-verb
+    headword: impress
+    lemma: impress
+    pos: verb
+    ipa: /ɪmˈpres/
+    cefr: B1
+    tags: [emotion, verb]
+    senses:
+      - definition_en: "to cause someone to admire or respect you"
+        definition_vi: "gây ấn tượng"
+        register: neutral
+    examples:
+      - text: "He tried to {{impress}} the interviewers with his knowledge."
+        translation: "Anh ấy đã cố gắng gây ấn tượng với những người phỏng vấn bằng kiến thức của mình."
+    forms:
+      - kind: past
+        text: impressed
+      - kind: gerund
+        text: impressing
+      - kind: third_person
+        text: impresses
+    relations:
+      - relation: derived_from
+        text: "impression"
+      - relation: derived_from
+        text: "impressive"
+
+  - id: income-noun
+    headword: income
+    lemma: income
+    pos: noun
+    ipa: /ˈɪnkʌm/
+    cefr: B1
+    tags: [work, money, noun]
+    senses:
+      - definition_en: "money that is earned from doing work or received from investments"
+        definition_vi: "thu nhập"
+        register: neutral
+    examples:
+      - text: "The family has a very low {{income}}."
+        translation: "Gia đình có thu nhập rất thấp."
+    forms:
+      - kind: plural
+        text: incomes
+    collocations:
+      - collocation: "high income"
+        pattern: adj+noun
+      - collocation: "source of income"
+        pattern: noun+noun
+
+  - id: industry-noun
+    headword: industry
+    lemma: industry
+    pos: noun
+    ipa: /ˈɪndəstri/
+    cefr: B1
+    tags: [work, business, noun]
+    senses:
+      - definition_en: "the companies and activities involved in the process of producing goods for sale"
+        definition_vi: "công nghiệp, ngành công nghiệp"
+        register: neutral
+    examples:
+      - text: "He works in the tourism {{industry}}."
+        translation: "Anh ấy làm việc trong ngành du lịch."
+    forms:
+      - kind: plural
+        text: industries
+    relations:
+      - relation: derived_from
+        text: "industrial"
+
+  - id: interview-noun
+    headword: interview
+    lemma: interview
+    pos: noun
+    ipa: /ˈɪntəvjuː/
+    cefr: A2
+    tags: [work, noun]
+    senses:
+      - definition_en: "a formal meeting in which someone asks you questions to see if you are suitable for a job"
+        definition_vi: "cuộc phỏng vấn"
+        register: neutral
+    examples:
+      - text: "I had a job {{interview}} yesterday."
+        translation: "Tôi đã có một cuộc phỏng vấn việc làm ngày hôm qua."
+    forms:
+      - kind: plural
+        text: interviews
+    collocations:
+      - collocation: "job interview"
+        pattern: noun+noun
+    relations:
+      - relation: derived_from
+        text: "interviewer"
+      - relation: derived_from
+        text: "interviewee"
+
+  - id: leader-noun
+    headword: leader
+    lemma: leader
+    pos: noun
+    ipa: /ˈliːdə(r)/
+    cefr: A2
+    tags: [work, people, noun]
+    senses:
+      - definition_en: "a person in control of a group, country, or situation"
+        definition_vi: "lãnh đạo"
+        register: neutral
+    examples:
+      - text: "She is a natural {{leader}}."
+        translation: "Cô ấy là một nhà lãnh đạo bẩm sinh."
+    forms:
+      - kind: plural
+        text: leaders
+    relations:
+      - relation: derived_from
+        text: "lead"
+      - relation: derived_from
+        text: "leadership"
+
+  - id: manager-noun
+    headword: manager
+    lemma: manager
+    pos: noun
+    ipa: /ˈmænɪdʒə(r)/
+    cefr: A2
+    tags: [work, people, noun]
+    senses:
+      - definition_en: "the person who is responsible for managing an organization"
+        definition_vi: "người quản lý"
+        register: neutral
+    examples:
+      - text: "I would like to speak to the {{manager}}, please."
+        translation: "Tôi muốn nói chuyện với người quản lý."
+    forms:
+      - kind: plural
+        text: managers
+    relations:
+      - relation: derived_from
+        text: "manage"
+      - relation: synonym
+        text: "boss"
+
+  - id: pension-noun
+    headword: pension
+    lemma: pension
+    pos: noun
+    ipa: /ˈpenʃn/
+    cefr: B1
+    tags: [work, money, noun]
+    senses:
+      - definition_en: "an amount of money paid regularly by the government or a private company to a person who does not work any more because they are too old or they are ill"
+        definition_vi: "lương hưu"
+        register: neutral
+    examples:
+      - text: "He is now living on a state {{pension}}."
+        translation: "Anh ấy hiện đang sống bằng lương hưu của nhà nước."
+    forms:
+      - kind: plural
+        text: pensions
+    collocations:
+      - collocation: "state pension"
+        pattern: noun+noun
+      - collocation: "draw a pension"
+        pattern: verb+noun
+    relations:
+      - relation: derived_from
+        text: "pensioner"
+
+  - id: poverty-noun
+    headword: poverty
+    lemma: poverty
+    pos: noun
+    ipa: /ˈpɒvəti/
+    cefr: B1
+    tags: [money, noun]
+    senses:
+      - definition_en: "the condition of being extremely poor"
+        definition_vi: "sự nghèo đói"
+        register: formal
+    examples:
+      - text: "Many people in the world live in extreme {{poverty}}."
+        translation: "Nhiều người trên thế giới sống trong cảnh nghèo đói cùng cực."
+    collocations:
+      - collocation: "live in poverty"
+        pattern: prep+noun
+    relations:
+      - relation: derived_from
+        text: "poor"
+
+  - id: pressure-noun
+    headword: pressure
+    lemma: pressure
+    pos: noun
+    ipa: /ˈpreʃə(r)/
+    cefr: B1
+    tags: [emotion, noun]
+    senses:
+      - definition_en: "a difficult situation that makes you feel worried or unhappy"
+        definition_vi: "áp lực"
+        register: neutral
+    examples:
+      - text: "She is under a lot of {{pressure}} at work right now."
+        translation: "Cô ấy đang chịu rất nhiều áp lực trong công việc ngay lúc này."
+    collocations:
+      - collocation: "under pressure"
+        pattern: prep+noun
+      - collocation: "put pressure on"
+        pattern: verb+noun
+
+  - id: previous-adjective
+    headword: previous
+    lemma: previous
+    pos: adjective
+    ipa: /ˈpriːviəs/
+    cefr: B1
+    tags: [time, adjective]
+    senses:
+      - definition_en: "happening or existing before something or someone else"
+        definition_vi: "trước đó"
+        register: neutral
+    examples:
+      - text: "Do you have any {{previous}} experience in this field?"
+        translation: "Bạn có kinh nghiệm nào trước đó trong lĩnh vực này không?"
+    collocations:
+      - collocation: "previous experience"
+        pattern: adj+noun
+    relations:
+      - relation: derived_from
+        text: "previously"
+
+  - id: profession-noun
+    headword: profession
+    lemma: profession
+    pos: noun
+    ipa: /prəˈfeʃn/
+    cefr: B1
+    tags: [work, noun]
+    senses:
+      - definition_en: "any type of work that needs special training or a particular skill"
+        definition_vi: "nghề nghiệp"
+        register: neutral
+    examples:
+      - text: "Teaching is a very demanding {{profession}}."
+        translation: "Giảng dạy là một nghề rất đòi hỏi."
+    forms:
+      - kind: plural
+        text: professions
+    relations:
+      - relation: synonym
+        text: "career"
+      - relation: derived_from
+        text: "professional"
+
+  - id: retire-verb
+    headword: retire
+    lemma: retire
+    pos: verb
+    ipa: /rɪˈtaɪə(r)/
+    cefr: B1
+    tags: [work, verb]
+    senses:
+      - definition_en: "to leave your job or stop working because of old age or ill health"
+        definition_vi: "nghỉ hưu"
+        register: neutral
+    examples:
+      - text: "My father plans to {{retire}} next year."
+        translation: "Bố tôi dự định nghỉ hưu vào năm tới."
+    forms:
+      - kind: past
+        text: retired
+      - kind: gerund
+        text: retiring
+      - kind: third_person
+        text: retires
+    relations:
+      - relation: derived_from
+        text: "retirement"
+
+  - id: salary-noun
+    headword: salary
+    lemma: salary
+    pos: noun
+    ipa: /ˈsæləri/
+    cefr: A2
+    tags: [work, money, noun]
+    senses:
+      - definition_en: "a fixed amount of money agreed every year as pay for an employee"
+        definition_vi: "tiền lương"
+        register: neutral
+    examples:
+      - text: "His net monthly {{salary}} is €2,500."
+        translation: "Lương tháng thực nhận của anh ấy là €2.500."
+    forms:
+      - kind: plural
+        text: salaries
+    collocations:
+      - collocation: "earn a salary"
+        pattern: verb+noun
+    relations:
+      - relation: synonym
+        text: "income"
+      - relation: synonym
+        text: "pay"
+
+  - id: staff-noun
+    headword: staff
+    lemma: staff
+    pos: noun
+    ipa: /stɑːf/
+    cefr: A2
+    tags: [work, people, noun]
+    senses:
+      - definition_en: "the group of people who work for an organization"
+        definition_vi: "nhân viên"
+        register: neutral
+    examples:
+      - text: "The company has a highly trained {{staff}}."
+        translation: "Công ty có một đội ngũ nhân viên được đào tạo chuyên sâu."
+    relations:
+      - relation: synonym
+        text: "employees"
+
+  - id: strike-noun
+    headword: strike
+    lemma: strike
+    pos: noun
+    ipa: /straɪk/
+    cefr: B1
+    tags: [work, action, noun]
+    senses:
+      - definition_en: "to refuse to continue working because of an argument with an employer about working conditions, pay levels, or job losses"
+        definition_vi: "cuộc đình công"
+        register: neutral
+    examples:
+      - text: "The train drivers have voted to go on {{strike}}."
+        translation: "Các lái tàu đã bỏ phiếu quyết định đình công."
+    forms:
+      - kind: plural
+        text: strikes
+    collocations:
+      - collocation: "go on strike"
+        pattern: verb+prep
+
+  - id: tax-noun
+    headword: tax
+    lemma: tax
+    pos: noun
+    ipa: /tæks/
+    cefr: B1
+    tags: [money, government, noun]
+    senses:
+      - definition_en: "money paid to the government that is based on your income or the cost of goods or services you have bought"
+        definition_vi: "thuế"
+        register: neutral
+    examples:
+      - text: "They are demanding to pay lower {{taxes}}."
+        translation: "Họ đang yêu cầu được trả thuế thấp hơn."
+    forms:
+      - kind: plural
+        text: taxes
+    collocations:
+      - collocation: "pay tax"
+        pattern: verb+noun
+      - collocation: "income tax"
+        pattern: noun+noun
+
+  - id: wealthy-adjective
+    headword: wealthy
+    lemma: wealthy
+    pos: adjective
+    ipa: /ˈwelθi/
+    cefr: B1
+    tags: [money, adjective]
+    senses:
+      - definition_en: "having a large amount of money or valuable possessions"
+        definition_vi: "giàu có"
+        register: neutral
+    examples:
+      - text: "He comes from a very {{wealthy}} family."
+        translation: "Anh ấy xuất thân từ một gia đình rất giàu có."
+    forms:
+      - kind: comparative
+        text: wealthier
+      - kind: superlative
+        text: wealthiest
+    relations:
+      - relation: synonym
+        text: "rich"
+      - relation: derived_from
+        text: "wealth"
+
+  - id: call-off-phrasal-verb
+    headword: call off
+    lemma: call off
+    pos: phrasal_verb
+    cefr: B1
+    tags: [action, phrasal_verb]
+    senses:
+      - definition_en: "to cancel"
+        definition_vi: "hủy bỏ"
+        register: neutral
+    examples:
+      - text: "They had to {{call off}} the meeting due to the storm."
+        translation: "Họ đã phải hủy bỏ cuộc họp do cơn bão."
+    relations:
+      - relation: synonym
+        text: "cancel"
+
+  - id: give-back-phrasal-verb
+    headword: give back
+    lemma: give back
+    pos: phrasal_verb
+    cefr: A2
+    tags: [action, phrasal_verb]
+    senses:
+      - definition_en: "return something you have taken/borrowed"
+        definition_vi: "trả lại"
+        register: neutral
+    examples:
+      - text: "Please {{give back}} the pen when you finish."
+        translation: "Làm ơn trả lại cây bút khi bạn dùng xong."
+    relations:
+      - relation: synonym
+        text: "return"
+
+  - id: go-on-phrasal-verb
+    headword: go on
+    lemma: go on
+    pos: phrasal_verb
+    cefr: B1
+    tags: [action, phrasal_verb]
+    senses:
+      - definition_en: "to happen"
+        definition_vi: "xảy ra, tiếp tục"
+        register: neutral
+    examples:
+      - text: "What is {{going on}} here?"
+        translation: "Chuyện gì đang xảy ra ở đây vậy?"
+    relations:
+      - relation: synonym
+        text: "happen"
+
+  - id: put-off-phrasal-verb
+    headword: put off
+    lemma: put off
+    pos: phrasal_verb
+    cefr: B1
+    tags: [time, phrasal_verb]
+    senses:
+      - definition_en: "delay to a later time"
+        definition_vi: "trì hoãn"
+        register: neutral
+    examples:
+      - text: "Never {{put off}} until tomorrow what you can do today."
+        translation: "Đừng bao giờ để đến ngày mai những việc bạn có thể làm hôm nay."
+    relations:
+      - relation: synonym
+        text: "delay"
+      - relation: synonym
+        text: "postpone"
+
+  - id: set-up-phrasal-verb
+    headword: set up
+    lemma: set up
+    pos: phrasal_verb
+    cefr: B1
+    tags: [work, phrasal_verb]
+    senses:
+      - definition_en: "start (a business, organisation, etc)"
+        definition_vi: "thành lập, thiết lập"
+        register: neutral
+    examples:
+      - text: "She wants to {{set up}} her own company."
+        translation: "Cô ấy muốn thành lập công ty riêng."
+    relations:
+      - relation: synonym
+        text: "establish"
+
+  - id: stay-up-phrasal-verb
+    headword: stay up
+    lemma: stay up
+    pos: phrasal_verb
+    cefr: A2
+    tags: [time, phrasal_verb]
+    senses:
+      - definition_en: "go to bed late"
+        definition_vi: "thức khuya"
+        register: neutral
+    examples:
+      - text: "I had to {{stay up}} late to finish the report."
+        translation: "Tôi đã phải thức khuya để hoàn thành báo cáo."
+
+  - id: take-away-phrasal-verb
+    headword: take away
+    lemma: take away
+    pos: phrasal_verb
+    cefr: A2
+    tags: [action, phrasal_verb]
+    senses:
+      - definition_en: "to remove"
+        definition_vi: "mang đi, lấy đi"
+        register: neutral
+    examples:
+      - text: "The waiter came to {{take away}} our empty plates."
+        translation: "Người phục vụ đến để lấy đi những chiếc đĩa trống của chúng tôi."
+    relations:
+      - relation: synonym
+        text: "remove"
+
+  - id: take-over-phrasal-verb
+    headword: take over
+    lemma: take over
+    pos: phrasal_verb
+    cefr: B1
+    tags: [business, phrasal_verb]
+    senses:
+      - definition_en: "take control of (a business, etc)"
+        definition_vi: "tiếp quản"
+        register: neutral
+    examples:
+      - text: "The larger company decided to {{take over}} the smaller one."
+        translation: "Công ty lớn hơn đã quyết định tiếp quản công ty nhỏ hơn."
+
+  - id: at-the-moment-phrase
+    headword: at the moment
+    lemma: at the moment
+    pos: phrase
+    cefr: A1
+    tags: [time, phrase]
+    senses:
+      - definition_en: "now; at the present time"
+        definition_vi: "ngay lúc này, hiện tại"
+        register: neutral
+    examples:
+      - text: "I'm a bit busy {{at the moment}}."
+        translation: "Tôi hơi bận ngay lúc này."
+    relations:
+      - relation: synonym
+        text: "currently"
+
+  - id: in-charge-of-phrase
+    headword: in charge of
+    lemma: in charge of
+    pos: phrase
+    cefr: B1
+    tags: [work, phrase]
+    senses:
+      - definition_en: "being the person who has control of or is responsible for someone or something"
+        definition_vi: "chịu trách nhiệm, phụ trách"
+        register: neutral
+    examples:
+      - text: "He is {{in charge of}} the sales department."
+        translation: "Anh ấy phụ trách bộ phận bán hàng."
+    relations:
+      - relation: synonym
+        text: "responsible for"
+
+  - id: on-business-phrase
+    headword: on business
+    lemma: on business
+    pos: phrase
+    cefr: A2
+    tags: [work, phrase]
+    senses:
+      - definition_en: "doing something for work purposes"
+        definition_vi: "đi công tác"
+        register: neutral
+    examples:
+      - text: "My manager is away {{on business}}."
+        translation: "Người quản lý của tôi đang đi công tác."
+
+  - id: on-strike-phrase
+    headword: on strike
+    lemma: on strike
+    pos: phrase
+    cefr: B1
+    tags: [work, phrase]
+    senses:
+      - definition_en: "taking part in a strike"
+        definition_vi: "đang đình công"
+        register: neutral
+    examples:
+      - text: "The teachers are {{on strike}} today."
+        translation: "Các giáo viên đang đình công hôm nay."
+
+  - id: on-time-phrase
+    headword: on time
+    lemma: on time
+    pos: phrase
+    cefr: A2
+    tags: [time, phrase]
+    senses:
+      - definition_en: "happening or done at the particular moment that it was expected to happen or be done"
+        definition_vi: "đúng giờ"
+        register: neutral
+    examples:
+      - text: "The meeting started exactly {{on time}}."
+        translation: "Cuộc họp bắt đầu hoàn toàn đúng giờ."
+    relations:
+      - relation: synonym
+        text: "punctual"
+
+  - id: on-duty-phrase
+    headword: on duty
+    lemma: on duty
+    pos: phrase
+    cefr: B1
+    tags: [work, phrase]
+    senses:
+      - definition_en: "working, and responsible for dealing with things that happen at work"
+        definition_vi: "đang làm nhiệm vụ, đang trực"
+        register: neutral
+    examples:
+      - text: "What time do you go {{on duty}}?"
+        translation: "Mấy giờ bạn vào ca trực?"
+    relations:
+      - relation: antonym
+        text: "off duty"
+
+  - id: off-duty-phrase
+    headword: off duty
+    lemma: off duty
+    pos: phrase
+    cefr: B1
+    tags: [work, phrase]
+    senses:
+      - definition_en: "not working, and not responsible for dealing with things that happen at work"
+        definition_vi: "hết ca trực, nghỉ làm"
+        register: neutral
+    examples:
+      - text: "He was {{off duty}} when the accident happened."
+        translation: "Anh ấy đang không trong ca trực khi tai nạn xảy ra."
+    relations:
+      - relation: antonym
+        text: "on duty"
+
+  - id: assist-verb
+    headword: "assist"
+    pos: verb
+    cefr: B1
+    tags: [work, action, verb]
+    senses:
+      - definition_en: "to help someone"
+        definition_vi: "giúp đỡ, hỗ trợ"
+    examples:
+      - text: "We will {{assist}} you in finding somewhere to live."
+        translation: "Chúng tôi sẽ hỗ trợ bạn tìm nơi ở."
+    relations:
+      - relation: derived_from
+        text: "assistant"
+      - relation: derived_from
+        text: "assistance"
+
+  - id: assistant-noun
+    headword: "assistant"
+    pos: noun
+    cefr: A2
+    tags: [work, people, noun]
+    senses:
+      - definition_en: "someone whose job is to help a person who has a more important job"
+        definition_vi: "trợ lý"
+    examples:
+      - text: "She works as a personal {{assistant}}."
+        translation: "Cô ấy làm việc như một trợ lý cá nhân."
+
+  - id: assistance-noun
+    headword: "assistance"
+    pos: noun
+    cefr: B1
+    tags: [work, noun]
+    senses:
+      - definition_en: "help"
+        definition_vi: "sự giúp đỡ, sự hỗ trợ"
+    examples:
+      - text: "The company provides financial {{assistance}}."
+        translation: "Công ty cung cấp hỗ trợ tài chính."
+
+  - id: beg-verb
+    headword: "beg"
+    pos: verb
+    cefr: B1
+    tags: [money, verb]
+    senses:
+      - definition_en: "to ask for money, or to ask someone very strongly for something"
+        definition_vi: "cầu xin, ăn xin"
+    examples:
+      - text: "He had to {{beg}} for money on the streets."
+        translation: "Anh ta đã phải ăn xin trên đường phố."
+    relations:
+      - relation: derived_from
+        text: "beggar"
+
+  - id: beggar-noun
+    headword: "beggar"
+    pos: noun
+    cefr: B1
+    tags: [people, money, noun]
+    senses:
+      - definition_en: "a poor person who lives by asking others for money or food"
+        definition_vi: "người ăn xin"
+    examples:
+      - text: "I gave some coins to the {{beggar}}."
+        translation: "Tôi đã cho người ăn xin vài đồng xu."
+
+  - id: bossy-adjective
+    headword: "bossy"
+    pos: adjective
+    cefr: B1
+    tags: [personality, adjective]
+    senses:
+      - definition_en: "always telling other people what to do"
+        definition_vi: "hống hách, thích ra lệnh"
+    examples:
+      - text: "My older sister was very {{bossy}}."
+        translation: "Chị gái tôi rất thích ra lệnh."
+
+  - id: employ-verb
+    headword: "employ"
+    pos: verb
+    cefr: B1
+    tags: [work, verb]
+    senses:
+      - definition_en: "to pay someone to work for you"
+        definition_vi: "thuê, mướn"
+    examples:
+      - text: "The company {{employs}} 200 people."
+        translation: "Công ty thuê 200 người làm việc."
+    relations:
+      - relation: derived_from
+        text: "employment"
+      - relation: derived_from
+        text: "employee"
+      - relation: derived_from
+        text: "employer"
+
+  - id: employment-noun
+    headword: "employment"
+    pos: noun
+    cefr: B1
+    tags: [work, noun]
+    senses:
+      - definition_en: "the fact of someone being paid to work for a company or organization"
+        definition_vi: "việc làm, sự thuê mướn"
+    examples:
+      - text: "She was offered {{employment}} in the sales office."
+        translation: "Cô ấy được đề nghị một việc làm trong văn phòng bán hàng."
+    relations:
+      - relation: antonym
+        text: "unemployment"
+
+  - id: unemployment-noun
+    headword: "unemployment"
+    pos: noun
+    cefr: B1
+    tags: [work, noun]
+    senses:
+      - definition_en: "the number of people who do not have a job that provides money"
+        definition_vi: "tình trạng thất nghiệp"
+    examples:
+      - text: "{{Unemployment}} has fallen this year."
+        translation: "Tình trạng thất nghiệp đã giảm trong năm nay."
+
+  - id: employer-noun
+    headword: "employer"
+    pos: noun
+    cefr: B1
+    tags: [work, people, noun]
+    senses:
+      - definition_en: "a person or organization that employs people"
+        definition_vi: "người sử dụng lao động, ông chủ"
+    examples:
+      - text: "They are a very good {{employer}}."
+        translation: "Họ là một người sử dụng lao động rất tốt."
+
+  - id: employee-noun
+    headword: "employee"
+    pos: noun
+    cefr: B1
+    tags: [work, people, noun]
+    senses:
+      - definition_en: "someone who is paid to work for someone else"
+        definition_vi: "người lao động, nhân viên"
+    examples:
+      - text: "The company has over 500 {{employees}}."
+        translation: "Công ty có hơn 500 nhân viên."
+
+  - id: unemployed-adjective
+    headword: "unemployed"
+    pos: adjective
+    cefr: B1
+    tags: [work, adjective]
+    senses:
+      - definition_en: "not having a job that provides money"
+        definition_vi: "thất nghiệp"
+    examples:
+      - text: "He has been {{unemployed}} for six months."
+        translation: "Anh ấy đã thất nghiệp được sáu tháng."
+
+  - id: famous-adjective
+    headword: "famous"
+    pos: adjective
+    cefr: A2
+    tags: [success, adjective]
+    senses:
+      - definition_en: "known and recognized by many people"
+        definition_vi: "nổi tiếng"
+    examples:
+      - text: "She is a {{famous}} actress."
+        translation: "Cô ấy là một nữ diễn viên nổi tiếng."
+
+  - id: occupy-verb
+    headword: "occupy"
+    pos: verb
+    cefr: B1
+    tags: [action, verb]
+    senses:
+      - definition_en: "to fill, exist in, or use a place or period of time"
+        definition_vi: "chiếm, giữ"
+    examples:
+      - text: "The family {{occupies}} the house next door."
+        translation: "Gia đình đó sống ở ngôi nhà bên cạnh."
+    relations:
+      - relation: derived_from
+        text: "occupation"
+
+  - id: occupation-noun
+    headword: "occupation"
+    pos: noun
+    cefr: B1
+    tags: [work, noun]
+    senses:
+      - definition_en: "a person's job"
+        definition_vi: "nghề nghiệp"
+    examples:
+      - text: "Please state your name, age and {{occupation}}."
+        translation: "Vui lòng nêu tên, tuổi và nghề nghiệp của bạn."
+    relations:
+      - relation: synonym
+        text: "job"
+
+  - id: office-noun
+    headword: "office"
+    pos: noun
+    cefr: A1
+    tags: [work, place, noun]
+    senses:
+      - definition_en: "a room or part of a building in which people work, especially sitting at tables with computers, phones, etc."
+        definition_vi: "văn phòng"
+    examples:
+      - text: "I'll be in the {{office}} until 5 pm."
+        translation: "Tôi sẽ ở văn phòng cho đến 5 giờ chiều."
+    relations:
+      - relation: derived_from
+        text: "officer"
+      - relation: derived_from
+        text: "official"
+
+  - id: officer-noun
+    headword: "officer"
+    pos: noun
+    cefr: A2
+    tags: [work, people, noun]
+    senses:
+      - definition_en: "a person who has a position of authority in an organization"
+        definition_vi: "sĩ quan, viên chức"
+    examples:
+      - text: "He is a police {{officer}}."
+        translation: "Anh ấy là một cảnh sát."
+
+  - id: official-adjective
+    headword: "official"
+    pos: adjective
+    cefr: B1
+    tags: [work, adjective]
+    senses:
+      - definition_en: "agreed to or arranged by people in positions of authority"
+        definition_vi: "chính thức"
+    examples:
+      - text: "This is an {{official}} document."
+        translation: "Đây là một tài liệu chính thức."
+    relations:
+      - relation: antonym
+        text: "unofficial"
+
+  - id: unofficial-adjective
+    headword: "unofficial"
+    pos: adjective
+    cefr: B1
+    tags: [work, adjective]
+    senses:
+      - definition_en: "not official"
+        definition_vi: "không chính thức"
+    examples:
+      - text: "According to an {{unofficial}} report, the company is doing well."
+        translation: "Theo một báo cáo không chính thức, công ty đang hoạt động tốt."
+
+  - id: retired-adjective
+    headword: "retired"
+    pos: adjective
+    cefr: A2
+    tags: [work, adjective]
+    senses:
+      - definition_en: "having stopped working, usually because of old age"
+        definition_vi: "đã nghỉ hưu"
+    examples:
+      - text: "Both my parents are {{retired}}."
+        translation: "Cả bố và mẹ tôi đều đã nghỉ hưu."
+
+  - id: retirement-noun
+    headword: "retirement"
+    pos: noun
+    cefr: B1
+    tags: [work, noun]
+    senses:
+      - definition_en: "the point at which you stop working, usually because of old age"
+        definition_vi: "sự nghỉ hưu"
+    examples:
+      - text: "He is approaching {{retirement}} age."
+        translation: "Anh ấy đang đến tuổi nghỉ hưu."
+
+  - id: safe-adjective
+    headword: "safe"
+    pos: adjective
+    cefr: A2
+    tags: [state, adjective]
+    senses:
+      - definition_en: "not in danger or likely to be harmed"
+        definition_vi: "an toàn"
+    examples:
+      - text: "Have a {{safe}} journey!"
+        translation: "Chúc bạn có một chuyến đi an toàn!"
+    relations:
+      - relation: antonym
+        text: "unsafe"
+      - relation: derived_from
+        text: "safety"
+
+  - id: save-verb
+    headword: "save"
+    pos: verb
+    cefr: A2
+    tags: [action, verb]
+    senses:
+      - definition_en: "to stop someone or something from being destroyed or killed"
+        definition_vi: "cứu, lưu, tiết kiệm"
+    examples:
+      - text: "The doctors tried to {{save}} his life."
+        translation: "Các bác sĩ đã cố gắng cứu sống anh ấy."
+
+  - id: unsafe-adjective
+    headword: "unsafe"
+    pos: adjective
+    cefr: B1
+    tags: [state, adjective]
+    senses:
+      - definition_en: "dangerous"
+        definition_vi: "không an toàn"
+    examples:
+      - text: "This building is {{unsafe}}."
+        translation: "Tòa nhà này không an toàn."
+    relations:
+      - relation: antonym
+        text: "safe"
+
+  - id: safety-noun
+    headword: "safety"
+    pos: noun
+    cefr: A2
+    tags: [state, noun]
+    senses:
+      - definition_en: "a state in which or a place where you are safe"
+        definition_vi: "sự an toàn"
+    examples:
+      - text: "For your own {{safety}}, please do not run."
+        translation: "Vì sự an toàn của chính bạn, xin vui lòng không chạy."
+
+  - id: succeed-verb
+    headword: "succeed"
+    pos: verb
+    cefr: B1
+    tags: [success, verb]
+    senses:
+      - definition_en: "to achieve something that you have been aiming for"
+        definition_vi: "thành công"
+    examples:
+      - text: "She {{succeeded}} in passing the exam."
+        translation: "Cô ấy đã thành công trong việc vượt qua kỳ thi."
+    relations:
+      - relation: derived_from
+        text: "success"
+      - relation: derived_from
+        text: "successful"
+
+  - id: success-noun
+    headword: "success"
+    pos: noun
+    cefr: A2
+    tags: [success, noun]
+    senses:
+      - definition_en: "the achieving of the results wanted or hoped for"
+        definition_vi: "sự thành công"
+    examples:
+      - text: "The party was a great {{success}}."
+        translation: "Bữa tiệc là một thành công lớn."
+
+  - id: successful-adjective
+    headword: "successful"
+    pos: adjective
+    cefr: A2
+    tags: [success, adjective]
+    senses:
+      - definition_en: "achieving the results wanted or hoped for"
+        definition_vi: "thành công"
+    examples:
+      - text: "They were {{successful}} in winning the contract."
+        translation: "Họ đã thành công trong việc giành được hợp đồng."
+    relations:
+      - relation: antonym
+        text: "unsuccessful"
+
+  - id: unsuccessful-adjective
+    headword: "unsuccessful"
+    pos: adjective
+    cefr: B1
+    tags: [success, adjective]
+    senses:
+      - definition_en: "not achieving the hoped for result"
+        definition_vi: "không thành công, thất bại"
+    examples:
+      - text: "His attempt to climb the mountain was {{unsuccessful}}."
+        translation: "Nỗ lực leo núi của anh ấy đã không thành công."
+    relations:
+      - relation: antonym
+        text: "successful"
+
+  - id: careful-with-phrase
+    headword: "careful with"
+    pos: phrase
+    cefr: A2
+    tags: [action, phrase]
+    senses:
+      - definition_en: "giving attention to what you are doing so that you do not have an accident or make a mistake with something"
+        definition_vi: "cẩn thận với"
+    examples:
+      - text: "Please be {{careful with}} those glasses."
+        translation: "Làm ơn cẩn thận với những cái ly đó."
+
+  - id: difficult-for-phrase
+    headword: "difficult for"
+    pos: phrase
+    cefr: A2
+    tags: [state, phrase]
+    senses:
+      - definition_en: "hard for someone to do or understand"
+        definition_vi: "khó khăn cho"
+    examples:
+      - text: "It is {{difficult for}} me to explain."
+        translation: "Rất khó để tôi giải thích."
+
+  - id: fed-up-with-phrase
+    headword: "fed up with"
+    pos: phrase
+    cefr: B1
+    tags: [emotion, phrase]
+    senses:
+      - definition_en: "bored, annoyed, or disappointed, especially by something that you have experienced for too long"
+        definition_vi: "chán ngấy với"
+    examples:
+      - text: "I am {{fed up with}} this weather."
+        translation: "Tôi chán ngấy với thời tiết này rồi."
+
+  - id: ready-for-phrase
+    headword: "ready for"
+    pos: phrase
+    cefr: A2
+    tags: [state, phrase]
+    senses:
+      - definition_en: "prepared for doing something"
+        definition_vi: "sẵn sàng cho"
+    examples:
+      - text: "Are you {{ready for}} the test?"
+        translation: "Bạn đã sẵn sàng cho bài kiểm tra chưa?"
+
+  - id: responsible-for-phrase
+    headword: "responsible for"
+    pos: phrase
+    cefr: B1
+    tags: [work, phrase]
+    senses:
+      - definition_en: "to have control and authority over something or someone"
+        definition_vi: "chịu trách nhiệm cho"
+    examples:
+      - text: "She is {{responsible for}} managing the team."
+        translation: "Cô ấy chịu trách nhiệm quản lý nhóm."
+
+  - id: apply-for-phrase
+    headword: "apply for"
+    pos: phrase
+    cefr: A2
+    tags: [work, phrase]
+    senses:
+      - definition_en: "to request something, usually officially, especially in writing or by sending in a form"
+        definition_vi: "nộp đơn xin"
+    examples:
+      - text: "He decided to {{apply for}} the job."
+        translation: "Anh ấy đã quyết định nộp đơn xin việc."
+
+  - id: depend-on-phrase
+    headword: "depend on"
+    pos: phrase
+    cefr: A2
+    tags: [action, phrase]
+    senses:
+      - definition_en: "to be influenced or determined by something"
+        definition_vi: "phụ thuộc vào"
+    examples:
+      - text: "The outcome will {{depend on}} how hard you work."
+        translation: "Kết quả sẽ phụ thuộc vào việc bạn làm việc chăm chỉ như thế nào."
+
+  - id: inform-about-phrase
+    headword: "inform about"
+    pos: phrase
+    cefr: B1
+    tags: [action, phrase]
+    senses:
+      - definition_en: "to tell someone about particular facts"
+        definition_vi: "thông báo về"
+    examples:
+      - text: "Please {{inform}} us about any changes."
+        translation: "Vui lòng thông báo cho chúng tôi về bất kỳ thay đổi nào."
+
+  - id: refer-to-phrase
+    headword: "refer to"
+    pos: phrase
+    cefr: B1
+    tags: [action, phrase]
+    senses:
+      - definition_en: "to talk or write about someone or something"
+        definition_vi: "đề cập đến"
+    examples:
+      - text: "He likes to {{refer to}} his past experiences."
+        translation: "Anh ấy thích đề cập đến những kinh nghiệm trong quá khứ của mình."
+
+  - id: work-as-phrase
+    headword: "work as"
+    pos: phrase
+    cefr: A2
+    tags: [work, phrase]
+    senses:
+      - definition_en: "to have a particular job"
+        definition_vi: "làm việc với tư cách là (nghề nghiệp)"
+    examples:
+      - text: "She used to {{work as}} a teacher."
+        translation: "Cô ấy từng làm giáo viên."
+
+  - id: a-kind-of-phrase
+    headword: "a kind of"
+    pos: phrase
+    cefr: A2
+    tags: [phrase]
+    senses:
+      - definition_en: "used to show that something is similar to another thing"
+        definition_vi: "một loại"
+    examples:
+      - text: "It's {{a kind of}} fruit."
+        translation: "Nó là một loại trái cây."

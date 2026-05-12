@@ -1,0 +1,113 @@
+# Vocab study page starter
+# Copy to content/books/<book-code>/unit-NN-vocab.yaml.
+# This shape is what the student Unit Study page can split into sections:
+# core vocabulary, phrasal verbs, phrases/collocations, word patterns, and
+# word formation.
+
+book: sample-b1
+book_title: Sample B1 Authoring Pack
+
+unit:
+  ordinal: 7
+  code: U07
+  title: Study Page Starter
+  summary_md: A compact vocabulary lesson with every section the student page can surface.
+  metadata:
+    authoring_template: vocab-study-page
+
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: Unit Vocabulary Study
+  slug: unit-vocabulary-study
+  metadata:
+    study_surface: unit_page
+
+entries:
+  - id: achievement-noun
+    headword: achievement
+    lemma: achievement
+    pos: noun
+    ipa: /əˈtʃiːvmənt/
+    cefr: B1
+    tags: [vocabulary, success]
+    senses:
+      - definition_en: something good that you have worked hard to do
+        definition_vi: thành tựu
+        register: neutral
+    examples:
+      - text: Passing the exam was a real {{achievement}}.
+        translation: Vượt qua kỳ thi là một thành tựu thật sự.
+    forms:
+      - kind: plural
+        text: achievements
+
+  - id: look-up-phrasal_verb
+    headword: look up
+    lemma: look up
+    pos: phrasal_verb
+    cefr: B1
+    tags: [phrasal-verb, study]
+    senses:
+      - definition_en: to search for information in a book or online
+        definition_vi: tra cứu
+    examples:
+      - text: You should {{look up}} new words after class.
+        translation: Bạn nên tra cứu từ mới sau giờ học.
+
+  - id: under-pressure-phrase
+    headword: under pressure
+    pos: phrase
+    cefr: B1
+    tags: [phrase, collocation]
+    senses:
+      - definition_en: feeling stressed because there is too much to do
+        definition_vi: chịu áp lực
+    examples:
+      - text: She works well {{under pressure}}.
+    collocations:
+      - collocation: under pressure
+        pattern: prep+noun
+
+  - id: insist-on-pattern
+    headword: insist on
+    pos: pattern
+    cefr: B2
+    tags: [word-pattern]
+    senses:
+      - definition_en: to say firmly that something must happen
+        definition_vi: khăng khăng yêu cầu
+    examples:
+      - text: He {{insisted on}} paying for dinner.
+    collocations:
+      - collocation: insist on doing something
+        pattern: verb+gerund
+
+  - id: adapt-verb
+    headword: adapt
+    lemma: adapt
+    pos: verb
+    cefr: B2
+    tags: [word-formation, change]
+    metadata:
+      related_forms:
+        - form: adaptable
+          pos: adjective
+        - form: adaptation
+          pos: noun
+        - form: adaptably
+          pos: adverb
+    senses:
+      - definition_en: to change your behavior so that you can deal with a new situation
+        definition_vi: thích nghi
+    examples:
+      - text: Good learners {{adapt}} to new challenges.
+    forms:
+      - kind: past
+        text: adapted
+      - kind: gerund
+        text: adapting
+      - kind: adjective
+        text: adaptable
+      - kind: noun
+        text: adaptation

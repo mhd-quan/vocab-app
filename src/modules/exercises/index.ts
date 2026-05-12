@@ -19,6 +19,7 @@ export type {
   Answer,
   AnyExercisePlugin,
   BuildContext,
+  DefinitionPriority,
   Exercise,
   ExerciseBase,
   ExerciseKind,

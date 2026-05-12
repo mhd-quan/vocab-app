@@ -13,6 +13,12 @@ Use these suffixes so directory imports can discover files:
 The in-app importer accepts any `.yaml` or `.yml` file, then routes by
 `lesson.kind`.
 
+Current import-backed lesson kinds are `vocabulary` and `grammar`. The
+database enum also reserves `mixed`, `reading`, `listening`, `revision`,
+`exercise`, and `exam_practice`, but those kinds do not have concrete import
+parsers or student-runtime screens yet. For v0.5.x, author revision/exercise
+practice as `lesson.kind: grammar` with `topics[].activities`.
+
 ## Shared Header
 
 Both vocab and grammar files share the same top-level curriculum shape:
@@ -25,11 +31,15 @@ unit:
   code: U01
   title: Unit title
   summary_md: Optional markdown summary.
+  metadata:
+    source: optional metadata
 lesson:
   ordinal: 1
   kind: vocabulary # or grammar
   title: Lesson title
   slug: lowercase-kebab-slug
+  metadata:
+    authoring_notes: optional metadata
 ```
 
 Rules:
@@ -39,8 +49,27 @@ Rules:
   edited title or derives one from `book`.
 - `unit.ordinal` and `lesson.ordinal` are positive integers.
 - `lesson.slug` must be lowercase kebab case: `present-simple`.
+- `unit.metadata` and `lesson.metadata` are optional JSON objects persisted
+  with the curriculum rows. Keep learner-facing text in `title` or
+  `summary_md`; use metadata for authoring hints, source tags, and workflow
+  notes.
 - Re-importing an unchanged file is skipped by file hash.
 - Entries/topics are matched inside a lesson by stable `id`.
+
+## Templates
+
+Use the full templates when checking the entire accepted field surface:
+
+- `vocab-template.yaml`
+- `grammar-template.yaml`
+
+Use the focused starters when building actual lesson content:
+
+- `vocab-study-page-template.yaml` shows how to seed a vocabulary lesson so
+  the student Unit Study page can split cards into core vocabulary, phrasal
+  verbs, phrases/collocations, word patterns, and word formation.
+- `revision-practice-grammar-template.yaml` shows the current import-safe
+  way to create exercise/revision sessions through grammar activities.
 
 ## Vocabulary Files
 

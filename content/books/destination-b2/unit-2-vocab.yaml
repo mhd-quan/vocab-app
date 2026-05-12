@@ -1,0 +1,1501 @@
+book: destination-b2
+book_title: Destination B2 Grammar and Vocabulary
+unit:
+  ordinal: 2
+  code: U02
+  title: Travel and Transport
+  summary_md: This unit covers vocabulary related to travel, transport, and moving from place to place, including topic words, phrasal verbs, collocations, word patterns, and word formation.
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: Travel and Transport
+  slug: travel-and-transport
+entries:
+  - id: voyage-noun
+    headword: "voyage"
+    pos: noun
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "a long journey, especially by ship"
+        definition_vi: "chuyến đi dài ngày trên biển hoặc trong không gian"
+    examples:
+      - text: "The {{voyage}} from England to India used to take six months."
+
+  - id: journey-noun
+    headword: "journey"
+    pos: noun
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "an occasion when you travel from one place to another, especially over a long distance"
+        definition_vi: "hành trình, quãng đường đi từ nơi này đến nơi khác"
+    examples:
+      - text: "We had a long {{journey}} ahead of us."
+
+  - id: trip-noun
+    headword: "trip"
+    pos: noun
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "an occasion when you go somewhere and come back again"
+        definition_vi: "chuyến đi (thường là ngắn ngày và có quay về)"
+    examples:
+      - text: "The whole family went on a day {{trip}} to the beach."
+
+  - id: travel-noun
+    headword: "travel"
+    pos: noun
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "the activity of travelling"
+        definition_vi: "việc đi lại, sự du hành (nói chung)"
+    examples:
+      - text: "Foreign {{travel}} has become much cheaper lately."
+
+  - id: excursion-noun
+    headword: "excursion"
+    pos: noun
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "a short journey that you make for pleasure"
+        definition_vi: "chuyến tham quan, dã ngoại ngắn ngày"
+    examples:
+      - text: "My class is going on an {{excursion}} to the zoo next week."
+
+  - id: view-noun
+    headword: "view"
+    pos: noun
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "the things that you can see from a particular place"
+        definition_vi: "quang cảnh (từ một góc nhìn cụ thể)"
+    examples:
+      - text: "The {{view}} from the top of the mountain is breathtaking."
+
+  - id: sight-noun
+    headword: "sight"
+    pos: noun
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "someone or something that is interesting or enjoyable to see"
+        definition_vi: "cảnh tượng, điểm tham quan"
+    examples:
+      - text: "Windsor Castle is one of the most famous {{sights}} in England."
+
+  - id: world-noun
+    headword: "world"
+    pos: noun
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "the planet that we live on"
+        definition_vi: "thế giới"
+    examples:
+      - text: "It's a big {{world}} out there."
+
+  - id: earth-noun
+    headword: "earth"
+    pos: noun
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "the land on which we live"
+        definition_vi: "trái đất, mặt đất"
+    examples:
+      - text: "The {{earth}} is the third planet from the sun."
+
+  - id: area-noun
+    headword: "area"
+    pos: noun
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "a part of a place or building"
+        definition_vi: "khu vực, vùng"
+    examples:
+      - text: "Bus services in rural {{areas}} are not very good."
+
+  - id: territory-noun
+    headword: "territory"
+    pos: noun
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "an area of land that is controlled by a particular country, leader or army"
+        definition_vi: "lãnh thổ"
+    examples:
+      - text: "Russian troops have entered enemy {{territory}}."
+
+  - id: fare-noun
+    headword: "fare"
+    pos: noun
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "the money that you pay for a journey"
+        definition_vi: "tiền vé (tàu, xe, máy bay)"
+    examples:
+      - text: "The bus {{fare}} has gone up again."
+
+  - id: ticket-noun
+    headword: "ticket"
+    pos: noun
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "a piece of paper that shows that you have paid for a journey"
+        definition_vi: "vé (xác nhận đã thanh toán)"
+    examples:
+      - text: "We need to buy our train {{tickets}} in advance."
+
+  - id: fee-noun
+    headword: "fee"
+    pos: noun
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "an amount of money that you pay to be allowed to do something"
+        definition_vi: "phí, lệ phí (dịch vụ)"
+    examples:
+      - text: "The entrance {{fee}} for the museum is £5."
+
+  - id: miss-verb
+    headword: "miss"
+    pos: verb
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "to fail to catch a bus, train, etc"
+        definition_vi: "lỡ (tàu, xe)"
+    examples:
+      - text: "If I don't leave now, I'll {{miss}} my train."
+
+  - id: lose-verb
+    headword: "lose"
+    pos: verb
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "to no longer have something because you do not know where it is"
+        definition_vi: "mất, thất lạc"
+    examples:
+      - text: "I always {{lose}} my keys!"
+
+  - id: take-verb
+    headword: "take"
+    pos: verb
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "to move or carry someone or something from one place to another"
+        definition_vi: "đưa đi, mang đi"
+    examples:
+      - text: "What time do you {{take}} the kids to school?"
+
+  - id: bring-verb
+    headword: "bring"
+    pos: verb
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "to take someone or something with you from one place to another place"
+        definition_vi: "mang lại, mang theo"
+    examples:
+      - text: "Don't forget to {{bring}} your umbrella."
+
+  - id: go-verb
+    headword: "go"
+    pos: verb
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "to move or travel to a place that is away from where you are now"
+        definition_vi: "đi"
+    examples:
+      - text: "We're {{going}} to France next summer."
+
+  - id: book-verb
+    headword: "book"
+    pos: verb
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "to buy a ticket or reserve a seat/room"
+        definition_vi: "đặt trước"
+    examples:
+      - text: "Shall I {{book}} a table for eight o'clock?"
+
+  - id: keep-verb
+    headword: "keep"
+    pos: verb
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "to continue to have or own something"
+        definition_vi: "giữ, tiếp tục duy trì"
+    examples:
+      - text: "We should {{keep}} the receipt in case we need to return it."
+
+  - id: arrive-verb
+    headword: "arrive"
+    pos: verb
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "to reach a place"
+        definition_vi: "đến nơi"
+    examples:
+      - text: "What time does the plane {{arrive}}?"
+
+  - id: reach-verb
+    headword: "reach"
+    pos: verb
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "to arrive at a place, especially after spending a long time or a lot of effort travelling"
+        definition_vi: "đến được (sau một hành trình dài)"
+    examples:
+      - text: "We hoped to {{reach}} the camp before dark."
+
+  - id: stay-verb
+    headword: "stay"
+    pos: verb
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "to live or spend time in a place as a visitor"
+        definition_vi: "ở lại, lưu trú"
+    examples:
+      - text: "We're {{staying}} at a hotel near the beach."
+
+  - id: border-noun
+    headword: "border"
+    pos: noun
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "the official line that separates two countries or regions"
+        definition_vi: "biên giới"
+    examples:
+      - text: "We crossed the {{border}} into Mexico."
+
+  - id: edge-noun
+    headword: "edge"
+    pos: noun
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "the part of something that is furthest from its centre"
+        definition_vi: "mép, rìa, cạnh"
+    examples:
+      - text: "Victoria was sitting on the {{edge}} of her bed."
+
+  - id: line-noun
+    headword: "line"
+    pos: noun
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "a long thin mark on a surface"
+        definition_vi: "đường kẻ, ranh giới"
+    examples:
+      - text: "Draw a straight {{line}} across the page."
+
+  - id: length-noun
+    headword: "length"
+    pos: noun
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "a measurement of how long something is"
+        definition_vi: "chiều dài"
+    examples:
+      - text: "The boat is ten metres in {{length}}."
+
+  - id: distance-noun
+    headword: "distance"
+    pos: noun
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "the amount of space between two people or places"
+        definition_vi: "khoảng cách"
+    examples:
+      - text: "What's the {{distance}} from Madrid to Barcelona?"
+
+  - id: guide-verb
+    headword: "guide"
+    pos: verb
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "to show someone where to go by going with them"
+        definition_vi: "hướng dẫn, dẫn đường"
+    examples:
+      - text: "Our local guide {{guided}} us through the mountains."
+
+  - id: lead-verb
+    headword: "lead"
+    pos: verb
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "to take someone to a place by going in front of them"
+        definition_vi: "dẫn dắt, đi đầu"
+    examples:
+      - text: "The nurse {{led}} me into the room."
+
+  - id: native-adjective
+    headword: "native"
+    pos: adjective
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "living in a particular country or area since birth"
+        definition_vi: "bản ngữ, bản địa"
+    examples:
+      - text: "I'm a {{native}} speaker of English."
+
+  - id: home-noun
+    headword: "home"
+    pos: noun
+    cefr: B2
+    tags: [topic]
+    senses:
+      - definition_en: "the city or country where you were born or live"
+        definition_vi: "quê hương, nhà"
+    examples:
+      - text: "I've lived in London for ten years, but Italy is still my {{home}}."
+
+  - id: catch-up-with-phrasal-verb
+    headword: "catch up with"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [phrasal_verb]
+    senses:
+      - definition_en: "reach the same point/level as"
+        definition_vi: "theo kịp, bắt kịp"
+    examples:
+      - text: "You'll have to run fast to {{catch up with}} him."
+
+  - id: check-in-phrasal-verb
+    headword: "check in"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [phrasal_verb]
+    senses:
+      - definition_en: "register at a hotel or airport"
+        definition_vi: "làm thủ tục nhận phòng/bay"
+    examples:
+      - text: "Please {{check in}} at least two hours before your flight."
+
+  - id: check-out-phrasal-verb
+    headword: "check out"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [phrasal_verb]
+    senses:
+      - definition_en: "leave a hotel; investigate"
+        definition_vi: "làm thủ tục trả phòng; kiểm tra"
+    examples:
+      - text: "We have to {{check out}} of the hotel by noon."
+
+  - id: drop-off-phrasal-verb
+    headword: "drop off"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [phrasal_verb]
+    senses:
+      - definition_en: "let someone get out of a vehicle; fall asleep"
+        definition_vi: "cho ai xuống xe; buồn ngủ"
+    examples:
+      - text: "Can you {{drop me off}} at the station?"
+
+  - id: get-back-phrasal-verb
+    headword: "get back"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [phrasal_verb]
+    senses:
+      - definition_en: "return from a place"
+        definition_vi: "quay về"
+    examples:
+      - text: "When did you {{get back}} from your holiday?"
+
+  - id: go-away-phrasal-verb
+    headword: "go away"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [phrasal_verb]
+    senses:
+      - definition_en: "go on holiday; leave a place"
+        definition_vi: "đi nghỉ; rời đi"
+    examples:
+      - text: "We're {{going away}} for a few weeks in the summer."
+
+  - id: keep-up-with-phrasal-verb
+    headword: "keep up with"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [phrasal_verb]
+    senses:
+      - definition_en: "stay at the same point/level as"
+        definition_vi: "giữ vững phong độ, theo kịp"
+    examples:
+      - text: "It's hard to {{keep up with}} the latest technology."
+
+  - id: make-for-phrasal-verb
+    headword: "make for"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [phrasal_verb]
+    senses:
+      - definition_en: "go in the direction of"
+        definition_vi: "đi về hướng"
+    examples:
+      - text: "The ship was {{making for}} the nearest harbour."
+
+  - id: pick-up-phrasal-verb
+    headword: "pick up"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [phrasal_verb]
+    senses:
+      - definition_en: "stop in a vehicle to give someone a lift"
+        definition_vi: "đón ai đó"
+    examples:
+      - text: "I'll {{pick you up}} at seven o'clock."
+
+  - id: pull-in-phrasal-verb
+    headword: "pull in"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [phrasal_verb]
+    senses:
+      - definition_en: "stop by the side of the road in a car"
+        definition_vi: "tấp xe vào lề"
+    examples:
+      - text: "The bus {{pulled in}} at the bus stop."
+
+  - id: run-over-phrasal-verb
+    headword: "run over"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [phrasal_verb]
+    senses:
+      - definition_en: "hit with a car"
+        definition_vi: "chèn qua, cán qua"
+    examples:
+      - text: "A dog was almost {{run over}} by a car."
+
+  - id: see-off-phrasal-verb
+    headword: "see off"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [phrasal_verb]
+    senses:
+      - definition_en: "go to a train station, etc, to see someone leave"
+        definition_vi: "tiễn ai đó"
+    examples:
+      - text: "We went to the airport to {{see my brother off}}."
+
+  - id: set-out-phrasal-verb
+    headword: "set out"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [phrasal_verb]
+    senses:
+      - definition_en: "start a journey"
+        definition_vi: "khởi hành"
+    examples:
+      - text: "We {{set out}} early the next morning."
+
+  - id: set-off-phrasal-verb
+    headword: "set off"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [phrasal_verb]
+    senses:
+      - definition_en: "start a journey"
+        definition_vi: "khởi hành"
+    examples:
+      - text: "We {{set off}} early the next morning."
+
+  - id: take-off-phrasal-verb
+    headword: "take off"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [phrasal_verb]
+    senses:
+      - definition_en: "leave the ground"
+        definition_vi: "cất cánh"
+    examples:
+      - text: "The plane {{took off}} on time."
+
+  - id: turn-round-phrasal-verb
+    headword: "turn round"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [phrasal_verb]
+    senses:
+      - definition_en: "go back in the opposite direction"
+        definition_vi: "quay đầu lại"
+    examples:
+      - text: "We realized we were lost and had to {{turn round}}."
+
+  - id: have-an-accident-phrase
+    headword: "have an accident"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "be involved in a car crash, etc"
+        definition_vi: "gặp tai nạn"
+    examples:
+      - text: "She {{had an accident}} on her way to work."
+
+  - id: be-involved-in-an-accident-phrase
+    headword: "be involved in an accident"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "be a part of an accident"
+        definition_vi: "liên quan đến một tai nạn"
+    examples:
+      - text: "He was {{involved in an accident}} last week."
+
+  - id: do-sth-by-accident-phrase
+    headword: "do sth by accident"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "do something without intending to"
+        definition_vi: "làm gì đó tình cờ"
+    examples:
+      - text: "I broke the vase {{by accident}}."
+
+  - id: in-advance-phrase
+    headword: "in advance"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "before a particular time"
+        definition_vi: "trước (thời gian)"
+    examples:
+      - text: "You should book your tickets {{in advance}}."
+
+  - id: advance-to-towards-a-place-phrase
+    headword: "advance to/towards a place"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "move forward"
+        definition_vi: "tiến về phía"
+    examples:
+      - text: "The troops began to {{advance towards}} the city."
+
+  - id: go-straight-ahead-phrase
+    headword: "go straight ahead"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "continue moving forward"
+        definition_vi: "đi thẳng về phía trước"
+    examples:
+      - text: "{{Go straight ahead}} until you reach the lights."
+
+  - id: go-ahead-phrase
+    headword: "go ahead"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "start to do something"
+        definition_vi: "tiến hành, bắt đầu"
+    examples:
+      - text: "You can {{go ahead}} and eat without me."
+
+  - id: be-ahead-of-sth-sb-phrase
+    headword: "be ahead of sth/sb"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "be in front of"
+        definition_vi: "đi trước ai/cái gì"
+    examples:
+      - text: "He was {{ahead of}} me in the queue."
+
+  - id: a-change-of-direction-phrase
+    headword: "a change of direction"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "changing the way you are going"
+        definition_vi: "sự đổi hướng"
+    examples:
+      - text: "We need a {{change of direction}} if we want to get there."
+
+  - id: in-the-direction-of-sth-phrase
+    headword: "in the direction of sth"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "towards something"
+        definition_vi: "theo hướng của"
+    examples:
+      - text: "They headed {{in the direction of}} the station."
+
+  - id: in-this-that-direction-phrase
+    headword: "in this/that direction"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "towards this/that way"
+        definition_vi: "theo hướng này/đó"
+    examples:
+      - text: "Don't go {{in that direction}}."
+
+  - id: off-the-top-of-your-head-phrase
+    headword: "off the top of your head"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "from memory, without checking"
+        definition_vi: "ngay lập tức (không cần suy nghĩ/tra cứu)"
+    examples:
+      - text: "I can't tell you the price {{off the top of my head}}."
+
+  - id: head-for-towards-a-place-phrase
+    headword: "head for/towards a place"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "go in the direction of"
+        definition_vi: "hướng về phía"
+    examples:
+      - text: "It's getting late, we should {{head for}} home."
+
+  - id: head-over-heels-phrase
+    headword: "head over heels"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "deeply in love"
+        definition_vi: "yêu say đắm"
+    examples:
+      - text: "They fell {{head over heels}} in love."
+
+  - id: go-be-on-holiday-phrase
+    headword: "go/be on holiday"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "take a vacation"
+        definition_vi: "đi nghỉ mát"
+    examples:
+      - text: "We're {{going on holiday}} next week."
+
+  - id: have-take-a-holiday-phrase
+    headword: "have/take a holiday"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "take time off from work"
+        definition_vi: "có kì nghỉ"
+    examples:
+      - text: "I need to {{take a holiday}} soon."
+
+  - id: bank-holiday-phrase
+    headword: "bank holiday"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "a public holiday"
+        definition_vi: "ngày nghỉ lễ của ngân hàng (ở Anh)"
+    examples:
+      - text: "Most shops are closed on a {{bank holiday}}."
+
+  - id: go-turn-etc-left-phrase
+    headword: "go/turn/etc left"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "move to the left side"
+        definition_vi: "rẽ trái"
+    examples:
+      - text: "Turn {{left}} at the traffic lights."
+
+  - id: on-the-left-phrase
+    headword: "on the left"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "on the side that is to the west when you face north"
+        definition_vi: "ở bên trái"
+    examples:
+      - text: "The bank is {{on the left}}."
+
+  - id: on-the-left-hand-side-phrase
+    headword: "on the left-hand side"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "on the left part"
+        definition_vi: "ở phía bên tay trái"
+    examples:
+      - text: "Our house is {{on the left-hand side}} of the street."
+
+  - id: in-the-left-hand-corner-phrase
+    headword: "in the left-hand corner"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "in the corner on the left"
+        definition_vi: "ở góc bên tay trái"
+    examples:
+      - text: "The signature is {{in the left-hand corner}}."
+
+  - id: plan-a-route-phrase
+    headword: "plan a route"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "decide on a path to take"
+        definition_vi: "lên kế hoạch cho tuyến đường"
+    examples:
+      - text: "We need to {{plan our route}} carefully."
+
+  - id: take-a-route-phrase
+    headword: "take a route"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "go by a particular path"
+        definition_vi: "đi theo lộ trình"
+    examples:
+      - text: "We decided to {{take a different route}} home."
+
+  - id: see-the-sights-phrase
+    headword: "see the sights"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "visit famous places"
+        definition_vi: "ngắm cảnh, tham quan"
+    examples:
+      - text: "We spent the day {{seeing the sights}} in Paris."
+
+  - id: go-sightseeing-phrase
+    headword: "go sightseeing"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "the activity of visiting interesting places"
+        definition_vi: "đi ngắm cảnh"
+    examples:
+      - text: "We went {{sightseeing}} around the city."
+
+  - id: at-high-full-etc-speed-phrase
+    headword: "at high/full/etc speed"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "very fast"
+        definition_vi: "ở tốc độ cao"
+    examples:
+      - text: "The car was travelling {{at high speed}}."
+
+  - id: a-burst-of-speed-phrase
+    headword: "a burst of speed"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "a sudden increase in speed"
+        definition_vi: "việc tăng tốc đột ngột"
+    examples:
+      - text: "The runner made a {{burst of speed}} at the end."
+
+  - id: speed-limit-phrase
+    headword: "speed limit"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "the fastest speed allowed"
+        definition_vi: "giới hạn tốc độ"
+    examples:
+      - text: "You must obey the {{speed limit}}."
+
+  - id: go-on-take-a-tour-of-around-phrase
+    headword: "go on / take a tour of/around"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "visit a place with a guide"
+        definition_vi: "đi tham quan (có hướng dẫn)"
+    examples:
+      - text: "We {{went on a tour of}} the city."
+
+  - id: tour-a-place-phrase
+    headword: "tour a place"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "travel around a place"
+        definition_vi: "thăm thú một nơi"
+    examples:
+      - text: "We plan to {{tour Europe}} next summer."
+
+  - id: tour-guide-phrase
+    headword: "tour guide"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "a person who shows tourists around"
+        definition_vi: "hướng dẫn viên du lịch"
+    examples:
+      - text: "Our {{tour guide}} was very knowledgeable."
+
+  - id: business-trip-phrase
+    headword: "business trip"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "a journey for work"
+        definition_vi: "chuyến công tác"
+    examples:
+      - text: "He's away on a {{business trip}}."
+
+  - id: school-trip-phrase
+    headword: "school trip"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "an outing for students"
+        definition_vi: "chuyến dã ngoại của trường"
+    examples:
+      - text: "The kids are on a {{school trip}} to the museum."
+
+  - id: go-on-a-trip-phrase
+    headword: "go on a trip"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "travel somewhere"
+        definition_vi: "đi một chuyến"
+    examples:
+      - text: "We are {{going on a trip}} to the mountains."
+
+  - id: take-a-trip-phrase
+    headword: "take a trip"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "travel"
+        definition_vi: "thực hiện chuyến đi"
+    examples:
+      - text: "Let's {{take a trip}} to the beach this weekend."
+
+  - id: lose-make-find-your-way-phrase
+    headword: "lose/make/find your way"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "get lost/go towards/discover the path"
+        definition_vi: "lạc đường/tìm đường"
+    examples:
+      - text: "We {{lost our way}} in the forest."
+
+  - id: in-a-way-phrase
+    headword: "in a way"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "to some extent"
+        definition_vi: "theo một cách nào đó"
+    examples:
+      - text: "{{In a way}}, I agree with you."
+
+  - id: on-the-way-phrase
+    headword: "on the way"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "while travelling"
+        definition_vi: "trên đường đi"
+    examples:
+      - text: "I'll buy some milk {{on the way}} home."
+
+  - id: go-all-the-way-phrase
+    headword: "go all the way"
+    pos: phrase
+    cefr: B2
+    tags: [collocation]
+    senses:
+      - definition_en: "travel the whole distance"
+        definition_vi: "đi đến cùng, đi cả quãng đường"
+    examples:
+      - text: "We had to {{go all the way}} back to get it."
+
+  - id: afraid-of-sth-sb-doing-pattern
+    headword: "afraid of sth/sb/doing"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "scared of"
+        definition_vi: "sợ cái gì/ai"
+    examples:
+      - text: "Are you {{afraid of}} spiders?"
+
+  - id: appear-to-be-pattern
+    headword: "appear to be"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "seem to be"
+        definition_vi: "có vẻ như là"
+    examples:
+      - text: "He {{appears to be}} very tired."
+
+  - id: arrange-sth-with-sb-pattern
+    headword: "arrange sth with sb"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "plan sth with sb"
+        definition_vi: "sắp xếp cái gì với ai"
+    examples:
+      - text: "I've {{arranged a meeting with}} the manager."
+
+  - id: arrange-for-sb-to-do-pattern
+    headword: "arrange for sb to do"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "make plans for someone to do sth"
+        definition_vi: "sắp xếp cho ai làm gì"
+    examples:
+      - text: "I'll {{arrange for a taxi to pick}} you up."
+
+  - id: arrive-in-at-a-place-pattern
+    headword: "arrive in/at a place"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "reach a place"
+        definition_vi: "đến (in + thành phố/quốc gia, at + địa điểm nhỏ)"
+    examples:
+      - text: "What time did you {{arrive at}} the station?"
+
+  - id: arrive-here-there-pattern
+    headword: "arrive here/there"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "reach this/that place"
+        definition_vi: "đến đây/đó"
+    examples:
+      - text: "Call me when you {{arrive there}}."
+
+  - id: continue-sth-doing-pattern
+    headword: "continue sth/doing"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "keep doing sth"
+        definition_vi: "tiếp tục cái gì/làm gì"
+    examples:
+      - text: "She {{continued reading}} her book."
+
+  - id: continue-to-do-pattern
+    headword: "continue to do"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "keep doing sth"
+        definition_vi: "tiếp tục làm gì"
+    examples:
+      - text: "The rain {{continued to fall}} all afternoon."
+
+  - id: continue-with-sth-pattern
+    headword: "continue with sth"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "keep doing sth"
+        definition_vi: "tiếp tục với cái gì"
+    examples:
+      - text: "Please {{continue with}} your work."
+
+  - id: differ-from-sth-sb-pattern
+    headword: "differ from sth/sb"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "be different from"
+        definition_vi: "khác với"
+    examples:
+      - text: "French {{differs from}} English in many ways."
+
+  - id: dream-about-of-sth-sb-doing-pattern
+    headword: "dream about/of sth/sb/doing"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "think about while sleeping or as a goal"
+        definition_vi: "mơ về"
+    examples:
+      - text: "I {{dreamt about}} you last night."
+
+  - id: invite-sb-to-do-pattern
+    headword: "invite sb to do"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "ask sb to an event"
+        definition_vi: "mời ai làm gì"
+    examples:
+      - text: "They {{invited us to}} their wedding."
+
+  - id: keen-to-do-pattern
+    headword: "keen to do"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "wanting to do something very much"
+        definition_vi: "rất muốn làm gì"
+    examples:
+      - text: "He is very {{keen to help}}."
+
+  - id: keen-on-sth-sb-doing-pattern
+    headword: "keen on sth/sb/doing"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "interested in"
+        definition_vi: "thích, say mê"
+    examples:
+      - text: "I'm not very {{keen on}} spicy food."
+
+  - id: live-in-at-a-place-pattern
+    headword: "live in/at a place"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "reside"
+        definition_vi: "sống ở"
+    examples:
+      - text: "She {{lives in}} a small flat in London."
+
+  - id: live-on-for-sth-pattern
+    headword: "live on/for sth"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "eat only a particular food/have a reason to live"
+        definition_vi: "sống dựa vào/sống vì"
+    examples:
+      - text: "He practically {{lives on}} junk food."
+
+  - id: live-here-there-pattern
+    headword: "live here/there"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "reside here/there"
+        definition_vi: "sống ở đây/đó"
+    examples:
+      - text: "I used to {{live there}}."
+
+  - id: regret-not-doing-pattern
+    headword: "regret (not) doing"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "feel sorry about"
+        definition_vi: "hối tiếc vì (không) làm gì"
+    examples:
+      - text: "I {{regret not buying}} that dress."
+
+  - id: regret-sth-pattern
+    headword: "regret sth"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "feel sorry about sth"
+        definition_vi: "hối tiếc điều gì"
+    examples:
+      - text: "I deeply {{regret my mistake}}."
+
+  - id: regret-to-tell-inform-you-pattern
+    headword: "regret to tell/inform you"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "feel sorry to say"
+        definition_vi: "lấy làm tiếc phải thông báo"
+    examples:
+      - text: "We {{regret to inform you}} that your application was unsuccessful."
+
+  - id: think-of-about-sth-sb-doing-pattern
+    headword: "think of/about sth/sb/doing"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "consider"
+        definition_vi: "nghĩ về"
+    examples:
+      - text: "What are you {{thinking about}}?"
+
+  - id: write-about-sth-sb-doing-pattern
+    headword: "write about sth/sb/doing"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "write concerning"
+        definition_vi: "viết về"
+    examples:
+      - text: "She's {{writing a book about}} her travels."
+
+  - id: write-sth-to-sb-pattern
+    headword: "write sth to sb"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "send written words to sb"
+        definition_vi: "viết cái gì cho ai"
+    examples:
+      - text: "I will {{write a letter to}} him."
+
+  - id: write-sb-sth-pattern
+    headword: "write sb sth"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "send someone written words"
+        definition_vi: "viết cho ai cái gì"
+    examples:
+      - text: "He {{wrote me a beautiful poem}}."
+
+  - id: write-sth-down-pattern
+    headword: "write sth down"
+    pos: phrase
+    cefr: B2
+    tags: [pattern]
+    senses:
+      - definition_en: "record in writing"
+        definition_vi: "viết ra, ghi chép lại"
+    examples:
+      - text: "Did you {{write down}} his phone number?"
+
+  - id: arrange-formation
+    headword: "arrange"
+    pos: verb
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: "Related forms: arrangement"
+        definition_vi: "sắp xếp, sự sắp xếp"
+    examples:
+      - text: "We need to make an {{arrangement}} for the meeting."
+
+  - id: rearrange-formation
+    headword: "rearrange"
+    pos: verb
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: "Related forms: rearrange"
+        definition_vi: "sắp xếp lại"
+    examples:
+      - text: "Let's {{rearrange}} the furniture."
+
+  - id: arrive-formation
+    headword: "arrive"
+    pos: verb
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: "Related forms: arrival"
+        definition_vi: "đến, sự đến nơi"
+    examples:
+      - text: "We're waiting for the {{arrival}} of the train."
+
+  - id: broad-formation
+    headword: "broad"
+    pos: adjective
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: "Related forms: breadth, broaden"
+        definition_vi: "rộng, chiều rộng, mở rộng"
+    examples:
+      - text: "Travel {{broadens}} the mind."
+    metadata:
+      related_forms:
+        - form: breadth
+          pos: noun
+        - form: broaden
+          pos: verb
+
+  - id: culture-formation
+    headword: "culture"
+    pos: noun
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: "Related forms: cultural"
+        definition_vi: "văn hóa, thuộc văn hóa"
+    examples:
+      - text: "It was a very interesting {{cultural}} experience."
+    metadata:
+      related_forms:
+        - form: cultural
+          pos: adjective
+
+  - id: cultured-formation
+    headword: "cultured"
+    pos: adjective
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: "Related forms: uncultured"
+        definition_vi: "có học thức/văn hóa, không có học thức/văn hóa"
+    examples:
+      - text: "He is a very {{cultured}} man."
+    metadata:
+      related_forms:
+        - form: uncultured
+          pos: adjective
+
+  - id: differ-formation
+    headword: "differ"
+    pos: verb
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: "Related forms: different, differently, difference"
+        definition_vi: "khác biệt, khác, một cách khác, sự khác biệt"
+    examples:
+      - text: "There is a big {{difference}} between the two cars."
+    metadata:
+      related_forms:
+        - form: different
+          pos: adjective
+        - form: differently
+          pos: adverb
+        - form: difference
+          pos: noun
+
+  - id: direct-formation
+    headword: "direct"
+    pos: adjective
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: "Related forms: indirect, direction, director, directly, indirectly"
+        definition_vi: "trực tiếp, gián tiếp, hướng/sự chỉ dẫn, giám đốc, một cách trực tiếp, một cách gián tiếp"
+    examples:
+      - text: "Which {{direction}} are we going in?"
+    metadata:
+      related_forms:
+        - form: indirect
+          pos: adjective
+        - form: direction
+          pos: noun
+        - form: director
+          pos: noun
+        - form: directly
+          pos: adverb
+        - form: indirectly
+          pos: adverb
+
+  - id: distant-formation
+    headword: "distant"
+    pos: adjective
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: "Related forms: distantly, distance"
+        definition_vi: "xa xôi, một cách xa xôi, khoảng cách"
+    examples:
+      - text: "The sun is a great {{distance}} from the earth."
+    metadata:
+      related_forms:
+        - form: distantly
+          pos: adverb
+        - form: distance
+          pos: noun
+
+  - id: enter-formation
+    headword: "enter"
+    pos: verb
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: "Related forms: entrance"
+        definition_vi: "đi vào, lối vào"
+    examples:
+      - text: "The {{entrance}} to the museum is round the corner."
+
+  - id: inhabit-formation
+    headword: "inhabit"
+    pos: verb
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: "Related forms: inhabitant"
+        definition_vi: "cư trú, cư dân"
+    examples:
+      - text: "The island has only 100 {{inhabitants}}."
+
+  - id: photograph-formation
+    headword: "photograph"
+    pos: verb
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: "Related forms: photography, photographer, photographic"
+        definition_vi: "chụp ảnh/bức ảnh, nhiếp ảnh, nhiếp ảnh gia, thuộc nhiếp ảnh"
+    examples:
+      - text: "She's a very talented {{photographer}}."
+    metadata:
+      related_forms:
+        - form: photography
+          pos: noun
+        - form: photographer
+          pos: noun
+        - form: photographic
+          pos: adjective
+
+  - id: recognise-formation
+    headword: "recognise"
+    pos: verb
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: "Related forms: recognition, recognisable, unrecognisable"
+        definition_vi: "nhận ra, sự công nhận/nhận ra, có thể nhận ra, không thể nhận ra"
+    examples:
+      - text: "He's changed so much he's hardly {{recognisable}}."
+    metadata:
+      related_forms:
+        - form: recognition
+          pos: noun
+        - form: recognisable
+          pos: adjective
+        - form: unrecognisable
+          pos: adjective
+
+  - id: time-formation
+    headword: "time"
+    pos: noun
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: "Related forms: timetable"
+        definition_vi: "thời gian, thời khóa biểu/lịch trình"
+    examples:
+      - text: "Have you got a bus {{timetable}}?"
+    metadata:
+      related_forms:
+        - form: timetable
+          pos: noun
+
+  - id: tour-formation
+    headword: "tour"
+    pos: noun
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: "Related forms: tourism, tourist"
+        definition_vi: "chuyến tham quan, ngành du lịch, khách du lịch"
+    examples:
+      - text: "The island's economy depends on {{tourism}}."
+    metadata:
+      related_forms:
+        - form: tourism
+          pos: noun
+        - form: tourist
+          pos: noun
+
+  - id: world-formation
+    headword: "world"
+    pos: noun
+    cefr: B2
+    tags: [word_formation]
+    senses:
+      - definition_en: "Related forms: worldwide"
+        definition_vi: "thế giới, khắp thế giới"
+    examples:
+      - text: "The company has a {{worldwide}} reputation."
+    metadata:
+      related_forms:
+        - form: worldwide
+          pos: adjective/adverb

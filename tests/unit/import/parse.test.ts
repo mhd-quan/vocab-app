@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import path from "node:path";
+import yaml from "js-yaml";
 import { describe, expect, it } from "vitest";
 import { ZodError } from "zod";
 import {
@@ -76,6 +79,18 @@ describe("parseVocabFile", () => {
       entries: [{ headword: "x", pos: "noun" }],
     });
     expect(parsed.bookTitle).toBe("Destination B1");
+  });
+
+  it("accepts unit and lesson metadata for curriculum rows", () => {
+    const parsed = parseVocabFile({
+      ...baseFile,
+      unit: { ...baseFile.unit, metadata: { source: "template" } },
+      lesson: { ...baseFile.lesson, metadata: { study_surface: "unit_page" } },
+      entries: [{ headword: "x", pos: "noun" }],
+    });
+
+    expect(parsed.unit.metadata).toEqual({ source: "template" });
+    expect(parsed.lesson.metadata).toEqual({ study_surface: "unit_page" });
   });
 
   it("accepts prep+noun collocation patterns", () => {
@@ -276,6 +291,18 @@ describe("cloze parsing", () => {
 });
 
 describe("parseGrammarFile", () => {
+  it("accepts unit and lesson metadata for grammar curriculum rows", () => {
+    const parsed = parseGrammarFile({
+      ...baseGrammarFile,
+      unit: { ...baseGrammarFile.unit, metadata: { source: "template" } },
+      lesson: { ...baseGrammarFile.lesson, metadata: { practice_intent: "revision" } },
+      topics: [{ slug: "g", title: "G" }],
+    });
+
+    expect(parsed.unit.metadata).toEqual({ source: "template" });
+    expect(parsed.lesson.metadata).toEqual({ practice_intent: "revision" });
+  });
+
   it("parses grammar topics and folds rich teaching fields into metadata", () => {
     const parsed = parseGrammarFile({
       ...baseGrammarFile,
@@ -351,5 +378,16 @@ describe("parseContentFile", () => {
     expect(parseContentFile({ ...baseGrammarFile, topics: [{ slug: "g", title: "G" }] }).kind).toBe(
       "grammar",
     );
+  });
+});
+
+describe("authoring templates", () => {
+  it.each([
+    ["vocab-study-page-template.yaml", "vocabulary"],
+    ["revision-practice-grammar-template.yaml", "grammar"],
+  ])("keeps %s aligned with the importer schema", (fileName, expectedKind) => {
+    const templatePath = path.join(process.cwd(), "content", "templates", fileName);
+    const raw = yaml.load(fs.readFileSync(templatePath, "utf8"));
+    expect(parseContentFile(raw).kind).toBe(expectedKind);
   });
 });

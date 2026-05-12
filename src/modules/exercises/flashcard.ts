@@ -48,6 +48,7 @@ export const flashcardPlugin: ExercisePlugin<
         back: {
           definitionsEn,
           definitionVi,
+          definitionPriority: ctx.definitionPriority ?? "en_first",
           exampleText,
         },
       },

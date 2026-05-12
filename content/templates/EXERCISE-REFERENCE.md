@@ -4,6 +4,12 @@ This reference describes the current exercise data requirements and grading rule
 
 ## Current Types
 
+Exercise/revision authoring currently flows through either vocabulary entries
+or grammar topic `activities`. Although `lesson.kind` has reserved enum values
+such as `exercise` and `revision`, those lesson kinds are not import-backed
+yet. Use `lesson.kind: grammar` plus activity metadata for revision sets until
+the app has a concrete custom-exercise table and runtime screen.
+
 ### flashcard
 
 - Purpose: show a word and let the student self-grade recall.
@@ -133,6 +139,13 @@ activities:
 ```
 
 - Grading: normalized text match against `answer` and `accepted_answers`.
+
+## Current Revision Template
+
+Use `revision-practice-grammar-template.yaml` for a unit-level exercise or
+revision page today. It imports as a grammar lesson, appears on the student
+unit page alongside other grammar lessons, and builds the practice deck from
+the same activity types listed above.
 
 ## Planned Types
 

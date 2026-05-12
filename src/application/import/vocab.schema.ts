@@ -103,6 +103,7 @@ export const vocabFileSchema = z
         code: z.string().min(1),
         title: z.string().min(1),
         summary_md: z.string().optional(),
+        metadata: z.record(z.unknown()).optional(),
       })
       .strict(),
     lesson: z
@@ -111,6 +112,7 @@ export const vocabFileSchema = z
         kind: z.literal("vocabulary"),
         title: z.string().min(1),
         slug: z.string().regex(slugRegex, "slug must be lowercase-kebab"),
+        metadata: z.record(z.unknown()).optional(),
       })
       .strict(),
     entries: z.array(entryInputSchema).min(1, "file must contain at least one entry"),

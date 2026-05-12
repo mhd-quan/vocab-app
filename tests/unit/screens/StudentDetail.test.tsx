@@ -1,6 +1,6 @@
-import type { Student } from "@/data/types";
+import type { Book, Student, Unit } from "@/data/types";
 import { TutorStudentDetail } from "@/ui/screens/tutor/StudentDetail";
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mountTutorScreen } from "../../test-router";
 
@@ -16,6 +16,34 @@ function student(): Student {
     pinHash: null,
     notes: null,
     archivedAt: null,
+    createdAt: epoch,
+    updatedAt: epoch,
+  };
+}
+
+function book(): Book {
+  return {
+    id: 1,
+    code: "destination-b2",
+    title: "Destination B2",
+    level: null,
+    publisher: null,
+    language: "en",
+    metadata: null,
+    createdAt: epoch,
+    updatedAt: epoch,
+  };
+}
+
+function unit(): Unit {
+  return {
+    id: 10,
+    bookId: 1,
+    ordinal: 1,
+    code: "U01",
+    title: "Unit 1",
+    summaryMd: null,
+    metadata: null,
     createdAt: epoch,
     updatedAt: epoch,
   };
@@ -107,6 +135,27 @@ describe("TutorStudentDetail", () => {
     renderDetail();
     await waitFor(() => {
       expect(screen.getByText(/first steps/i)).toBeInTheDocument();
+    });
+  });
+
+  it("shows an actionable assignment error when the running main process is stale", async () => {
+    vi.spyOn(window.api.curriculum, "listBooks").mockResolvedValue([book()]);
+    vi.spyOn(window.api.curriculum, "listUnitsByBook").mockResolvedValue([unit()]);
+    vi.spyOn(window.api.students, "listAssignedUnitIds").mockResolvedValue([]);
+    vi.spyOn(window.api.students, "replaceUnitAssignments").mockRejectedValue(
+      new Error(
+        "Error invoking remote method 'students.replaceUnitAssignments': Error: No handler registered for 'students.replaceUnitAssignments'",
+      ),
+    );
+
+    renderDetail();
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /save assignments/i })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("button", { name: /save assignments/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent(/restart the app once/i);
     });
   });
 

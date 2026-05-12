@@ -335,16 +335,28 @@ function AssignmentsPanel({
             <p className="text-xs text-success">Assignments saved.</p>
           ) : null}
           {saveAssignments.isError ? (
-            <p className="text-xs text-danger">
-              {saveAssignments.error instanceof Error
-                ? saveAssignments.error.message
-                : "Could not save assignments."}
+            <p
+              role="alert"
+              className="rounded-2xl border border-danger/30 bg-danger/10 px-3 py-2 text-xs leading-5 text-danger"
+            >
+              {formatAssignmentSaveError(saveAssignments.error)}
             </p>
           ) : null}
         </div>
       )}
     </Panel>
   );
+}
+
+function formatAssignmentSaveError(error: unknown): string {
+  const message = error instanceof Error ? error.message : "";
+  if (
+    message.includes("No handler registered") &&
+    message.includes("students.replaceUnitAssignments")
+  ) {
+    return "Assignment saving is unavailable in this running app process. Restart the app once so the v0.5.1 tutor handlers load, then try again.";
+  }
+  return message || "Could not save assignments.";
 }
 
 function Stat({

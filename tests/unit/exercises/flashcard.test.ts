@@ -19,6 +19,7 @@ describe("flashcardPlugin.build", () => {
     expect(ex?.payload.front.ipa).toBe("/ˈrelətɪv/");
     expect(ex?.payload.back.definitionsEn).toEqual(["a member of your family"]);
     expect(ex?.payload.back.definitionVi).toBe("người thân");
+    expect(ex?.payload.back.definitionPriority).toBe("en_first");
     expect(ex?.payload.back.exampleText).toContain("{{relatives}}");
   });
 

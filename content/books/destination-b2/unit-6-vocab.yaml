@@ -1,0 +1,1731 @@
+book: destination-b2
+book_title: Destination B2 Grammar and Vocabulary
+unit:
+  ordinal: 6
+  code: U06
+  title: Science and technology
+  summary_md: Vocabulary for Science and Technology including topic vocabulary in contrast, phrasal verbs, phrases and collocations, word patterns, and word formation.
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: Science and technology Vocab
+  slug: science-and-technology-vocab
+entries:
+  - id: artificial-adjective
+    headword: "artificial"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "not natural or real, but made by people"
+        definition_vi: "nhân tạo"
+    examples:
+      - text: "The growers use both natural and {{artificial}} light."
+
+  - id: false-adjective
+    headword: "false"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "made to look like something real"
+        definition_vi: "giả"
+    examples:
+      - text: "I realised that the man was wearing a {{false}} beard."
+
+  - id: natural-adjective
+    headword: "natural"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "existing in nature, and not produced by people"
+        definition_vi: "tự nhiên"
+    examples:
+      - text: "This cloth is made from {{natural}} fibres."
+
+  - id: physical-adjective
+    headword: "physical"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "real and able to be seen, touched or felt"
+        definition_vi: "vật lý, thuộc về vật chất"
+    examples:
+      - text: "There was no {{physical}} evidence to connect him to the crime."
+
+  - id: true-adjective
+    headword: "true"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "based on facts or on things that really happened"
+        definition_vi: "thật, đúng"
+    examples:
+      - text: "The film is based on a {{true}} story."
+
+  - id: accurate-adjective
+    headword: "accurate"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "correct in every detail and without any mistakes"
+        definition_vi: "chính xác"
+    examples:
+      - text: "We need to get an {{accurate}} estimate of what the new building will cost."
+
+  - id: method-noun
+    headword: "method"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "a way of doing something, especially a planned or established way"
+        definition_vi: "phương pháp"
+    examples:
+      - text: "We developed new {{methods}} of pollution control."
+
+  - id: way-noun
+    headword: "way"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "a method for doing something"
+        definition_vi: "cách thức"
+    examples:
+      - text: "There are so many delicious {{ways}} you can prepare chicken."
+
+  - id: engine-noun
+    headword: "engine"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "the part of a vehicle that makes it move"
+        definition_vi: "động cơ (xe cộ)"
+    examples:
+      - text: "There was a problem with the car's {{engine}}."
+
+  - id: machine-noun
+    headword: "machine"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "a piece of equipment with moving parts that does a particular job"
+        definition_vi: "máy móc"
+    examples:
+      - text: "Sue showed him how to operate the washing {{machine}}."
+
+  - id: motor-noun
+    headword: "motor"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "the part of a machine or vehicle that makes it work"
+        definition_vi: "mô tơ, động cơ (máy)"
+    examples:
+      - text: "The pump is powered by an electric {{motor}}."
+
+  - id: aim-noun
+    headword: "aim"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "the thing that you hope to achieve by doing something"
+        definition_vi: "mục đích"
+    examples:
+      - text: "My main {{aim}} on this course is to gain confidence."
+
+  - id: cause-noun
+    headword: "cause"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "an event, thing or person that makes something happen"
+        definition_vi: "nguyên nhân"
+    examples:
+      - text: "The {{cause}} of death was found to be a heart attack."
+
+  - id: reason-noun
+    headword: "reason"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "a fact, situation or intention that explains why something happened, why someone did something or why something is true"
+        definition_vi: "lý do"
+    examples:
+      - text: "The police asked her the {{reason}} for her visit."
+
+  - id: estimate-verb
+    headword: "estimate"
+    pos: verb
+    cefr: B2
+    tags: [science, technology, verb]
+    senses:
+      - definition_en: "to guess or calculate an amount or value by using available information"
+        definition_vi: "ước tính"
+    examples:
+      - text: "It is impossible to {{estimate}} how many of the residents were affected."
+
+  - id: calculate-verb
+    headword: "calculate"
+    pos: verb
+    cefr: B2
+    tags: [science, technology, verb]
+    senses:
+      - definition_en: "to discover a number or amount by using mathematics"
+        definition_vi: "tính toán"
+    examples:
+      - text: "He {{calculates}} that the proposal would cost 4 million."
+
+  - id: electric-adjective
+    headword: "electric"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "using or relating to electricity"
+        definition_vi: "sử dụng điện"
+    examples:
+      - text: "I've just got a new {{electric}} toothbrush."
+
+  - id: electronic-adjective
+    headword: "electronic"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "using electricity and extremely small electrical parts, such as microchips"
+        definition_vi: "điện tử"
+    examples:
+      - text: "Our maths teacher said that we're allowed to use {{electronic}} calculators in the exam."
+
+  - id: invent-verb
+    headword: "invent"
+    pos: verb
+    cefr: B2
+    tags: [science, technology, verb]
+    senses:
+      - definition_en: "to design or create something that did not exist before"
+        definition_vi: "phát minh"
+    examples:
+      - text: "Alfred Nobel {{invented}} dynamite."
+
+  - id: discover-verb
+    headword: "discover"
+    pos: verb
+    cefr: B2
+    tags: [science, technology, verb]
+    senses:
+      - definition_en: "to find something that was hidden or that people did not know about before"
+        definition_vi: "khám phá"
+      - definition_en: "to find information, a place, or an object, especially for the first time"
+        definition_vi: "khám phá"
+    examples:
+      - text: "William Herschel {{discovered}} Uranus in 1781."
+      - text: "We {{discovered}} a new path."
+
+  - id: research-noun
+    headword: "research"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "the detailed study of something in order to discover new facts"
+        definition_vi: "nghiên cứu"
+    examples:
+      - text: "He did some {{research}} into the causes of lung cancer."
+
+  - id: experiment-noun
+    headword: "experiment"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "a scientific test to find out what happens to someone or something in particular conditions"
+        definition_vi: "thí nghiệm"
+    examples:
+      - text: "Researchers now need to conduct further {{experiments}}."
+
+  - id: progress-noun
+    headword: "progress"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "the process of developing or improving"
+        definition_vi: "tiến bộ"
+    examples:
+      - text: "Keep me informed about the {{progress}} of the project."
+
+  - id: development-noun
+    headword: "development"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "change, growth or improvement over a period of time"
+        definition_vi: "phát triển"
+    examples:
+      - text: "The {{development}} in the country's economy means that more people are able to buy their own homes."
+
+  - id: modern-adjective
+    headword: "modern"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "relating to or belonging to the present time"
+        definition_vi: "hiện đại"
+    examples:
+      - text: "Modern architecture is largely characterized by its simplicity."
+
+  - id: new-adjective
+    headword: "new"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "recently made, invented or developed"
+        definition_vi: "mới"
+    examples:
+      - text: "They are going to build a {{new}} office block here."
+
+  - id: industry-noun
+    headword: "industry"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "all the businesses involved in producing a particular type of goods or services"
+        definition_vi: "công nghiệp"
+    examples:
+      - text: "The new tax will affect everyone in the fishing {{industry}}."
+
+  - id: factory-noun
+    headword: "factory"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "a building where large quantities of goods are produced using machines"
+        definition_vi: "nhà máy"
+    examples:
+      - text: "She works in a clothing {{factory}}."
+
+  - id: award-noun
+    headword: "award"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "a prize that is given to someone who has achieved something"
+        definition_vi: "giải thưởng (được trao)"
+    examples:
+      - text: "She won the Player of the Year {{award}}."
+
+  - id: reward-noun
+    headword: "reward"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "something good that happens or that you receive because of something that you have done"
+        definition_vi: "phần thưởng"
+    examples:
+      - text: "You deserve a day off as a {{reward}} for working so hard."
+
+  - id: take-place-verb
+    headword: "take place"
+    pos: verb
+    cefr: B2
+    tags: [science, technology, verb]
+    senses:
+      - definition_en: "to happen"
+        definition_vi: "diễn ra (có kế hoạch)"
+    examples:
+      - text: "The Olympics {{take place}} every four years."
+
+  - id: occur-verb
+    headword: "occur"
+    pos: verb
+    cefr: B2
+    tags: [science, technology, verb]
+    senses:
+      - definition_en: "to happen"
+        definition_vi: "xảy ra (bất ngờ)"
+    examples:
+      - text: "The police said that the accident {{occurred}} at about 4.30 pm."
+
+  - id: break-down-phrasal_verb
+    headword: "break down"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [science, technology, phrasal_verb]
+    senses:
+      - definition_en: "stop working (for a machine, etc)"
+        definition_vi: "hỏng hóc"
+    examples:
+      - text: "Our car {{broke down}} on the motorway."
+
+  - id: carry-out-phrasal_verb
+    headword: "carry out"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [science, technology, phrasal_verb]
+    senses:
+      - definition_en: "perform an experiment, etc"
+        definition_vi: "tiến hành"
+    examples:
+      - text: "The investigators have been {{carrying out}} tests on the pieces of plane recovered."
+
+  - id: come-off-phrasal_verb
+    headword: "come off"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [science, technology, phrasal_verb]
+    senses:
+      - definition_en: "succeed"
+        definition_vi: "thành công"
+    examples:
+      - text: "Well, I think it's a stupid plan and I'll be amazed if it {{comes off}}."
+
+  - id: come-on-phrasal_verb
+    headword: "come on"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [science, technology, phrasal_verb]
+    senses:
+      - definition_en: "develop or make progress"
+        definition_vi: "tiến triển"
+    examples:
+      - text: "Your piano playing is really {{coming on}}, isn't it?"
+
+  - id: come-up-with-phrasal_verb
+    headword: "come up with"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [science, technology, phrasal_verb]
+    senses:
+      - definition_en: "think of (an idea, a plan, etc)"
+        definition_vi: "nghĩ ra"
+    examples:
+      - text: "She's {{come up with}} some amazing scheme to double her income."
+
+  - id: cut-off-phrasal_verb
+    headword: "cut off"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [science, technology, phrasal_verb]
+    senses:
+      - definition_en: "stop the supply of sth"
+        definition_vi: "cắt (nguồn cung cấp)"
+    examples:
+      - text: "Pay the electricity bill tomorrow or they might {{cut us off}}."
+
+  - id: find-out-phrasal_verb
+    headword: "find out"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [science, technology, phrasal_verb]
+    senses:
+      - definition_en: "discover information, etc"
+        definition_vi: "tìm ra, phát hiện ra"
+    examples:
+      - text: "I've always wanted to {{find out}} more about the ancient Egyptians."
+
+  - id: give-off-phrasal_verb
+    headword: "give off"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [science, technology, phrasal_verb]
+    senses:
+      - definition_en: "produce sth such as heat or a smell"
+        definition_vi: "tỏa ra (nhiệt, mùi)"
+    examples:
+      - text: "The fridge gets hot next to the cooker because it {{gives off}} a lot of heat."
+
+  - id: narrow-down-phrasal_verb
+    headword: "narrow down"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [science, technology, phrasal_verb]
+    senses:
+      - definition_en: "reduce the number of possibilities"
+        definition_vi: "thu hẹp (lựa chọn)"
+    examples:
+      - text: "I still haven't decided which university to go to, but I've {{narrowed it down}} to about four."
+
+  - id: plug-in-phrasal_verb
+    headword: "plug in"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [science, technology, phrasal_verb]
+    senses:
+      - definition_en: "connect to the electricity supply"
+        definition_vi: "cắm điện"
+    examples:
+      - text: "The television isn't working because you haven't {{plugged it in}}!"
+
+  - id: put-through-phrasal_verb
+    headword: "put through"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [science, technology, phrasal_verb]
+    senses:
+      - definition_en: "connect by phone"
+        definition_vi: "nối máy"
+    examples:
+      - text: "I'll just {{put you through}} to the supervisor, caller."
+
+  - id: turn-into-phrasal_verb
+    headword: "turn into"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [science, technology, phrasal_verb]
+    senses:
+      - definition_en: "change into sth different"
+        definition_vi: "biến thành"
+    examples:
+      - text: "It started as the holiday of a lifetime but soon {{turned into}} a nightmare."
+
+  - id: turn-off-phrasal_verb
+    headword: "turn off"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [science, technology, phrasal_verb]
+    senses:
+      - definition_en: "stop a machine working"
+        definition_vi: "tắt"
+    examples:
+      - text: "Would you please {{turn off}} that music?"
+
+  - id: work-out-phrasal_verb
+    headword: "work out"
+    pos: phrasal_verb
+    cefr: B2
+    tags: [science, technology, phrasal_verb]
+    senses:
+      - definition_en: "find the solution to a problem, etc"
+        definition_vi: "tìm ra cách giải quyết"
+    examples:
+      - text: "We need to {{work out}} how we're going to get there."
+
+  - id: make-an-attempt-phrase
+    headword: "make an attempt"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to try to do something"
+        definition_vi: "thử làm gì"
+    examples:
+      - text: "He {{made no attempt}} to apologise."
+
+  - id: attempt-to-do-phrase
+    headword: "attempt to do"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to try to do something"
+        definition_vi: "cố gắng làm gì"
+    examples:
+      - text: "He {{attempted to escape}} through a window."
+
+  - id: in-an-attempt-to-phrase
+    headword: "in an attempt to"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "with the purpose of trying to do something"
+        definition_vi: "với nỗ lực làm gì"
+    examples:
+      - text: "They closed the road {{in an attempt to}} reduce traffic."
+
+  - id: on-average-phrase
+    headword: "on average"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "usually, typically"
+        definition_vi: "trung bình"
+    examples:
+      - text: "{{On average}}, people spend 10 hours a day looking at screens."
+
+  - id: in-the-beginning-phrase
+    headword: "in the beginning"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "at first"
+        definition_vi: "lúc đầu"
+    examples:
+      - text: "{{In the beginning}}, nobody understood what was happening."
+
+  - id: at-the-beginning-of-phrase
+    headword: "at the beginning of"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "the start of something"
+        definition_vi: "ở phần đầu của"
+    examples:
+      - text: "I pay my rent {{at the beginning of}} the month."
+
+  - id: beginning-with-phrase
+    headword: "beginning with"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "starting with"
+        definition_vi: "bắt đầu với"
+    examples:
+      - text: "We are reading a book {{beginning with}} a poem."
+
+  - id: at-the-bottom-phrase
+    headword: "at the bottom"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "the lowest part of something"
+        definition_vi: "ở dưới đáy"
+    examples:
+      - text: "The answers are {{at the bottom}} of the page."
+
+  - id: on-the-bottom-phrase
+    headword: "on the bottom"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "placed on the lowest surface"
+        definition_vi: "trên đáy"
+    examples:
+      - text: "There was a lot of mud {{on the bottom}} of the lake."
+
+  - id: be-the-cause-of-phrase
+    headword: "be the cause of"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to be the reason something happens"
+        definition_vi: "là nguyên nhân của"
+    examples:
+      - text: "The bad weather {{was the cause of}} the delay."
+
+  - id: find-the-cause-of-phrase
+    headword: "find the cause of"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to discover the reason for something"
+        definition_vi: "tìm ra nguyên nhân của"
+    examples:
+      - text: "Scientists are still trying to {{find the cause of}} the disease."
+
+  - id: look-for-the-cause-of-phrase
+    headword: "look for the cause of"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to search for the reason for something"
+        definition_vi: "tìm kiếm nguyên nhân của"
+    examples:
+      - text: "We need to {{look for the cause of}} this issue."
+
+  - id: come-to-a-conclusion-phrase
+    headword: "come to a conclusion"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to decide what is true after considering the facts"
+        definition_vi: "đi đến kết luận"
+    examples:
+      - text: "I've {{come to the conclusion}} that he's not the right person for the job."
+
+  - id: reach-a-conclusion-phrase
+    headword: "reach a conclusion"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to make a decision after considering information"
+        definition_vi: "đạt được kết luận"
+    examples:
+      - text: "The jury {{reached a conclusion}} after hours of debate."
+
+  - id: in-conclusion-phrase
+    headword: "in conclusion"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "finally, to sum up"
+        definition_vi: "tóm lại"
+    examples:
+      - text: "{{In conclusion}}, I would like to thank you all for coming."
+
+  - id: do-an-experiment-phrase
+    headword: "do an experiment"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to perform a scientific test"
+        definition_vi: "làm thí nghiệm"
+    examples:
+      - text: "We will {{do an experiment}} in chemistry class tomorrow."
+
+  - id: perform-an-experiment-phrase
+    headword: "perform an experiment"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to carry out a scientific test"
+        definition_vi: "thực hiện thí nghiệm"
+    examples:
+      - text: "Researchers {{performed an experiment}} on the mice."
+
+  - id: carry-out-an-experiment-phrase
+    headword: "carry out an experiment"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to conduct a scientific test"
+        definition_vi: "tiến hành thí nghiệm"
+    examples:
+      - text: "They {{carried out an experiment}} to test the new drug."
+
+  - id: experiment-with-phrase
+    headword: "experiment with"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to try something to see what result it has"
+        definition_vi: "thử nghiệm với"
+    examples:
+      - text: "Some people {{experiment with}} different diets to lose weight."
+
+  - id: in-fact-phrase
+    headword: "in fact"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "used to emphasize the truth of a statement"
+        definition_vi: "thực tế là"
+    examples:
+      - text: "He was angry. {{In fact}}, he was absolutely furious."
+
+  - id: as-a-matter-of-fact-phrase
+    headword: "as a matter of fact"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "actually, in reality"
+        definition_vi: "thực ra"
+    examples:
+      - text: "I know the man well. {{As a matter of fact}}, I had dinner with him last week."
+
+  - id: the-fact-is-phrase
+    headword: "the fact is"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "used to draw attention to the most important point"
+        definition_vi: "sự thật là"
+    examples:
+      - text: "{{The fact is}} that we are running out of time."
+
+  - id: face-the-facts-phrase
+    headword: "face the facts"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to accept that a difficult situation exists"
+        definition_vi: "đối mặt với sự thật"
+    examples:
+      - text: "We have to {{face the facts}}; the company is losing money."
+
+  - id: with-the-introduction-of-phrase
+    headword: "with the introduction of"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "when something was first brought in"
+        definition_vi: "với sự ra đời của"
+    examples:
+      - text: "Life changed completely {{with the introduction of}} the internet."
+
+  - id: an-introduction-to-phrase
+    headword: "an introduction to"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "a book or course that provides basic knowledge"
+        definition_vi: "lời giới thiệu về"
+    examples:
+      - text: "This book serves as {{an introduction to}} modern physics."
+
+  - id: make-a-phone-call-phrase
+    headword: "make a phone call"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to call someone on the telephone"
+        definition_vi: "gọi điện thoại"
+    examples:
+      - text: "Excuse me, I need to {{make a phone call}}."
+
+  - id: receive-a-phone-call-phrase
+    headword: "receive a phone call"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to get a telephone call"
+        definition_vi: "nhận cuộc gọi"
+    examples:
+      - text: "I {{received a phone call}} from an unknown number."
+
+  - id: get-a-phone-call-phrase
+    headword: "get a phone call"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to receive a telephone call"
+        definition_vi: "nhận cuộc gọi"
+    examples:
+      - text: "Did you {{get a phone call}} from John yesterday?"
+
+  - id: take-a-photo-of-phrase
+    headword: "take a photo of"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to capture an image using a camera"
+        definition_vi: "chụp ảnh"
+    examples:
+      - text: "Could you {{take a photo of}} us, please?"
+
+  - id: carry-out-research-phrase
+    headword: "carry out research"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to do a detailed study"
+        definition_vi: "tiến hành nghiên cứu"
+    examples:
+      - text: "They are {{carrying out research}} into alternative energy."
+
+  - id: do-research-phrase
+    headword: "do research"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to study a subject in detail"
+        definition_vi: "làm nghiên cứu"
+    examples:
+      - text: "I have to {{do research}} for my history essay."
+
+  - id: cause-something-to-do-phrase
+    headword: "cause something to do"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to make something act in a certain way"
+        definition_vi: "khiến cái gì đó làm gì"
+    examples:
+      - text: "The earthquake {{caused the building to collapse}}."
+
+  - id: consider-doing-phrase
+    headword: "consider doing"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to think about doing something"
+        definition_vi: "cân nhắc làm gì"
+    examples:
+      - text: "Have you ever {{considered starting}} your own business?"
+
+  - id: consider-if-phrase
+    headword: "consider if"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to think about whether something is true or should happen"
+        definition_vi: "cân nhắc xem có... không"
+    examples:
+      - text: "We need to {{consider if}} this is the best approach."
+
+  - id: consider-whether-phrase
+    headword: "consider whether"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to think about whether to do something"
+        definition_vi: "cân nhắc liệu"
+    examples:
+      - text: "She is {{considering whether}} to accept the job offer."
+
+  - id: consider-somebody-for-something-phrase
+    headword: "consider somebody for something"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to think of someone as a candidate"
+        definition_vi: "cân nhắc ai cho vị trí nào"
+    examples:
+      - text: "They are {{considering him for the position}} of manager."
+
+  - id: consider-it-strange-phrase
+    headword: "consider it strange"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to think that something is weird"
+        definition_vi: "cho rằng điều gì đó là kỳ lạ"
+    examples:
+      - text: "I {{consider it strange}} that he hasn't replied yet."
+
+  - id: discuss-something-with-somebody-phrase
+    headword: "discuss something with somebody"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to talk about something with someone"
+        definition_vi: "thảo luận điều gì với ai"
+    examples:
+      - text: "I need to {{discuss the plan with my boss}}."
+
+  - id: explain-that-phrase
+    headword: "explain that"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to make something clear by providing details"
+        definition_vi: "giải thích rằng"
+    examples:
+      - text: "He {{explained that}} he would be late due to traffic."
+
+  - id: explain-something-to-somebody-phrase
+    headword: "explain something to somebody"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to make something understandable to someone"
+        definition_vi: "giải thích cái gì cho ai"
+    examples:
+      - text: "Can you {{explain this rule to me}}?"
+
+  - id: intend-to-do-phrase
+    headword: "intend to do"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to have a plan to do something"
+        definition_vi: "dự định làm gì"
+    examples:
+      - text: "I {{intend to finish}} this project by Friday."
+
+  - id: know-about-something-phrase
+    headword: "know about something"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to have information about something"
+        definition_vi: "biết về cái gì"
+    examples:
+      - text: "Do you {{know anything about}} the new policy?"
+
+  - id: know-of-somebody-phrase
+    headword: "know of somebody"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to have heard of someone"
+        definition_vi: "biết đến ai"
+    examples:
+      - text: "I don't know him personally, but I {{know of him}}."
+
+  - id: be-known-as-phrase
+    headword: "be known as"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to be called"
+        definition_vi: "được biết đến như là"
+    examples:
+      - text: "He is {{known as}} one of the best artists of his generation."
+
+  - id: look-at-phrase
+    headword: "look at"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to direct your eyes towards something"
+        definition_vi: "nhìn vào"
+    examples:
+      - text: "Please {{look at}} the board."
+
+  - id: look-for-phrase
+    headword: "look for"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to search for something"
+        definition_vi: "tìm kiếm"
+    examples:
+      - text: "I am {{looking for}} my keys."
+
+  - id: look-forward-to-doing-phrase
+    headword: "look forward to doing"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to be excited about something in the future"
+        definition_vi: "mong đợi làm gì"
+    examples:
+      - text: "I am {{looking forward to seeing}} you again."
+
+  - id: manage-to-do-phrase
+    headword: "manage to do"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to succeed in doing something difficult"
+        definition_vi: "xoay xở làm được việc gì"
+    examples:
+      - text: "Did you {{manage to fix}} the computer?"
+
+  - id: plan-something-phrase
+    headword: "plan something"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to make arrangements for something"
+        definition_vi: "lên kế hoạch cho việc gì"
+    examples:
+      - text: "We are {{planning a surprise party}} for her."
+
+  - id: plan-to-do-phrase
+    headword: "plan to do"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to intend to do something"
+        definition_vi: "kế hoạch làm gì"
+    examples:
+      - text: "I {{plan to visit}} Paris next year."
+
+  - id: possible-to-do-phrase
+    headword: "possible to do"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "able to be done"
+        definition_vi: "có thể làm gì"
+    examples:
+      - text: "Is it {{possible to finish}} this today?"
+
+  - id: find-something-possible-phrase
+    headword: "find something possible"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to discover that something can be done"
+        definition_vi: "cảm thấy cái gì có thể làm được"
+    examples:
+      - text: "I didn't {{find it possible}} to complete the task alone."
+
+  - id: find-it-impossible-to-do-phrase
+    headword: "find it impossible to do"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to realize you cannot do something"
+        definition_vi: "cảm thấy không thể làm gì"
+    examples:
+      - text: "He {{found it impossible to sleep}} with the noise."
+
+  - id: result-of-doing-phrase
+    headword: "result of doing"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "something that happens because of an action"
+        definition_vi: "kết quả của việc làm gì"
+    examples:
+      - text: "His success is the {{result of working}} hard."
+
+  - id: result-in-something-phrase
+    headword: "result in something"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to cause something to happen"
+        definition_vi: "dẫn đến cái gì"
+    examples:
+      - text: "The fire {{resulted in heavy damage}}."
+
+  - id: result-in-your-doing-phrase
+    headword: "result in your doing"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to result in an action by you"
+        definition_vi: "dẫn đến việc bạn làm gì"
+    examples:
+      - text: "This will {{result in your leaving}} early."
+
+  - id: result-from-something-phrase
+    headword: "result from something"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to be caused by something"
+        definition_vi: "bắt nguồn từ"
+    examples:
+      - text: "The flooding {{resulted from the heavy rain}}."
+
+  - id: as-a-result-of-phrase
+    headword: "as a result of"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "because of"
+        definition_vi: "là kết quả của"
+    examples:
+      - text: "He was paralyzed {{as a result of}} the accident."
+
+  - id: wonder-about-something-phrase
+    headword: "wonder about something"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to think about something with curiosity"
+        definition_vi: "tự hỏi về cái gì"
+    examples:
+      - text: "I sometimes {{wonder about the future}}."
+
+  - id: wonder-if-phrase
+    headword: "wonder if"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to ask yourself whether something is true"
+        definition_vi: "tự hỏi liệu"
+    examples:
+      - text: "I {{wonder if}} she will come to the party."
+
+  - id: wonder-why-phrase
+    headword: "wonder why"
+    pos: phrase
+    cefr: B2
+    tags: [science, technology, phrase]
+    senses:
+      - definition_en: "to be curious about the reason"
+        definition_vi: "tự hỏi tại sao"
+    examples:
+      - text: "I {{wonder why}} he left so early."
+
+  - id: appear-verb
+    headword: "appear"
+    pos: verb
+    cefr: B2
+    tags: [science, technology, verb]
+    senses:
+      - definition_en: "to start to be seen"
+        definition_vi: "xuất hiện"
+    examples:
+      - text: "The symptoms usually {{appear}} within three days."
+
+  - id: appearance-noun
+    headword: "appearance"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "the way that someone or something looks"
+        definition_vi: "ngoại hình, sự xuất hiện"
+    examples:
+      - text: "She was very concerned about her physical {{appearance}}."
+
+  - id: apparently-adverb
+    headword: "apparently"
+    pos: adverb
+    cefr: B2
+    tags: [science, technology, adverb]
+    senses:
+      - definition_en: "used to say you have read or been told something although you are not certain it is true"
+        definition_vi: "rõ ràng là, có vẻ như"
+    examples:
+      - text: "{{Apparently}}, it's going to rain today."
+
+  - id: build-verb
+    headword: "build"
+    pos: verb
+    cefr: B2
+    tags: [science, technology, verb]
+    senses:
+      - definition_en: "to make something by putting bricks or materials together"
+        definition_vi: "xây dựng"
+    examples:
+      - text: "They are planning to {{build}} a new stadium."
+
+  - id: builder-noun
+    headword: "builder"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "a person whose job is to make buildings"
+        definition_vi: "thợ xây"
+    examples:
+      - text: "The {{builders}} will finish the roof next week."
+
+  - id: building-noun
+    headword: "building"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "a structure with walls and a roof"
+        definition_vi: "tòa nhà"
+    examples:
+      - text: "The museum is the oldest {{building}} in town."
+
+  - id: discovery-noun
+    headword: "discovery"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "the process of finding information, a place, or an object, especially for the first time"
+        definition_vi: "sự khám phá"
+    examples:
+      - text: "The {{discovery}} of penicillin revolutionized medicine."
+
+  - id: explain-verb
+    headword: "explain"
+    pos: verb
+    cefr: B2
+    tags: [science, technology, verb]
+    senses:
+      - definition_en: "to make something clear or easy to understand"
+        definition_vi: "giải thích"
+    examples:
+      - text: "Could you {{explain}} how this machine works?"
+
+  - id: explanation-noun
+    headword: "explanation"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "the details or reasons that someone gives to make something clear"
+        definition_vi: "lời giải thích"
+    examples:
+      - text: "He gave no {{explanation}} for his absence."
+
+  - id: important-adjective
+    headword: "important"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "necessary or of great value"
+        definition_vi: "quan trọng"
+    examples:
+      - text: "It is {{important}} to read the instructions carefully."
+
+  - id: unimportant-adjective
+    headword: "unimportant"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "not necessary or of value"
+        definition_vi: "không quan trọng"
+    examples:
+      - text: "These details are relatively {{unimportant}}."
+
+  - id: importance-noun
+    headword: "importance"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "the quality of being important"
+        definition_vi: "tầm quan trọng"
+    examples:
+      - text: "He emphasized the {{importance}} of hard work."
+
+  - id: importantly-adverb
+    headword: "importantly"
+    pos: adverb
+    cefr: B2
+    tags: [science, technology, adverb]
+    senses:
+      - definition_en: "used for saying that something is important"
+        definition_vi: "quan trọng hơn là"
+    examples:
+      - text: "More {{importantly}}, we need to secure funding."
+
+  - id: introduce-verb
+    headword: "introduce"
+    pos: verb
+    cefr: B2
+    tags: [science, technology, verb]
+    senses:
+      - definition_en: "to put something into use, operation, or a place for the first time"
+        definition_vi: "giới thiệu, đưa vào sử dụng"
+    examples:
+      - text: "The company decided to {{introduce}} a new policy."
+
+  - id: introduction-noun
+    headword: "introduction"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "the act of introducing something"
+        definition_vi: "sự giới thiệu"
+    examples:
+      - text: "The {{introduction}} of the new rules caused some confusion."
+
+  - id: introductory-adjective
+    headword: "introductory"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "existing, used, or experienced for the first time"
+        definition_vi: "mở đầu, giới thiệu"
+    examples:
+      - text: "We are offering an {{introductory}} price for the new product."
+
+  - id: inventor-noun
+    headword: "inventor"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "someone who has invented something or whose job is to invent things"
+        definition_vi: "nhà phát minh"
+    examples:
+      - text: "Thomas Edison was a famous {{inventor}}."
+
+  - id: invention-noun
+    headword: "invention"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "something that has never been made before"
+        definition_vi: "sự phát minh"
+    examples:
+      - text: "The wheel is one of the greatest {{inventions}} in history."
+
+  - id: observe-verb
+    headword: "observe"
+    pos: verb
+    cefr: B2
+    tags: [science, technology, verb]
+    senses:
+      - definition_en: "to watch carefully the way something happens"
+        definition_vi: "quan sát"
+    examples:
+      - text: "Children learn by {{observing}} adults."
+
+  - id: observer-noun
+    headword: "observer"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "a person who watches what happens but has no active part in it"
+        definition_vi: "người quan sát"
+    examples:
+      - text: "An independent {{observer}} was present at the meeting."
+
+  - id: observation-noun
+    headword: "observation"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "the act of observing something or someone"
+        definition_vi: "sự quan sát"
+    examples:
+      - text: "These results are based on detailed {{observations}}."
+
+  - id: possible-adjective
+    headword: "possible"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "able to be done or achieved"
+        definition_vi: "có thể"
+    examples:
+      - text: "Is it {{possible}} to change the date of the meeting?"
+
+  - id: impossible-adjective
+    headword: "impossible"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "not able to occur, exist, or be done"
+        definition_vi: "không thể"
+    examples:
+      - text: "It was {{impossible}} to sleep because of the noise."
+
+  - id: possibility-noun
+    headword: "possibility"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "a chance that something may happen or be true"
+        definition_vi: "khả năng"
+    examples:
+      - text: "There is a strong {{possibility}} that it will rain."
+
+  - id: impossibility-noun
+    headword: "impossibility"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "the fact of being impossible"
+        definition_vi: "sự không thể"
+    examples:
+      - text: "We are faced with the {{impossibility}} of pleasing everyone."
+
+  - id: possibly-adverb
+    headword: "possibly"
+    pos: adverb
+    cefr: B2
+    tags: [science, technology, adverb]
+    senses:
+      - definition_en: "used when something is not certain"
+        definition_vi: "có lẽ, có thể"
+    examples:
+      - text: "She may {{possibly}} arrive later."
+
+  - id: impossibly-adverb
+    headword: "impossibly"
+    pos: adverb
+    cefr: B2
+    tags: [science, technology, adverb]
+    senses:
+      - definition_en: "in a way that cannot happen or be done"
+        definition_vi: "không thể nào"
+    examples:
+      - text: "The task was {{impossibly}} difficult."
+
+  - id: psychology-noun
+    headword: "psychology"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "the scientific study of the way the human mind works and how it influences behaviour"
+        definition_vi: "tâm lý học"
+    examples:
+      - text: "She is studying {{psychology}} at university."
+
+  - id: psychologist-noun
+    headword: "psychologist"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "someone who studies the human mind and human emotions and behaviour"
+        definition_vi: "nhà tâm lý học"
+    examples:
+      - text: "He works as a clinical {{psychologist}}."
+
+  - id: psychological-adjective
+    headword: "psychological"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "relating to the human mind and feelings"
+        definition_vi: "thuộc về tâm lý"
+    examples:
+      - text: "The trauma had a severe {{psychological}} impact."
+
+  - id: psychologically-adverb
+    headword: "psychologically"
+    pos: adverb
+    cefr: B2
+    tags: [science, technology, adverb]
+    senses:
+      - definition_en: "in a way that relates to the human mind and feelings"
+        definition_vi: "về mặt tâm lý"
+    examples:
+      - text: "The children were {{psychologically}} damaged by the war."
+
+  - id: researcher-noun
+    headword: "researcher"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "someone whose job is to study a subject carefully"
+        definition_vi: "nhà nghiên cứu"
+    examples:
+      - text: "The {{researchers}} published their findings in a journal."
+
+  - id: revolution-noun
+    headword: "revolution"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "a very important change in the way that people do things"
+        definition_vi: "cuộc cách mạng"
+    examples:
+      - text: "The technological {{revolution}} has changed our lives."
+
+  - id: revolutionary-adjective
+    headword: "revolutionary"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "completely new and having a great effect"
+        definition_vi: "mang tính cách mạng"
+    examples:
+      - text: "The discovery was a {{revolutionary}} breakthrough in medicine."
+
+  - id: science-noun
+    headword: "science"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "the systematic study of the structure and behaviour of the physical and natural world"
+        definition_vi: "khoa học"
+    examples:
+      - text: "Advances in {{science}} have improved our living standards."
+
+  - id: scientist-noun
+    headword: "scientist"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "an expert who studies or works in one of the sciences"
+        definition_vi: "nhà khoa học"
+    examples:
+      - text: "A team of {{scientists}} is investigating the phenomenon."
+
+  - id: scientific-adjective
+    headword: "scientific"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "relating to science, or using the organized methods of science"
+        definition_vi: "thuộc về khoa học"
+    examples:
+      - text: "There is no {{scientific}} evidence to support this claim."
+
+  - id: unscientific-adjective
+    headword: "unscientific"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "not based on the principles or methods of science"
+        definition_vi: "không phản ánh khoa học"
+    examples:
+      - text: "His methods were completely {{unscientific}}."
+
+  - id: scientifically-adverb
+    headword: "scientifically"
+    pos: adverb
+    cefr: B2
+    tags: [science, technology, adverb]
+    senses:
+      - definition_en: "in a way that relates to science"
+        definition_vi: "một cách khoa học"
+    examples:
+      - text: "The theory has not been {{scientifically}} proven."
+
+  - id: unscientifically-adverb
+    headword: "unscientifically"
+    pos: adverb
+    cefr: B2
+    tags: [science, technology, adverb]
+    senses:
+      - definition_en: "in a way that does not use the methods of science"
+        definition_vi: "không có cơ sở khoa học"
+    examples:
+      - text: "The data was collected {{unscientifically}}."
+
+  - id: technology-noun
+    headword: "technology"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "the practical, especially industrial, use of scientific discoveries"
+        definition_vi: "công nghệ"
+    examples:
+      - text: "Modern {{technology}} makes communication much faster."
+
+  - id: technological-adjective
+    headword: "technological"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "relating to, or involving, technology"
+        definition_vi: "thuộc công nghệ"
+    examples:
+      - text: "The pace of {{technological}} change is rapidly increasing."
+
+  - id: technologically-adverb
+    headword: "technologically"
+    pos: adverb
+    cefr: B2
+    tags: [science, technology, adverb]
+    senses:
+      - definition_en: "in a way that relates to or involves technology"
+        definition_vi: "về mặt công nghệ"
+    examples:
+      - text: "The country is highly {{technologically}} advanced."
+
+  - id: technical-adjective
+    headword: "technical"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "relating to the knowledge, machines, or methods used in science and industry"
+        definition_vi: "thuộc kỹ thuật"
+    examples:
+      - text: "The computer has a {{technical}} fault."
+
+  - id: technically-adverb
+    headword: "technically"
+    pos: adverb
+    cefr: B2
+    tags: [science, technology, adverb]
+    senses:
+      - definition_en: "according to an exact understanding of rules, facts, etc."
+        definition_vi: "về mặt kỹ thuật"
+    examples:
+      - text: "{{Technically}}, a tomato is a fruit, not a vegetable."
+
+  - id: technician-noun
+    headword: "technician"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "a worker trained with special skills, especially in science or engineering"
+        definition_vi: "kỹ thuật viên"
+    examples:
+      - text: "A laboratory {{technician}} will fix the equipment."
+
+  - id: technique-noun
+    headword: "technique"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "a way of doing an activity that needs skill"
+        definition_vi: "kỹ thuật, phương pháp"
+    examples:
+      - text: "She has perfected a new {{technique}} for painting."
+
+  - id: wood-noun
+    headword: "wood"
+    pos: noun
+    cefr: B2
+    tags: [science, technology, noun]
+    senses:
+      - definition_en: "a hard substance that forms the branches and trunks of trees"
+        definition_vi: "gỗ"
+    examples:
+      - text: "The table is made of solid {{wood}}."
+
+  - id: wooden-adjective
+    headword: "wooden"
+    pos: adjective
+    cefr: B2
+    tags: [science, technology, adjective]
+    senses:
+      - definition_en: "made of wood"
+        definition_vi: "làm bằng gỗ"
+    examples:
+      - text: "We sat on a {{wooden}} bench in the park."

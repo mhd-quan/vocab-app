@@ -1,0 +1,1777 @@
+book: destination-b2
+book_title: Destination B2 Grammar and Vocabulary
+unit:
+  ordinal: 8
+  code: U08
+  title: The Media
+  summary_md: |
+    Toàn bộ từ vựng Unit 8: The Media.
+    Bao gồm Topic vocabulary in contrast, Phrasal verbs, Phrases and collocations, Word patterns và Word formation.
+
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: The Media Vocabulary
+  slug: unit-8-the-media
+
+entries:
+
+  - id: deny-verb
+    headword: "deny"
+    pos: verb
+    cefr: B2
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "to say that something is not true"
+        definition_vi: "phủ nhận"
+    examples:
+      - text: "He completely {{deny|denied}} the accusation."
+
+  - id: refuse-verb
+    headword: "refuse"
+    pos: verb
+    cefr: B2
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "to say that you will not do or accept something"
+        definition_vi: "từ chối"
+    examples:
+      - text: "She {{refuse|refused}} to answer any questions."
+
+  - id: agree-verb
+    headword: "agree"
+    pos: verb
+    cefr: A2
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "to have the same opinion as someone else"
+        definition_vi: "đồng ý"
+    examples:
+      - text: "I totally {{agree}} with your point of view."
+
+  - id: accept-verb
+    headword: "accept"
+    pos: verb
+    cefr: B1
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "to recognize that something is true, fair, or right"
+        definition_vi: "chấp nhận"
+    examples:
+      - text: "He couldn't {{accept}} the fact that he lost."
+
+  - id: headline-noun
+    headword: "headline"
+    pos: noun
+    cefr: B1
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "the title of a newspaper story, printed in large letters"
+        definition_vi: "tiêu đề bài báo"
+    examples:
+      - text: "The scandal was on the front page {{headline}}."
+
+  - id: heading-noun
+    headword: "heading"
+    pos: noun
+    cefr: B1
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "a title at the top of a page or piece of writing"
+        definition_vi: "tiêu đề (của đoạn/trang)"
+    examples:
+      - text: "Look at the {{heading}} of this chapter."
+
+  - id: feature-noun
+    headword: "feature"
+    pos: noun
+    cefr: B2
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "a special article in a newspaper or magazine, or a part of a television or radio broadcast"
+        definition_vi: "bài đặc biệt, chuyên mục"
+    examples:
+      - text: "The magazine ran a long {{feature}} on climate change."
+
+  - id: article-noun
+    headword: "article"
+    pos: noun
+    cefr: A2
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "a piece of writing in a newspaper or magazine"
+        definition_vi: "bài báo"
+    examples:
+      - text: "I read an interesting {{article}} about space exploration."
+
+  - id: talk-show-noun
+    headword: "talk show"
+    pos: noun
+    cefr: A2
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "a television or radio programme in which famous people talk about themselves and their work"
+        definition_vi: "chương trình trò chuyện"
+    examples:
+      - text: "The actor was invited to a popular late-night {{talk show}}."
+
+  - id: quiz-show-noun
+    headword: "quiz show"
+    pos: noun
+    cefr: A2
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "a television or radio programme in which people answer questions in order to win prizes"
+        definition_vi: "chương trình đố vui"
+    examples:
+      - text: "She won a car on a TV {{quiz show}}."
+
+  - id: game-show-noun
+    headword: "game show"
+    pos: noun
+    cefr: A2
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "a television or radio programme in which people play games or answer questions in order to win prizes"
+        definition_vi: "trò chơi truyền hình"
+    examples:
+      - text: "He was a contestant on a famous {{game show}}."
+
+  - id: announcer-noun
+    headword: "announcer"
+    pos: noun
+    cefr: B2
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "someone whose job is to give information about television or radio programmes between other programmes"
+        definition_vi: "người giới thiệu chương trình"
+    examples:
+      - text: "The television {{announcer}} introduced the next film."
+
+  - id: commentator-noun
+    headword: "commentator"
+    pos: noun
+    cefr: B2
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "someone whose job is to give a description of an event on television or radio as it happens"
+        definition_vi: "bình luận viên"
+    examples:
+      - text: "The sports {{commentator}} got very excited during the match."
+
+  - id: tabloid-noun
+    headword: "tabloid"
+    pos: noun
+    cefr: B2
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "a type of popular newspaper with small pages and many pictures"
+        definition_vi: "báo lá cải, báo khổ nhỏ"
+    examples:
+      - text: "The {{tabloid}} press is full of gossip about celebrities."
+
+  - id: broadsheet-noun
+    headword: "broadsheet"
+    pos: noun
+    cefr: B2
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "a serious type of newspaper that is printed on large sheets of paper"
+        definition_vi: "báo khổ lớn, báo chính thống"
+    examples:
+      - text: "He prefers reading a {{broadsheet}} for in-depth news analysis."
+
+  - id: journalist-word-formation-noun
+    headword: "journalist"
+    pos: noun
+    cefr: B1
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "someone whose job is to report the news for a newspaper, magazine, radio programme, or television programme"
+        definition_vi: "nhà báo"
+    examples:
+      - text: "The {{journalist}} was praised for her investigative reporting."
+
+  - id: columnist-noun
+    headword: "columnist"
+    pos: noun
+    cefr: B2
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "a journalist who writes a regular series of articles for a particular newspaper or magazine"
+        definition_vi: "người phụ trách chuyên mục"
+    examples:
+      - text: "He is a regular sports {{columnist}} for a national daily."
+
+  - id: press-noun
+    headword: "press"
+    pos: noun
+    cefr: B1
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "newspapers and news magazines, or the journalists who work on them"
+        definition_vi: "báo chí"
+    examples:
+      - text: "The local {{press}} covered the event extensively."
+
+  - id: media-noun
+    headword: "media"
+    pos: noun
+    cefr: B1
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "radio, television, newspapers, the Internet, and magazines, considered as a group"
+        definition_vi: "truyền thông"
+    examples:
+      - text: "The mass {{media}} plays a huge role in shaping public opinion."
+
+  - id: programme-noun
+    headword: "programme"
+    pos: noun
+    cefr: A2
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "a television or radio broadcast"
+        definition_vi: "chương trình (truyền hình/phát thanh)"
+    examples:
+      - text: "What is your favourite TV {{programme}}?"
+
+  - id: program-noun
+    headword: "program"
+    pos: noun
+    cefr: A2
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "a series of instructions that makes a computer do something"
+        definition_vi: "chương trình máy tính"
+    examples:
+      - text: "He wrote a computer {{program}} to solve the problem."
+
+  - id: channel-noun
+    headword: "channel"
+    pos: noun
+    cefr: A2
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "a television station"
+        definition_vi: "kênh truyền hình"
+    examples:
+      - text: "Can you switch the {{channel}} to the news?"
+
+  - id: broadcast-noun
+    headword: "broadcast"
+    pos: noun
+    cefr: B2
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "a television or radio programme"
+        definition_vi: "chương trình phát sóng"
+    examples:
+      - text: "The live {{broadcast}} will begin at 8 PM."
+
+  - id: bulletin-noun
+    headword: "bulletin"
+    pos: noun
+    cefr: B2
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "a short news broadcast"
+        definition_vi: "bản tin ngắn"
+    examples:
+      - text: "There is an hourly news {{bulletin}} on this station."
+
+  - id: newsflash-noun
+    headword: "newsflash"
+    pos: noun
+    cefr: B2
+    tags: [topic-vocabulary, contrast]
+    senses:
+      - definition_en: "a short broadcast of an important piece of news in the middle of a television or radio programme"
+        definition_vi: "tin khẩn, tin nóng"
+    examples:
+      - text: "We interrupt this programme to bring you a {{newsflash}}."
+
+  - id: bring-up-verb
+    headword: "bring up"
+    pos: verb
+    cefr: B2
+    tags: [phrasal-verb]
+    senses:
+      - definition_en: "start discussing a subject"
+        definition_vi: "đề cập tới, mang ra thảo luận"
+    examples:
+      - text: "Why did you have to {{bring up}} that topic during dinner?"
+
+  - id: come-on-verb
+    headword: "come on"
+    pos: verb
+    cefr: B2
+    tags: [phrasal-verb]
+    senses:
+      - definition_en: "start to be broadcast"
+        definition_vi: "bắt đầu phát sóng"
+    examples:
+      - text: "My favourite show will {{come on}} in ten minutes."
+
+  - id: come-out-verb
+    headword: "come out"
+    pos: verb
+    cefr: B1
+    tags: [phrasal-verb]
+    senses:
+      - definition_en: "be published"
+        definition_vi: "được xuất bản, phát hành"
+    examples:
+      - text: "When does her new book {{come out}}?"
+
+  - id: fill-in-verb
+    headword: "fill in"
+    pos: verb
+    cefr: A2
+    tags: [phrasal-verb]
+    senses:
+      - definition_en: "add information in the empty spaces on an official document"
+        definition_vi: "điền thông tin vào"
+    examples:
+      - text: "Please {{fill in}} this application form."
+
+  - id: flick-through-verb
+    headword: "flick through"
+    pos: verb
+    cefr: B2
+    tags: [phrasal-verb]
+    senses:
+      - definition_en: "turn and look at the pages of a magazine, etc quickly"
+        definition_vi: "lướt nhanh qua (sách, báo)"
+    examples:
+      - text: "I was just {{flick|flicking through}} a magazine while waiting."
+
+  - id: go-into-verb
+    headword: "go into"
+    pos: verb
+    cefr: B2
+    tags: [phrasal-verb]
+    senses:
+      - definition_en: "deal with sth in detail"
+        definition_vi: "đi sâu vào chi tiết"
+    examples:
+      - text: "We don't need to {{go into}} all the details now."
+
+  - id: hand-out-verb
+    headword: "hand out"
+    pos: verb
+    cefr: B1
+    tags: [phrasal-verb]
+    senses:
+      - definition_en: "give things to people in a group"
+        definition_vi: "phân phát"
+    examples:
+      - text: "Could you help me {{hand out}} these leaflets?"
+
+  - id: look-up-verb
+    headword: "look up"
+    pos: verb
+    cefr: A2
+    tags: [phrasal-verb]
+    senses:
+      - definition_en: "try to find information in a book or list, etc"
+        definition_vi: "tra cứu"
+    examples:
+      - text: "If you don't know the word, {{look}} it {{up}} in a dictionary."
+
+  - id: make-out-verb
+    headword: "make out"
+    pos: verb
+    cefr: B2
+    tags: [phrasal-verb]
+    senses:
+      - definition_en: "pretend that something is true; see, hear or understand sb or sth with difficulty"
+        definition_vi: "giả vờ; nhìn, nghe hoặc hiểu một cách khó khăn"
+    examples:
+      - text: "I could barely {{make out}} his handwriting."
+
+  - id: make-up-verb
+    headword: "make up"
+    pos: verb
+    cefr: B1
+    tags: [phrasal-verb]
+    senses:
+      - definition_en: "invent an explanation, excuse, etc; create a story, poem, etc"
+        definition_vi: "bịa ra, sáng tác"
+    examples:
+      - text: "He had to {{make up}} an excuse for being late."
+
+  - id: put-forward-verb
+    headword: "put forward"
+    pos: verb
+    cefr: B2
+    tags: [phrasal-verb]
+    senses:
+      - definition_en: "suggest"
+        definition_vi: "đề xuất"
+    examples:
+      - text: "She {{put forward}} a brilliant idea during the meeting."
+
+  - id: see-through-verb
+    headword: "see through"
+    pos: verb
+    cefr: B2
+    tags: [phrasal-verb]
+    senses:
+      - definition_en: "recognise that sth is not true and not be tricked by it"
+        definition_vi: "nhìn thấu (sự dối trá)"
+    examples:
+      - text: "I can easily {{see through}} his lies."
+
+  - id: stand-out-verb
+    headword: "stand out"
+    pos: verb
+    cefr: B2
+    tags: [phrasal-verb]
+    senses:
+      - definition_en: "be easy to see because of being different"
+        definition_vi: "nổi bật"
+    examples:
+      - text: "Her bright red dress made her {{stand out}} in the crowd."
+
+  - id: turn-over-verb
+    headword: "turn over"
+    pos: verb
+    cefr: B1
+    tags: [phrasal-verb]
+    senses:
+      - definition_en: "turn a page so that the other side is towards you"
+        definition_vi: "lật trang"
+    examples:
+      - text: "When you are ready, you may {{turn over}} the exam paper."
+
+  - id: in-control-of-phrase
+    headword: "in control of"
+    pos: phrase
+    cefr: B2
+    tags: [collocation, control]
+    senses:
+      - definition_en: "having the power to direct something"
+        definition_vi: "kiểm soát (chủ động)"
+    examples:
+      - text: "She is {{in control of}} the entire project."
+
+  - id: take-control-of-phrase
+    headword: "take control of"
+    pos: phrase
+    cefr: B2
+    tags: [collocation, control]
+    senses:
+      - definition_en: "assume power or responsibility"
+        definition_vi: "nắm quyền kiểm soát"
+    examples:
+      - text: "The rebels tried to {{take control of}} the radio station."
+
+  - id: under-control-phrase
+    headword: "under control"
+    pos: phrase
+    cefr: B1
+    tags: [collocation, control]
+    senses:
+      - definition_en: "being dealt with successfully"
+        definition_vi: "được kiểm soát"
+    examples:
+      - text: "Don't worry, everything is {{under control}}."
+
+  - id: under-the-control-of-phrase
+    headword: "under the control of"
+    pos: phrase
+    cefr: B2
+    tags: [collocation, control]
+    senses:
+      - definition_en: "controlled by"
+        definition_vi: "dưới sự kiểm soát của"
+    examples:
+      - text: "The territory is now {{under the control of}} the army."
+
+  - id: out-of-control-phrase
+    headword: "out of control"
+    pos: phrase
+    cefr: B2
+    tags: [collocation, control]
+    senses:
+      - definition_en: "no longer possible to manage"
+        definition_vi: "ngoài tầm kiểm soát"
+    examples:
+      - text: "The car spun {{out of control}} and crashed."
+
+  - id: give-a-description-of-phrase
+    headword: "give a description of"
+    pos: phrase
+    cefr: B1
+    tags: [collocation, description]
+    senses:
+      - definition_en: "to describe something"
+        definition_vi: "đưa ra sự mô tả về"
+    examples:
+      - text: "The witness had to {{give a description of}} the robber."
+
+  - id: make-a-difference-to-phrase
+    headword: "make a difference to"
+    pos: phrase
+    cefr: B1
+    tags: [collocation, difference]
+    senses:
+      - definition_en: "have a significant effect on"
+        definition_vi: "tạo ra sự khác biệt cho"
+    examples:
+      - text: "Exercise can {{make a difference to}} your health."
+
+  - id: tell-the-difference-between-phrase
+    headword: "tell the difference between"
+    pos: phrase
+    cefr: B1
+    tags: [collocation, difference]
+    senses:
+      - definition_en: "distinguish"
+        definition_vi: "phân biệt"
+    examples:
+      - text: "Can you {{tell the difference between}} these two twins?"
+
+  - id: there-s-no-difference-between-phrase
+    headword: "there's no difference between"
+    pos: phrase
+    cefr: B2
+    tags: [collocation, difference]
+    senses:
+      - definition_en: "they are exactly the same"
+        definition_vi: "không có sự khác biệt giữa"
+    examples:
+      - text: "In my eyes, {{there's no difference between}} the two options."
+
+  - id: take-sth-for-granted-phrase
+    headword: "take sth for granted"
+    pos: phrase
+    cefr: B2
+    tags: [collocation, granted]
+    senses:
+      - definition_en: "fail to appreciate"
+        definition_vi: "coi ai/cái gì là hiển nhiên"
+    examples:
+      - text: "He always {{take|takes}} his wife {{for granted}}."
+
+  - id: influence-sth-verb
+    headword: "influence sth"
+    pos: verb
+    cefr: B2
+    tags: [collocation, influence]
+    senses:
+      - definition_en: "to affect or change how someone or something develops"
+        definition_vi: "ảnh hưởng đến"
+    examples:
+      - text: "His early years heavily {{influence|influenced}} his later writing."
+
+  - id: have-an-influence-on-phrase
+    headword: "have an influence on"
+    pos: phrase
+    cefr: B2
+    tags: [collocation, influence]
+    senses:
+      - definition_en: "affect someone or something"
+        definition_vi: "có ảnh hưởng lên"
+    examples:
+      - text: "Television can {{have an influence on}} children's behaviour."
+
+  - id: on-the-internet-phrase
+    headword: "on the Internet"
+    pos: phrase
+    cefr: A2
+    tags: [collocation, internet]
+    senses:
+      - definition_en: "using the internet"
+        definition_vi: "trên mạng internet"
+    examples:
+      - text: "You can find a lot of information {{on the Internet}}."
+
+  - id: over-the-internet-phrase
+    headword: "over the Internet"
+    pos: phrase
+    cefr: B1
+    tags: [collocation, internet]
+    senses:
+      - definition_en: "transmitted via the internet"
+        definition_vi: "qua mạng internet"
+    examples:
+      - text: "We talked to our family {{over the Internet}}."
+
+  - id: surf-the-internet-phrase
+    headword: "surf the Internet"
+    pos: phrase
+    cefr: A2
+    tags: [collocation, internet]
+    senses:
+      - definition_en: "browse the internet"
+        definition_vi: "lướt web"
+    examples:
+      - text: "I spend too much time {{surf|surfing the Internet}}."
+
+  - id: in-the-news-phrase
+    headword: "in the news"
+    pos: phrase
+    cefr: B1
+    tags: [collocation, news]
+    senses:
+      - definition_en: "being discussed on news programmes"
+        definition_vi: "đang lên mặt báo"
+    examples:
+      - text: "The company has been {{in the news}} a lot recently."
+
+  - id: on-the-news-phrase
+    headword: "on the news"
+    pos: phrase
+    cefr: A2
+    tags: [collocation, news]
+    senses:
+      - definition_en: "broadcast on a news programme"
+        definition_vi: "trên bản tin"
+    examples:
+      - text: "I saw him {{on the news}} last night."
+
+  - id: hear-the-news-phrase
+    headword: "hear the news"
+    pos: phrase
+    cefr: A2
+    tags: [collocation, news]
+    senses:
+      - definition_en: "to be told about recent events"
+        definition_vi: "nghe tin tức"
+    examples:
+      - text: "Did you {{hear the news}} about the earthquake?"
+
+  - id: newspaper-noun
+    headword: "newspaper"
+    pos: noun
+    cefr: A1
+    tags: [collocation, news]
+    senses:
+      - definition_en: "a regularly printed document consisting of large sheets of paper that are folded together"
+        definition_vi: "tờ báo"
+    examples:
+      - text: "He reads a {{newspaper}} every morning."
+
+  - id: take-place-phrase
+    headword: "take place"
+    pos: phrase
+    cefr: B1
+    tags: [collocation, place]
+    senses:
+      - definition_en: "happen"
+        definition_vi: "diễn ra"
+    examples:
+      - text: "The concert will {{take place}} on Saturday."
+
+  - id: in-place-of-phrase
+    headword: "in place of"
+    pos: phrase
+    cefr: B2
+    tags: [collocation, place]
+    senses:
+      - definition_en: "instead of"
+        definition_vi: "thay thế cho"
+    examples:
+      - text: "You can use milk {{in place of}} cream in this recipe."
+
+  - id: at-a-place-phrase
+    headword: "at a place"
+    pos: phrase
+    cefr: A2
+    tags: [collocation, place]
+    senses:
+      - definition_en: "located in a specific area"
+        definition_vi: "ở một nơi"
+    examples:
+      - text: "We met {{at a place}} near the station."
+
+  - id: ask-a-question-phrase
+    headword: "ask a question"
+    pos: phrase
+    cefr: A1
+    tags: [collocation, question]
+    senses:
+      - definition_en: "to interrogate or inquire"
+        definition_vi: "đặt câu hỏi"
+    examples:
+      - text: "Can I {{ask a question}} about the homework?"
+
+  - id: answer-a-question-phrase
+    headword: "answer a question"
+    pos: phrase
+    cefr: A1
+    tags: [collocation, question]
+    senses:
+      - definition_en: "to respond to a query"
+        definition_vi: "trả lời câu hỏi"
+    examples:
+      - text: "He couldn't {{answer a question}} in the test."
+
+  - id: question-sb-verb
+    headword: "question sb"
+    pos: verb
+    cefr: B2
+    tags: [collocation, question]
+    senses:
+      - definition_en: "to ask someone questions"
+        definition_vi: "chất vấn ai"
+    examples:
+      - text: "The police had to {{question}} the suspect."
+
+  - id: in-question-phrase
+    headword: "in question"
+    pos: phrase
+    cefr: B2
+    tags: [collocation, question]
+    senses:
+      - definition_en: "being discussed"
+        definition_vi: "đang được nhắc tới, được bàn tới"
+    examples:
+      - text: "The man {{in question}} is currently in police custody."
+
+  - id: question-mark-noun
+    headword: "question mark"
+    pos: noun
+    cefr: A2
+    tags: [collocation, question]
+    senses:
+      - definition_en: "a punctuation mark (?) indicating a question"
+        definition_vi: "dấu chấm hỏi"
+    examples:
+      - text: "Put a {{question mark}} at the end of the sentence."
+
+  - id: have-a-view-phrase
+    headword: "have a view"
+    pos: phrase
+    cefr: B2
+    tags: [collocation, view]
+    senses:
+      - definition_en: "to hold an opinion"
+        definition_vi: "có quan điểm"
+    examples:
+      - text: "I don't really {{have a view}} on this subject."
+
+  - id: hold-a-view-phrase
+    headword: "hold a view"
+    pos: phrase
+    cefr: B2
+    tags: [collocation, view]
+    senses:
+      - definition_en: "to strongly believe an opinion"
+        definition_vi: "giữ quan điểm"
+    examples:
+      - text: "Many experts {{hold a view}} that climate change is accelerating."
+
+  - id: take-a-view-phrase
+    headword: "take a view"
+    pos: phrase
+    cefr: B2
+    tags: [collocation, view]
+    senses:
+      - definition_en: "to adopt a particular opinion"
+        definition_vi: "có cái nhìn, đánh giá"
+    examples:
+      - text: "We need to {{take a view}} on this matter soon."
+
+  - id: be-sb-s-view-that-phrase
+    headword: "be sb's view that"
+    pos: phrase
+    cefr: C1
+    tags: [collocation, view]
+    senses:
+      - definition_en: "it is someone's opinion that"
+        definition_vi: "quan điểm của ai đó là"
+    examples:
+      - text: "It {{be|is his view that}} the plan will fail."
+
+  - id: in-my-view-phrase
+    headword: "in my view"
+    pos: phrase
+    cefr: B1
+    tags: [collocation, view]
+    senses:
+      - definition_en: "in my opinion"
+        definition_vi: "theo quan điểm của tôi"
+    examples:
+      - text: "{{In my view}}, this is a terrible idea."
+
+  - id: in-view-of-phrase
+    headword: "in view of"
+    pos: phrase
+    cefr: B2
+    tags: [collocation, view]
+    senses:
+      - definition_en: "considering"
+        definition_vi: "xét thấy, bởi vì"
+    examples:
+      - text: "{{In view of}} the weather, the event is cancelled."
+
+  - id: look-at-the-view-phrase
+    headword: "look at the view"
+    pos: phrase
+    cefr: A2
+    tags: [collocation, view]
+    senses:
+      - definition_en: "observe the scenery"
+        definition_vi: "ngắm cảnh"
+    examples:
+      - text: "We stopped to {{look at the view}} from the top of the hill."
+
+  - id: see-the-view-phrase
+    headword: "see the view"
+    pos: phrase
+    cefr: A2
+    tags: [collocation, view]
+    senses:
+      - definition_en: "experience the scenery"
+        definition_vi: "thấy khung cảnh"
+    examples:
+      - text: "You can {{see the view}} of the entire city from here."
+
+  - id: view-of-sth-phrase
+    headword: "view of sth"
+    pos: phrase
+    cefr: B1
+    tags: [collocation, view]
+    senses:
+      - definition_en: "what you can see from a particular place, or an opinion about something"
+        definition_vi: "khung cảnh của / quan điểm về"
+    examples:
+      - text: "We had a spectacular {{view of}} the mountains."
+
+  - id: view-from-sth-phrase
+    headword: "view from sth"
+    pos: phrase
+    cefr: A2
+    tags: [collocation, view]
+    senses:
+      - definition_en: "the scenery as seen from a specific location"
+        definition_vi: "khung cảnh nhìn từ"
+    examples:
+      - text: "The {{view from}} the window is amazing."
+
+  - id: watch-sb-verb
+    headword: "watch sb"
+    pos: verb
+    cefr: A2
+    tags: [collocation, watch]
+    senses:
+      - definition_en: "to look at someone for a period of time"
+        definition_vi: "theo dõi ai đó"
+    examples:
+      - text: "The detective had to {{watch}} the suspect closely."
+
+  - id: watch-out-for-phrase
+    headword: "watch out for"
+    pos: phrase
+    cefr: B1
+    tags: [collocation, watch]
+    senses:
+      - definition_en: "be careful of"
+        definition_vi: "cẩn thận, để mắt tới"
+    examples:
+      - text: "{{Watch out for}} pickpockets in crowded areas."
+
+  - id: keep-watch-phrase
+    headword: "keep watch"
+    pos: phrase
+    cefr: B2
+    tags: [collocation, watch]
+    senses:
+      - definition_en: "to guard or observe carefully"
+        definition_vi: "canh gác"
+    examples:
+      - text: "The soldier had to {{keep watch}} all night."
+
+  - id: announce-sth-to-sb-pattern
+    headword: "announce sth (to sb)"
+    pos: pattern
+    cefr: B1
+    tags: [word-pattern]
+    senses:
+      - definition_en: "make a formal public statement"
+        definition_vi: "thông báo điều gì (cho ai)"
+    examples:
+      - text: "They will {{announce}} the results {{to}} everyone tomorrow."
+
+  - id: announce-that-pattern
+    headword: "announce that"
+    pos: pattern
+    cefr: B1
+    tags: [word-pattern]
+    senses:
+      - definition_en: "state publicly that"
+        definition_vi: "thông báo rằng"
+    examples:
+      - text: "They {{announce|announced that}} the flight was delayed."
+
+  - id: believe-sth-pattern
+    headword: "believe sth"
+    pos: pattern
+    cefr: A2
+    tags: [word-pattern]
+    senses:
+      - definition_en: "accept that something is true"
+        definition_vi: "tin vào điều gì"
+    examples:
+      - text: "I can't {{believe}} this story."
+
+  - id: believe-in-sth-pattern
+    headword: "believe in sth"
+    pos: pattern
+    cefr: A2
+    tags: [word-pattern]
+    senses:
+      - definition_en: "feel sure that something is true or exists"
+        definition_vi: "tin tưởng vào"
+    examples:
+      - text: "Do you {{believe in}} ghosts?"
+
+  - id: believe-that-pattern
+    headword: "believe that"
+    pos: pattern
+    cefr: B1
+    tags: [word-pattern]
+    senses:
+      - definition_en: "accept as true that"
+        definition_vi: "tin rằng"
+    examples:
+      - text: "I {{believe that}} we will win."
+
+  - id: believe-to-be-pattern
+    headword: "believe to be"
+    pos: pattern
+    cefr: B2
+    tags: [word-pattern]
+    senses:
+      - definition_en: "think that someone or something is a particular thing"
+        definition_vi: "tin là (được cho là)"
+    examples:
+      - text: "The painting is {{believe|believed to be}} an original Picasso."
+
+  - id: comment-on-sth-pattern
+    headword: "comment on sth"
+    pos: pattern
+    cefr: B2
+    tags: [word-pattern]
+    senses:
+      - definition_en: "give an opinion about something"
+        definition_vi: "bình luận về"
+    examples:
+      - text: "She refused to {{comment on}} the rumours."
+
+  - id: make-a-comment-about-sth-pattern
+    headword: "make a comment about sth"
+    pos: pattern
+    cefr: B1
+    tags: [word-pattern]
+    senses:
+      - definition_en: "express an opinion"
+        definition_vi: "đưa ra lời bình luận về"
+    examples:
+      - text: "He {{make|made a comment about}} her dress."
+
+  - id: confuse-sb-with-sb-pattern
+    headword: "confuse sb with sb"
+    pos: pattern
+    cefr: B1
+    tags: [word-pattern]
+    senses:
+      - definition_en: "mix up someone or something with another"
+        definition_vi: "nhầm lẫn ai với ai"
+    examples:
+      - text: "I always {{confuse}} him {{with}} his twin brother."
+
+  - id: confused-about-sth-pattern
+    headword: "confused about sth"
+    pos: pattern
+    cefr: B1
+    tags: [word-pattern]
+    senses:
+      - definition_en: "unable to understand something clearly"
+        definition_vi: "bối rối về điều gì"
+    examples:
+      - text: "I'm still a bit {{confused about}} what to do."
+
+  - id: confused-by-sth-pattern
+    headword: "confused by sth"
+    pos: pattern
+    cefr: B2
+    tags: [word-pattern]
+    senses:
+      - definition_en: "made to feel unable to think clearly"
+        definition_vi: "bị làm bối rối bởi"
+    examples:
+      - text: "I was totally {{confused by}} his complicated explanation."
+
+  - id: correspond-with-sth-pattern
+    headword: "correspond with sth"
+    pos: pattern
+    cefr: B2
+    tags: [word-pattern]
+    senses:
+      - definition_en: "communicate by writing letters; match"
+        definition_vi: "trao đổi thư từ với; tương ứng với"
+    examples:
+      - text: "I've been {{correspond|corresponding with}} him for years."
+
+  - id: describe-sth-as-pattern
+    headword: "describe sth as"
+    pos: pattern
+    cefr: B1
+    tags: [word-pattern]
+    senses:
+      - definition_en: "say what something or someone is like"
+        definition_vi: "miêu tả cái gì/ai như là"
+    examples:
+      - text: "He {{describe|described}} the film {{as}} a masterpiece."
+
+  - id: describe-sth-to-sb-pattern
+    headword: "describe sth to sb"
+    pos: pattern
+    cefr: B1
+    tags: [word-pattern]
+    senses:
+      - definition_en: "explain to someone what someone or something is like"
+        definition_vi: "miêu tả cái gì cho ai"
+    examples:
+      - text: "Can you {{describe}} the suspect {{to}} me?"
+
+  - id: hear-sth-pattern
+    headword: "hear sth"
+    pos: pattern
+    cefr: A1
+    tags: [word-pattern]
+    senses:
+      - definition_en: "perceive a sound"
+        definition_vi: "nghe thấy"
+    examples:
+      - text: "I couldn't {{hear}} anything he said."
+
+  - id: hear-about-sth-pattern
+    headword: "hear about sth"
+    pos: pattern
+    cefr: A2
+    tags: [word-pattern]
+    senses:
+      - definition_en: "be told about someone or something"
+        definition_vi: "nghe kể về"
+    examples:
+      - text: "Did you {{hear about}} the accident?"
+
+  - id: hear-from-sb-pattern
+    headword: "hear from sb"
+    pos: pattern
+    cefr: A2
+    tags: [word-pattern]
+    senses:
+      - definition_en: "receive a letter, email, or phone call from someone"
+        definition_vi: "nhận được tin tức từ ai"
+    examples:
+      - text: "I hope to {{hear from}} you soon."
+
+  - id: inform-sb-that-pattern
+    headword: "inform sb that"
+    pos: pattern
+    cefr: B1
+    tags: [word-pattern]
+    senses:
+      - definition_en: "tell someone officially that"
+        definition_vi: "thông báo cho ai rằng"
+    examples:
+      - text: "I regret to {{inform}} you {{that}} your application was rejected."
+
+  - id: inform-sb-about-sth-pattern
+    headword: "inform sb about sth"
+    pos: pattern
+    cefr: B2
+    tags: [word-pattern]
+    senses:
+      - definition_en: "give someone facts or information"
+        definition_vi: "thông báo cho ai về điều gì"
+    examples:
+      - text: "Please {{inform}} us {{about}} any changes in your plans."
+
+  - id: persuade-sb-to-do-pattern
+    headword: "persuade sb to do"
+    pos: pattern
+    cefr: B1
+    tags: [word-pattern]
+    senses:
+      - definition_en: "make someone do something by giving them good reasons"
+        definition_vi: "thuyết phục ai làm gì"
+    examples:
+      - text: "She managed to {{persuade}} him {{to go}}."
+
+  - id: persuade-sb-that-pattern
+    headword: "persuade sb that"
+    pos: pattern
+    cefr: B2
+    tags: [word-pattern]
+    senses:
+      - definition_en: "make someone believe that something is true"
+        definition_vi: "thuyết phục ai rằng"
+    examples:
+      - text: "He tried to {{persuade}} the jury {{that}} he was innocent."
+
+  - id: persuade-sb-of-sth-pattern
+    headword: "persuade sb of sth"
+    pos: pattern
+    cefr: B2
+    tags: [word-pattern]
+    senses:
+      - definition_en: "make someone believe in something"
+        definition_vi: "thuyết phục ai tin vào điều gì"
+    examples:
+      - text: "I finally {{persuade|persuaded}} them {{of}} its importance."
+
+  - id: point-in-doing-pattern
+    headword: "point in doing"
+    pos: pattern
+    cefr: B2
+    tags: [word-pattern]
+    senses:
+      - definition_en: "purpose or usefulness in doing something"
+        definition_vi: "có ích, có lý do để làm gì"
+    examples:
+      - text: "There is no {{point in}} complaining now."
+
+  - id: send-sb-sth-pattern
+    headword: "send sb sth"
+    pos: pattern
+    cefr: A2
+    tags: [word-pattern]
+    senses:
+      - definition_en: "arrange for something to go to someone"
+        definition_vi: "gửi cho ai cái gì"
+    examples:
+      - text: "Could you {{send}} me the file?"
+
+  - id: send-sth-to-sb-pattern
+    headword: "send sth to sb"
+    pos: pattern
+    cefr: A2
+    tags: [word-pattern]
+    senses:
+      - definition_en: "arrange for something to go to someone"
+        definition_vi: "gửi cái gì cho ai"
+    examples:
+      - text: "I will {{send}} an email {{to}} him later."
+
+  - id: by-surprise-pattern
+    headword: "by surprise"
+    pos: pattern
+    cefr: B2
+    tags: [word-pattern]
+    senses:
+      - definition_en: "unexpectedly"
+        definition_vi: "bất ngờ"
+    examples:
+      - text: "The attack took them completely {{by surprise}}."
+
+  - id: surprised-at-sth-pattern
+    headword: "surprised at sth"
+    pos: pattern
+    cefr: A2
+    tags: [word-pattern]
+    senses:
+      - definition_en: "feeling surprise because of something"
+        definition_vi: "ngạc nhiên về điều gì"
+    examples:
+      - text: "I was very {{surprised at}} his reaction."
+
+  - id: announce-verb
+    headword: "announce"
+    pos: verb
+    cefr: B1
+    tags: [word-formation]
+    senses:
+      - definition_en: "to tell people something officially"
+        definition_vi: "thông báo"
+    examples:
+      - text: "They will {{announce}} the winner soon."
+
+  - id: announcement-noun
+    headword: "announcement"
+    pos: noun
+    cefr: B1
+    tags: [word-formation]
+    senses:
+      - definition_en: "a formal public statement"
+        definition_vi: "lời thông báo"
+    examples:
+      - text: "The headmaster made an important {{announcement}}."
+
+  - id: unannounced-adjective
+    headword: "unannounced"
+    pos: adjective
+    cefr: C1
+    tags: [word-formation]
+    senses:
+      - definition_en: "happening without anyone being told beforehand"
+        definition_vi: "không được báo trước"
+    examples:
+      - text: "They arrived {{unannounced}} at our house."
+
+  - id: believe-verb
+    headword: "believe"
+    pos: verb
+    cefr: A1
+    tags: [word-formation]
+    senses:
+      - definition_en: "to think that something is true"
+        definition_vi: "tin tưởng"
+    examples:
+      - text: "I {{believe}} she is right."
+
+  - id: belief-noun
+    headword: "belief"
+    pos: noun
+    cefr: B1
+    tags: [word-formation]
+    senses:
+      - definition_en: "a strong feeling that something is true or real"
+        definition_vi: "niềm tin"
+    examples:
+      - text: "It is my firm {{belief}} that education is the key."
+
+  - id: disbelief-noun
+    headword: "disbelief"
+    pos: noun
+    cefr: B2
+    tags: [word-formation]
+    senses:
+      - definition_en: "the feeling of not being able to believe something"
+        definition_vi: "sự hoài nghi"
+    examples:
+      - text: "He stared at the winning numbers in total {{disbelief}}."
+
+  - id: believable-adjective
+    headword: "believable"
+    pos: adjective
+    cefr: B2
+    tags: [word-formation]
+    senses:
+      - definition_en: "able to be believed"
+        definition_vi: "có thể tin được"
+    examples:
+      - text: "Her excuse was hardly {{believable}}."
+
+  - id: unbelievable-adjective
+    headword: "unbelievable"
+    pos: adjective
+    cefr: B1
+    tags: [word-formation]
+    senses:
+      - definition_en: "very surprising or difficult to believe"
+        definition_vi: "không thể tin được"
+    examples:
+      - text: "The team had an {{unbelievable}} success."
+
+  - id: communicate-verb
+    headword: "communicate"
+    pos: verb
+    cefr: B1
+    tags: [word-formation]
+    senses:
+      - definition_en: "to share information with others"
+        definition_vi: "giao tiếp"
+    examples:
+      - text: "Animals {{communicate}} in various ways."
+
+  - id: communication-noun
+    headword: "communication"
+    pos: noun
+    cefr: B1
+    tags: [word-formation]
+    senses:
+      - definition_en: "the act of exchanging information"
+        definition_vi: "sự giao tiếp, truyền thông"
+    examples:
+      - text: "Good {{communication}} is vital in a relationship."
+
+  - id: uncommunicative-adjective
+    headword: "uncommunicative"
+    pos: adjective
+    cefr: C1
+    tags: [word-formation]
+    senses:
+      - definition_en: "not wanting to talk to people"
+        definition_vi: "ít nói, không cởi mở"
+    examples:
+      - text: "He has been very quiet and {{uncommunicative}} lately."
+
+  - id: communicator-noun
+    headword: "communicator"
+    pos: noun
+    cefr: B2
+    tags: [word-formation]
+    senses:
+      - definition_en: "someone who is able to convey information clearly"
+        definition_vi: "người truyền đạt"
+    examples:
+      - text: "She is a natural and effective {{communicator}}."
+
+  - id: convince-verb
+    headword: "convince"
+    pos: verb
+    cefr: B1
+    tags: [word-formation]
+    senses:
+      - definition_en: "to make someone certain"
+        definition_vi: "thuyết phục"
+    examples:
+      - text: "I tried to {{convince}} him to stay."
+
+  - id: convinced-adjective
+    headword: "convinced"
+    pos: adjective
+    cefr: B2
+    tags: [word-formation]
+    senses:
+      - definition_en: "completely sure about something"
+        definition_vi: "tin chắc"
+    examples:
+      - text: "I am entirely {{convinced}} that he is right."
+
+  - id: convincing-adjective
+    headword: "convincing"
+    pos: adjective
+    cefr: B2
+    tags: [word-formation]
+    senses:
+      - definition_en: "making you believe that something is true"
+        definition_vi: "có sức thuyết phục"
+    examples:
+      - text: "He gave a very {{convincing}} speech."
+
+  - id: unconvincing-adjective
+    headword: "unconvincing"
+    pos: adjective
+    cefr: B2
+    tags: [word-formation]
+    senses:
+      - definition_en: "failing to make you believe that something is true"
+        definition_vi: "không có sức thuyết phục"
+    examples:
+      - text: "Her explanation for being late was extremely {{unconvincing}}."
+
+  - id: discuss-verb
+    headword: "discuss"
+    pos: verb
+    cefr: A2
+    tags: [word-formation]
+    senses:
+      - definition_en: "to talk about a subject with someone"
+        definition_vi: "thảo luận"
+    examples:
+      - text: "We need to {{discuss}} the plans for tomorrow."
+
+  - id: discussion-noun
+    headword: "discussion"
+    pos: noun
+    cefr: B1
+    tags: [word-formation]
+    senses:
+      - definition_en: "conversation about something important"
+        definition_vi: "cuộc thảo luận"
+    examples:
+      - text: "We had a long {{discussion}} about the project."
+
+  - id: edit-verb
+    headword: "edit"
+    pos: verb
+    cefr: B2
+    tags: [word-formation]
+    senses:
+      - definition_en: "to prepare text or film for publishing by correcting it"
+        definition_vi: "biên tập"
+    examples:
+      - text: "He had to {{edit}} the video before uploading it."
+
+  - id: editor-noun
+    headword: "editor"
+    pos: noun
+    cefr: B1
+    tags: [word-formation]
+    senses:
+      - definition_en: "someone who is in charge of a newspaper or magazine"
+        definition_vi: "biên tập viên"
+    examples:
+      - text: "He is the chief {{editor}} of the local newspaper."
+
+  - id: editorial-adjective
+    headword: "editorial"
+    pos: adjective
+    cefr: B2
+    tags: [word-formation]
+    senses:
+      - definition_en: "relating to the preparation of a newspaper or magazine"
+        definition_vi: "thuộc biên tập"
+    examples:
+      - text: "She works in the {{editorial}} department."
+
+  - id: edited-adjective
+    headword: "edited"
+    pos: adjective
+    cefr: B2
+    tags: [word-formation]
+    senses:
+      - definition_en: "having been corrected and prepared for printing"
+        definition_vi: "đã được biên tập"
+    examples:
+      - text: "This is an {{edited}} version of the interview."
+
+  - id: humour-noun
+    headword: "humour"
+    pos: noun
+    cefr: B2
+    tags: [word-formation]
+    senses:
+      - definition_en: "the ability to find things funny"
+        definition_vi: "sự hài hước"
+    examples:
+      - text: "She has a great sense of {{humour}}."
+
+  - id: humorous-adjective
+    headword: "humorous"
+    pos: adjective
+    cefr: B2
+    tags: [word-formation]
+    senses:
+      - definition_en: "funny, or making you laugh"
+        definition_vi: "hài hước"
+    examples:
+      - text: "He told a very {{humorous}} story."
+
+  - id: humourless-adjective
+    headword: "humourless"
+    pos: adjective
+    cefr: C1
+    tags: [word-formation]
+    senses:
+      - definition_en: "too serious and without a sense of humour"
+        definition_vi: "thiếu khiếu hài hước"
+    examples:
+      - text: "He's a strict and {{humourless}} manager."
+
+  - id: inform-verb
+    headword: "inform"
+    pos: verb
+    cefr: B1
+    tags: [word-formation]
+    senses:
+      - definition_en: "to tell someone about particular facts"
+        definition_vi: "thông báo"
+    examples:
+      - text: "Please {{inform}} us if your address changes."
+
+  - id: information-noun
+    headword: "information"
+    pos: noun
+    cefr: A2
+    tags: [word-formation]
+    senses:
+      - definition_en: "facts provided or learned about something or someone"
+        definition_vi: "thông tin"
+    examples:
+      - text: "Can you give me more {{information}} about the tour?"
+
+  - id: informed-adjective
+    headword: "informed"
+    pos: adjective
+    cefr: B2
+    tags: [word-formation]
+    senses:
+      - definition_en: "having a lot of knowledge or information about something"
+        definition_vi: "có hiểu biết, được cập nhật thông tin"
+    examples:
+      - text: "We need to make an {{informed}} decision."
+
+  - id: uninformed-adjective
+    headword: "uninformed"
+    pos: adjective
+    cefr: C1
+    tags: [word-formation]
+    senses:
+      - definition_en: "not knowing much about a subject"
+        definition_vi: "thiếu hiểu biết, không nắm được thông tin"
+    examples:
+      - text: "The public remains largely {{uninformed}} about the risks."
+
+  - id: informative-adjective
+    headword: "informative"
+    pos: adjective
+    cefr: B2
+    tags: [word-formation]
+    senses:
+      - definition_en: "providing useful or interesting information"
+        definition_vi: "cung cấp nhiều thông tin hữu ích"
+    examples:
+      - text: "It was a very {{informative}} documentary."
+
+  - id: uninformative-adjective
+    headword: "uninformative"
+    pos: adjective
+    cefr: C1
+    tags: [word-formation]
+    senses:
+      - definition_en: "not providing clear or useful information"
+        definition_vi: "không cung cấp thông tin hữu ích"
+    examples:
+      - text: "The manual was poorly written and totally {{uninformative}}."
+
+  - id: journal-noun
+    headword: "journal"
+    pos: noun
+    cefr: B2
+    tags: [word-formation]
+    senses:
+      - definition_en: "a serious magazine or newspaper"
+        definition_vi: "tạp chí (chuyên ngành)"
+    examples:
+      - text: "He published a paper in a medical {{journal}}."
+
+  - id: journalist-noun
+    headword: "journalist"
+    pos: noun
+    cefr: B1
+    tags: [word-formation]
+    senses:
+      - definition_en: "someone whose job is reporting the news"
+        definition_vi: "nhà báo"
+    examples:
+      - text: "She works as a {{journalist}} for a daily paper."
+
+  - id: journalism-noun
+    headword: "journalism"
+    pos: noun
+    cefr: B2
+    tags: [word-formation]
+    senses:
+      - definition_en: "the work of collecting, writing, and publishing news stories"
+        definition_vi: "nghề báo"
+    examples:
+      - text: "She is studying {{journalism}} at university."
+
+  - id: journalistic-adjective
+    headword: "journalistic"
+    pos: adjective
+    cefr: C1
+    tags: [word-formation]
+    senses:
+      - definition_en: "relating to journalists or journalism"
+        definition_vi: "thuộc báo chí"
+    examples:
+      - text: "He won an award for his {{journalistic}} integrity."
+
+  - id: politics-noun
+    headword: "politics"
+    pos: noun
+    cefr: B1
+    tags: [word-formation]
+    senses:
+      - definition_en: "the activities of the government"
+        definition_vi: "chính trị"
+    examples:
+      - text: "She is very interested in local {{politics}}."
+
+  - id: political-adjective
+    headword: "political"
+    pos: adjective
+    cefr: B1
+    tags: [word-formation]
+    senses:
+      - definition_en: "relating to government or public affairs"
+        definition_vi: "thuộc chính trị"
+    examples:
+      - text: "The country is facing a severe {{political}} crisis."
+
+  - id: politician-noun
+    headword: "politician"
+    pos: noun
+    cefr: B1
+    tags: [word-formation]
+    senses:
+      - definition_en: "a person who is professionally involved in politics"
+        definition_vi: "chính trị gia"
+    examples:
+      - text: "The {{politician}} gave a speech to his supporters."
+
+  - id: power-noun
+    headword: "power"
+    pos: noun
+    cefr: B1
+    tags: [word-formation]
+    senses:
+      - definition_en: "ability to control people and events"
+        definition_vi: "quyền lực"
+    examples:
+      - text: "The new government has a lot of {{power}}."
+
+  - id: powerful-adjective
+    headword: "powerful"
+    pos: adjective
+    cefr: B1
+    tags: [word-formation]
+    senses:
+      - definition_en: "having a lot of strength or control"
+        definition_vi: "mạnh mẽ, có quyền lực"
+    examples:
+      - text: "The president is a very {{powerful}} man."
+
+  - id: powerless-adjective
+    headword: "powerless"
+    pos: adjective
+    cefr: B2
+    tags: [word-formation]
+    senses:
+      - definition_en: "without power to control or influence things"
+        definition_vi: "bất lực"
+    examples:
+      - text: "The villagers felt {{powerless}} against the developers."
+
+  - id: empower-verb
+    headword: "empower"
+    pos: verb
+    cefr: C1
+    tags: [word-formation]
+    senses:
+      - definition_en: "to give someone official authority or the freedom to do something"
+        definition_vi: "trao quyền"
+    examples:
+      - text: "The program aims to {{empower}} women in rural areas."
+
+  - id: ridicule-noun
+    headword: "ridicule"
+    pos: noun
+    cefr: C1
+    tags: [word-formation]
+    senses:
+      - definition_en: "unkind words or actions that make someone look stupid"
+        definition_vi: "sự chế nhạo"
+    examples:
+      - text: "He became an object of {{ridicule}} among his peers."
+
+  - id: ridiculous-adjective
+    headword: "ridiculous"
+    pos: adjective
+    cefr: B2
+    tags: [word-formation]
+    senses:
+      - definition_en: "stupid or unreasonable and deserving to be laughed at"
+        definition_vi: "nực cười, lố bịch"
+    examples:
+      - text: "That is the most {{ridiculous}} excuse I've ever heard."
+
+  - id: ridiculousness-noun
+    headword: "ridiculousness"
+    pos: noun
+    cefr: C1
+    tags: [word-formation]
+    senses:
+      - definition_en: "the state of being stupid or unreasonable"
+        definition_vi: "sự lố bịch"
+    examples:
+      - text: "He suddenly realized the {{ridiculousness}} of the situation."
+
+  - id: second-noun
+    headword: "second"
+    pos: noun
+    cefr: A1
+    tags: [word-formation]
+    senses:
+      - definition_en: "number two in a sequence"
+        definition_vi: "người/vật thứ hai"
+    examples:
+      - text: "He was the {{second}} to arrive."
+
+  - id: secondly-adverb
+    headword: "secondly"
+    pos: adverb
+    cefr: B1
+    tags: [word-formation]
+    senses:
+      - definition_en: "used for introducing the second reason or point"
+        definition_vi: "thứ hai là"
+    examples:
+      - text: "First, it's too expensive, and {{secondly}}, it's too far."
+
+  - id: secondary-adjective
+    headword: "secondary"
+    pos: adjective
+    cefr: B2
+    tags: [word-formation]
+    senses:
+      - definition_en: "less important than something else"
+        definition_vi: "thứ yếu, phụ"
+    examples:
+      - text: "That is only a {{secondary}} consideration."
+
+  - id: write-verb
+    headword: "write"
+    pos: verb
+    cefr: A1
+    tags: [word-formation]
+    senses:
+      - definition_en: "to make marks that represent letters, words, or numbers"
+        definition_vi: "viết"
+    examples:
+      - text: "Please {{write}} your name here."
+
+  - id: wrote-verb
+    headword: "wrote"
+    pos: verb
+    cefr: A2
+    tags: [word-formation]
+    senses:
+      - definition_en: "past tense of write"
+        definition_vi: "đã viết (quá khứ của write)"
+    examples:
+      - text: "Shakespeare {{wrote}} many famous plays."
+
+  - id: writer-noun
+    headword: "writer"
+    pos: noun
+    cefr: A2
+    tags: [word-formation]
+    senses:
+      - definition_en: "a person who writes books, stories, or articles as a job"
+        definition_vi: "nhà văn, người viết"
+    examples:
+      - text: "He is a famous science fiction {{writer}}."
+
+  - id: writing-noun
+    headword: "writing"
+    pos: noun
+    cefr: A2
+    tags: [word-formation]
+    senses:
+      - definition_en: "the activity of creating pieces of written work"
+        definition_vi: "sự viết lách, bài viết"
+    examples:
+      - text: "Her creative {{writing}} class is very popular."
+
+  - id: written-adjective
+    headword: "written"
+    pos: adjective
+    cefr: B1
+    tags: [word-formation]
+    senses:
+      - definition_en: "expressed in writing rather than by speaking"
+        definition_vi: "bằng văn bản"
+    examples:
+      - text: "I need a {{written}} confirmation of the booking."
+
+  - id: unwritten-adjective
+    headword: "unwritten"
+    pos: adjective
+    cefr: C1
+    tags: [word-formation]
+    senses:
+      - definition_en: "understood but not expressed in writing"
+        definition_vi: "bất thành văn"
+    examples:
+      - text: "There is an {{unwritten}} rule that you don't talk to the boss before his morning coffee."

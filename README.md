@@ -233,8 +233,8 @@ plumbing required.
   `content/books/<book-code>/` and then processed by the same
   `ImportVocabUseCase` used by the CLI.
 - `content/templates/` contains validating vocab and grammar templates,
-  `IMPORT-SYNTAX.md`, and an exercise reference for current and planned
-  exercise kinds.
+  focused vocab-study and revision-practice starters, `IMPORT-SYNTAX.md`,
+  and an exercise reference for current and planned exercise kinds.
 
 ## Exercise engine
 
@@ -271,6 +271,11 @@ Currently shipping kinds:
   the grade flows through to SRS in PR #8.
 - **multiple_choice** — definition prompt + 4 headword options, one
   correct; auto-graded.
+- **grammar activities** — grammar lessons can supply `fill_blank`,
+  `choice`, `order`, `rewrite`, `prompted_sentence`, and
+  `error_correction` activities. For now, unit revision/exercise pages should
+  be authored as `lesson.kind: grammar`; `revision` and `exercise` are reserved
+  lesson enum values, not importable file kinds yet.
 
 ## Spaced repetition
 
@@ -385,4 +390,5 @@ See `docs/roadmap.md` (added with PR #2). Current plan:
 | v0.3.2  | Larger filled glyphs + grammar import samples/reference    |
 | v0.4.0  | Interactive grammar learning flow + lesson-card home      |
 | v0.5.0  | Tutor unit assignments + section-based study + authoring GUI |
+| v0.5.1  | Assignment/runtime polish + settings cleanup + focused authoring templates |
 | v1.0.0  | Beta packaging (signed installers, auto-update)           |

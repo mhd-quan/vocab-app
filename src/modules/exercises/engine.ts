@@ -6,6 +6,7 @@ import type {
   Answer,
   AnyExercisePlugin,
   BuildContext,
+  DefinitionPriority,
   Exercise,
   ExerciseKind,
   GradeOutcome,
@@ -43,6 +44,8 @@ export interface BuildDeckOptions {
   sessionSeed: string;
   /** Soft cap on deck size. Defaults to all generated exercises. */
   maxExercises?: number;
+  /** Which language should be preferred when both EN and VI definitions exist. */
+  definitionPriority?: DefinitionPriority;
   /** Defaults to true. Disable for predictable entry/plugin order. */
   shuffle?: boolean;
 }
@@ -72,6 +75,7 @@ export function buildDeck(opts: BuildDeckOptions): BuildDeckResult {
       const plugin = getPlugin(kind);
       const ctx: BuildContext = {
         distractorPool,
+        definitionPriority: opts.definitionPriority ?? "en_first",
         rng,
         sessionSeed: opts.sessionSeed,
       };

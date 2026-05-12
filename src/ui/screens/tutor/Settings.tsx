@@ -2,6 +2,10 @@ import type { PracticeMode } from "@/data/schema";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useAppMode } from "@/providers/AppModeProvider";
+import {
+  type DisplayFontSize,
+  useDisplayPreferences,
+} from "@/providers/DisplayPreferencesProvider";
 import { type ThemePreference, useTheme } from "@/providers/ThemeProvider";
 import { Button } from "@/ui/components/Button";
 import { Field } from "@/ui/components/Field";
@@ -18,15 +22,19 @@ const SETTINGS = {
   sessionCount: "session_default_count",
   sessionMode: "session_default_mode",
   sessionShuffle: "session_shuffle",
-  fontSize: "display_font_size",
-  compact: "display_compact",
-  locale: "locale",
   definitionPriority: "definition_priority",
   idleTimeout: "idle_timeout_minutes",
   lockOnClose: "lock_on_close",
 } as const;
 
-const RESETTABLE_KEYS = ["theme", SOUND_KEY, ...Object.values(SETTINGS)];
+const LEGACY_SETTING_KEYS = ["display_compact", "locale"] as const;
+const RESETTABLE_KEYS = [
+  "theme",
+  SOUND_KEY,
+  "display_font_size",
+  ...Object.values(SETTINGS),
+  ...LEGACY_SETTING_KEYS,
+];
 
 export function TutorSettings() {
   return (
@@ -36,22 +44,27 @@ export function TutorSettings() {
         title="Settings"
         subtitle="Tutor access, display, session defaults, and local app preferences."
       />
-      <section className="grid grid-cols-1 gap-6 px-8 py-6 md:grid-cols-2 xl:grid-cols-3">
-        <ChangePinCard />
-        <ThemeCard />
-        <RewardSoundCard />
-        <SessionDefaultsCard />
-        <DisplayCard />
-        <LanguageCard />
-        <AutoLockCard />
-        <AboutCard />
+      <section className="grid grid-cols-1 gap-5 px-8 py-6 xl:grid-cols-[minmax(19rem,23rem)_minmax(0,1fr)]">
+        <div className="flex flex-col gap-5">
+          <ChangePinCard />
+          <AutoLockCard />
+          <AboutCard />
+        </div>
+        <div className="flex flex-col gap-5">
+          <PreferencesCard />
+          <SessionDefaultsCard />
+        </div>
       </section>
     </>
   );
 }
 
-function ThemeCard() {
+function PreferencesCard() {
   const { theme, resolvedTheme, setTheme } = useTheme();
+  const { fontSize, setFontSize } = useDisplayPreferences();
+  const sound = useSetting<boolean>(SOUND_KEY, false);
+  const priority = useSetting<string>(SETTINGS.definitionPriority, "en_first");
+  const soundEnabled = sound.value === true;
   const options: Array<{ value: ThemePreference; label: string; detail: string }> = [
     { value: "light", label: "Light", detail: "Bright" },
     { value: "dark", label: "Dark", detail: "Dim" },
@@ -59,44 +72,55 @@ function ThemeCard() {
   ];
 
   return (
-    <SettingsCard title="Theme" description="Choose the app appearance.">
-      <div className="grid grid-cols-3 gap-2">
-        {options.map((option) => {
-          const active = theme === option.value;
-          return (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setTheme(option.value)}
-              className={cn(
-                "rounded-xl border px-3 py-3 text-left transition-colors",
-                active
-                  ? "border-accent bg-accent/10 text-app"
-                  : "border-border-subtle bg-surface-0 text-muted hover:border-border-strong hover:text-app",
-              )}
-            >
-              <span className="block text-sm font-semibold">{option.label}</span>
-              <span className="mt-1 block text-[10px] uppercase text-muted-2">{option.detail}</span>
-            </button>
-          );
-        })}
+    <SettingsCard title="Preferences" description="Appearance and learner feedback.">
+      <div className="divide-y divide-border-subtle overflow-hidden rounded-2xl border border-border-subtle bg-surface-0/70">
+        <PreferenceRow title="Theme">
+          <SegmentedControl
+            value={theme}
+            options={options.map((option) => ({
+              value: option.value,
+              label: option.label,
+              detail: option.detail,
+            }))}
+            onChange={(value) => setTheme(value as ThemePreference)}
+          />
+        </PreferenceRow>
+
+        <PreferenceRow title="Display">
+          <SettingSelect
+            label="Font size"
+            value={fontSize}
+            options={[
+              ["small", "Small"],
+              ["medium", "Medium"],
+              ["large", "Large"],
+            ]}
+            onChange={(value) => setFontSize(value as DisplayFontSize)}
+          />
+        </PreferenceRow>
+
+        <PreferenceRow title="Reward sound">
+          <SettingToggle
+            label={soundEnabled ? "Reward sounds enabled" : "Reward sounds muted"}
+            checked={soundEnabled}
+            disabled={sound.loading || sound.saving}
+            onChange={sound.setValue}
+          />
+        </PreferenceRow>
+
+        <PreferenceRow title="Definition order">
+          <SettingSelect
+            label="Definition order"
+            value={priority.value}
+            disabled={priority.loading || priority.saving}
+            options={[
+              ["en_first", "English first"],
+              ["vi_first", "Vietnamese first"],
+            ]}
+            onChange={priority.setValue}
+          />
+        </PreferenceRow>
       </div>
-    </SettingsCard>
-  );
-}
-
-function RewardSoundCard() {
-  const sound = useSetting<boolean>(SOUND_KEY, false);
-  const enabled = sound.value === true;
-
-  return (
-    <SettingsCard title="Reward sound" description="Optional chime for in-session streak rewards.">
-      <SettingToggle
-        label={enabled ? "Sound effects enabled" : "Sound effects muted"}
-        checked={enabled}
-        disabled={sound.loading || sound.saving}
-        onChange={sound.setValue}
-      />
     </SettingsCard>
   );
 }
@@ -108,93 +132,38 @@ function SessionDefaultsCard() {
 
   return (
     <SettingsCard title="Session defaults" description="Starting values for student sessions.">
-      <SettingSelect
-        label="Exercise count"
-        value={String(count.value)}
-        disabled={count.loading || count.saving}
-        options={[
-          ["5", "5"],
-          ["10", "10"],
-          ["15", "15"],
-          ["20", "20"],
-          ["30", "30"],
-        ]}
-        onChange={(value) => count.setValue(Number(value))}
-      />
-      <SettingSelect
-        label="Mode"
-        value={mode.value}
-        disabled={mode.loading || mode.saving}
-        options={[
-          ["mixed", "Mixed"],
-          ["flashcard", "Flashcard"],
-          ["multiple_choice", "Multiple choice"],
-        ]}
-        onChange={(value) => mode.setValue(value as PracticeMode)}
-      />
-      <SettingToggle
-        label="Shuffle exercises"
-        checked={shuffle.value === true}
-        disabled={shuffle.loading || shuffle.saving}
-        onChange={shuffle.setValue}
-      />
-    </SettingsCard>
-  );
-}
-
-function DisplayCard() {
-  const fontSize = useSetting<string>(SETTINGS.fontSize, "medium");
-  const compact = useSetting<boolean>(SETTINGS.compact, false);
-
-  return (
-    <SettingsCard title="Display" description="Reading density and typography.">
-      <SettingSelect
-        label="Font size"
-        value={fontSize.value}
-        disabled={fontSize.loading || fontSize.saving}
-        options={[
-          ["small", "Small"],
-          ["medium", "Medium"],
-          ["large", "Large"],
-        ]}
-        onChange={fontSize.setValue}
-      />
-      <SettingToggle
-        label="Compact mode"
-        checked={compact.value === true}
-        disabled={compact.loading || compact.saving}
-        onChange={compact.setValue}
-      />
-    </SettingsCard>
-  );
-}
-
-function LanguageCard() {
-  const locale = useSetting<string>(SETTINGS.locale, "en");
-  const priority = useSetting<string>(SETTINGS.definitionPriority, "en_first");
-
-  return (
-    <SettingsCard title="Language" description="Locale and definition order.">
-      <SettingSelect
-        label="App language"
-        value={locale.value}
-        disabled={locale.loading || locale.saving}
-        options={[
-          ["en", "English"],
-          ["vi", "Vietnamese"],
-        ]}
-        onChange={locale.setValue}
-      />
-      <SettingSelect
-        label="Definition priority"
-        value={priority.value}
-        disabled={priority.loading || priority.saving}
-        options={[
-          ["en_first", "English first"],
-          ["vi_first", "Vietnamese first"],
-        ]}
-        onChange={priority.setValue}
-      />
+      <div className="grid gap-3 lg:grid-cols-[10rem_1fr_auto] lg:items-end">
+        <SettingSelect
+          label="Count"
+          value={String(count.value)}
+          disabled={count.loading || count.saving}
+          options={[
+            ["5", "5"],
+            ["10", "10"],
+            ["15", "15"],
+            ["20", "20"],
+            ["30", "30"],
+          ]}
+          onChange={(value) => count.setValue(Number(value))}
+        />
+        <SettingSelect
+          label="Mode"
+          value={mode.value}
+          disabled={mode.loading || mode.saving}
+          options={[
+            ["mixed", "Mixed"],
+            ["flashcard", "Flashcard"],
+            ["multiple_choice", "Multiple choice"],
+          ]}
+          onChange={(value) => mode.setValue(value as PracticeMode)}
+        />
+        <SettingToggle
+          label="Shuffle"
+          checked={shuffle.value === true}
+          disabled={shuffle.loading || shuffle.saving}
+          onChange={shuffle.setValue}
+        />
+      </div>
     </SettingsCard>
   );
 }
@@ -326,6 +295,7 @@ function ChangePinCard() {
           placeholder="Current"
           disabled={busy}
           maxLength={MAX_PIN}
+          density="compact"
         />
         <PinInput
           aria-label="New PIN"
@@ -334,6 +304,7 @@ function ChangePinCard() {
           placeholder="New PIN"
           disabled={busy}
           maxLength={MAX_PIN}
+          density="compact"
           invalid={Boolean(error)}
         />
         <PinInput
@@ -343,6 +314,7 @@ function ChangePinCard() {
           placeholder="Confirm new PIN"
           disabled={busy}
           maxLength={MAX_PIN}
+          density="compact"
           invalid={Boolean(error)}
         />
         {error ? (
@@ -362,6 +334,7 @@ function ChangePinCard() {
           type="submit"
           disabled={busy || !current || next.length < MIN_PIN}
           className="self-start"
+          size="sm"
         >
           {busy ? "Saving..." : "Update PIN"}
         </Button>
@@ -374,19 +347,72 @@ function SettingsCard({
   title,
   description,
   children,
+  className,
 }: {
   title: string;
   description: string;
   children: ReactNode;
+  className?: string;
 }) {
   return (
-    <article className="flex flex-col gap-4 rounded-2xl border border-border-subtle bg-surface-1 p-6">
+    <article
+      className={cn(
+        "flex flex-col gap-4 rounded-2xl border border-border-subtle bg-surface-1 p-5 shadow-sm",
+        className,
+      )}
+    >
       <header className="flex flex-col gap-1">
         <h2 className="text-base font-semibold">{title}</h2>
         <p className="text-xs text-muted">{description}</p>
       </header>
       <div className="flex flex-col gap-3">{children}</div>
     </article>
+  );
+}
+
+function PreferenceRow({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="grid gap-3 px-4 py-3 md:grid-cols-[8rem_1fr] md:items-center">
+      <h3 className="text-xs font-semibold uppercase text-muted-2">{title}</h3>
+      <div className="min-w-0">{children}</div>
+    </section>
+  );
+}
+
+function SegmentedControl({
+  value,
+  options,
+  onChange,
+}: {
+  value: string;
+  options: Array<{ value: string; label: string; detail?: string }>;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="grid grid-cols-3 gap-1 rounded-xl bg-surface-2 p-1">
+      {options.map((option) => {
+        const active = value === option.value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => onChange(option.value)}
+            className={cn(
+              "min-w-0 rounded-lg px-3 py-2 text-left transition-[background-color,color,box-shadow]",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/35",
+              active ? "bg-surface-1 text-app shadow-sm" : "text-muted hover:text-app",
+            )}
+          >
+            <span className="block truncate text-sm font-semibold">{option.label}</span>
+            {option.detail ? (
+              <span className="mt-0.5 block truncate text-[10px] uppercase text-muted-2">
+                {option.detail}
+              </span>
+            ) : null}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -409,7 +435,7 @@ function SettingSelect({
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className="h-10 rounded-xl border border-border-subtle bg-surface-0 px-3 text-sm text-app outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40 disabled:opacity-60"
+        className="h-10 w-full rounded-xl border border-border-subtle bg-surface-0 px-3 text-sm text-app outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40 disabled:opacity-60"
       >
         {options.map(([optionValue, optionLabel]) => (
           <option key={optionValue} value={optionValue}>
@@ -433,7 +459,7 @@ function SettingToggle({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-3 text-sm">
+    <label className="inline-flex min-h-10 cursor-pointer items-center gap-3 rounded-xl border border-border-subtle bg-surface-0 px-3 text-sm">
       <input
         type="checkbox"
         checked={checked}

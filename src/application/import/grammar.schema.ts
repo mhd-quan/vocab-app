@@ -170,6 +170,7 @@ export const grammarFileSchema = z
         code: z.string().min(1),
         title: z.string().min(1),
         summary_md: z.string().optional(),
+        metadata: z.record(z.unknown()).optional(),
       })
       .strict(),
     lesson: z
@@ -178,6 +179,7 @@ export const grammarFileSchema = z
         kind: z.literal("grammar"),
         title: z.string().min(1),
         slug: z.string().regex(slugRegex, "slug must be lowercase-kebab"),
+        metadata: z.record(z.unknown()).optional(),
       })
       .strict(),
     topics: z.array(grammarTopicInputSchema).min(1, "file must contain at least one topic"),

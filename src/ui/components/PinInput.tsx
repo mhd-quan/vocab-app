@@ -4,10 +4,11 @@ import { type InputHTMLAttributes, forwardRef } from "react";
 export interface PinInputProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "size"> {
   invalid?: boolean;
+  density?: "default" | "compact";
 }
 
 export const PinInput = forwardRef<HTMLInputElement, PinInputProps>(function PinInput(
-  { className, invalid, ...props },
+  { className, density = "default", invalid, ...props },
   ref,
 ) {
   return (
@@ -18,7 +19,8 @@ export const PinInput = forwardRef<HTMLInputElement, PinInputProps>(function Pin
       autoComplete="off"
       spellCheck={false}
       className={cn(
-        "w-full rounded-xl border bg-surface-1 px-4 py-3 text-center font-mono text-2xl text-app",
+        "w-full rounded-xl border bg-surface-1 text-center font-mono text-app",
+        density === "compact" ? "h-10 px-3 text-sm tracking-[0.12em]" : "px-4 py-3 text-2xl",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-0",
         invalid
           ? "border-danger/60 focus-visible:ring-danger/50"

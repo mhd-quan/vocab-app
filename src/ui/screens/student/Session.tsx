@@ -27,6 +27,7 @@ const SOUND_KEY = "rewards_sound_enabled";
 const SESSION_COUNT_KEY = "session_default_count";
 const SESSION_MODE_KEY = "session_default_mode";
 const SESSION_SHUFFLE_KEY = "session_shuffle";
+const DEFINITION_PRIORITY_KEY = "definition_priority";
 
 /**
  * Route screen: glues lesson data → the matching practice engine/player →
@@ -95,13 +96,22 @@ export function StudentSession() {
     queryFn: () => api.settings.get<boolean>({ key: SESSION_SHUFFLE_KEY }),
   });
 
+  const definitionPriorityQ = useQuery({
+    queryKey: ["settings", "get", DEFINITION_PRIORITY_KEY],
+    queryFn: () => api.settings.get<string>({ key: DEFINITION_PRIORITY_KEY }),
+  });
+
   const sessionCount = normalizeSessionCount(sessionCountQ.data);
   const sessionMode = normalizeSessionMode(sessionModeQ.data);
+  const definitionPriority = normalizeDefinitionPriority(definitionPriorityQ.data);
   const effectiveSessionMode = lessonQ.data?.kind === "grammar" ? "grammar" : sessionMode;
   const exerciseKinds = useMemo(() => exerciseKindsForMode(sessionMode), [sessionMode]);
   const shuffleDeck = sessionShuffleQ.data !== false;
   const settingsLoading =
-    sessionCountQ.isLoading || sessionModeQ.isLoading || sessionShuffleQ.isLoading;
+    sessionCountQ.isLoading ||
+    sessionModeQ.isLoading ||
+    sessionShuffleQ.isLoading ||
+    definitionPriorityQ.isLoading;
 
   const sessionStart = useMutation({
     mutationFn: (input: { studentId: number }) =>
@@ -144,6 +154,7 @@ export function StudentSession() {
       kinds: exerciseKinds,
       sessionSeed: seed,
       maxExercises: sessionCount,
+      definitionPriority,
       shuffle: shuffleDeck,
     }).exercises;
   }, [
@@ -152,6 +163,7 @@ export function StudentSession() {
     exerciseKinds,
     seed,
     sessionCount,
+    definitionPriority,
     shuffleDeck,
     settingsLoading,
   ]);
@@ -289,6 +301,10 @@ function normalizeSessionMode(value: unknown): "mixed" | "flashcard" | "multiple
   return value === "flashcard" || value === "multiple_choice" || value === "mixed"
     ? value
     : "mixed";
+}
+
+function normalizeDefinitionPriority(value: unknown): "en_first" | "vi_first" {
+  return value === "vi_first" ? "vi_first" : "en_first";
 }
 
 function exerciseKindsForMode(mode: "mixed" | "flashcard" | "multiple_choice"): ExerciseKind[] {
