@@ -59,7 +59,7 @@ export function StudentSession() {
   const [seed] = useState(() => defaultSessionSeed(lessonIdNum));
 
   const lessonQ = useQuery({
-    queryKey: queryKeys.curriculum.lessons(lessonIdNum),
+    queryKey: queryKeys.curriculum.lessonById(lessonIdNum),
     queryFn: () => api.curriculum.getLessonById({ id: lessonIdNum }),
     enabled: Number.isFinite(lessonIdNum) && lessonIdNum > 0,
   });
@@ -274,6 +274,17 @@ export function StudentSession() {
 
   if (lessonQ.isLoading || contentLoading || settingsLoading) {
     return <p className="px-6 py-10 text-sm text-muted">Loading session…</p>;
+  }
+
+  if (!lessonQ.data) {
+    return (
+      <div className="mx-auto max-w-md px-6 py-10 text-center">
+        <p className="text-sm text-danger">Lesson not found.</p>
+        <Button className="mt-4" variant="secondary" onClick={exit}>
+          Back
+        </Button>
+      </div>
+    );
   }
 
   if (lessonKind === "grammar") {

@@ -30,6 +30,7 @@ export const queryKeys = {
     books: () => ["curriculum", "books"] as const,
     units: (bookId: number) => ["curriculum", "units", bookId] as const,
     lessons: (unitId: number) => ["curriculum", "lessons", unitId] as const,
+    lessonById: (lessonId: number) => ["curriculum", "lesson", lessonId] as const,
   },
   vocab: {
     list: (lessonId: number) => ["vocab", "list", lessonId] as const,
