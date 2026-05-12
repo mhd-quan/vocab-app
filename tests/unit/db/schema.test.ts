@@ -12,6 +12,7 @@ import {
   lessons,
   practiceSessions,
   students,
+  unitAssignments,
   units,
   vocabCollocations,
   vocabEntries,
@@ -55,6 +56,7 @@ describe("DB schema migrations", () => {
       "practice_sessions",
       "student_achievements",
       "students",
+      "unit_assignments",
       "units",
       "vocab_collocations",
       "vocab_entries",
@@ -263,6 +265,7 @@ describe("DB schema migrations", () => {
     db.insert(enrollments)
       .values({ studentId: student.id, bookId: book.id, currentUnitId: unit.id })
       .run();
+    db.insert(unitAssignments).values({ studentId: student.id, unitId: unit.id }).run();
 
     const session = first(
       db
@@ -301,6 +304,8 @@ describe("DB schema migrations", () => {
     const progress = db.select().from(itemProgress).all();
     expect(progress).toHaveLength(1);
     expect(first(progress).streak).toBe(1);
+
+    expect(db.select().from(unitAssignments).all()).toHaveLength(1);
   });
 
   it("logs import runs + items", () => {

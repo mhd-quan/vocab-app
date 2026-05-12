@@ -72,7 +72,8 @@ Accepted `pos` values:
 
 `noun`, `verb`, `adjective`, `adverb`, `phrase`, `idiom`,
 `phrasal_verb`, `collocation`, `pattern`, `determiner`, `preposition`,
-`conjunction`, `pronoun`, `interjection`
+`conjunction`, `pronoun`, `interjection`, `article`, `auxiliary`, `modal`,
+`number`, `abbreviation`, `prefix`, `suffix`, `root`
 
 Rules:
 
@@ -104,7 +105,8 @@ senses:
 
 Accepted `register` values:
 
-`formal`, `informal`, `neutral`, `slang`, `academic`
+`formal`, `informal`, `neutral`, `slang`, `academic`, `technical`,
+`literary`
 
 ### Examples And Cloze
 
@@ -133,19 +135,23 @@ forms:
   - kind: past
     text: adapted
     ipa: /əˈdæptɪd/
+  - kind: noun
+    text: adaptation
 ```
 
 Accepted `kind` values:
 
 `plural`, `past`, `past_participle`, `gerund`, `third_person`,
-`comparative`, `superlative`, `infinitive`
+`comparative`, `superlative`, `infinitive`, `noun`, `verb`, `adjective`,
+`adverb`, `opposite`, `prefix`, `suffix`, `root`, `compound`, `derivative`
 
 Rules:
 
-- `forms` is for inflectional forms of the same entry, such as verb tenses,
-  plurals, and adjective comparison.
-- Do not use `forms` for word-family derivations such as noun/adjective/adverb
-  forms. Use `metadata.related_forms` for that.
+- Prefer `text`. The importer also accepts legacy `form` and normalizes it to
+  `text`.
+- Use inflectional kinds for tenses/plurals/comparison.
+- Use `noun`, `verb`, `adjective`, `adverb`, `opposite`, `prefix`, `suffix`,
+  `root`, `compound`, or `derivative` when the entry is a word-formation card.
 
 ### Word Formation Metadata
 
@@ -188,7 +194,10 @@ collocations:
 Accepted `pattern` values:
 
 `verb+noun`, `adj+noun`, `noun+noun`, `verb+prep`, `adj+prep`,
-`noun+prep`, `prep+noun`, `adv+adj`, `adv+verb`, `other`
+`noun+prep`, `prep+noun`, `verb+object+prep`,
+`verb+object+infinitive`, `verb+object+bare_infinitive`, `verb+gerund`,
+`verb+infinitive`, `adj+infinitive`, `adj+that_clause`, `noun+of+noun`,
+`be+adj+prep`, `adv+adj`, `adv+verb`, `other`
 
 ### Relations
 
@@ -201,7 +210,24 @@ relations:
 Accepted `relation` values:
 
 `synonym`, `antonym`, `see_also`, `derived_from`, `confused_with`,
-`hypernym`, `hyponym`
+`false_friend`, `hypernym`, `hyponym`, `word_family`, `topic_family`,
+`variant`, `prefix_of`, `suffix_of`
+
+### Study Section Tags
+
+The student unit screen can filter practice by section. Use these canonical
+tags where possible:
+
+- Core vocabulary: `vocabulary`
+- Phrasal verbs: `phrasal-verb` or `phrasal_verb`; `pos: phrasal_verb` also
+  counts.
+- Phrases & collocations: `collocation`, `phrase`, or
+  `phrases-collocations`; `pos: phrase`, `idiom`, or `collocation` also
+  counts.
+- Word patterns: `word-pattern` or `word_pattern`; `pos: pattern` also
+  counts.
+- Word formation: `word-formation` or a non-empty `metadata.related_forms`
+  array.
 
 ## Grammar Files
 
@@ -218,7 +244,13 @@ Optional topic fields:
 - `summary_md`
 - `explanation_md`
 - `difficulty`
+- `estimated_minutes`
 - `tags`
+- `objectives`
+- `prerequisites`
+- `teacher_notes`
+- `contrast_notes`
+- `exam_notes`
 - `patterns`
 - `examples`
 - `common_mistakes`
@@ -231,6 +263,7 @@ Rules:
 - `id` must match `[a-z0-9][a-z0-9_-]*`.
 - `slug` must be lowercase kebab case.
 - `difficulty` is an integer from `1` to `5`.
+- `estimated_minutes` is a positive integer.
 - `patterns`, `examples`, `common_mistakes`, `checks`, and `activities` are
   stored in topic metadata. Student grammar practice is built from
   `activities`; legacy `checks` are used as simple rewrite exercises if a
@@ -305,7 +338,10 @@ Shared optional fields:
 - `instruction`
 - `hint`
 - `explanation`
+- `tags`
+- `source_ref`
 - `points`
+- `metadata`
 
 Supported `kind` values:
 

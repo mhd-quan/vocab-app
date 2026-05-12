@@ -30,6 +30,22 @@ const updateInput = z.object({
   }),
 });
 
+const studentBookInput = z.object({
+  studentId: z.number().int().positive(),
+  bookId: z.number().int().positive(),
+});
+
+const assignedUnitIdsInput = z.object({
+  studentId: z.number().int().positive(),
+  bookId: z.number().int().positive().optional(),
+});
+
+const replaceAssignmentsInput = z.object({
+  studentId: z.number().int().positive(),
+  bookId: z.number().int().positive(),
+  unitIds: z.array(z.number().int().positive()).max(200),
+});
+
 export const studentsProcedures = [
   defineProcedure({
     name: "students.listActive",
@@ -71,5 +87,27 @@ export const studentsProcedures = [
       ctx.repos.students.restore(id);
       return { ok: true } as const;
     },
+  }),
+  defineProcedure({
+    name: "students.listAssignedBooks",
+    input: z.object({ studentId: z.number().int().positive() }),
+    handler: ({ studentId }, ctx) => ctx.repos.students.listAssignedBooks(studentId),
+  }),
+  defineProcedure({
+    name: "students.listAssignedUnits",
+    input: studentBookInput,
+    handler: ({ studentId, bookId }, ctx) =>
+      ctx.repos.students.listAssignedUnits(studentId, bookId),
+  }),
+  defineProcedure({
+    name: "students.listAssignedUnitIds",
+    input: assignedUnitIdsInput,
+    handler: ({ studentId, bookId }, ctx) =>
+      ctx.repos.students.listAssignedUnitIds(studentId, bookId),
+  }),
+  defineProcedure({
+    name: "students.replaceUnitAssignments",
+    input: replaceAssignmentsInput,
+    handler: (input, ctx) => ctx.repos.students.replaceUnitAssignments(input),
   }),
 ];

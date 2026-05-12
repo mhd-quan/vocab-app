@@ -11,6 +11,9 @@ export const practiceModes = [
   "review",
   "mixed",
   "grammar",
+  "revision",
+  "unit_review",
+  "multi_unit_review",
 ] as const;
 export type PracticeMode = (typeof practiceModes)[number];
 

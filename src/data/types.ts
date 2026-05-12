@@ -12,6 +12,7 @@ import type {
   practiceSessions,
   studentAchievements,
   students,
+  unitAssignments,
   units,
   vocabCollocations,
   vocabEntries,
@@ -51,6 +52,8 @@ export type Student = typeof students.$inferSelect;
 export type NewStudent = typeof students.$inferInsert;
 export type Enrollment = typeof enrollments.$inferSelect;
 export type NewEnrollment = typeof enrollments.$inferInsert;
+export type UnitAssignment = typeof unitAssignments.$inferSelect;
+export type NewUnitAssignment = typeof unitAssignments.$inferInsert;
 
 export type PracticeSession = typeof practiceSessions.$inferSelect;
 export type NewPracticeSession = typeof practiceSessions.$inferInsert;

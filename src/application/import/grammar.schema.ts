@@ -44,7 +44,10 @@ const grammarActivityBaseSchema = z.object({
   instruction: z.string().min(1).optional(),
   hint: z.string().min(1).optional(),
   explanation: z.string().min(1).optional(),
+  tags: z.array(z.string().min(1)).optional(),
+  source_ref: z.string().min(1).optional(),
   points: z.number().int().min(1).max(10).optional(),
+  metadata: z.record(z.unknown()).optional(),
 });
 
 const acceptedAnswersSchema = z.array(z.string().min(1)).min(1).optional();
@@ -141,7 +144,13 @@ export const grammarTopicInputSchema = z
     summary_md: z.string().optional(),
     explanation_md: z.string().optional(),
     difficulty: z.number().int().min(1).max(5).optional(),
+    estimated_minutes: z.number().int().min(1).max(120).optional(),
     tags: z.array(z.string().min(1)).optional(),
+    objectives: z.array(z.string().min(1)).optional(),
+    prerequisites: z.array(z.string().min(1)).optional(),
+    teacher_notes: z.string().optional(),
+    contrast_notes: z.string().optional(),
+    exam_notes: z.string().optional(),
     patterns: z.array(grammarPatternInputSchema).optional(),
     examples: z.array(grammarExampleInputSchema).optional(),
     common_mistakes: z.array(grammarMistakeInputSchema).optional(),

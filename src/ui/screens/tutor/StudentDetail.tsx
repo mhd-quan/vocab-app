@@ -1,17 +1,19 @@
 import { api } from "@/lib/api";
+import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
 import { type HeatmapCell, bucketByDay } from "@/modules/analytics";
 import { type AchievementDefinition, getAchievement } from "@/modules/rewards";
 import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
+import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { Heatmap } from "@/ui/components/Heatmap";
 import { PageHeader } from "@/ui/components/PageHeader";
 import { AchievementIcon } from "@/ui/components/rewards";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const HEATMAP_DAYS = 90;
 
@@ -31,6 +33,8 @@ export function TutorStudentDetail() {
     queryFn: () => api.students.getById({ id }),
     enabled: Number.isFinite(id) && id > 0,
   });
+
+  const queryClient = useQueryClient();
 
   const summaryQ = useQuery({
     queryKey: queryKeys.progress.summary(id),
@@ -158,6 +162,8 @@ export function TutorStudentDetail() {
           </dl>
         </section>
 
+        <AssignmentsPanel studentId={id} queryClient={queryClient} />
+
         <Heatmap
           cells={heatmapCells}
           title="Practice activity"
@@ -175,6 +181,169 @@ export function TutorStudentDetail() {
         />
       </div>
     </>
+  );
+}
+
+function AssignmentsPanel({
+  studentId,
+  queryClient,
+}: {
+  studentId: number;
+  queryClient: ReturnType<typeof useQueryClient>;
+}) {
+  const [bookId, setBookId] = useState<number | null>(null);
+  const [selectedUnitIds, setSelectedUnitIds] = useState<Set<number>>(() => new Set());
+
+  const booksQ = useQuery({
+    queryKey: queryKeys.curriculum.books(),
+    queryFn: () => api.curriculum.listBooks(),
+  });
+  const books = booksQ.data ?? [];
+
+  useEffect(() => {
+    if (bookId === null && books.length > 0) setBookId(books[0]?.id ?? null);
+  }, [bookId, books]);
+
+  const unitsQ = useQuery({
+    queryKey: bookId ? queryKeys.curriculum.units(bookId) : ["curriculum", "units", "none"],
+    queryFn: () => api.curriculum.listUnitsByBook({ bookId: bookId ?? 0 }),
+    enabled: bookId !== null,
+  });
+
+  const assignedQ = useQuery({
+    queryKey:
+      bookId !== null
+        ? queryKeys.students.assignedUnitIds(studentId, bookId)
+        : queryKeys.students.assignedUnitIds(studentId),
+    queryFn: () => api.students.listAssignedUnitIds({ studentId, bookId: bookId ?? undefined }),
+    enabled: Number.isFinite(studentId) && studentId > 0 && bookId !== null,
+  });
+
+  useEffect(() => {
+    if (assignedQ.data) setSelectedUnitIds(new Set(assignedQ.data));
+  }, [assignedQ.data]);
+
+  const saveAssignments = useMutation({
+    mutationFn: () =>
+      api.students.replaceUnitAssignments({
+        studentId,
+        bookId: bookId ?? 0,
+        unitIds: [...selectedUnitIds],
+      }),
+    onSuccess: async () => {
+      if (bookId === null) return;
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.students.assignedBooks(studentId) }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.students.assignedUnits(studentId, bookId),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.students.assignedUnitIds(studentId, bookId),
+        }),
+      ]);
+    },
+  });
+
+  const units = unitsQ.data ?? [];
+
+  const toggle = (unitId: number) => {
+    setSelectedUnitIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(unitId)) next.delete(unitId);
+      else next.add(unitId);
+      return next;
+    });
+  };
+
+  return (
+    <Panel title="Assignments" caption="Control what the student can see" tone="mastery">
+      {booksQ.isLoading ? (
+        <p className="text-xs text-muted">Loading books…</p>
+      ) : books.length === 0 ? (
+        <EmptyState
+          title="No books imported"
+          body="Import at least one book before assigning units to students."
+        />
+      ) : (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <label className="flex flex-col gap-1 text-xs font-semibold uppercase text-muted-2">
+              Book
+              <select
+                className="min-h-11 rounded-2xl border border-border-strong bg-surface-0 px-3 text-sm normal-case text-app outline-none focus:border-accent"
+                value={bookId ?? ""}
+                onChange={(event) => setBookId(Number(event.target.value))}
+              >
+                {books.map((book) => (
+                  <option key={book.id} value={book.id}>
+                    {book.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <Button
+              onClick={() => saveAssignments.mutate()}
+              disabled={bookId === null || saveAssignments.isPending}
+            >
+              {saveAssignments.isPending ? "Saving…" : "Save assignments"}
+            </Button>
+          </div>
+
+          {unitsQ.isLoading || assignedQ.isLoading ? (
+            <p className="text-xs text-muted">Loading units…</p>
+          ) : units.length === 0 ? (
+            <p className="text-xs text-muted-2">This book has no imported units yet.</p>
+          ) : (
+            <ul className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+              {units.map((unit) => {
+                const checked = selectedUnitIds.has(unit.id);
+                return (
+                  <li key={unit.id}>
+                    <label
+                      className={cn(
+                        "flex min-h-24 cursor-pointer flex-col gap-2 rounded-2xl border p-3 transition",
+                        checked
+                          ? "border-mastery/50 bg-mastery/10 shadow-glow"
+                          : "border-border-subtle bg-surface-0/60 hover:border-border-strong hover:bg-surface-2",
+                      )}
+                    >
+                      <span className="flex items-center justify-between gap-3">
+                        <span className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => toggle(unit.id)}
+                            className="h-4 w-4 accent-[rgb(var(--color-mastery))]"
+                          />
+                          <span className="font-mono text-[11px] text-muted-2">{unit.code}</span>
+                        </span>
+                        <Badge tone={checked ? "mastery" : "muted"} uppercase>
+                          {checked ? "Assigned" : "Locked"}
+                        </Badge>
+                      </span>
+                      <span className="line-clamp-2 text-sm font-medium text-app">
+                        {unit.title}
+                      </span>
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+
+          {saveAssignments.isSuccess ? (
+            <p className="text-xs text-success">Assignments saved.</p>
+          ) : null}
+          {saveAssignments.isError ? (
+            <p className="text-xs text-danger">
+              {saveAssignments.error instanceof Error
+                ? saveAssignments.error.message
+                : "Could not save assignments."}
+            </p>
+          ) : null}
+        </div>
+      )}
+    </Panel>
   );
 }
 

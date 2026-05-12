@@ -27,7 +27,15 @@ topics:
       Add -s or -es with he/she/it.
       Common time expressions: always, usually, often, sometimes, every day, on Mondays.
     difficulty: 1
+    estimated_minutes: 12
     tags: [tense, routines, present-simple]
+    objectives:
+      - Identify routines and general truths.
+      - Add -s or -es after he/she/it.
+    prerequisites:
+      - Subject pronouns
+      - Base verbs
+    teacher_notes: Start with routines students can act out.
     patterns:
       - label: affirmative
         form: subject + base verb
@@ -64,10 +72,13 @@ topics:
         explanation: watch becomes watches after he.
     activities:
       - kind: fill_blank
+        tags: [agreement]
         sentence: She {{studies}} English every evening.
         hint: he/she/it takes -s or -es in present simple.
         explanation: Use studies after she.
+        source_ref: teacher-made
       - kind: choice
+        tags: [signal-words]
         question: He usually ___ TV after dinner.
         options:
           - text: watch
@@ -84,7 +95,6 @@ topics:
         answer: She studies English every evening.
         explanation: Add -s or -es for he/she/it in present simple.
     metadata:
-      teacher_note: Start with routines students can act out.
       vietnamese_contrast: Distinguish repeated habit from action happening now.
 
   - id: present-continuous-now

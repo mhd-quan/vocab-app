@@ -110,6 +110,28 @@ describe("parseVocabFile", () => {
     expect(input?.tags).toEqual(["word-pattern"]);
   });
 
+  it("normalizes legacy `form` keys and expanded word-formation kinds", () => {
+    const parsed = parseVocabFile({
+      ...baseFile,
+      entries: [
+        {
+          id: "adapt-verb",
+          headword: "adapt",
+          pos: "verb",
+          forms: [
+            { kind: "noun", form: "adaptation" },
+            { kind: "adjective", text: "adaptable" },
+          ],
+        },
+      ],
+    });
+
+    expect(parsed.entries[0]?.toUpsertInput(1).forms).toEqual([
+      { kind: "noun", formText: "adaptation", ipa: null },
+      { kind: "adjective", formText: "adaptable", ipa: null },
+    ]);
+  });
+
   it("rejects duplicate sourceIds within a file", () => {
     expect(() =>
       parseVocabFile({
@@ -265,7 +287,10 @@ describe("parseGrammarFile", () => {
           summary_md: "Habits and routines.",
           explanation_md: "Use base verb; add -s for he/she/it.",
           difficulty: 1,
+          estimated_minutes: 10,
           tags: ["tense"],
+          objectives: ["Describe routines."],
+          teacher_notes: "Act it out.",
           patterns: [{ label: "affirmative", form: "subject + base verb" }],
           examples: [{ text: "She studies daily.", correct: true }],
           common_mistakes: [{ wrong: "She study.", correct: "She studies." }],
@@ -284,6 +309,9 @@ describe("parseGrammarFile", () => {
       tags: ["tense"],
       metadata: {
         teacher_note: "Act it out.",
+        teacher_notes: "Act it out.",
+        estimated_minutes: 10,
+        objectives: ["Describe routines."],
         patterns: [{ label: "affirmative", form: "subject + base verb" }],
         examples: [{ text: "She studies daily.", correct: true }],
         common_mistakes: [{ wrong: "She study.", correct: "She studies." }],

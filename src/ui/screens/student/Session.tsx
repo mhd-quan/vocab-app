@@ -11,9 +11,10 @@ import {
   type GrammarPracticeResult,
   buildGrammarDeck,
 } from "@/modules/grammarPractice";
+import { filterVocabEntriesBySections, parseStudySectionParam } from "@/modules/studySections";
 import { Button } from "@/ui/components/Button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate, useParams } from "@tanstack/react-router";
+import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GrammarSessionPlayer } from "./session/GrammarSessionPlayer";
 import {
@@ -46,8 +47,13 @@ export function StudentSession() {
   });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const search = useSearch({ from: "/student/profile/$studentId/session/$lessonId" });
   const lessonIdNum = Number(lessonId);
   const studentIdNum = Number(studentId);
+  const selectedSections = useMemo(
+    () => parseStudySectionParam(search.sections),
+    [search.sections],
+  );
 
   const [seed] = useState(() => defaultSessionSeed(lessonIdNum));
 
@@ -126,16 +132,29 @@ export function StudentSession() {
     sessionStart.mutate,
   ]);
 
+  const filteredEntries = useMemo(() => {
+    if (!entriesQ.data) return [];
+    return filterVocabEntriesBySections(entriesQ.data, selectedSections);
+  }, [entriesQ.data, selectedSections]);
+
   const deck = useMemo<Exercise[]>(() => {
     if (!entriesQ.data || settingsLoading) return [];
     return buildDeck({
-      entries: entriesQ.data,
+      entries: filteredEntries,
       kinds: exerciseKinds,
       sessionSeed: seed,
       maxExercises: sessionCount,
       shuffle: shuffleDeck,
     }).exercises;
-  }, [entriesQ.data, exerciseKinds, seed, sessionCount, shuffleDeck, settingsLoading]);
+  }, [
+    entriesQ.data,
+    filteredEntries,
+    exerciseKinds,
+    seed,
+    sessionCount,
+    shuffleDeck,
+    settingsLoading,
+  ]);
 
   const grammarDeck = useMemo<GrammarExercise[]>(() => {
     if (!grammarTopicsQ.data || settingsLoading) return [];
@@ -247,7 +266,7 @@ export function StudentSession() {
 
   const contextLabel =
     lessonKind === "vocabulary" && lessonQ.data
-      ? `${lessonQ.data.title} · ${entriesQ.data?.length ?? 0} entries`
+      ? `${lessonQ.data.title} · ${filteredEntries.length}/${entriesQ.data?.length ?? 0} entries`
       : undefined;
 
   return (

@@ -1,6 +1,7 @@
 import { StudentHome } from "@/ui/screens/student/Home";
 import { StudentProfilePicker } from "@/ui/screens/student/ProfilePicker";
 import { StudentSession } from "@/ui/screens/student/Session";
+import { StudentUnitStudy } from "@/ui/screens/student/UnitStudy";
 import { TutorContent } from "@/ui/screens/tutor/Content";
 import { TutorDashboard } from "@/ui/screens/tutor/Dashboard";
 import { TutorImports } from "@/ui/screens/tutor/Imports";
@@ -100,10 +101,25 @@ const studentProfileRoute = createRoute({
   component: StudentHome,
 });
 
+const studentUnitRoute = createRoute({
+  getParentRoute: () => studentRoute,
+  path: "profile/$studentId/unit/$unitId",
+  component: StudentUnitStudy,
+});
+
+interface StudentSessionSearch {
+  sections?: string;
+}
+
 const studentSessionRoute = createRoute({
   getParentRoute: () => studentRoute,
   path: "profile/$studentId/session/$lessonId",
   component: StudentSession,
+  validateSearch: (raw: Record<string, unknown>): StudentSessionSearch => {
+    return typeof raw.sections === "string" && raw.sections.length > 0
+      ? { sections: raw.sections }
+      : {};
+  },
 });
 
 const routeTree = rootRoute.addChildren([
@@ -116,7 +132,12 @@ const routeTree = rootRoute.addChildren([
     tutorImportsRoute,
     tutorSettingsRoute,
   ]),
-  studentRoute.addChildren([studentIndexRoute, studentProfileRoute, studentSessionRoute]),
+  studentRoute.addChildren([
+    studentIndexRoute,
+    studentProfileRoute,
+    studentUnitRoute,
+    studentSessionRoute,
+  ]),
 ]);
 
 export const router = createRouter({

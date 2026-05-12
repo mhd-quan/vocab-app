@@ -100,8 +100,13 @@ function renderHome() {
     path: "profile/$studentId",
     component: StudentHome,
   });
+  const unitRoute = createRoute({
+    getParentRoute: () => studentRoute,
+    path: "profile/$studentId/unit/$unitId",
+    component: () => null,
+  });
   const router = createRouter({
-    routeTree: rootRoute.addChildren([studentRoute.addChildren([profileRoute])]),
+    routeTree: rootRoute.addChildren([studentRoute.addChildren([profileRoute, unitRoute])]),
     history: createMemoryHistory({ initialEntries: ["/student/profile/1"] }),
   });
   return render(
@@ -114,8 +119,8 @@ function renderHome() {
 describe("StudentHome", () => {
   beforeEach(() => {
     vi.spyOn(window.api.students, "getById").mockResolvedValue(student());
-    vi.spyOn(window.api.curriculum, "listBooks").mockResolvedValue([book()]);
-    vi.spyOn(window.api.curriculum, "listUnitsByBook").mockResolvedValue([unit()]);
+    vi.spyOn(window.api.students, "listAssignedBooks").mockResolvedValue([book()]);
+    vi.spyOn(window.api.students, "listAssignedUnits").mockResolvedValue([unit()]);
     vi.spyOn(window.api.curriculum, "listLessonsByUnit").mockResolvedValue([lesson()]);
   });
 
@@ -123,7 +128,7 @@ describe("StudentHome", () => {
     vi.restoreAllMocks();
   });
 
-  it("renders the student name and lesson, with `All caught up` when totals are 0", async () => {
+  it("renders the student name and assigned unit, with an empty-content state", async () => {
     vi.spyOn(window.api.progress, "dueByLesson").mockResolvedValue({
       totalCount: 0,
       dueCount: 0,
@@ -139,12 +144,10 @@ describe("StudentHome", () => {
     renderHome();
     await waitFor(() => expect(screen.getByText("Alice")).toBeInTheDocument());
     expect(screen.getByText("Destination B1")).toBeInTheDocument();
-    // Lesson with 0 entries is rendered, but as a 'no entries' row (no
-    // due / new badges).
-    await waitFor(() => expect(screen.getByText(/no entries/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/No cards yet/i)).toBeInTheDocument());
   });
 
-  it("renders due / new badges when the lesson has entries with progress", async () => {
+  it("renders due / new badges when the assigned unit has progress", async () => {
     vi.spyOn(window.api.progress, "dueByLesson").mockResolvedValue({
       totalCount: 5,
       dueCount: 2,
@@ -158,15 +161,15 @@ describe("StudentHome", () => {
       totalDue: 2,
     });
     renderHome();
-    await waitFor(() => expect(screen.getByText("Family")).toBeInTheDocument());
-    const link = screen.getByRole("link", { name: /Family/ });
+    await waitFor(() => expect(screen.getByText(/U01: People/)).toBeInTheDocument());
+    const link = screen.getByRole("link", { name: /People/ });
     expect(within(link).getByText(/2 due/i)).toBeInTheDocument();
     expect(within(link).getByText(/1 new/i)).toBeInTheDocument();
     // Header summary stats.
     expect(screen.getByText("80%")).toBeInTheDocument();
   });
 
-  it("renders grammar lessons as large lesson cards", async () => {
+  it("surfaces grammar availability on the assigned unit card", async () => {
     vi.spyOn(window.api.curriculum, "listLessonsByUnit").mockResolvedValue([
       lesson(),
       grammarLesson(),
@@ -186,16 +189,16 @@ describe("StudentHome", () => {
 
     renderHome();
 
-    await waitFor(() => expect(screen.getByText("Present simple")).toBeInTheDocument());
-    const link = screen.getByRole("link", { name: /Present simple/ });
+    await waitFor(() => expect(screen.getByText(/U01: People/)).toBeInTheDocument());
+    const link = screen.getByRole("link", { name: /People/ });
     expect(within(link).getByText(/Grammar/i)).toBeInTheDocument();
     expect(within(link).getByText(/3 new/i)).toBeInTheDocument();
-    expect(within(link).getByText(/3 topics/i)).toBeInTheDocument();
+    expect(within(link).getByText(/8 items/i)).toBeInTheDocument();
   });
 
-  it("renders the empty curriculum state when no books are imported", async () => {
-    vi.spyOn(window.api.curriculum, "listBooks").mockResolvedValue([]);
+  it("renders the empty assignment state when no books are assigned", async () => {
+    vi.spyOn(window.api.students, "listAssignedBooks").mockResolvedValue([]);
     renderHome();
-    await waitFor(() => expect(screen.getByText(/No content yet/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/No assigned units yet/i)).toBeInTheDocument());
   });
 });

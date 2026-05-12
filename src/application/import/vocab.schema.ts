@@ -41,10 +41,19 @@ export const senseInputSchema = z
 export const formInputSchema = z
   .object({
     kind: z.enum(vocabFormKinds),
-    text: z.string().min(1),
+    text: z.string().min(1).optional(),
+    form: z.string().min(1).optional(),
     ipa: z.string().optional(),
   })
-  .strict();
+  .strict()
+  .refine((value) => value.text || value.form, {
+    message: "form must include `text` (preferred) or legacy `form`",
+  })
+  .transform((value) => ({
+    kind: value.kind,
+    text: value.text ?? value.form ?? "",
+    ipa: value.ipa,
+  }));
 
 export const collocationInputSchema = z
   .object({

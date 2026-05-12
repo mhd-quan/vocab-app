@@ -28,6 +28,9 @@ export const students = sqliteTable(
 export const enrollmentStatuses = ["active", "paused", "completed", "dropped"] as const;
 export type EnrollmentStatus = (typeof enrollmentStatuses)[number];
 
+export const unitAssignmentStatuses = ["assigned", "paused", "completed"] as const;
+export type UnitAssignmentStatus = (typeof unitAssignmentStatuses)[number];
+
 export const enrollments = sqliteTable(
   "enrollments",
   {
@@ -50,5 +53,32 @@ export const enrollments = sqliteTable(
   (t) => ({
     studentBookUnique: uniqueIndex("enrollments_student_book_unique").on(t.studentId, t.bookId),
     studentStatusIdx: index("enrollments_student_status_idx").on(t.studentId, t.status),
+  }),
+);
+
+export const unitAssignments = sqliteTable(
+  "unit_assignments",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    studentId: integer("student_id")
+      .notNull()
+      .references(() => students.id, { onDelete: "cascade" }),
+    unitId: integer("unit_id")
+      .notNull()
+      .references(() => units.id, { onDelete: "cascade" }),
+    status: text("status").$type<UnitAssignmentStatus>().notNull().default("assigned"),
+    assignedAt: integer("assigned_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`),
+    completedAt: integer("completed_at", { mode: "timestamp_ms" }),
+    metadata: text("metadata", { mode: "json" }).$type<Record<string, unknown>>(),
+  },
+  (t) => ({
+    studentUnitUnique: uniqueIndex("unit_assignments_student_unit_unique").on(
+      t.studentId,
+      t.unitId,
+    ),
+    studentStatusIdx: index("unit_assignments_student_status_idx").on(t.studentId, t.status),
+    unitIdx: index("unit_assignments_unit_idx").on(t.unitId),
   }),
 );

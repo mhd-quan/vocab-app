@@ -52,7 +52,16 @@ export const units = sqliteTable(
   }),
 );
 
-export const lessonKinds = ["grammar", "vocabulary", "mixed", "reading", "listening"] as const;
+export const lessonKinds = [
+  "grammar",
+  "vocabulary",
+  "mixed",
+  "reading",
+  "listening",
+  "revision",
+  "exercise",
+  "exam_practice",
+] as const;
 export type LessonKind = (typeof lessonKinds)[number];
 
 export const lessons = sqliteTable(
