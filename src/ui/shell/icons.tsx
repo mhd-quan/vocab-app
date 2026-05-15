@@ -46,6 +46,15 @@ export const ContentIcon = ({ className }: GlyphProps) => (
   </Glyph>
 );
 
+export const DictionaryIcon = ({ className }: GlyphProps) => (
+  <Glyph className={className}>
+    <path
+      fill="currentColor"
+      d="M5.1 3.1h11.7c1.2 0 2 .8 2 2v13.8c0 .7-.4 1.1-1.1 1.1H6.3c-1.8 0-3.1-1.2-3.1-3V5c0-1.1.8-1.9 1.9-1.9Zm1.2 2c-.6 0-1 .4-1 1v9.2c.3-.1.6-.1 1-.1h10.5V5.6c0-.3-.2-.5-.5-.5h-10Zm0 12.1c-.6 0-1 .3-1 .8s.4.8 1 .8h10.4v-1.6H6.3Zm1.4-8.7c0-.5.4-.9.9-.9h5.7a.9.9 0 1 1 0 1.8H8.6c-.5 0-.9-.4-.9-.9Zm0 3.4c0-.5.4-.9.9-.9h4.3a.9.9 0 1 1 0 1.8H8.6c-.5 0-.9-.4-.9-.9Z"
+    />
+  </Glyph>
+);
+
 export const ImportsIcon = ({ className }: GlyphProps) => (
   <Glyph className={className}>
     <path

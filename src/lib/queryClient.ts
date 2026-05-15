@@ -37,6 +37,12 @@ export const queryKeys = {
     full: (lessonId: number) => ["vocab", "full", lessonId] as const,
     count: (lessonId: number) => ["vocab", "count", lessonId] as const,
   },
+  dictionary: {
+    status: () => ["dictionary", "status"] as const,
+    search: (query: string, limit: number) => ["dictionary", "search", query, limit] as const,
+    lookup: (term: string) => ["dictionary", "lookup", term] as const,
+    audio: (ref: string) => ["dictionary", "audio", ref] as const,
+  },
   grammar: {
     list: (lessonId: number) => ["grammar", "list", lessonId] as const,
     practice: (lessonId: number) => ["grammar", "practice", lessonId] as const,

@@ -43,6 +43,11 @@ coverage/
 *.sqlite-journal
 /data/
 
+# External dictionary packs
+/dict/
+/dictionary-pack/
+/dictionary-packs/
+
 # Cache
 .eslintcache
 .cache/

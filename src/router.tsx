@@ -4,6 +4,7 @@ import { StudentSession } from "@/ui/screens/student/Session";
 import { StudentUnitStudy } from "@/ui/screens/student/UnitStudy";
 import { TutorContent } from "@/ui/screens/tutor/Content";
 import { TutorDashboard } from "@/ui/screens/tutor/Dashboard";
+import { TutorDictionary } from "@/ui/screens/tutor/Dictionary";
 import { TutorImports } from "@/ui/screens/tutor/Imports";
 import { TutorSettings } from "@/ui/screens/tutor/Settings";
 import { TutorStudentDetail } from "@/ui/screens/tutor/StudentDetail";
@@ -77,6 +78,12 @@ const tutorImportsRoute = createRoute({
   component: TutorImports,
 });
 
+const tutorDictionaryRoute = createRoute({
+  getParentRoute: () => tutorRoute,
+  path: "dictionary",
+  component: TutorDictionary,
+});
+
 const tutorSettingsRoute = createRoute({
   getParentRoute: () => tutorRoute,
   path: "settings",
@@ -129,6 +136,7 @@ const routeTree = rootRoute.addChildren([
     tutorStudentsRoute,
     tutorStudentDetailRoute,
     tutorContentRoute,
+    tutorDictionaryRoute,
     tutorImportsRoute,
     tutorSettingsRoute,
   ]),
