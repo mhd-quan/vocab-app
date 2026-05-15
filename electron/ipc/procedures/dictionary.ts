@@ -45,8 +45,20 @@ export const dictionaryProcedures = [
   defineProcedure({
     name: "dictionary.lookup",
     input: lookupInput,
-    handler: ({ term }, ctx) =>
-      dictionaryLookup(term, ctx.repos.settings.get<string>(DICTIONARY_PACK_PATH_KEY)),
+    handler: ({ term }, ctx) => {
+      const entry = dictionaryLookup(
+        term,
+        ctx.repos.settings.get<string>(DICTIONARY_PACK_PATH_KEY),
+      );
+      if (!entry) return null;
+      return {
+        ...entry,
+        lessonEntries: ctx.repos.vocab.findDictionaryMatches({
+          term,
+          headword: entry.headword,
+        }),
+      };
+    },
   }),
   defineProcedure({
     name: "dictionary.audio",

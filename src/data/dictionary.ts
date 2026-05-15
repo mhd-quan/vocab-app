@@ -33,6 +33,31 @@ export interface DictionarySense {
   examples: string[];
 }
 
+export interface DictionaryLessonEntry {
+  id: number;
+  headword: string;
+  lemma: string | null;
+  pos: PartOfSpeech;
+  ipa: string | null;
+  cefrLevel: CefrLevel | null;
+  audioRef: string | null;
+  bookCode: string;
+  bookTitle: string;
+  unitCode: string;
+  unitTitle: string;
+  unitOrdinal: number;
+  lessonId: number;
+  lessonTitle: string;
+  senses: Array<{
+    definitionEn: string | null;
+    definitionVi: string | null;
+  }>;
+  examples: Array<{
+    text: string;
+    translation: string | null;
+  }>;
+}
+
 export interface DictionaryEntry {
   key: string;
   headword: string;
@@ -49,6 +74,7 @@ export interface DictionaryEntry {
     dictionary: "oald10";
     file: string;
   };
+  lessonEntries: DictionaryLessonEntry[];
 }
 
 export interface DictionaryAudioAsset {

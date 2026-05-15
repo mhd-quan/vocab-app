@@ -35,7 +35,7 @@ export function parseDictionaryRecordHtml(
   const examples = uniqueText(
     senses.flatMap((sense) => sense.examples).concat(extractTexts(html, "x")),
   ).slice(0, 12);
-  const audio = extractAudioRefs(html);
+  const audio = extractAudioRefs(html, headword);
 
   return {
     key,
@@ -53,6 +53,7 @@ export function parseDictionaryRecordHtml(
       dictionary: "oald10",
       file: sourceFile,
     },
+    lessonEntries: [],
   };
 }
 
@@ -79,7 +80,7 @@ function extractSenses(html: string): DictionarySense[] {
   }));
 }
 
-function extractAudioRefs(html: string): DictionaryAudioRef[] {
+function extractAudioRefs(html: string, headword: string): DictionaryAudioRef[] {
   const seen = new Set<string>();
   const refs: DictionaryAudioRef[] = [];
   for (const match of html.matchAll(/href=["']sound:\/\/([^"']+)["']/gi)) {
@@ -98,7 +99,48 @@ function extractAudioRefs(html: string): DictionaryAudioRef[] {
       accent,
     });
   }
-  return refs;
+  return dedupeAudioRefs(refs, headword);
+}
+
+function dedupeAudioRefs(refs: DictionaryAudioRef[], headword: string): DictionaryAudioRef[] {
+  const byAccent = new Map<DictionaryAudioRef["accent"], DictionaryAudioRef[]>();
+  for (const ref of refs) {
+    const list = byAccent.get(ref.accent) ?? [];
+    list.push(ref);
+    byAccent.set(ref.accent, list);
+  }
+
+  const out: DictionaryAudioRef[] = [];
+  for (const accent of ["uk", "us", "other"] as const) {
+    const list = byAccent.get(accent);
+    if (!list?.length) continue;
+    const best = [...list].sort(
+      (a, b) =>
+        audioScore(b, headword) - audioScore(a, headword) || refs.indexOf(b) - refs.indexOf(a),
+    );
+    if (best[0]) out.push(best[0]);
+  }
+  return out;
+}
+
+function audioScore(audio: DictionaryAudioRef, headword: string): number {
+  const stem = audio.ref
+    .replace(/^sound:\/\//i, "")
+    .replace(/\.[^.]+$/g, "")
+    .toLowerCase();
+  const target = normalizeAudioStem(headword);
+  const accentBase = stem.replace(/_{1,2}(gb|us)_\d+$/i, "").replace(/_(gb|us)_\d+$/i, "");
+  const directHit = accentBase === target || accentBase.startsWith(`${target}_`) ? 10_000 : 0;
+  const numberHit = Number(stem.match(/(\d+)$/)?.[1] ?? 0);
+  return directHit + numberHit;
+}
+
+function normalizeAudioStem(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
 }
 
 function extractCefr(html: string): CefrLevel | null {
