@@ -5,7 +5,7 @@ import { queryKeys } from "@/lib/queryClient";
 import { Badge } from "@/ui/components/Badge";
 import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 interface DictionaryLookupPanelProps {
@@ -13,6 +13,7 @@ interface DictionaryLookupPanelProps {
   density?: "page" | "popup";
   showYamlAction?: boolean;
   initialQuery?: string;
+  studentId?: number | null;
 }
 
 export function DictionaryLookupPanel({
@@ -20,11 +21,15 @@ export function DictionaryLookupPanel({
   density = "page",
   showYamlAction = false,
   initialQuery = "",
+  studentId = null,
 }: DictionaryLookupPanelProps) {
+  const queryClient = useQueryClient();
   const [query, setQuery] = useState(initialQuery);
   const [selectedTerm, setSelectedTerm] = useState(initialQuery);
   const debouncedQuery = useDebouncedValue(query.trim(), 160);
   const [copied, setCopied] = useState(false);
+  const loggedLookupRef = useRef<Set<string>>(new Set());
+  const loggedMissRef = useRef<Set<string>>(new Set());
 
   const statusQ = useQuery({
     queryKey: queryKeys.dictionary.status(),
@@ -45,12 +50,48 @@ export function DictionaryLookupPanel({
 
   const suggestions = searchQ.data ?? [];
   const entry = entryQ.data ?? null;
+  const activeStudentId = Number.isFinite(studentId ?? Number.NaN) ? Number(studentId) : null;
 
   useEffect(() => {
     if (!selectedTerm && suggestions[0]?.exact) {
       setSelectedTerm(suggestions[0].key);
     }
   }, [selectedTerm, suggestions]);
+
+  useEffect(() => {
+    if (!activeStudentId || !entry) return;
+    const logKey = `${activeStudentId}:${entry.key}`;
+    if (loggedLookupRef.current.has(logKey)) return;
+    loggedLookupRef.current.add(logKey);
+    void api.dictionaryLearning
+      .recordLookup({
+        studentId: activeStudentId,
+        query: query.trim() || entry.headword,
+        dictionaryKey: entry.key,
+      })
+      .then(() =>
+        queryClient.invalidateQueries({
+          queryKey: ["dictionaryLearning"],
+        }),
+      )
+      .catch((error) => console.error("[DictionaryLookupPanel] recordLookup failed", error));
+  }, [activeStudentId, entry, query, queryClient]);
+
+  useEffect(() => {
+    if (!activeStudentId || !entryQ.isSuccess || entry || selectedTerm.trim().length === 0) return;
+    const queryText = selectedTerm.trim();
+    const logKey = `${activeStudentId}:${queryText}`;
+    if (loggedMissRef.current.has(logKey)) return;
+    loggedMissRef.current.add(logKey);
+    void api.dictionaryLearning
+      .recordSearch({ studentId: activeStudentId, query: queryText })
+      .then(() =>
+        queryClient.invalidateQueries({
+          queryKey: ["dictionaryLearning"],
+        }),
+      )
+      .catch((error) => console.error("[DictionaryLookupPanel] recordSearch failed", error));
+  }, [activeStudentId, entry, entryQ.isSuccess, queryClient, selectedTerm]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

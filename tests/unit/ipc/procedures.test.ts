@@ -7,6 +7,7 @@ import { defineProcedure } from "../../../electron/ipc/procedure";
 import {
   authProcedures,
   curriculumProcedures,
+  dictionaryLearningProcedures,
   dictionaryProcedures,
   grammarProcedures,
   importsProcedures,
@@ -63,7 +64,8 @@ describe("IPC procedure registry", () => {
         importsProcedures.length +
         progressProcedures.length +
         rewardsProcedures.length +
-        dictionaryProcedures.length,
+        dictionaryProcedures.length +
+        dictionaryLearningProcedures.length,
     );
   });
 
@@ -74,7 +76,7 @@ describe("IPC procedure registry", () => {
 
     it("appInfo returns the expected schema-tables count", async () => {
       const info = await call<{ schemaTablesExpected: number }>("meta.appInfo", undefined, ctx);
-      expect(info.schemaTablesExpected).toBe(21);
+      expect(info.schemaTablesExpected).toBe(24);
     });
   });
 

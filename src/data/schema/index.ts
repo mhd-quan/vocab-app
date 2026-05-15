@@ -7,3 +7,4 @@ export * from "./progress";
 export * from "./import";
 export * from "./settings";
 export * from "./rewards";
+export * from "./dictionaryLearning";

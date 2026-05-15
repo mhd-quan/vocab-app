@@ -63,6 +63,12 @@ export function StudentHome() {
     enabled: Number.isFinite(id) && id > 0,
   });
 
+  const dictionaryLearningQ = useQuery({
+    queryKey: queryKeys.dictionaryLearning.summary(id),
+    queryFn: () => api.dictionaryLearning.summary({ studentId: id }),
+    enabled: Number.isFinite(id) && id > 0,
+  });
+
   const studentName = studentQ.data?.displayName ?? studentQ.data?.name ?? "Unknown student";
 
   return (
@@ -102,6 +108,21 @@ export function StudentHome() {
         <AchievementsStrip ids={unlockedQ.data.map((u) => u.achievementId)} />
       ) : null}
 
+      <PersonalVocabularyCard
+        studentId={id}
+        summary={
+          dictionaryLearningQ.data ?? {
+            total: 0,
+            due: 0,
+            learning: 0,
+            shortTerm: 0,
+            longTerm: 0,
+            averageScore: 0,
+          }
+        }
+        loading={dictionaryLearningQ.isLoading}
+      />
+
       {booksQ.isLoading ? (
         <p className="text-sm text-muted">Loading assigned units…</p>
       ) : (booksQ.data ?? []).length === 0 ? (
@@ -112,6 +133,68 @@ export function StudentHome() {
       ) : (
         <BookList studentId={id} books={booksQ.data ?? []} />
       )}
+    </div>
+  );
+}
+
+function PersonalVocabularyCard({
+  studentId,
+  summary,
+  loading,
+}: {
+  studentId: number;
+  summary: {
+    total: number;
+    due: number;
+    learning: number;
+    shortTerm: number;
+    longTerm: number;
+    averageScore: number;
+  };
+  loading: boolean;
+}) {
+  const hasDue = summary.due > 0;
+  return (
+    <Link
+      to="/student/profile/$studentId/personal-vocabulary"
+      params={{ studentId: String(studentId) }}
+      className={cn(
+        "motion-card group grid gap-4 rounded-bento border px-5 py-5 shadow-card transition-[background-color,border-color,box-shadow,transform] hover:-translate-y-1 hover:border-focus/45 hover:shadow-lift md:grid-cols-[1fr_auto]",
+        hasDue ? "border-focus/35 bg-focus/10" : "border-border-subtle bg-surface-1",
+      )}
+    >
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge tone={hasDue ? "focus" : "muted"} uppercase>
+            Personal vocabulary
+          </Badge>
+          {hasDue ? (
+            <Badge tone="warning" uppercase>
+              {summary.due} due
+            </Badge>
+          ) : null}
+        </div>
+        <h2 className="mt-3 text-xl font-semibold">Words from dictionary searches</h2>
+        <p className="mt-1 max-w-2xl text-sm leading-6 text-muted">
+          New dictionary lookups become a separate review track with flashcards, choices, cloze, and
+          typing before they graduate to long-term memory.
+        </p>
+      </div>
+      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:min-w-[27rem]">
+        <MiniStat label="Words" value={loading ? "..." : String(summary.total)} />
+        <MiniStat label="Learning" value={loading ? "..." : String(summary.learning)} />
+        <MiniStat label="Short" value={loading ? "..." : String(summary.shortTerm)} />
+        <MiniStat label="Score" value={loading ? "..." : `${summary.averageScore}%`} />
+      </dl>
+    </Link>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-border-subtle bg-surface-0/65 px-3 py-2">
+      <dt className="text-[10px] font-semibold uppercase text-muted-2">{label}</dt>
+      <dd className="mt-1 font-mono text-lg text-app">{value}</dd>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import type { AnyProcedure } from "../procedure";
 import { authProcedures } from "./auth";
 import { curriculumProcedures } from "./curriculum";
 import { dictionaryProcedures } from "./dictionary";
+import { dictionaryLearningProcedures } from "./dictionaryLearning";
 import { grammarProcedures } from "./grammar";
 import { importsProcedures } from "./imports";
 import { metaProcedures } from "./meta";
@@ -16,6 +17,7 @@ export const allProcedures: ReadonlyArray<AnyProcedure> = [
   ...authProcedures,
   ...curriculumProcedures,
   ...dictionaryProcedures,
+  ...dictionaryLearningProcedures,
   ...grammarProcedures,
   ...vocabProcedures,
   ...studentsProcedures,
@@ -28,6 +30,7 @@ export const allProcedures: ReadonlyArray<AnyProcedure> = [
 export {
   authProcedures,
   curriculumProcedures,
+  dictionaryLearningProcedures,
   dictionaryProcedures,
   grammarProcedures,
   importsProcedures,
