@@ -1,12 +1,22 @@
+import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
+import { queryKeys } from "@/lib/queryClient";
 import { useAppMode } from "@/providers/AppModeProvider";
 import { Button } from "@/ui/components/Button";
+import { StudentDictionaryPopup } from "@/ui/components/dictionary/StudentDictionaryPopup";
+import { useQuery } from "@tanstack/react-query";
 import { Link, Outlet } from "@tanstack/react-router";
+import { useState } from "react";
 import { LockIcon } from "./icons";
 
 export function StudentLayout() {
   const { lock } = useAppMode();
   const isMac = window.api.app.platform === "darwin";
+  const [dictionaryOpen, setDictionaryOpen] = useState(false);
+  const dictionaryQ = useQuery({
+    queryKey: queryKeys.dictionary.status(),
+    queryFn: () => api.dictionary.status(),
+  });
 
   return (
     <div className="flex h-screen w-screen flex-col bg-app">
@@ -23,6 +33,16 @@ export function StudentLayout() {
           <span className="text-base font-semibold">Vocab App</span>
         </Link>
         <div className="flex items-center gap-2 [-webkit-app-region:no-drag]">
+          {dictionaryQ.data?.active ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setDictionaryOpen(true)}
+              className="text-muted hover:text-app"
+            >
+              Search word
+            </Button>
+          ) : null}
           <Button
             variant="ghost"
             size="sm"
@@ -38,6 +58,7 @@ export function StudentLayout() {
       <main className="flex flex-1 overflow-y-auto">
         <Outlet />
       </main>
+      <StudentDictionaryPopup open={dictionaryOpen} onClose={() => setDictionaryOpen(false)} />
     </div>
   );
 }

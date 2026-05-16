@@ -1,5 +1,11 @@
 import { contextBridge, ipcRenderer } from "electron";
 import type { ImportFileResult } from "../src/application/import";
+import type {
+  DictionaryAudioAsset,
+  DictionaryEntry,
+  DictionarySearchResult,
+  DictionaryStatus,
+} from "../src/data/dictionary";
 import type { LessonKind, PracticeMode } from "../src/data/schema";
 import type {
   Book,
@@ -107,7 +113,7 @@ interface UpdateStudentPatch {
 const api = {
   app: {
     name: "vocab-app",
-    version: "0.6.2",
+    version: "0.7.0",
     platform: process.platform,
   },
 
@@ -151,6 +157,17 @@ const api = {
       invoke<VocabEntryFull[]>("vocab.listFullByLesson", input),
     countByLesson: (input: { lessonId: number }) => invoke<number>("vocab.countByLesson", input),
     getById: (input: { id: number }) => invoke<VocabEntryFull | null>("vocab.getById", input),
+  },
+
+  dictionary: {
+    status: () => invoke<DictionaryStatus>("dictionary.status", {}),
+    search: (input: { query: string; limit?: number }) =>
+      invoke<DictionarySearchResult[]>("dictionary.search", input),
+    lookup: (input: { term: string }) => invoke<DictionaryEntry | null>("dictionary.lookup", input),
+    audio: (input: { ref: string }) =>
+      invoke<DictionaryAudioAsset | null>("dictionary.audio", input),
+    selectPackFolder: () => invoke<DictionaryStatus>("dictionary.selectPackFolder", {}),
+    clearPackFolder: () => invoke<DictionaryStatus>("dictionary.clearPackFolder", {}),
   },
 
   grammar: {

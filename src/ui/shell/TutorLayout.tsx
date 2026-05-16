@@ -1,10 +1,14 @@
+import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/queryClient";
 import { useAppMode } from "@/providers/AppModeProvider";
 import { Button } from "@/ui/components/Button";
+import { useQuery } from "@tanstack/react-query";
 import { Outlet } from "@tanstack/react-router";
 import { Sidebar, type SidebarItem } from "./Sidebar";
 import {
   ContentIcon,
   DashboardIcon,
+  DictionaryIcon,
   ImportsIcon,
   LockIcon,
   SettingsIcon,
@@ -23,6 +27,20 @@ const ITEMS: SidebarItem[] = [
 export function TutorLayout() {
   const { lock, switchToStudent } = useAppMode();
   const isMac = window.api.app.platform === "darwin";
+  const dictionaryQ = useQuery({
+    queryKey: queryKeys.dictionary.status(),
+    queryFn: () => api.dictionary.status(),
+  });
+  const items = dictionaryQ.data?.active
+    ? [
+        ITEMS[0],
+        ITEMS[1],
+        ITEMS[2],
+        { to: "/tutor/dictionary", label: "Dictionary", icon: <DictionaryIcon /> },
+        ITEMS[3],
+        ITEMS[4],
+      ].filter((item): item is SidebarItem => Boolean(item))
+    : ITEMS;
 
   return (
     <div className="flex h-screen w-screen bg-app">
@@ -32,10 +50,10 @@ export function TutorLayout() {
           <div className="flex flex-col gap-1">
             <span className="text-xs font-semibold uppercase text-muted">Tutor</span>
             <span className="text-lg font-semibold">Vocab App</span>
-            <span className="font-mono text-[11px] text-muted-2">v0.6.2</span>
+            <span className="font-mono text-[11px] text-muted-2">v0.7.0</span>
           </div>
         }
-        items={ITEMS}
+        items={items}
         footer={
           <div className="flex flex-col gap-1.5">
             <Button

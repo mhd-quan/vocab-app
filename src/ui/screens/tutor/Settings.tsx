@@ -1,6 +1,7 @@
 import type { PracticeMode } from "@/data/schema";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
+import { queryKeys } from "@/lib/queryClient";
 import { useAppMode } from "@/providers/AppModeProvider";
 import {
   type DisplayFontSize,
@@ -19,6 +20,7 @@ const MAX_PIN = 12;
 
 const SOUND_KEY = "rewards_sound_enabled";
 const SETTINGS = {
+  dictionaryPackPath: "dictionary_pack_path",
   sessionCount: "session_default_count",
   sessionMode: "session_default_mode",
   sessionShuffle: "session_shuffle",
@@ -48,6 +50,7 @@ export function TutorSettings() {
         <div className="flex flex-col gap-5">
           <ChangePinCard />
           <AutoLockCard />
+          <DictionaryPackCard />
           <AboutCard />
         </div>
         <div className="flex flex-col gap-5">
@@ -197,6 +200,78 @@ function AutoLockCard() {
   );
 }
 
+function DictionaryPackCard() {
+  const queryClient = useQueryClient();
+  const statusQ = useQuery({
+    queryKey: queryKeys.dictionary.status(),
+    queryFn: () => api.dictionary.status(),
+  });
+  const selectMutation = useMutation({
+    mutationFn: () => api.dictionary.selectPackFolder(),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.dictionary.status() });
+    },
+  });
+  const clearMutation = useMutation({
+    mutationFn: () => api.dictionary.clearPackFolder(),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.dictionary.status() });
+    },
+  });
+  const status = statusQ.data;
+
+  return (
+    <SettingsCard title="Dictionary pack" description="External OALD10 assets.">
+      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-xs">
+        <dt className="text-muted">Status</dt>
+        <dd className={status?.active ? "text-success" : "text-muted-2"}>
+          {status?.active ? "Active" : "Not installed"}
+        </dd>
+        <dt className="text-muted">Entries</dt>
+        <dd className="font-mono text-app">{status?.entryCount.toLocaleString() ?? "0"}</dd>
+        <dt className="text-muted">Source</dt>
+        <dd className="font-mono text-muted-2">{status?.sourceFile ?? "—"}</dd>
+        <dt className="text-muted">Folder</dt>
+        <dd className="break-all font-mono text-muted-2">{status?.packPath ?? "—"}</dd>
+        {status?.files.length ? (
+          <>
+            <dt className="text-muted">Assets</dt>
+            <dd className="text-muted-2">
+              {status.files.map((file) => `${file.name} ${formatBytes(file.bytes)}`).join(", ")}
+            </dd>
+          </>
+        ) : null}
+      </dl>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          onClick={() => selectMutation.mutate()}
+          disabled={selectMutation.isPending}
+        >
+          {selectMutation.isPending ? "Selecting..." : "Select pack"}
+        </Button>
+        {status?.packPath ? (
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => clearMutation.mutate()}
+            disabled={clearMutation.isPending}
+          >
+            Clear path
+          </Button>
+        ) : null}
+      </div>
+      {selectMutation.isError ? (
+        <p className="text-xs text-danger">
+          {selectMutation.error instanceof Error
+            ? selectMutation.error.message
+            : "Could not select pack."}
+        </p>
+      ) : null}
+    </SettingsCard>
+  );
+}
+
 function AboutCard() {
   const queryClient = useQueryClient();
   const [confirming, setConfirming] = useState(false);
@@ -213,6 +288,7 @@ function AboutCard() {
         queryClient.invalidateQueries({ queryKey: settingKey(key) });
       }
       queryClient.invalidateQueries({ queryKey: ["meta", "appInfo"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dictionary.status() });
       setConfirming(false);
     },
   });
@@ -245,6 +321,13 @@ function AboutCard() {
       </Button>
     </SettingsCard>
   );
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes >= 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024 / 1024).toFixed(1)}GB`;
+  if (bytes >= 1024 * 1024) return `${Math.round(bytes / 1024 / 1024)}MB`;
+  if (bytes >= 1024) return `${Math.round(bytes / 1024)}KB`;
+  return `${bytes}B`;
 }
 
 function ChangePinCard() {
