@@ -1,12 +1,12 @@
-import type { DictionaryEntry } from "@/data/dictionary";
+import type { DictionaryEntry, DictionaryLessonEntry } from "@/data/dictionary";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
 import { Badge } from "@/ui/components/Badge";
 import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
-import { useQuery } from "@tanstack/react-query";
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { useQueries, useQuery } from "@tanstack/react-query";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 interface DictionaryLookupPanelProps {
   className?: string;
@@ -183,20 +183,29 @@ function EntryDetail({
   onCopy: () => void;
 }) {
   const [playingRef, setPlayingRef] = useState<string | null>(null);
+  const audioElementRef = useRef<HTMLAudioElement | null>(null);
+  const audioQueries = useQueries({
+    queries: entry.audio.map((audio) => ({
+      queryKey: queryKeys.dictionary.audio(audio.ref),
+      queryFn: () => api.dictionary.audio({ ref: audio.ref }),
+      staleTime: Number.POSITIVE_INFINITY,
+    })),
+  });
   const definitions = useMemo(
     () => entry.senses.filter((sense) => sense.definitionEn.trim().length > 0),
     [entry.senses],
   );
+  const curriculumBadges = useMemo(() => curriculumTags(entry), [entry]);
 
-  async function play(ref: string) {
+  async function play(ref: string, dataUrl: string | undefined) {
+    if (!dataUrl) return;
+    audioElementRef.current?.pause();
+    const player = new Audio(dataUrl);
+    audioElementRef.current = player;
     setPlayingRef(ref);
-    try {
-      const asset = await api.dictionary.audio({ ref });
-      if (!asset) return;
-      await new Audio(asset.dataUrl).play();
-    } finally {
-      setPlayingRef(null);
-    }
+    player.onended = () => setPlayingRef(null);
+    player.onerror = () => setPlayingRef(null);
+    await player.play().catch(() => setPlayingRef(null));
   }
 
   return (
@@ -205,9 +214,6 @@ function EntryDetail({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge tone="xp" uppercase>
-                OALD10
-              </Badge>
               <Badge tone="muted" uppercase>
                 {entry.posLabel ?? entry.posKey}
               </Badge>
@@ -216,6 +222,11 @@ function EntryDetail({
                   {entry.cefr}
                 </Badge>
               ) : null}
+              {curriculumBadges.map((tag) => (
+                <Badge key={tag} tone="xp" uppercase>
+                  {tag}
+                </Badge>
+              ))}
             </div>
             <h2 className="mt-3 break-words text-4xl font-semibold leading-tight">
               {entry.headword}
@@ -226,17 +237,21 @@ function EntryDetail({
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {entry.audio.map((audio) => (
-              <Button
-                key={audio.ref}
-                variant="secondary"
-                size="sm"
-                onClick={() => void play(audio.ref)}
-                disabled={playingRef === audio.ref}
-              >
-                {playingRef === audio.ref ? "Playing..." : audio.label}
-              </Button>
-            ))}
+            {entry.audio.map((audio, index) => {
+              const asset = audioQueries[index]?.data;
+              const loading = audioQueries[index]?.isLoading;
+              return (
+                <Button
+                  key={audio.ref}
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => void play(audio.ref, asset?.dataUrl)}
+                  disabled={!asset || playingRef === audio.ref}
+                >
+                  {playingRef === audio.ref ? "Playing..." : loading ? "Loading" : audio.label}
+                </Button>
+              );
+            })}
             {showYamlAction ? (
               <Button variant="secondary" size="sm" onClick={onCopy}>
                 {copied ? "Copied" : "Copy YAML seed"}
@@ -245,6 +260,8 @@ function EntryDetail({
           </div>
         </div>
       </header>
+
+      {entry.lessonEntries.length > 0 ? <LessonEntries entries={entry.lessonEntries} /> : null}
 
       <section className="rounded-bento border border-border-subtle bg-surface-1 p-5">
         <h3 className="text-sm font-semibold uppercase text-muted-2">Definitions</h3>
@@ -302,6 +319,77 @@ function EntryDetail({
       </section>
     </article>
   );
+}
+
+function LessonEntries({ entries }: { entries: DictionaryLessonEntry[] }) {
+  return (
+    <section className="rounded-bento border border-border-subtle bg-surface-1 p-5">
+      <h3 className="text-sm font-semibold uppercase text-muted-2">Lesson entries</h3>
+      <div className="mt-4 grid gap-3">
+        {entries.map((entry) => {
+          const viDefinitions = entry.senses
+            .map((sense) => sense.definitionVi)
+            .filter((text): text is string => Boolean(text?.trim()));
+          const viExamples = entry.examples
+            .map((example) => example.translation)
+            .filter((text): text is string => Boolean(text?.trim()));
+          return (
+            <article
+              key={entry.id}
+              className="rounded-xl border border-border-subtle bg-surface-0/75 p-4"
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge tone="xp" uppercase>
+                  {entry.bookTitle}
+                </Badge>
+                <Badge tone="focus" uppercase>
+                  Unit {entry.unitOrdinal}
+                </Badge>
+                <Badge tone="muted" uppercase>
+                  {entry.pos}
+                </Badge>
+                {entry.cefrLevel ? (
+                  <Badge tone="focus" uppercase>
+                    {entry.cefrLevel}
+                  </Badge>
+                ) : null}
+              </div>
+              <div className="mt-3 flex flex-col gap-1">
+                <p className="text-lg font-semibold text-app">{entry.headword}</p>
+                <p className="text-xs text-muted">
+                  {entry.unitTitle} / {entry.lessonTitle}
+                </p>
+              </div>
+              {viDefinitions.length > 0 ? (
+                <ul className="mt-3 grid gap-1 text-sm leading-6 text-app">
+                  {viDefinitions.map((definition) => (
+                    <li key={definition}>{definition}</li>
+                  ))}
+                </ul>
+              ) : null}
+              {viExamples.length > 0 ? (
+                <ul className="mt-3 list-disc pl-5 text-sm leading-6 text-muted">
+                  {viExamples.map((translation) => (
+                    <li key={translation}>{translation}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function curriculumTags(entry: DictionaryEntry): string[] {
+  const out = new Set<string>();
+  for (const lessonEntry of entry.lessonEntries) {
+    out.add(lessonEntry.bookTitle);
+    out.add(`Unit ${lessonEntry.unitOrdinal}`);
+    if (out.size >= 4) break;
+  }
+  return [...out];
 }
 
 function toYamlSeed(entry: DictionaryEntry): string {

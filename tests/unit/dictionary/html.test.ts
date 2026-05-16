@@ -13,7 +13,9 @@ describe("parseDictionaryRecordHtml", () => {
           <div class="phons_br"><span class="phon">/ˈsɑːmpəl/</span></div>
           <div class="phons_n_am"><span class="phon">/ˈsæmpəl/</span></div>
           <a href="sound://sample__gb_1.mp3"></a>
+          <a href="sound://sampled__gb_2.mp3"></a>
           <a href="sound://sample__us_1.mp3"></a>
+          <a href="sound://samples__us_2.mp3"></a>
           <li class="sense">
             <span class="labels">(formal)</span>
             <span class="def">to test a small amount of something</span>
@@ -31,6 +33,10 @@ describe("parseDictionaryRecordHtml", () => {
     expect(entry.ipaUs).toBe("/ˈsæmpəl/");
     expect(entry.senses[0]?.definitionEn).toBe("to test a small amount of something");
     expect(entry.senses[0]?.examples).toEqual(["Researchers sampled the water."]);
-    expect(entry.audio.map((audio) => audio.label)).toEqual(["UK", "US"]);
+    expect(entry.audio.map((audio) => audio.ref)).toEqual([
+      "sound://sample__gb_1.mp3",
+      "sound://sample__us_1.mp3",
+    ]);
+    expect(entry.lessonEntries).toEqual([]);
   });
 });

@@ -112,6 +112,50 @@ describe("VocabRepository", () => {
     expect(fetched?.examples).toHaveLength(0);
   });
 
+  it("findDictionaryMatches returns lesson context and Vietnamese content", () => {
+    const { book, unit, lesson } = seedCurriculum(db);
+    const entry = first(
+      db
+        .insert(vocabEntries)
+        .values({
+          lessonId: lesson.id,
+          headword: "foundation stone",
+          pos: "noun",
+          cefrLevel: "B2",
+        })
+        .returning()
+        .all(),
+    );
+    db.insert(vocabSenses)
+      .values({
+        entryId: entry.id,
+        definitionEn: "a starting point",
+        definitionVi: "nền tảng ban đầu",
+      })
+      .run();
+    db.insert(vocabExamples)
+      .values({
+        entryId: entry.id,
+        text: "This is the foundation stone.",
+        translation: "Đây là nền tảng ban đầu.",
+      })
+      .run();
+
+    const matches = repos.vocab.findDictionaryMatches({ term: "foundation-stone" });
+
+    expect(matches).toHaveLength(1);
+    expect(matches[0]).toMatchObject({
+      id: entry.id,
+      bookTitle: book.title,
+      unitTitle: unit.title,
+      lessonTitle: lesson.title,
+      unitOrdinal: 1,
+      cefrLevel: "B2",
+    });
+    expect(matches[0]?.senses[0]?.definitionVi).toBe("nền tảng ban đầu");
+    expect(matches[0]?.examples[0]?.translation).toBe("Đây là nền tảng ban đầu.");
+  });
+
   it("hydration is N+1-safe across multiple entries", () => {
     const { lesson } = seedCurriculum(db);
     for (let i = 0; i < 5; i++) {
