@@ -176,6 +176,8 @@ const api = {
     status: () => invoke<DictionaryStatus>("dictionary.status", {}),
     search: (input: { query: string; limit?: number }) =>
       invoke<DictionarySearchResult[]>("dictionary.search", input),
+    browse: (input: { prefix: string; limit?: number }) =>
+      invoke<DictionarySearchResult[]>("dictionary.browse", input),
     lookup: (input: { term: string }) => invoke<DictionaryEntry | null>("dictionary.lookup", input),
     audio: (input: { ref: string }) =>
       invoke<DictionaryAudioAsset | null>("dictionary.audio", input),
@@ -197,6 +199,17 @@ const api = {
       invoke<DictionaryLearningItemView[]>("dictionaryLearning.listItems", input),
     practiceQueue: (input: { studentId: number; limit?: number }) =>
       invoke<DictionaryLearningItemView[]>("dictionaryLearning.practiceQueue", input),
+    prepareUnitLesson: (input: { studentId: number; lessonId: number }) =>
+      invoke<{ total: number; inserted: number; updated: number }>(
+        "dictionaryLearning.prepareUnitLesson",
+        input,
+      ),
+    lessonSummary: (input: { studentId: number; lessonId: number }) =>
+      invoke<DictionaryLearningSummary>("dictionaryLearning.lessonSummary", input),
+    lessonItems: (input: { studentId: number; lessonId: number }) =>
+      invoke<DictionaryLearningItemView[]>("dictionaryLearning.lessonItems", input),
+    lessonPracticeQueue: (input: { studentId: number; lessonId: number; limit?: number }) =>
+      invoke<DictionaryLearningItemView[]>("dictionaryLearning.lessonPracticeQueue", input),
     recordReview: (input: {
       studentId: number;
       itemId: number;

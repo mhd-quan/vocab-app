@@ -19,6 +19,14 @@ const listInput = studentInput.extend({
   limit: z.number().int().min(1).max(50).optional(),
 });
 
+const lessonInput = studentInput.extend({
+  lessonId: z.number().int().positive(),
+});
+
+const lessonListInput = lessonInput.extend({
+  limit: z.number().int().min(1).max(50).optional(),
+});
+
 const reviewInput = studentInput.extend({
   itemId: z.number().int().positive(),
   stage: z.enum(dictionaryLearningStages),
@@ -79,8 +87,61 @@ export const dictionaryLearningProcedures = [
       ctx.repos.dictionaryLearning.practiceQueue(studentId, limit),
   }),
   defineProcedure({
+    name: "dictionaryLearning.prepareUnitLesson",
+    input: lessonInput,
+    handler: ({ studentId, lessonId }, ctx) => {
+      const entries = ctx.repos.vocab.listFullByLesson(lessonId);
+      const packPath = ctx.repos.settings.get<string>(DICTIONARY_PACK_PATH_KEY);
+      const enrichments = new Map(
+        entries.map((entry) => {
+          const dictionaryTerm = dictionaryLookupTerm(entry);
+          return [
+            entry.id,
+            dictionaryTerm
+              ? (dictionaryLookup(dictionaryTerm, packPath) ??
+                (entry.lemma ? dictionaryLookup(entry.lemma, packPath) : null) ??
+                dictionaryLookup(entry.headword, packPath))
+              : null,
+          ] as const;
+        }),
+      );
+      return ctx.repos.dictionaryLearning.ensureUnitLessonItems({
+        studentId,
+        lessonId,
+        entries,
+        enrichments,
+      });
+    },
+  }),
+  defineProcedure({
+    name: "dictionaryLearning.lessonSummary",
+    input: lessonInput,
+    handler: ({ studentId, lessonId }, ctx) =>
+      ctx.repos.dictionaryLearning.lessonSummary(studentId, lessonId),
+  }),
+  defineProcedure({
+    name: "dictionaryLearning.lessonItems",
+    input: lessonInput,
+    handler: ({ studentId, lessonId }, ctx) =>
+      ctx.repos.dictionaryLearning.lessonItems(studentId, lessonId),
+  }),
+  defineProcedure({
+    name: "dictionaryLearning.lessonPracticeQueue",
+    input: lessonListInput,
+    handler: ({ studentId, lessonId, limit }, ctx) =>
+      ctx.repos.dictionaryLearning.lessonPracticeQueue(studentId, lessonId, limit),
+  }),
+  defineProcedure({
     name: "dictionaryLearning.recordReview",
     input: reviewInput,
     handler: (input, ctx) => ctx.repos.dictionaryLearning.recordReview(input),
   }),
 ];
+
+function dictionaryLookupTerm(entry: {
+  metadata: Record<string, unknown> | null;
+  headword: string;
+}): string {
+  const key = entry.metadata?.dictionary_key;
+  return typeof key === "string" && key.trim().length > 0 ? key.trim() : entry.headword;
+}

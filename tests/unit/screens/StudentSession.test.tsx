@@ -1,3 +1,4 @@
+import type { DictionaryLearningItemView } from "@/data/dictionaryLearning";
 import type { Lesson } from "@/data/types";
 import { queryKeys } from "@/lib/queryClient";
 import { StudentSession } from "@/ui/screens/student/Session";
@@ -63,6 +64,32 @@ const entry: VocabEntryFull = {
   relations: [],
 };
 
+const learningItem: DictionaryLearningItemView = {
+  id: 10,
+  studentId: 1,
+  dictionaryKey: "unit:vocab:1",
+  headword: "relative",
+  pos: "noun",
+  ipa: null,
+  cefrLevel: "B1",
+  definitionEn: "a member of your family",
+  definitionVi: "người thân",
+  exampleText: null,
+  exampleTranslation: null,
+  audioRef: null,
+  audioRefs: [],
+  status: "learning",
+  stage: "flashcard",
+  correctInCycle: 0,
+  shortTermCorrect: 0,
+  totalCorrect: 0,
+  totalWrong: 0,
+  score: 0,
+  lastReviewedAt: null,
+  nextDueAt: epoch,
+  updatedAt: epoch,
+};
+
 function renderSession(client?: QueryClient) {
   const rootRoute = createRootRoute({ component: () => <Outlet /> });
   const studentRoute = createRoute({
@@ -101,6 +128,15 @@ describe("StudentSession", () => {
     vi.spyOn(window.api.curriculum, "getLessonById").mockResolvedValue(vocabLesson);
     vi.spyOn(window.api.vocab, "listFullByLesson").mockResolvedValue([entry]);
     vi.spyOn(window.api.progress, "seenEntryIdsByLesson").mockResolvedValue([]);
+    vi.spyOn(window.api.dictionaryLearning, "prepareUnitLesson").mockResolvedValue({
+      total: 1,
+      inserted: 1,
+      updated: 0,
+    });
+    vi.spyOn(window.api.dictionaryLearning, "lessonPracticeQueue").mockResolvedValue([
+      learningItem,
+    ]);
+    vi.spyOn(window.api.dictionaryLearning, "lessonItems").mockResolvedValue([learningItem]);
   });
 
   afterEach(() => {
@@ -120,6 +156,12 @@ describe("StudentSession", () => {
     );
     await waitFor(() =>
       expect(window.api.vocab.listFullByLesson).toHaveBeenCalledWith({ lessonId: 1 }),
+    );
+    await waitFor(() =>
+      expect(window.api.dictionaryLearning.prepareUnitLesson).toHaveBeenCalledWith({
+        studentId: 1,
+        lessonId: 1,
+      }),
     );
     expect(await screen.findByText("relative")).toBeInTheDocument();
     expect(screen.queryByText(/No exercises in this deck/i)).not.toBeInTheDocument();

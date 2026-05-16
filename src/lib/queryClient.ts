@@ -39,6 +39,7 @@ export const queryKeys = {
   },
   dictionary: {
     status: () => ["dictionary", "status"] as const,
+    browse: (prefix: string, limit: number) => ["dictionary", "browse", prefix, limit] as const,
     search: (query: string, limit: number) => ["dictionary", "search", query, limit] as const,
     lookup: (term: string) => ["dictionary", "lookup", term] as const,
     audio: (ref: string) => ["dictionary", "audio", ref] as const,
@@ -51,6 +52,14 @@ export const queryKeys = {
     items: (studentId: number) => ["dictionaryLearning", "items", studentId] as const,
     practiceQueue: (studentId: number, limit = 12) =>
       ["dictionaryLearning", "practiceQueue", studentId, limit] as const,
+    lessonPrepare: (studentId: number, lessonId: number) =>
+      ["dictionaryLearning", "lessonPrepare", studentId, lessonId] as const,
+    lessonSummary: (studentId: number, lessonId: number) =>
+      ["dictionaryLearning", "lessonSummary", studentId, lessonId] as const,
+    lessonItems: (studentId: number, lessonId: number) =>
+      ["dictionaryLearning", "lessonItems", studentId, lessonId] as const,
+    lessonPracticeQueue: (studentId: number, lessonId: number, limit = 12) =>
+      ["dictionaryLearning", "lessonPracticeQueue", studentId, lessonId, limit] as const,
   },
   grammar: {
     list: (lessonId: number) => ["grammar", "list", lessonId] as const,

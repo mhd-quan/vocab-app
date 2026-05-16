@@ -216,8 +216,8 @@ function PersonalVocabularyCard({
         </div>
         <h2 className="mt-3 text-xl font-semibold">Words from dictionary searches</h2>
         <p className="mt-1 max-w-2xl text-sm leading-6 text-muted">
-          New dictionary lookups become a separate review track with flashcards, choices, cloze, and
-          typing before they graduate to long-term memory.
+          Dictionary lookups and unit vocabulary now share one review track with flashcards,
+          choices, cloze, typing, and retention checks.
         </p>
       </div>
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:min-w-[27rem]">
@@ -377,8 +377,14 @@ function AssignedUnitCard({ studentId, unit }: { studentId: number; unit: Unit }
   // fire in parallel.
   const dueQs = useQueries({
     queries: lessons.map((lesson) => ({
-      queryKey: queryKeys.progress.dueByLesson(studentId, lesson.id),
-      queryFn: () => api.progress.dueByLesson({ studentId, lessonId: lesson.id }),
+      queryKey:
+        lesson.kind === "vocabulary"
+          ? queryKeys.dictionaryLearning.lessonSummary(studentId, lesson.id)
+          : queryKeys.progress.dueByLesson(studentId, lesson.id),
+      queryFn: () =>
+        lesson.kind === "vocabulary"
+          ? api.dictionaryLearning.lessonSummary({ studentId, lessonId: lesson.id })
+          : api.progress.dueByLesson({ studentId, lessonId: lesson.id }),
     })),
   });
 
@@ -388,10 +394,10 @@ function AssignedUnitCard({ studentId, unit }: { studentId: number; unit: Unit }
 
   const totals = lessons.reduce(
     (acc, lesson, index) => {
-      const stats = dueQs[index]?.data;
-      acc.totalCount += stats?.totalCount ?? 0;
-      acc.dueCount += stats?.dueCount ?? 0;
-      acc.newCount += stats?.newCount ?? stats?.totalCount ?? 0;
+      const stats = lessonStats(dueQs[index]?.data);
+      acc.totalCount += stats.totalCount;
+      acc.dueCount += stats.dueCount;
+      acc.newCount += stats.newCount;
       if (lesson.kind === "grammar") acc.hasGrammar = true;
       if (lesson.kind === "vocabulary") acc.hasVocab = true;
       return acc;
@@ -399,8 +405,6 @@ function AssignedUnitCard({ studentId, unit }: { studentId: number; unit: Unit }
     { totalCount: 0, dueCount: 0, newCount: 0, hasGrammar: false, hasVocab: false },
   );
 
-  const vocabLesson = lessons.find((lesson) => lesson.kind === "vocabulary") ?? null;
-  const shouldStartVocabDirectly = totals.hasVocab && !totals.hasGrammar && vocabLesson !== null;
   const reviewCount = totals.dueCount + totals.newCount;
   const completedCount = Math.max(totals.totalCount - reviewCount, 0);
   const tier = unitTier({
@@ -479,18 +483,6 @@ function AssignedUnitCard({ studentId, unit }: { studentId: number; unit: Unit }
   const className =
     "motion-card group grid min-h-48 gap-4 rounded-bento border border-border-subtle bg-surface-1 px-5 py-5 text-sm shadow-card transition-[background-color,border-color,box-shadow,transform] [--glow-rgb:var(--color-accent)] hover:-translate-y-1 hover:border-accent/40 hover:bg-surface-2 hover:shadow-lift sm:grid-cols-[1fr_auto]";
 
-  if (shouldStartVocabDirectly && vocabLesson) {
-    return (
-      <Link
-        to="/student/profile/$studentId/session/$lessonId"
-        params={{ studentId: String(studentId), lessonId: String(vocabLesson.id) }}
-        className={className}
-      >
-        {content}
-      </Link>
-    );
-  }
-
   return (
     <Link
       to="/student/profile/$studentId/unit/$unitId"
@@ -500,6 +492,21 @@ function AssignedUnitCard({ studentId, unit }: { studentId: number; unit: Unit }
       {content}
     </Link>
   );
+}
+
+function lessonStats(
+  value:
+    | { totalCount: number; dueCount: number; newCount: number }
+    | { total: number; due: number; new?: number }
+    | undefined,
+): { totalCount: number; dueCount: number; newCount: number } {
+  if (!value) return { totalCount: 0, dueCount: 0, newCount: 0 };
+  if ("totalCount" in value) return value;
+  return {
+    totalCount: value.total,
+    dueCount: value.due,
+    newCount: value.new ?? 0,
+  };
 }
 
 function unitTier({

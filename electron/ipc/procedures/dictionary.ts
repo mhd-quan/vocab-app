@@ -4,6 +4,7 @@ import {
   DICTIONARY_PACK_PATH_KEY,
   dictionaryAsset,
   dictionaryAudio,
+  dictionaryBrowse,
   dictionaryLookup,
   dictionarySearch,
   dictionaryStatus,
@@ -15,6 +16,15 @@ import { defineProcedure } from "../procedure";
 const searchInput = z.object({
   query: z.string().default(""),
   limit: z.number().int().min(1).max(50).default(12),
+});
+
+const browseInput = z.object({
+  prefix: z
+    .string()
+    .trim()
+    .regex(/^[a-z]$/i)
+    .default("a"),
+  limit: z.number().int().min(1).max(120).default(60),
 });
 
 const lookupInput = z.object({
@@ -40,6 +50,16 @@ export const dictionaryProcedures = [
       dictionarySearch(
         query ?? "",
         limit ?? 12,
+        ctx.repos.settings.get<string>(DICTIONARY_PACK_PATH_KEY),
+      ),
+  }),
+  defineProcedure({
+    name: "dictionary.browse",
+    input: browseInput,
+    handler: ({ prefix, limit }, ctx) =>
+      dictionaryBrowse(
+        (prefix ?? "a").toLowerCase(),
+        limit ?? 60,
         ctx.repos.settings.get<string>(DICTIONARY_PACK_PATH_KEY),
       ),
   }),

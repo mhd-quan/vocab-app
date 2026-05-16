@@ -133,6 +133,23 @@ export class DictionaryPack {
     });
   }
 
+  browse(prefix: string, limit: number): DictionarySearchResult[] {
+    return this.mdx.browse(prefix, limit).map((record) => {
+      const entry = parseDictionaryRecordHtml(
+        record.key,
+        record.html,
+        path.basename(this.mdx.filePath),
+      );
+      return {
+        key: entry.key,
+        label: entry.headword,
+        exact: false,
+        posLabel: entry.posLabel,
+        posKey: entry.posKey,
+      };
+    });
+  }
+
   lookup(term: string): DictionaryEntry | null {
     const record = this.mdx.lookup(term);
     if (!record) return null;
@@ -244,6 +261,28 @@ class MdxFile {
       }
     }
 
+    return results;
+  }
+
+  browse(prefix: string, limit: number): RawSearchRecord[] {
+    const normalized = normalizeQuery(prefix);
+    if (!normalized) return [];
+
+    const results: RawSearchRecord[] = [];
+    const seen = new Set<string>();
+    for (let i = 0; i < this.lowerKeys.length && results.length < limit; i += 1) {
+      if (!this.lowerKeys[i]?.startsWith(normalized)) continue;
+      const key = this.keys[i]?.key;
+      if (!key) continue;
+      const record = this.lookup(key);
+      if (!record || seen.has(record.key)) continue;
+      seen.add(record.key);
+      results.push({
+        ...record,
+        exact: false,
+        matchedKey: key,
+      });
+    }
     return results;
   }
 

@@ -26,6 +26,7 @@ export function DictionaryLookupPanel({
   const queryClient = useQueryClient();
   const [query, setQuery] = useState(initialQuery);
   const [selectedTerm, setSelectedTerm] = useState(initialQuery);
+  const [browsePrefix, setBrowsePrefix] = useState("a");
   const debouncedQuery = useDebouncedValue(query.trim(), 160);
   const [copied, setCopied] = useState(false);
   const loggedLookupRef = useRef<Set<string>>(new Set());
@@ -42,6 +43,12 @@ export function DictionaryLookupPanel({
     enabled: statusQ.data?.active === true && debouncedQuery.length > 0,
   });
 
+  const browseQ = useQuery({
+    queryKey: queryKeys.dictionary.browse(browsePrefix, 80),
+    queryFn: () => api.dictionary.browse({ prefix: browsePrefix, limit: 80 }),
+    enabled: statusQ.data?.active === true && debouncedQuery.length === 0,
+  });
+
   const entryQ = useQuery({
     queryKey: queryKeys.dictionary.lookup(selectedTerm),
     queryFn: () => api.dictionary.lookup({ term: selectedTerm }),
@@ -49,6 +56,7 @@ export function DictionaryLookupPanel({
   });
 
   const suggestions = searchQ.data ?? [];
+  const browseItems = browseQ.data ?? [];
   const entry = entryQ.data ?? null;
   const activeStudentId = Number.isFinite(studentId ?? Number.NaN) ? Number(studentId) : null;
 
@@ -167,6 +175,8 @@ export function DictionaryLookupPanel({
           </label>
         </form>
 
+        <AlphabetJump selected={browsePrefix} onSelect={setBrowsePrefix} />
+
         <div className="min-h-0 flex-1 overflow-y-auto p-2">
           {entry?.related.length ? (
             <WordFamilyList
@@ -181,9 +191,16 @@ export function DictionaryLookupPanel({
           ) : null}
           {searchQ.isFetching ? <p className="px-2 py-2 text-xs text-muted">Searching...</p> : null}
           {debouncedQuery.length === 0 ? (
-            <p className="px-2 py-2 text-xs leading-5 text-muted">
-              Type a word or phrase, then press Enter or pick a result.
-            </p>
+            <BrowseWordList
+              loading={browseQ.isFetching}
+              items={browseItems}
+              selectedKey={selectedTerm}
+              onSelect={(item) => {
+                setSelectedTerm(item.key);
+                setQuery(item.label);
+                setCopied(false);
+              }}
+            />
           ) : suggestions.length === 0 && !searchQ.isFetching ? (
             <p className="px-2 py-2 text-xs text-muted">No matches.</p>
           ) : (
@@ -274,6 +291,80 @@ function WordFamilyList({
         ))}
       </ul>
     </section>
+  );
+}
+
+const ALPHABET = "abcdefghijklmnopqrstuvwxyz".split("");
+
+function AlphabetJump({
+  selected,
+  onSelect,
+}: {
+  selected: string;
+  onSelect: (letter: string) => void;
+}) {
+  return (
+    <div className="border-b border-border-subtle px-3 py-2">
+      <div className="grid grid-cols-7 gap-1">
+        {ALPHABET.map((letter) => (
+          <button
+            key={letter}
+            type="button"
+            onClick={() => onSelect(letter)}
+            className={cn(
+              "h-7 rounded-lg font-mono text-[11px] uppercase transition",
+              selected === letter
+                ? "bg-accent text-accent-fg"
+                : "text-muted hover:bg-surface-2 hover:text-app",
+            )}
+          >
+            {letter}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BrowseWordList({
+  loading,
+  items,
+  selectedKey,
+  onSelect,
+}: {
+  loading: boolean;
+  items: DictionaryEntry["related"];
+  selectedKey: string;
+  onSelect: (item: DictionaryEntry["related"][number]) => void;
+}) {
+  if (loading && items.length === 0) {
+    return <p className="px-2 py-2 text-xs text-muted">Loading words...</p>;
+  }
+  if (items.length === 0) {
+    return <p className="px-2 py-2 text-xs text-muted">No words under this letter.</p>;
+  }
+  return (
+    <ul className="flex flex-col gap-1">
+      {items.map((item) => (
+        <li key={item.key}>
+          <button
+            type="button"
+            onClick={() => onSelect(item)}
+            className={cn(
+              "w-full rounded-xl px-3 py-2 text-left text-sm transition",
+              selectedKey === item.key
+                ? "bg-accent text-accent-fg"
+                : "text-muted hover:bg-surface-2 hover:text-app",
+            )}
+          >
+            <span className="flex min-w-0 items-center justify-between gap-2">
+              <span className="min-w-0 truncate font-medium">{item.label}</span>
+              <PosPill active={selectedKey === item.key} label={posLabel(item)} />
+            </span>
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }
 

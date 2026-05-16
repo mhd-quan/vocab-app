@@ -3,6 +3,7 @@ import {
   type LearningEventKind,
   type PracticeMode,
   contentItems,
+  dictionaryLearningItems,
   itemProgress,
   learningEvents,
   lessons,
@@ -609,6 +610,17 @@ export function createProgressRepository(db: AppDatabase) {
         .from(itemProgress)
         .where(inArray(itemProgress.studentId, ids))
         .all();
+      const dictionaryRows = db
+        .select({
+          studentId: dictionaryLearningItems.studentId,
+          totalCorrect: dictionaryLearningItems.totalCorrect,
+          totalWrong: dictionaryLearningItems.totalWrong,
+          nextDueAt: dictionaryLearningItems.nextDueAt,
+          lastReviewedAt: dictionaryLearningItems.lastReviewedAt,
+        })
+        .from(dictionaryLearningItems)
+        .where(inArray(dictionaryLearningItems.studentId, ids))
+        .all();
 
       const stats = new Map<
         number,
@@ -644,6 +656,21 @@ export function createProgressRepository(db: AppDatabase) {
           }
         }
       }
+      for (const r of dictionaryRows) {
+        const cur = stats.get(r.studentId);
+        if (!cur) continue;
+        cur.totalSeen += 1;
+        cur.totalCorrect += r.totalCorrect;
+        cur.totalWrong += r.totalWrong;
+        if (r.nextDueAt === null || r.nextDueAt.getTime() <= now.getTime()) {
+          cur.totalDue += 1;
+        }
+        if (r.lastReviewedAt) {
+          if (!cur.lastPracticedAt || r.lastReviewedAt.getTime() > cur.lastPracticedAt.getTime()) {
+            cur.lastPracticedAt = r.lastReviewedAt;
+          }
+        }
+      }
 
       return studentRows.map((student) => {
         const s = stats.get(student.id);
@@ -671,14 +698,28 @@ export function createProgressRepository(db: AppDatabase) {
         .from(itemProgress)
         .where(eq(itemProgress.studentId, studentId))
         .all();
-      const totalSeen = seen.length;
-      const totalCorrect = seen.reduce((sum, r) => sum + r.totalCorrect, 0);
-      const totalWrong = seen.reduce((sum, r) => sum + r.totalWrong, 0);
+      const dictionaryRows = db
+        .select({
+          totalCorrect: dictionaryLearningItems.totalCorrect,
+          totalWrong: dictionaryLearningItems.totalWrong,
+          nextDueAt: dictionaryLearningItems.nextDueAt,
+        })
+        .from(dictionaryLearningItems)
+        .where(eq(dictionaryLearningItems.studentId, studentId))
+        .all();
+      const totalSeen = seen.length + dictionaryRows.length;
+      const totalCorrect =
+        seen.reduce((sum, r) => sum + r.totalCorrect, 0) +
+        dictionaryRows.reduce((sum, r) => sum + r.totalCorrect, 0);
+      const totalWrong =
+        seen.reduce((sum, r) => sum + r.totalWrong, 0) +
+        dictionaryRows.reduce((sum, r) => sum + r.totalWrong, 0);
       const totalAttempts = totalCorrect + totalWrong;
       const accuracy = totalAttempts === 0 ? 0 : totalCorrect / totalAttempts;
-      const totalDue = seen.filter(
-        (r) => r.nextDueAt === null || r.nextDueAt.getTime() <= now.getTime(),
-      ).length;
+      const totalDue =
+        seen.filter((r) => r.nextDueAt === null || r.nextDueAt.getTime() <= now.getTime()).length +
+        dictionaryRows.filter((r) => r.nextDueAt === null || r.nextDueAt.getTime() <= now.getTime())
+          .length;
       return { totalSeen, totalCorrect, totalWrong, accuracy, totalDue };
     },
   };

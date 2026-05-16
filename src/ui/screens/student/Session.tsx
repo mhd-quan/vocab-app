@@ -16,6 +16,7 @@ import { Button } from "@/ui/components/Button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { DictionaryLearningSession } from "./session/DictionaryLearningSession";
 import { GrammarSessionPlayer } from "./session/GrammarSessionPlayer";
 import {
   SessionPlayer,
@@ -303,17 +304,35 @@ export function StudentSession() {
     );
   }
 
-  const contextLabel =
-    lessonKind === "vocabulary" && lessonQ.data
-      ? `${lessonQ.data.title} · ${filteredEntries.length}/${entriesQ.data?.length ?? 0} entries`
-      : undefined;
+  if (lessonKind === "vocabulary") {
+    const contextLabel = lessonQ.data ? lessonQ.data.title : undefined;
+    return (
+      <DictionaryLearningSession
+        studentId={studentIdNum}
+        scope={{ type: "lesson", lessonId: lessonIdNum, contextLabel }}
+        labels={{
+          badge: "Unit review",
+          loading: "Loading unit vocabulary...",
+          emptyTitle: "No unit words due",
+          emptyBody: "This unit is caught up. New imported words will appear here automatically.",
+          doneTitle: "Unit review finished",
+          exit: "End session",
+        }}
+        onExit={() => {
+          void navigate({
+            to: "/student/profile/$studentId",
+            params: { studentId: String(studentIdNum) },
+          });
+        }}
+      />
+    );
+  }
 
   return (
     <SessionPlayer
       deck={deck}
       onExit={exit}
       onResult={handleResult}
-      contextLabel={contextLabel}
       soundEnabled={soundQ.data === true}
     />
   );

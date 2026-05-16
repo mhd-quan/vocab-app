@@ -11,6 +11,7 @@ import {
 } from "@tanstack/react-router";
 import { render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { VocabEntryFull } from "../../../electron/db/repositories/vocab";
 
 const epoch = new Date(0);
 
@@ -48,6 +49,41 @@ const grammarLesson: Lesson = {
   metadata: null,
   createdAt: epoch,
   updatedAt: epoch,
+};
+
+const vocabEntry: VocabEntryFull = {
+  id: 1,
+  lessonId: vocabLesson.id,
+  sourceId: "relative-noun",
+  headword: "relative",
+  lemma: null,
+  pos: "noun",
+  ipa: null,
+  cefrLevel: "B1",
+  frequencyRank: null,
+  imageRef: null,
+  audioRef: null,
+  tags: null,
+  metadata: null,
+  contentHash: "h",
+  createdAt: epoch,
+  updatedAt: epoch,
+  senses: [
+    {
+      id: 1,
+      entryId: 1,
+      ordinal: 0,
+      definitionEn: "a member of your family",
+      definitionVi: "người thân",
+      register: "neutral",
+      domain: null,
+      notesMd: null,
+    },
+  ],
+  examples: [],
+  forms: [],
+  collocations: [],
+  relations: [],
 };
 
 function renderUnitStudy() {
@@ -90,20 +126,39 @@ describe("StudentUnitStudy", () => {
   beforeEach(() => {
     vi.spyOn(window.api.curriculum, "getUnitById").mockResolvedValue(unit);
     vi.spyOn(window.api.curriculum, "listLessonsByUnit").mockResolvedValue([vocabLesson]);
-    vi.spyOn(window.api.vocab, "listByLesson").mockResolvedValue([]);
+    vi.spyOn(window.api.vocab, "listFullByLesson").mockResolvedValue([vocabEntry]);
+    vi.spyOn(window.api.dictionaryLearning, "prepareUnitLesson").mockResolvedValue({
+      total: 1,
+      inserted: 1,
+      updated: 0,
+    });
+    vi.spyOn(window.api.dictionaryLearning, "lessonSummary").mockResolvedValue({
+      total: 1,
+      due: 1,
+      new: 0,
+      learning: 1,
+      shortTerm: 0,
+      longTerm: 0,
+      averageScore: 0,
+    });
+    vi.spyOn(window.api.dictionaryLearning, "lessonItems").mockResolvedValue([]);
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("redirects vocabulary-only units straight to the vocab session", async () => {
+  it("shows the unit vocabulary SRS layer for vocabulary-only units", async () => {
     renderUnitStudy();
 
-    await screen.findByTestId("session-route");
+    await screen.findByText(/Vocabulary SRS/i);
 
-    expect(screen.queryByText(/Study plan/i)).not.toBeInTheDocument();
-    expect(window.api.vocab.listByLesson).not.toHaveBeenCalled();
+    expect(screen.getByText(/Start unit review/i)).toBeInTheDocument();
+    expect(await screen.findByText("relative")).toBeInTheDocument();
+    expect(window.api.dictionaryLearning.prepareUnitLesson).toHaveBeenCalledWith({
+      studentId: 1,
+      lessonId: vocabLesson.id,
+    });
   });
 
   it("keeps the unit study layer when a unit has grammar", async () => {
@@ -116,6 +171,6 @@ describe("StudentUnitStudy", () => {
 
     await waitFor(() => expect(screen.getByText(/Study plan/i)).toBeInTheDocument());
     expect(screen.getByText(/Start grammar/i)).toBeInTheDocument();
-    expect(window.api.vocab.listByLesson).toHaveBeenCalledWith({ lessonId: vocabLesson.id });
+    expect(window.api.vocab.listFullByLesson).toHaveBeenCalledWith({ lessonId: vocabLesson.id });
   });
 });

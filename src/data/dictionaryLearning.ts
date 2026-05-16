@@ -5,6 +5,12 @@ import type {
   PartOfSpeech,
 } from "./schema";
 
+export interface DictionaryLearningAudioRef {
+  ref: string;
+  label: string;
+  accent: "uk" | "us" | "other";
+}
+
 export interface DictionaryLearningItemView {
   id: number;
   studentId: number;
@@ -18,6 +24,7 @@ export interface DictionaryLearningItemView {
   exampleText: string | null;
   exampleTranslation: string | null;
   audioRef: string | null;
+  audioRefs: DictionaryLearningAudioRef[];
   status: DictionaryLearningStatus;
   stage: DictionaryLearningStage;
   correctInCycle: number;
@@ -33,6 +40,7 @@ export interface DictionaryLearningItemView {
 export interface DictionaryLearningSummary {
   total: number;
   due: number;
+  new?: number;
   learning: number;
   shortTerm: number;
   longTerm: number;

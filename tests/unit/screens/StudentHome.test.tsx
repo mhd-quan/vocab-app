@@ -129,6 +129,15 @@ describe("StudentHome", () => {
     vi.spyOn(window.api.students, "listAssignedBooks").mockResolvedValue([book()]);
     vi.spyOn(window.api.students, "listAssignedUnits").mockResolvedValue([unit()]);
     vi.spyOn(window.api.curriculum, "listLessonsByUnit").mockResolvedValue([lesson()]);
+    vi.spyOn(window.api.dictionaryLearning, "lessonSummary").mockResolvedValue({
+      total: 0,
+      due: 0,
+      new: 0,
+      learning: 0,
+      shortTerm: 0,
+      longTerm: 0,
+      averageScore: 0,
+    });
   });
 
   afterEach(() => {
@@ -154,15 +163,19 @@ describe("StudentHome", () => {
     await waitFor(() => expect(screen.getByText(/No cards yet/i)).toBeInTheDocument());
     expect(screen.getByRole("link", { name: /People/ })).toHaveAttribute(
       "href",
-      "/student/profile/1/session/100",
+      "/student/profile/1/unit/10",
     );
   });
 
   it("renders due / new badges when the assigned unit has progress", async () => {
-    vi.spyOn(window.api.progress, "dueByLesson").mockResolvedValue({
-      totalCount: 5,
-      dueCount: 2,
-      newCount: 1,
+    vi.spyOn(window.api.dictionaryLearning, "lessonSummary").mockResolvedValue({
+      total: 5,
+      due: 2,
+      new: 1,
+      learning: 4,
+      shortTerm: 0,
+      longTerm: 0,
+      averageScore: 20,
     });
     vi.spyOn(window.api.progress, "studentSummary").mockResolvedValue({
       totalSeen: 3,
@@ -188,8 +201,17 @@ describe("StudentHome", () => {
     vi.spyOn(window.api.progress, "dueByLesson").mockImplementation(async ({ lessonId }) =>
       lessonId === 101
         ? { totalCount: 3, dueCount: 0, newCount: 3 }
-        : { totalCount: 5, dueCount: 1, newCount: 0 },
+        : { totalCount: 0, dueCount: 0, newCount: 0 },
     );
+    vi.spyOn(window.api.dictionaryLearning, "lessonSummary").mockResolvedValue({
+      total: 5,
+      due: 1,
+      new: 0,
+      learning: 4,
+      shortTerm: 1,
+      longTerm: 0,
+      averageScore: 30,
+    });
     vi.spyOn(window.api.progress, "studentSummary").mockResolvedValue({
       totalSeen: 3,
       totalCorrect: 4,
