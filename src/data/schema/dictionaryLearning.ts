@@ -57,6 +57,9 @@ export const dictionaryLearningItems = sqliteTable(
     exampleText: text("example_text"),
     exampleTranslation: text("example_translation"),
     audioRef: text("audio_ref"),
+    audioRefs: text("audio_refs", { mode: "json" }).$type<
+      Array<{ ref: string; label: string; accent: "uk" | "us" | "other" }>
+    >(),
     status: text("status").$type<DictionaryLearningStatus>().notNull().default("learning"),
     stage: text("stage").$type<DictionaryLearningStage>().notNull().default("flashcard"),
     correctInCycle: integer("correct_in_cycle").notNull().default(0),

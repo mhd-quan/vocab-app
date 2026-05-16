@@ -1,0 +1,1 @@
+ALTER TABLE `dictionary_learning_items` ADD `audio_refs` text;

@@ -44,6 +44,15 @@ export function dictionarySearch(
   return pack ? pack.search(query, limit) : [];
 }
 
+export function dictionaryBrowse(
+  prefix: string,
+  limit: number,
+  configuredPath?: string | null,
+): DictionarySearchResult[] {
+  const pack = tryGetDictionaryPack(configuredPath);
+  return pack ? pack.browse(prefix, limit) : [];
+}
+
 export function dictionaryLookup(
   term: string,
   configuredPath?: string | null,

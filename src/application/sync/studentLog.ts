@@ -99,6 +99,16 @@ const dictionaryLearningItemSchema = z.object({
   exampleText: z.string().nullable(),
   exampleTranslation: z.string().nullable(),
   audioRef: z.string().nullable(),
+  audioRefs: z
+    .array(
+      z.object({
+        ref: z.string().min(1),
+        label: z.string().min(1),
+        accent: z.enum(["uk", "us", "other"]),
+      }),
+    )
+    .optional()
+    .default([]),
   status: z.enum(dictionaryLearningStatuses),
   stage: z.enum(dictionaryLearningStages),
   correctInCycle: z.number().int().nonnegative(),

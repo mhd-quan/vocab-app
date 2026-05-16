@@ -1,6 +1,7 @@
-import { and, asc, desc, eq, lte, or } from "drizzle-orm";
-import type { DictionaryEntry } from "../../../src/data/dictionary";
+import { and, asc, desc, eq, inArray, lte, or } from "drizzle-orm";
+import type { DictionaryAudioRef, DictionaryEntry } from "../../../src/data/dictionary";
 import type {
+  DictionaryLearningAudioRef,
   DictionaryLearningItemView,
   DictionaryLearningReviewResult,
   DictionaryLearningSummary,
@@ -12,8 +13,10 @@ import {
   dictionaryLearningItems,
   dictionaryLearningReviews,
   dictionarySearchEvents,
+  vocabEntries,
 } from "../../../src/data/schema";
 import type { AppDatabase } from "../client";
+import type { VocabEntryFull } from "./vocab";
 
 const STAGE_ORDER: DictionaryLearningStage[] = [
   "flashcard",
@@ -46,6 +49,19 @@ export interface RecordReviewInput {
   expected?: string | null;
   sessionId?: number | null;
   now?: Date;
+}
+
+export interface EnsureUnitLessonItemsInput {
+  studentId: number;
+  lessonId: number;
+  entries: VocabEntryFull[];
+  enrichments?: Map<number, DictionaryEntry | null>;
+}
+
+export interface EnsureUnitLessonItemsResult {
+  total: number;
+  inserted: number;
+  updated: number;
 }
 
 export function createDictionaryLearningRepository(db: AppDatabase) {
@@ -100,6 +116,7 @@ export function createDictionaryLearningRepository(db: AppDatabase) {
               exampleText: seed.exampleText,
               exampleTranslation: seed.exampleTranslation,
               audioRef: seed.audioRef,
+              audioRefs: seed.audioRefs,
               updatedAt: now,
             })
             .where(eq(dictionaryLearningItems.id, existing.id))
@@ -172,6 +189,152 @@ export function createDictionaryLearningRepository(db: AppDatabase) {
         .where(
           and(
             eq(dictionaryLearningItems.studentId, studentId),
+            or(
+              lte(dictionaryLearningItems.nextDueAt, now),
+              eq(dictionaryLearningItems.status, "learning"),
+            ),
+          ),
+        )
+        .orderBy(asc(dictionaryLearningItems.status), asc(dictionaryLearningItems.nextDueAt))
+        .limit(limit)
+        .all()
+        .map(toItemView);
+    },
+
+    ensureUnitLessonItems(input: EnsureUnitLessonItemsInput): EnsureUnitLessonItemsResult {
+      const now = new Date();
+      return db.transaction((tx) => {
+        let inserted = 0;
+        let updated = 0;
+
+        for (const entry of input.entries) {
+          if (entry.lessonId !== input.lessonId) continue;
+          const seed = seedUnitLearningItem(
+            input.studentId,
+            entry,
+            input.enrichments?.get(entry.id) ?? null,
+          );
+          const existing = tx
+            .select()
+            .from(dictionaryLearningItems)
+            .where(
+              and(
+                eq(dictionaryLearningItems.studentId, input.studentId),
+                eq(dictionaryLearningItems.dictionaryKey, seed.dictionaryKey),
+              ),
+            )
+            .get();
+
+          if (existing) {
+            tx.update(dictionaryLearningItems)
+              .set({
+                headword: seed.headword,
+                pos: seed.pos,
+                ipa: seed.ipa,
+                cefrLevel: seed.cefrLevel,
+                definitionEn: seed.definitionEn,
+                definitionVi: seed.definitionVi,
+                exampleText: seed.exampleText,
+                exampleTranslation: seed.exampleTranslation,
+                audioRef: seed.audioRef,
+                audioRefs: seed.audioRefs,
+                updatedAt: now,
+              })
+              .where(eq(dictionaryLearningItems.id, existing.id))
+              .run();
+            updated += 1;
+            continue;
+          }
+
+          tx.insert(dictionaryLearningItems)
+            .values({
+              ...seed,
+              status: "learning",
+              stage: "flashcard",
+              nextDueAt: now,
+              createdAt: now,
+              updatedAt: now,
+            })
+            .run();
+          inserted += 1;
+        }
+
+        return { total: input.entries.length, inserted, updated };
+      });
+    },
+
+    lessonSummary(
+      studentId: number,
+      lessonId: number,
+      now = new Date(),
+    ): DictionaryLearningSummary {
+      const keys = unitLessonKeys(db, lessonId);
+      if (keys.length === 0) {
+        return {
+          total: 0,
+          due: 0,
+          new: 0,
+          learning: 0,
+          shortTerm: 0,
+          longTerm: 0,
+          averageScore: 0,
+        };
+      }
+
+      const rows = db
+        .select()
+        .from(dictionaryLearningItems)
+        .where(
+          and(
+            eq(dictionaryLearningItems.studentId, studentId),
+            inArray(dictionaryLearningItems.dictionaryKey, keys),
+          ),
+        )
+        .all();
+      const scoreSum = rows.reduce((sum, row) => sum + row.score, 0);
+      return {
+        total: keys.length,
+        due: rows.filter((row) => isDue(row.nextDueAt, now)).length,
+        new: Math.max(keys.length - rows.length, 0),
+        learning: rows.filter((row) => row.status === "learning").length,
+        shortTerm: rows.filter((row) => row.status === "short_term").length,
+        longTerm: rows.filter((row) => row.status === "long_term").length,
+        averageScore: rows.length ? Math.round(scoreSum / rows.length) : 0,
+      };
+    },
+
+    lessonItems(studentId: number, lessonId: number): DictionaryLearningItemView[] {
+      const keys = unitLessonKeys(db, lessonId);
+      if (keys.length === 0) return [];
+      return db
+        .select()
+        .from(dictionaryLearningItems)
+        .where(
+          and(
+            eq(dictionaryLearningItems.studentId, studentId),
+            inArray(dictionaryLearningItems.dictionaryKey, keys),
+          ),
+        )
+        .orderBy(asc(dictionaryLearningItems.status), asc(dictionaryLearningItems.nextDueAt))
+        .all()
+        .map(toItemView);
+    },
+
+    lessonPracticeQueue(
+      studentId: number,
+      lessonId: number,
+      limit = 12,
+      now = new Date(),
+    ): DictionaryLearningItemView[] {
+      const keys = unitLessonKeys(db, lessonId);
+      if (keys.length === 0) return [];
+      return db
+        .select()
+        .from(dictionaryLearningItems)
+        .where(
+          and(
+            eq(dictionaryLearningItems.studentId, studentId),
+            inArray(dictionaryLearningItems.dictionaryKey, keys),
             or(
               lte(dictionaryLearningItems.nextDueAt, now),
               eq(dictionaryLearningItems.status, "learning"),
@@ -263,6 +426,7 @@ export type DictionaryLearningRepository = ReturnType<typeof createDictionaryLea
 function seedLearningItem(studentId: number, entry: DictionaryEntry) {
   const lessonEntry = entry.lessonEntries[0];
   const definitionEn = entry.senses[0]?.definitionEn ?? entry.examples[0] ?? entry.headword;
+  const audioRefs = normalizeAudioRefs(entry.audio);
   return {
     studentId,
     dictionaryKey: entry.key,
@@ -275,7 +439,41 @@ function seedLearningItem(studentId: number, entry: DictionaryEntry) {
     exampleText: entry.examples[0] ?? lessonEntry?.examples[0]?.text ?? null,
     exampleTranslation:
       lessonEntry?.examples.find((example) => example.translation)?.translation ?? null,
-    audioRef: entry.audio[0]?.ref ?? lessonEntry?.audioRef ?? null,
+    audioRef: preferredAudioRef(audioRefs)?.ref ?? lessonEntry?.audioRef ?? null,
+    audioRefs,
+  };
+}
+
+function seedUnitLearningItem(
+  studentId: number,
+  entry: VocabEntryFull,
+  dictionaryEntry: DictionaryEntry | null,
+) {
+  const senses = entry.senses.slice().sort((a, b) => a.ordinal - b.ordinal);
+  const examples = entry.examples.slice().sort((a, b) => a.ordinal - b.ordinal);
+  const dictionaryDefinitionEn = dictionaryEntry?.senses[0]?.definitionEn?.trim() || null;
+  const localDefinitionEn =
+    senses.find((sense) => sense.definitionEn)?.definitionEn?.trim() || null;
+  const definitionEn = dictionaryDefinitionEn ?? localDefinitionEn ?? entry.headword;
+  const definitionVi = senses.find((sense) => sense.definitionVi)?.definitionVi?.trim() ?? null;
+  const audioRefs = mergeAudioRefs(
+    normalizeAudioRefs(dictionaryEntry?.audio ?? []),
+    entry.audioRef ? [{ ref: entry.audioRef, label: "Audio", accent: "other" }] : [],
+  );
+
+  return {
+    studentId,
+    dictionaryKey: unitVocabDictionaryKey(entry.id),
+    headword: entry.headword,
+    pos: entry.pos,
+    ipa: entry.ipa ?? dictionaryEntry?.ipaUk ?? dictionaryEntry?.ipaUs ?? null,
+    cefrLevel: entry.cefrLevel ?? dictionaryEntry?.cefr ?? null,
+    definitionEn,
+    definitionVi,
+    exampleText: examples[0]?.text ?? dictionaryEntry?.examples[0] ?? null,
+    exampleTranslation: examples.find((example) => example.translation)?.translation ?? null,
+    audioRef: preferredAudioRef(audioRefs)?.ref ?? null,
+    audioRefs,
   };
 }
 
@@ -366,6 +564,67 @@ function isDue(nextDueAt: Date | null, now: Date): boolean {
   return !nextDueAt || nextDueAt.getTime() <= now.getTime();
 }
 
+function unitVocabDictionaryKey(entryId: number): string {
+  return `unit:vocab:${entryId}`;
+}
+
+function unitLessonKeys(db: AppDatabase, lessonId: number): string[] {
+  return db
+    .select({ id: vocabEntries.id })
+    .from(vocabEntries)
+    .where(eq(vocabEntries.lessonId, lessonId))
+    .orderBy(asc(vocabEntries.headword), asc(vocabEntries.id))
+    .all()
+    .map((row) => unitVocabDictionaryKey(row.id));
+}
+
+function normalizeAudioRefs(refs: DictionaryAudioRef[]): DictionaryLearningAudioRef[] {
+  return mergeAudioRefs(
+    refs.map((ref) => ({
+      ref: ref.ref,
+      label: ref.label,
+      accent: ref.accent,
+    })),
+  );
+}
+
+function mergeAudioRefs(...groups: DictionaryLearningAudioRef[][]): DictionaryLearningAudioRef[] {
+  const out: DictionaryLearningAudioRef[] = [];
+  const seen = new Set<string>();
+  for (const group of groups) {
+    for (const item of group) {
+      const ref = item.ref.trim();
+      if (!ref || seen.has(ref)) continue;
+      seen.add(ref);
+      out.push({
+        ref,
+        label: item.label.trim() || audioLabel(item.accent),
+        accent: item.accent,
+      });
+    }
+  }
+  return out;
+}
+
+function preferredAudioRef(refs: DictionaryLearningAudioRef[]): DictionaryLearningAudioRef | null {
+  return (
+    refs.find((ref) => ref.accent === "uk") ??
+    refs.find((ref) => ref.accent === "us") ??
+    refs[0] ??
+    null
+  );
+}
+
+function audioLabel(accent: DictionaryLearningAudioRef["accent"]): string {
+  if (accent === "uk") return "UK";
+  if (accent === "us") return "US";
+  return "Audio";
+}
+
+function fallbackAudioRefs(audioRef: string | null): DictionaryLearningAudioRef[] {
+  return audioRef ? [{ ref: audioRef, label: "Audio", accent: "other" }] : [];
+}
+
 function toItemView(row: typeof dictionaryLearningItems.$inferSelect): DictionaryLearningItemView {
   return {
     id: row.id,
@@ -380,6 +639,7 @@ function toItemView(row: typeof dictionaryLearningItems.$inferSelect): Dictionar
     exampleText: row.exampleText,
     exampleTranslation: row.exampleTranslation,
     audioRef: row.audioRef,
+    audioRefs: row.audioRefs ?? fallbackAudioRefs(row.audioRef),
     status: row.status,
     stage: row.stage,
     correctInCycle: row.correctInCycle,

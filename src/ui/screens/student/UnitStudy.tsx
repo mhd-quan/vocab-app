@@ -1,28 +1,22 @@
+import type { DictionaryLearningItemView } from "@/data/dictionaryLearning";
+import type { Lesson, Unit } from "@/data/types";
 import { api } from "@/lib/api";
-import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
-import {
-  type VocabStudySectionId,
-  countVocabSections,
-  encodeStudySectionParam,
-  filterVocabEntriesBySections,
-  vocabStudySections,
-} from "@/modules/studySections";
 import { Badge } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
 import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { LessonIcon } from "@/ui/components/LearningIcons";
+import { ProgressMeter } from "@/ui/components/ProgressMeter";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import type { VocabEntryFull } from "../../../../electron/db/repositories/vocab";
 
 export function StudentUnitStudy() {
   const { studentId, unitId } = useParams({ from: "/student/profile/$studentId/unit/$unitId" });
   const studentIdNum = Number(studentId);
   const unitIdNum = Number(unitId);
   const navigate = useNavigate();
-  const [selected, setSelected] = useState<VocabStudySectionId[]>([]);
 
   const unitQ = useQuery({
     queryKey: ["curriculum", "unit", unitIdNum],
@@ -39,57 +33,58 @@ export function StudentUnitStudy() {
   const lessons = lessonsQ.data ?? [];
   const vocabLesson = lessons.find((lesson) => lesson.kind === "vocabulary") ?? null;
   const grammarLessons = lessons.filter((lesson) => lesson.kind === "grammar");
-  const isVocabOnlyUnit = lessons.length > 0 && vocabLesson !== null && grammarLessons.length === 0;
-  const shouldRedirectToVocabSession =
-    Number.isFinite(studentIdNum) && studentIdNum > 0 && isVocabOnlyUnit;
 
-  const entriesQ = useQuery({
-    queryKey: vocabLesson ? queryKeys.vocab.list(vocabLesson.id) : ["vocab", "list", "none"],
-    queryFn: () => api.vocab.listByLesson({ lessonId: vocabLesson?.id ?? 0 }),
-    enabled: Boolean(vocabLesson) && !isVocabOnlyUnit,
+  const prepareQ = useQuery({
+    queryKey: vocabLesson
+      ? queryKeys.dictionaryLearning.lessonPrepare(studentIdNum, vocabLesson.id)
+      : ["dictionaryLearning", "lessonPrepare", "none"],
+    queryFn: () =>
+      api.dictionaryLearning.prepareUnitLesson({
+        studentId: studentIdNum,
+        lessonId: vocabLesson?.id ?? 0,
+      }),
+    enabled:
+      Number.isFinite(studentIdNum) &&
+      studentIdNum > 0 &&
+      Boolean(vocabLesson) &&
+      Number.isFinite(vocabLesson?.id),
   });
 
-  const entries = entriesQ.data ?? [];
-  const sectionCounts = useMemo(() => countVocabSections(entries), [entries]);
-  const availableSections = useMemo(
-    () => vocabStudySections.filter((section) => sectionCounts[section.id] > 0),
-    [sectionCounts],
-  );
-  const selectedEntries = useMemo(
-    () => filterVocabEntriesBySections(entries, selected),
-    [entries, selected],
-  );
+  const summaryQ = useQuery({
+    queryKey: vocabLesson
+      ? queryKeys.dictionaryLearning.lessonSummary(studentIdNum, vocabLesson.id)
+      : ["dictionaryLearning", "lessonSummary", "none"],
+    queryFn: () =>
+      api.dictionaryLearning.lessonSummary({
+        studentId: studentIdNum,
+        lessonId: vocabLesson?.id ?? 0,
+      }),
+    enabled: Number.isFinite(studentIdNum) && studentIdNum > 0 && Boolean(vocabLesson),
+  });
 
-  useEffect(() => {
-    if (availableSections.length === 0) return;
-    setSelected((prev) => {
-      const availableIds = new Set(availableSections.map((section) => section.id));
-      const retained = prev.filter((id) => availableIds.has(id));
-      return retained.length > 0 ? retained : availableSections.map((section) => section.id);
-    });
-  }, [availableSections]);
+  const entriesQ = useQuery({
+    queryKey: vocabLesson ? queryKeys.vocab.full(vocabLesson.id) : ["vocab", "full", "none"],
+    queryFn: () => api.vocab.listFullByLesson({ lessonId: vocabLesson?.id ?? 0 }),
+    enabled: Boolean(vocabLesson),
+  });
 
-  useEffect(() => {
-    if (!shouldRedirectToVocabSession || !vocabLesson) return;
-    void navigate({
-      to: "/student/profile/$studentId/session/$lessonId",
-      params: { studentId: String(studentIdNum), lessonId: String(vocabLesson.id) },
-      replace: true,
-    });
-  }, [navigate, shouldRedirectToVocabSession, studentIdNum, vocabLesson]);
-
-  const toggleSection = (sectionId: VocabStudySectionId) => {
-    setSelected((prev) =>
-      prev.includes(sectionId) ? prev.filter((id) => id !== sectionId) : [...prev, sectionId],
-    );
-  };
+  const learningItemsQ = useQuery({
+    queryKey: vocabLesson
+      ? queryKeys.dictionaryLearning.lessonItems(studentIdNum, vocabLesson.id)
+      : ["dictionaryLearning", "lessonItems", "none"],
+    queryFn: () =>
+      api.dictionaryLearning.lessonItems({
+        studentId: studentIdNum,
+        lessonId: vocabLesson?.id ?? 0,
+      }),
+    enabled: prepareQ.isSuccess && Number.isFinite(studentIdNum) && studentIdNum > 0,
+  });
 
   const startVocab = () => {
-    if (!vocabLesson || selectedEntries.length === 0) return;
+    if (!vocabLesson) return;
     void navigate({
       to: "/student/profile/$studentId/session/$lessonId",
       params: { studentId: String(studentIdNum), lessonId: String(vocabLesson.id) },
-      search: { sections: encodeStudySectionParam(selected) },
     });
   };
 
@@ -102,11 +97,7 @@ export function StudentUnitStudy() {
   }
 
   if (unitQ.isLoading || lessonsQ.isLoading) {
-    return <p className="px-6 py-10 text-sm text-muted">Loading unit…</p>;
-  }
-
-  if (shouldRedirectToVocabSession) {
-    return <p className="px-6 py-10 text-sm text-muted">Starting vocabulary session…</p>;
+    return <p className="px-6 py-10 text-sm text-muted">Loading unit...</p>;
   }
 
   const unit = unitQ.data;
@@ -121,28 +112,7 @@ export function StudentUnitStudy() {
         Back to units
       </Link>
 
-      <BentoCard tone="focus" className="grid gap-5 p-6 lg:grid-cols-[1.2fr_auto] lg:items-center">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge tone="focus" uppercase>
-              {unit?.code ?? "Unit"}
-            </Badge>
-            <Badge tone="muted" uppercase>
-              Study plan
-            </Badge>
-          </div>
-          <h1 className="mt-3 text-3xl font-semibold leading-tight">
-            {unit?.title ?? "Unknown unit"}
-          </h1>
-          {unit?.summaryMd ? (
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">{unit.summaryMd}</p>
-          ) : null}
-        </div>
-        <div className="rounded-bento border border-border-subtle bg-surface-0/70 p-4">
-          <p className="text-xs font-semibold uppercase text-muted-2">Selected cards</p>
-          <p className="mt-1 font-mono text-3xl text-app">{selectedEntries.length}</p>
-        </div>
-      </BentoCard>
+      <UnitHeader unit={unit} />
 
       {lessons.length === 0 ? (
         <EmptyState
@@ -152,88 +122,245 @@ export function StudentUnitStudy() {
       ) : null}
 
       {vocabLesson ? (
-        <BentoCard className="flex flex-col gap-5 p-6">
-          <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <Badge tone="xp" uppercase>
-                Vocabulary
-              </Badge>
-              <h2 className="mt-2 text-2xl font-semibold">{vocabLesson.title}</h2>
-              <p className="mt-1 text-sm text-muted">
-                Pick one or more sections. Practice will only use matching cards.
-              </p>
-            </div>
-            <Button onClick={startVocab} disabled={selectedEntries.length === 0}>
-              Start {selectedEntries.length} cards
-            </Button>
-          </header>
-
-          {entriesQ.isLoading ? (
-            <p className="text-sm text-muted">Loading sections…</p>
-          ) : availableSections.length === 0 ? (
-            <EmptyState
-              title="No vocabulary cards"
-              body="This vocabulary lesson has no imported entries yet."
-            />
-          ) : (
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {availableSections.map((section) => {
-                const active = selected.includes(section.id);
-                return (
-                  <button
-                    key={section.id}
-                    type="button"
-                    onClick={() => toggleSection(section.id)}
-                    className={cn(
-                      "motion-card rounded-bento border p-4 text-left transition-[background-color,border-color,box-shadow,transform]",
-                      active
-                        ? "border-accent/50 bg-accent/10 shadow-glow"
-                        : "border-border-subtle bg-surface-1 hover:-translate-y-1 hover:border-border-strong hover:bg-surface-2",
-                    )}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <Badge tone={section.tone} uppercase>
-                        {section.label}
-                      </Badge>
-                      <span className="font-mono text-sm text-muted">
-                        {sectionCounts[section.id]}
-                      </span>
-                    </div>
-                    <p className="mt-3 text-sm leading-6 text-muted">{section.description}</p>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </BentoCard>
+        <VocabularyTrack
+          lesson={vocabLesson}
+          entries={entriesQ.data ?? []}
+          items={learningItemsQ.data ?? []}
+          loading={entriesQ.isLoading || prepareQ.isLoading || learningItemsQ.isLoading}
+          summary={
+            summaryQ.data ?? {
+              total: entriesQ.data?.length ?? 0,
+              due: 0,
+              new: entriesQ.data?.length ?? 0,
+              learning: 0,
+              shortTerm: 0,
+              longTerm: 0,
+              averageScore: 0,
+            }
+          }
+          onStart={startVocab}
+        />
       ) : null}
 
       {grammarLessons.length > 0 ? (
-        <section className="grid gap-4 lg:grid-cols-2">
-          {grammarLessons.map((lesson) => (
-            <Link
-              key={lesson.id}
-              to="/student/profile/$studentId/session/$lessonId"
-              params={{ studentId: String(studentIdNum), lessonId: String(lesson.id) }}
-              className="motion-card group rounded-bento border border-focus/30 bg-focus/10 p-5 shadow-card transition hover:-translate-y-1 hover:border-focus/50 hover:shadow-lift"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <Badge tone="focus" uppercase>
-                  Grammar
-                </Badge>
-                <LessonIcon className="h-8 w-8 text-focus" />
-              </div>
-              <h2 className="mt-4 text-xl font-semibold">{lesson.title}</h2>
-              <p className="mt-1 text-sm leading-6 text-muted">
-                Review the rule overview, then complete the interactive practice set.
-              </p>
-              <span className="mt-4 inline-flex text-xs font-semibold text-focus group-hover:text-app">
-                Start grammar
-              </span>
-            </Link>
-          ))}
-        </section>
+        <GrammarLessonList lessons={grammarLessons} studentId={studentIdNum} />
       ) : null}
     </div>
   );
+}
+
+function UnitHeader({ unit }: { unit: Unit | null | undefined }) {
+  return (
+    <BentoCard tone="focus" className="grid gap-5 p-6 lg:grid-cols-[1.2fr_auto] lg:items-center">
+      <div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge tone="focus" uppercase>
+            {unit?.code ?? "Unit"}
+          </Badge>
+          <Badge tone="muted" uppercase>
+            Study plan
+          </Badge>
+        </div>
+        <h1 className="mt-3 text-3xl font-semibold leading-tight">
+          {unit?.title ?? "Unknown unit"}
+        </h1>
+        {unit?.summaryMd ? (
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">{unit.summaryMd}</p>
+        ) : null}
+      </div>
+      <LessonIcon className="h-12 w-12 text-focus" />
+    </BentoCard>
+  );
+}
+
+function VocabularyTrack({
+  lesson,
+  entries,
+  items,
+  loading,
+  summary,
+  onStart,
+}: {
+  lesson: Lesson;
+  entries: VocabEntryFull[];
+  items: DictionaryLearningItemView[];
+  loading: boolean;
+  summary: {
+    total: number;
+    due: number;
+    new?: number;
+    learning: number;
+    shortTerm: number;
+    longTerm: number;
+    averageScore: number;
+  };
+  onStart: () => void;
+}) {
+  const newCount = summary.new ?? 0;
+  const reviewCount = summary.due + newCount;
+  const completedCount = Math.max(summary.total - reviewCount, 0);
+  return (
+    <BentoCard className="flex flex-col gap-5 p-6">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <Badge tone={reviewCount > 0 ? "warning" : "success"} uppercase>
+            Vocabulary SRS
+          </Badge>
+          <h2 className="mt-2 text-2xl font-semibold">{lesson.title}</h2>
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-muted">
+            Unit words now use the same flashcard, choice, cloze, typing, and retention cycle as
+            dictionary learning.
+          </p>
+        </div>
+        <Button onClick={onStart} disabled={entries.length === 0 || loading}>
+          Start unit review
+        </Button>
+      </header>
+
+      <section className="grid gap-3 sm:grid-cols-5">
+        <Metric label="Words" value={summary.total} />
+        <Metric label="Due" value={summary.due} tone={summary.due > 0 ? "warning" : "success"} />
+        <Metric label="New" value={newCount} />
+        <Metric label="Short" value={summary.shortTerm} />
+        <Metric label="Long" value={summary.longTerm} tone="success" />
+      </section>
+
+      <ProgressMeter
+        value={completedCount}
+        max={summary.total}
+        label={`${lesson.title} SRS progress`}
+        tone={reviewCount > 0 ? "warning" : "success"}
+      />
+
+      {loading ? (
+        <p className="text-sm text-muted">Preparing dictionary enrichment...</p>
+      ) : entries.length === 0 ? (
+        <EmptyState
+          title="No vocabulary cards"
+          body="This vocabulary lesson has no imported entries yet."
+        />
+      ) : (
+        <VocabularyWordList entries={entries} items={items} />
+      )}
+    </BentoCard>
+  );
+}
+
+function Metric({
+  label,
+  value,
+  tone = "neutral",
+}: {
+  label: string;
+  value: number;
+  tone?: "neutral" | "warning" | "success";
+}) {
+  return (
+    <div className="rounded-xl border border-border-subtle bg-surface-0/65 px-3 py-3">
+      <dt className="text-[10px] font-semibold uppercase text-muted-2">{label}</dt>
+      <dd
+        className={
+          tone === "warning"
+            ? "mt-1 font-mono text-2xl text-warning"
+            : "mt-1 font-mono text-2xl text-app"
+        }
+      >
+        {value}
+      </dd>
+    </div>
+  );
+}
+
+function VocabularyWordList({
+  entries,
+  items,
+}: {
+  entries: VocabEntryFull[];
+  items: DictionaryLearningItemView[];
+}) {
+  const itemByKey = new Map(
+    items.map((item) => [unitVocabDictionaryKey(item.dictionaryKey), item]),
+  );
+  return (
+    <ul className="grid max-h-[28rem] gap-3 overflow-y-auto pr-1 lg:grid-cols-2">
+      {entries.map((entry) => {
+        const item = itemByKey.get(String(entry.id));
+        const definitionVi = entry.senses.find((sense) => sense.definitionVi)?.definitionVi;
+        const definitionEn =
+          item?.definitionEn ?? entry.senses.find((sense) => sense.definitionEn)?.definitionEn;
+        return (
+          <li
+            key={entry.id}
+            className="rounded-bento border border-border-subtle bg-surface-0/65 p-4"
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge tone={item ? statusTone(item.status) : "muted"} uppercase>
+                {item ? statusLabel(item.status) : "New"}
+              </Badge>
+              <Badge tone="muted" uppercase>
+                {entry.pos}
+              </Badge>
+              {entry.cefrLevel ? (
+                <Badge tone="xp" uppercase>
+                  {entry.cefrLevel}
+                </Badge>
+              ) : null}
+            </div>
+            <h3 className="mt-3 truncate text-xl font-semibold">{entry.headword}</h3>
+            {definitionVi ? (
+              <p className="mt-2 text-sm leading-6 text-app">{definitionVi}</p>
+            ) : null}
+            {definitionEn ? (
+              <p className="mt-1 line-clamp-2 text-sm leading-6 text-muted">{definitionEn}</p>
+            ) : null}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function GrammarLessonList({ lessons, studentId }: { lessons: Lesson[]; studentId: number }) {
+  return (
+    <section className="grid gap-4 lg:grid-cols-2">
+      {lessons.map((lesson) => (
+        <Link
+          key={lesson.id}
+          to="/student/profile/$studentId/session/$lessonId"
+          params={{ studentId: String(studentId), lessonId: String(lesson.id) }}
+          className="motion-card group rounded-bento border border-focus/30 bg-focus/10 p-5 shadow-card transition hover:-translate-y-1 hover:border-focus/50 hover:shadow-lift"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <Badge tone="focus" uppercase>
+              Grammar
+            </Badge>
+            <LessonIcon className="h-8 w-8 text-focus" />
+          </div>
+          <h2 className="mt-4 text-xl font-semibold">{lesson.title}</h2>
+          <p className="mt-1 text-sm leading-6 text-muted">
+            Review the rule overview, then complete the interactive practice set.
+          </p>
+          <span className="mt-4 inline-flex text-xs font-semibold text-focus group-hover:text-app">
+            Start grammar
+          </span>
+        </Link>
+      ))}
+    </section>
+  );
+}
+
+function unitVocabDictionaryKey(dictionaryKey: string): string {
+  return dictionaryKey.replace(/^unit:vocab:/, "");
+}
+
+function statusLabel(status: DictionaryLearningItemView["status"]): string {
+  if (status === "short_term") return "Short-term";
+  if (status === "long_term") return "Long-term";
+  return "Learning";
+}
+
+function statusTone(status: DictionaryLearningItemView["status"]): "focus" | "xp" | "success" {
+  if (status === "short_term") return "xp";
+  if (status === "long_term") return "success";
+  return "focus";
 }

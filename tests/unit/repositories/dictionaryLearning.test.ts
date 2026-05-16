@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { type AppDatabase, closeDatabase } from "../../../electron/db";
 import type { Repositories } from "../../../electron/db/repositories";
 import type { DictionaryEntry } from "../../../src/data/dictionary";
-import { freshDb } from "../../helpers";
+import { freshDb, seedCurriculum } from "../../helpers";
 
 describe("dictionary learning repository", () => {
   let db: AppDatabase;
@@ -106,6 +106,59 @@ describe("dictionary learning repository", () => {
     expect(reset.item.correctInCycle).toBe(0);
     expect(reset.item.totalWrong).toBe(1);
   });
+
+  it("seeds unit vocabulary into the shared dictionary learning track", () => {
+    const student = repos.students.create({ name: "Alice" });
+    const { lesson } = seedCurriculum(db);
+    const upsert = repos.vocab.upsertEntryWithChildren({
+      lessonId: lesson.id,
+      sourceId: "relative-noun",
+      contentHash: "relative-v1",
+      headword: "relative",
+      pos: "noun",
+      ipa: "/ˈrelətɪv/",
+      cefrLevel: "B1",
+      senses: [
+        {
+          ordinal: 0,
+          definitionEn: "a member of your family",
+          definitionVi: "người thân",
+        },
+      ],
+      examples: [
+        { ordinal: 0, text: "I have many relatives.", translation: "Tôi có nhiều họ hàng." },
+      ],
+      forms: [],
+      collocations: [],
+      relations: [],
+    });
+    const full = repos.vocab.getById(upsert.entryId);
+    if (!full) throw new Error("Expected seeded vocab entry");
+
+    const seeded = repos.dictionaryLearning.ensureUnitLessonItems({
+      studentId: student.id,
+      lessonId: lesson.id,
+      entries: [full],
+      enrichments: new Map([[full.id, entry("relative")]]),
+    });
+
+    expect(seeded).toEqual({ total: 1, inserted: 1, updated: 0 });
+    const items = repos.dictionaryLearning.lessonItems(student.id, lesson.id);
+    expect(items).toHaveLength(1);
+    expect(items[0]?.dictionaryKey).toBe(`unit:vocab:${full.id}`);
+    expect(items[0]?.definitionEn).toBe("to succeed in doing something");
+    expect(items[0]?.definitionVi).toBe("người thân");
+    expect(items[0]?.audioRef).toBe("sound/achieve__gb_1.mp3");
+    expect(items[0]?.audioRefs.map((audio) => audio.accent)).toEqual(["uk", "us"]);
+
+    expect(repos.dictionaryLearning.lessonSummary(student.id, lesson.id)).toMatchObject({
+      total: 1,
+      due: 1,
+      new: 0,
+      learning: 1,
+    });
+    expect(repos.dictionaryLearning.lessonPracticeQueue(student.id, lesson.id)).toHaveLength(1);
+  });
 });
 
 function entry(headword: string): DictionaryEntry {
@@ -126,7 +179,10 @@ function entry(headword: string): DictionaryEntry {
       },
     ],
     examples: ["She worked hard to achieve her goal."],
-    audio: [{ ref: "sound/achieve__gb_1.mp3", label: "UK", accent: "uk" }],
+    audio: [
+      { ref: "sound/achieve__gb_1.mp3", label: "UK", accent: "uk" },
+      { ref: "sound/achieve__us_1.mp3", label: "US", accent: "us" },
+    ],
     images: [],
     related: [],
     source: { dictionary: "oald10", file: "oald10_og.mdx" },
