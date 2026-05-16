@@ -1,4 +1,5 @@
 import "@testing-library/jest-dom/vitest";
+import { APP_IDENTIFIER, APP_VERSION } from "../src/application/appInfo";
 
 /**
  * Stub the preload bridge for renderer tests. Tests that need realistic
@@ -7,16 +8,16 @@ import "@testing-library/jest-dom/vitest";
 Object.defineProperty(window, "api", {
   value: {
     app: {
-      name: "vocab-app",
-      version: "0.8.1",
+      name: APP_IDENTIFIER,
+      version: APP_VERSION,
       platform: "test",
     },
     meta: {
       ping: async () => "pong" as const,
       appInfo: async () => ({
-        name: "vocab-app",
-        version: "0.8.1",
-        schemaTablesExpected: 24,
+        name: APP_IDENTIFIER,
+        version: APP_VERSION,
+        schemaTablesExpected: 28,
         dbPath: ":memory:",
       }),
     },
@@ -257,6 +258,27 @@ Object.defineProperty(window, "api", {
         longestStreak: 0,
         lastPracticedAt: null,
         practicedToday: false,
+      }),
+    },
+    sync: {
+      exportStudentLog: async () => ({
+        canceled: true,
+        filePath: null,
+        summary: {
+          packageId: "00000000-0000-4000-8000-000000000000",
+          studentName: "Student",
+          fileName: "lexicon-lab-student.json",
+          exportedAt: new Date(0).toISOString(),
+          sessions: 0,
+          events: 0,
+          progressItems: 0,
+          dictionaryItems: 0,
+        },
+      }),
+      importStudentLog: async () => ({
+        canceled: true,
+        filePath: null,
+        summary: null,
       }),
     },
   },

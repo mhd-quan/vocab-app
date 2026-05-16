@@ -89,4 +89,7 @@ export const queryKeys = {
     listUnlocked: (studentId: number) => ["rewards", "listUnlocked", studentId] as const,
     streak: (studentId: number) => ["rewards", "streak", studentId] as const,
   },
+  sync: {
+    imports: () => ["sync", "imports"] as const,
+  },
 } as const;

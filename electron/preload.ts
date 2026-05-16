@@ -1,5 +1,10 @@
 import { contextBridge, ipcRenderer } from "electron";
+import { APP_IDENTIFIER, APP_VERSION } from "../src/application/appInfo";
 import type { ImportFileResult } from "../src/application/import";
+import type {
+  StudentLogExportSummary,
+  StudentLogImportSummary,
+} from "../src/application/sync/studentLog";
 import type {
   DictionaryAsset,
   DictionaryAudioAsset,
@@ -120,8 +125,8 @@ interface UpdateStudentPatch {
 
 const api = {
   app: {
-    name: "vocab-app",
-    version: "0.8.1",
+    name: APP_IDENTIFIER,
+    version: APP_VERSION,
     platform: process.platform,
   },
 
@@ -301,6 +306,21 @@ const api = {
       invoke<StudentAchievement[]>("rewards.listUnlocked", input),
     streak: (input: { studentId: number; nowIso?: string }) =>
       invoke<StreakStats>("rewards.streak", input),
+  },
+
+  sync: {
+    exportStudentLog: (input: { studentId: number }) =>
+      invoke<{
+        canceled: boolean;
+        filePath: string | null;
+        summary: StudentLogExportSummary;
+      }>("sync.exportStudentLog", input),
+    importStudentLog: () =>
+      invoke<{
+        canceled: boolean;
+        filePath: string | null;
+        summary: StudentLogImportSummary | null;
+      }>("sync.importStudentLog"),
   },
 } as const;
 

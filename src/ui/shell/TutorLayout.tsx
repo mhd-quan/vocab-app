@@ -1,3 +1,4 @@
+import { APP_DISPLAY_NAME, APP_VERSION } from "@/application/appInfo";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryClient";
 import { useAppMode } from "@/providers/AppModeProvider";
@@ -49,8 +50,8 @@ export function TutorLayout() {
         brand={
           <div className="flex flex-col gap-1">
             <span className="text-xs font-semibold uppercase text-muted">Tutor</span>
-            <span className="text-lg font-semibold">Vocab App</span>
-            <span className="font-mono text-[11px] text-muted-2">v0.8.1</span>
+            <span className="text-lg font-semibold">{APP_DISPLAY_NAME}</span>
+            <span className="font-mono text-[11px] text-muted-2">v{APP_VERSION}</span>
           </div>
         }
         items={items}
