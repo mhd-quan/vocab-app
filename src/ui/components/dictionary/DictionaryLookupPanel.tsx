@@ -141,17 +141,44 @@ export function DictionaryLookupPanel({
         <form onSubmit={onSubmit} className="border-b border-border-subtle p-4">
           <label className="flex flex-col gap-2">
             <span className="text-xs font-semibold uppercase text-muted-2">Search word</span>
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="achievement"
-              spellCheck={false}
-              className="h-11 rounded-xl border border-border-strong bg-surface-1 px-3 text-base text-app outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/25"
-            />
+            <div className="relative">
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="achievement"
+                spellCheck={false}
+                className="h-11 w-full rounded-xl border border-border-strong bg-surface-1 px-3 pr-10 text-base text-app outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/25"
+              />
+              {query.trim().length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuery("");
+                    setSelectedTerm("");
+                    setCopied(false);
+                  }}
+                  aria-label="Clear search"
+                  className="absolute right-2 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full border border-border-subtle bg-surface-2 text-base leading-none text-muted transition hover:border-border-strong hover:bg-surface-1 hover:text-app"
+                >
+                  ×
+                </button>
+              ) : null}
+            </div>
           </label>
         </form>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-2">
+          {entry?.related.length ? (
+            <WordFamilyList
+              items={entry.related}
+              selectedKey={selectedTerm}
+              onSelect={(item) => {
+                setSelectedTerm(item.key);
+                setQuery(item.label);
+                setCopied(false);
+              }}
+            />
+          ) : null}
           {searchQ.isFetching ? <p className="px-2 py-2 text-xs text-muted">Searching...</p> : null}
           {debouncedQuery.length === 0 ? (
             <p className="px-2 py-2 text-xs leading-5 text-muted">
@@ -177,7 +204,10 @@ export function DictionaryLookupPanel({
                         : "text-muted hover:bg-surface-2 hover:text-app",
                     )}
                   >
-                    <span className="block truncate font-medium">{item.label}</span>
+                    <span className="flex min-w-0 items-center justify-between gap-2">
+                      <span className="min-w-0 truncate font-medium">{item.label}</span>
+                      <PosPill active={selectedTerm === item.key} label={posLabel(item)} />
+                    </span>
                     {item.exact ? (
                       <span className="block text-[10px] uppercase opacity-75">Exact</span>
                     ) : null}
@@ -212,6 +242,54 @@ export function DictionaryLookupPanel({
   );
 }
 
+function WordFamilyList({
+  items,
+  selectedKey,
+  onSelect,
+}: {
+  items: DictionaryEntry["related"];
+  selectedKey: string;
+  onSelect: (item: DictionaryEntry["related"][number]) => void;
+}) {
+  return (
+    <section className="mb-3 rounded-xl border border-border-subtle bg-surface-1 p-2">
+      <p className="px-1 pb-2 text-[10px] font-semibold uppercase text-muted-2">Word family</p>
+      <ul className="flex flex-col gap-1">
+        {items.map((item) => (
+          <li key={item.key}>
+            <button
+              type="button"
+              onClick={() => onSelect(item)}
+              className={cn(
+                "flex w-full min-w-0 items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left text-xs transition",
+                selectedKey === item.key
+                  ? "bg-accent text-accent-fg"
+                  : "text-muted hover:bg-surface-2 hover:text-app",
+              )}
+            >
+              <span className="min-w-0 truncate font-medium">{item.label}</span>
+              <PosPill active={selectedKey === item.key} label={posLabel(item)} />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function PosPill({ label, active }: { label: string; active?: boolean }) {
+  return (
+    <span
+      className={cn(
+        "shrink-0 rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase",
+        active ? "border-white/40 text-current opacity-90" : "border-border-subtle text-muted-2",
+      )}
+    >
+      {label}
+    </span>
+  );
+}
+
 function EntryDetail({
   entry,
   showYamlAction,
@@ -229,6 +307,13 @@ function EntryDetail({
     queries: entry.audio.map((audio) => ({
       queryKey: queryKeys.dictionary.audio(audio.ref),
       queryFn: () => api.dictionary.audio({ ref: audio.ref }),
+      staleTime: Number.POSITIVE_INFINITY,
+    })),
+  });
+  const imageQueries = useQueries({
+    queries: entry.images.map((image) => ({
+      queryKey: queryKeys.dictionary.asset(image.ref),
+      queryFn: () => api.dictionary.asset({ ref: image.ref }),
       staleTime: Number.POSITIVE_INFINITY,
     })),
   });
@@ -304,6 +389,10 @@ function EntryDetail({
 
       {entry.lessonEntries.length > 0 ? <LessonEntries entries={entry.lessonEntries} /> : null}
 
+      {entry.images.length > 0 ? (
+        <EntryImages images={entry.images} assets={imageQueries.map((query) => query.data)} />
+      ) : null}
+
       <section className="rounded-bento border border-border-subtle bg-surface-1 p-5">
         <h3 className="text-sm font-semibold uppercase text-muted-2">Definitions</h3>
         {definitions.length === 0 ? (
@@ -359,6 +448,44 @@ function EntryDetail({
         )}
       </section>
     </article>
+  );
+}
+
+function EntryImages({
+  images,
+  assets,
+}: {
+  images: DictionaryEntry["images"];
+  assets: Array<{ dataUrl: string; mime: string } | null | undefined>;
+}) {
+  const ready = images
+    .map((image, index) => ({ image, asset: assets[index] }))
+    .filter((item) => item.asset?.dataUrl);
+  if (ready.length === 0) return null;
+
+  return (
+    <section className="rounded-bento border border-border-subtle bg-surface-1 p-5">
+      <h3 className="text-sm font-semibold uppercase text-muted-2">Visuals</h3>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {ready.map(({ image, asset }) => (
+          <figure
+            key={image.ref}
+            className="overflow-hidden rounded-xl border border-border-subtle bg-surface-0"
+          >
+            <img
+              src={asset?.dataUrl}
+              alt={image.alt ?? ""}
+              className="h-52 w-full object-contain p-3"
+            />
+            {image.alt ? (
+              <figcaption className="border-t border-border-subtle px-3 py-2 text-xs text-muted">
+                {image.alt}
+              </figcaption>
+            ) : null}
+          </figure>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -431,6 +558,26 @@ function curriculumTags(entry: DictionaryEntry): string[] {
     if (out.size >= 4) break;
   }
   return [...out];
+}
+
+const POS_LABELS: Record<string, string> = {
+  adjective: "adj",
+  adverb: "adv",
+  auxiliary: "aux",
+  conjunction: "conj",
+  determiner: "det",
+  interjection: "intj",
+  modal: "modal",
+  noun: "noun",
+  phrasal_verb: "phrv",
+  phrase: "phr",
+  preposition: "prep",
+  pronoun: "pron",
+  verb: "verb",
+};
+
+function posLabel(item: { posLabel: string | null; posKey: string }): string {
+  return POS_LABELS[item.posKey] ?? item.posLabel?.trim().slice(0, 6) ?? "phr";
 }
 
 function toYamlSeed(entry: DictionaryEntry): string {

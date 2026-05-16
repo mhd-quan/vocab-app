@@ -19,12 +19,19 @@ export interface DictionarySearchResult {
   key: string;
   label: string;
   exact: boolean;
+  posLabel: string | null;
+  posKey: PartOfSpeech;
 }
 
 export interface DictionaryAudioRef {
   ref: string;
   label: string;
   accent: "uk" | "us" | "other";
+}
+
+export interface DictionaryImageRef {
+  ref: string;
+  alt: string | null;
 }
 
 export interface DictionarySense {
@@ -70,6 +77,8 @@ export interface DictionaryEntry {
   senses: DictionarySense[];
   examples: string[];
   audio: DictionaryAudioRef[];
+  images: DictionaryImageRef[];
+  related: DictionarySearchResult[];
   source: {
     dictionary: "oald10";
     file: string;
@@ -81,3 +90,5 @@ export interface DictionaryAudioAsset {
   dataUrl: string;
   mime: string;
 }
+
+export type DictionaryAsset = DictionaryAudioAsset;

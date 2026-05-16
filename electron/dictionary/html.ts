@@ -1,6 +1,7 @@
 import type {
   DictionaryAudioRef,
   DictionaryEntry,
+  DictionaryImageRef,
   DictionarySense,
 } from "../../src/data/dictionary";
 import {
@@ -36,6 +37,7 @@ export function parseDictionaryRecordHtml(
     senses.flatMap((sense) => sense.examples).concat(extractTexts(html, "x")),
   ).slice(0, 12);
   const audio = extractAudioRefs(html, headword);
+  const images = extractImageRefs(html, headword);
 
   return {
     key,
@@ -49,6 +51,8 @@ export function parseDictionaryRecordHtml(
     senses,
     examples,
     audio,
+    images,
+    related: [],
     source: {
       dictionary: "oald10",
       file: sourceFile,
@@ -100,6 +104,24 @@ function extractAudioRefs(html: string, headword: string): DictionaryAudioRef[] 
     });
   }
   return dedupeAudioRefs(refs, headword);
+}
+
+function extractImageRefs(html: string, headword: string): DictionaryImageRef[] {
+  const seen = new Set<string>();
+  const refs: DictionaryImageRef[] = [];
+  for (const match of html.matchAll(/<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi)) {
+    const ref = decodeHtml(match[1] ?? "").trim();
+    if (!ref || seen.has(ref)) continue;
+    if (!/\.(png|jpe?g|svg|webp)$/i.test(ref)) continue;
+    seen.add(ref);
+    const tag = match[0] ?? "";
+    const alt = attr(tag, "alt") ?? attr(tag, "title") ?? headword;
+    refs.push({
+      ref: `asset://${ref}`,
+      alt,
+    });
+  }
+  return refs.slice(0, 8);
 }
 
 function dedupeAudioRefs(refs: DictionaryAudioRef[], headword: string): DictionaryAudioRef[] {
@@ -241,6 +263,13 @@ function toText(html: string): string {
   )
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function attr(tag: string, name: string): string | null {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = tag.match(new RegExp(`\\b${escaped}=["']([^"']+)["']`, "i"));
+  const value = decodeHtml(match?.[1] ?? "").trim();
+  return value || null;
 }
 
 function decodeHtml(value: string): string {

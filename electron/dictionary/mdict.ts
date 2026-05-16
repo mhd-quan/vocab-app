@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
 import type {
+  DictionaryAsset,
   DictionaryAudioAsset,
   DictionaryEntry,
   DictionarySearchResult,
@@ -17,6 +18,16 @@ interface KeyBlockInfo {
 interface KeyEntry {
   key: string;
   recordOffset: number;
+}
+
+interface RawDictionaryRecord {
+  key: string;
+  html: string;
+}
+
+interface RawSearchRecord extends RawDictionaryRecord {
+  exact: boolean;
+  matchedKey: string;
 }
 
 interface RecordBlockInfo {
@@ -42,6 +53,7 @@ const MIME_BY_EXT: Record<string, string> = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
   ".svg": "image/svg+xml",
+  ".webp": "image/webp",
 };
 
 export function inspectDictionaryPack(packPath: string): DictionaryPackManifest | null {
@@ -105,16 +117,54 @@ export class DictionaryPack {
   }
 
   search(query: string, limit: number): DictionarySearchResult[] {
-    return this.mdx.search(query, limit);
+    return this.mdx.search(query, limit).map((record) => {
+      const entry = parseDictionaryRecordHtml(
+        record.key,
+        record.html,
+        path.basename(this.mdx.filePath),
+      );
+      return {
+        key: entry.key,
+        label: entry.headword,
+        exact: record.exact,
+        posLabel: entry.posLabel,
+        posKey: entry.posKey,
+      };
+    });
   }
 
   lookup(term: string): DictionaryEntry | null {
     const record = this.mdx.lookup(term);
     if (!record) return null;
-    return parseDictionaryRecordHtml(record.key, record.html, path.basename(this.mdx.filePath));
+    const entry = parseDictionaryRecordHtml(
+      record.key,
+      record.html,
+      path.basename(this.mdx.filePath),
+    );
+    return {
+      ...entry,
+      related: this.mdx.related(entry.headword, entry.key, 12).map((related) => {
+        const parsed = parseDictionaryRecordHtml(
+          related.key,
+          related.html,
+          path.basename(this.mdx.filePath),
+        );
+        return {
+          key: parsed.key,
+          label: parsed.headword,
+          exact: false,
+          posLabel: parsed.posLabel,
+          posKey: parsed.posKey,
+        };
+      }),
+    };
   }
 
   audio(ref: string): DictionaryAudioAsset | null {
+    return this.asset(ref);
+  }
+
+  asset(ref: string): DictionaryAsset | null {
     const assetKey = toAssetKey(ref);
     if (!assetKey) return null;
     for (const mdd of this.getMddFiles()) {
@@ -163,18 +213,22 @@ class MdxFile {
     });
   }
 
-  search(query: string, limit: number): DictionarySearchResult[] {
+  search(query: string, limit: number): RawSearchRecord[] {
     const normalized = normalizeQuery(query);
     if (!normalized) return [];
 
-    const results: DictionarySearchResult[] = [];
+    const results: RawSearchRecord[] = [];
+    const seen = new Set<string>();
     const push = (index: number) => {
       const key = this.keys[index]?.key;
-      if (!key || results.some((result) => result.key === key)) return;
+      if (!key) return;
+      const record = this.lookup(key);
+      if (!record || seen.has(record.key)) return;
+      seen.add(record.key);
       results.push({
-        key,
-        label: key,
-        exact: this.lowerKeys[index] === normalized,
+        ...record,
+        exact: this.lowerKeys[index] === normalized || normalizeQuery(record.key) === normalized,
+        matchedKey: key,
       });
     };
 
@@ -182,13 +236,66 @@ class MdxFile {
       if (this.lowerKeys[i]?.startsWith(normalized)) push(i);
     }
     for (let i = 0; i < this.lowerKeys.length && results.length < limit; i += 1) {
-      if (this.lowerKeys[i]?.includes(normalized)) push(i);
+      if (hasBoundaryMatch(this.lowerKeys[i] ?? "", normalized)) push(i);
+    }
+    if (results.length === 0) {
+      for (let i = 0; i < this.lowerKeys.length && results.length < limit; i += 1) {
+        if (this.lowerKeys[i]?.includes(normalized)) push(i);
+      }
     }
 
     return results;
   }
 
-  lookup(term: string): { key: string; html: string } | null {
+  lookup(term: string): RawDictionaryRecord | null {
+    return this.resolveLookup(term, new Set());
+  }
+
+  related(headword: string, currentKey: string, limit: number): RawSearchRecord[] {
+    const stems = familyStems(headword);
+    if (stems.length === 0) return [];
+
+    const scored: Array<{ index: number; score: number }> = [];
+    for (let index = 0; index < this.lowerKeys.length; index += 1) {
+      const key = this.lowerKeys[index];
+      if (!key || key === normalizeQuery(currentKey)) continue;
+      const compact = compactFamilyKey(key);
+      const score = familyScore(compact, stems);
+      if (score > 0) scored.push({ index, score });
+    }
+
+    const results: RawSearchRecord[] = [];
+    const seen = new Set([normalizeQuery(currentKey)]);
+    for (const item of scored
+      .sort((a, b) => {
+        const keyA = this.keys[a.index]?.key ?? "";
+        const keyB = this.keys[b.index]?.key ?? "";
+        return b.score - a.score || keyA.localeCompare(keyB);
+      })
+      .slice(0, limit * 5)) {
+      const matchedKey = this.keys[item.index]?.key;
+      if (!matchedKey) continue;
+      const record = this.lookup(matchedKey);
+      if (!record || seen.has(normalizeQuery(record.key))) continue;
+      seen.add(normalizeQuery(record.key));
+      results.push({ ...record, exact: false, matchedKey });
+      if (results.length >= limit) break;
+    }
+    return results;
+  }
+
+  private resolveLookup(term: string, seen: Set<string>): RawDictionaryRecord | null {
+    const raw = this.rawLookup(term);
+    if (!raw) return null;
+    const target = linkTarget(raw.html);
+    if (!target) return raw;
+    const normalizedTarget = normalizeQuery(target);
+    if (seen.has(normalizedTarget)) return null;
+    seen.add(normalizedTarget);
+    return this.resolveLookup(target, seen);
+  }
+
+  private rawLookup(term: string): RawDictionaryRecord | null {
     const index = this.findKeyIndex(term);
     if (index === null) return null;
 
@@ -473,6 +580,44 @@ function totalDecompressedSize(blocks: RecordBlockInfo[]): number {
 
 function normalizeQuery(query: string): string {
   return query.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function hasBoundaryMatch(key: string, query: string): boolean {
+  const index = key.indexOf(query);
+  if (index <= 0) return false;
+  return /[\s_-]/.test(key[index - 1] ?? "");
+}
+
+function linkTarget(html: string): string | null {
+  const trimmed = html.replace(/\0/g, "").trim();
+  const match = trimmed.match(/^@@@LINK=(.+)$/i);
+  return match?.[1]?.trim() || null;
+}
+
+function familyStems(headword: string): string[] {
+  const compact = compactFamilyKey(headword);
+  if (compact.length < 4) return [];
+  const stems = new Set([compact]);
+  if (compact.endsWith("e") && compact.length > 4) stems.add(compact.slice(0, -1));
+  if (compact.endsWith("y") && compact.length > 4) stems.add(`${compact.slice(0, -1)}i`);
+  return [...stems].filter((stem) => stem.length >= 4);
+}
+
+function compactFamilyKey(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[_\s-]+\d+$/g, "")
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+function familyScore(compactKey: string, stems: string[]): number {
+  let best = 0;
+  for (const stem of stems) {
+    if (compactKey === stem) best = Math.max(best, 100);
+    else if (compactKey.startsWith(stem)) best = Math.max(best, 80 - compactKey.length * 0.01);
+    else if (compactKey.includes(stem)) best = Math.max(best, 55 - compactKey.length * 0.01);
+  }
+  return best;
 }
 
 function toAssetKey(ref: string): string | null {
