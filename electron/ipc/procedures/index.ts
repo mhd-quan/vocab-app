@@ -10,6 +10,7 @@ import { progressProcedures } from "./progress";
 import { rewardsProcedures } from "./rewards";
 import { settingsProcedures } from "./settings";
 import { studentsProcedures } from "./students";
+import { syncProcedures } from "./sync";
 import { vocabProcedures } from "./vocab";
 
 export const allProcedures: ReadonlyArray<AnyProcedure> = [
@@ -25,6 +26,7 @@ export const allProcedures: ReadonlyArray<AnyProcedure> = [
   ...importsProcedures,
   ...progressProcedures,
   ...rewardsProcedures,
+  ...syncProcedures,
 ] as ReadonlyArray<AnyProcedure>;
 
 export {
@@ -39,5 +41,6 @@ export {
   rewardsProcedures,
   settingsProcedures,
   studentsProcedures,
+  syncProcedures,
   vocabProcedures,
 };

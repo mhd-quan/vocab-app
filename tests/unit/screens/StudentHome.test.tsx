@@ -9,7 +9,7 @@ import {
   createRoute,
   createRouter,
 } from "@tanstack/react-router";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const epoch = new Date(0);
@@ -212,5 +212,36 @@ describe("StudentHome", () => {
     vi.spyOn(window.api.students, "listAssignedBooks").mockResolvedValue([]);
     renderHome();
     await waitFor(() => expect(screen.getByText(/No assigned units yet/i)).toBeInTheDocument());
+  });
+
+  it("exports the selected student's local log", async () => {
+    vi.spyOn(window.api.progress, "dueByLesson").mockResolvedValue({
+      totalCount: 0,
+      dueCount: 0,
+      newCount: 0,
+    });
+    vi.spyOn(window.api.sync, "exportStudentLog").mockResolvedValue({
+      canceled: false,
+      filePath: "/tmp/lexicon-lab-alice.json",
+      summary: {
+        packageId: "00000000-0000-4000-8000-000000000000",
+        studentName: "Alice",
+        fileName: "lexicon-lab-alice.json",
+        exportedAt: new Date(0).toISOString(),
+        sessions: 1,
+        events: 2,
+        progressItems: 1,
+        dictionaryItems: 0,
+      },
+    });
+
+    renderHome();
+    await waitFor(() => expect(screen.getByText("Alice")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /export log/i }));
+
+    await waitFor(() => {
+      expect(window.api.sync.exportStudentLog).toHaveBeenCalledWith({ studentId: 1 });
+      expect(screen.getByText(/Exported 2 events and 1 progress rows/i)).toBeInTheDocument();
+    });
   });
 });

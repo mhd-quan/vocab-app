@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { APP_IDENTIFIER, APP_VERSION } from "../../../src/application/appInfo";
 import { getDatabasePath } from "../../db";
 import { defineProcedure } from "../procedure";
 
@@ -12,9 +13,9 @@ export const metaProcedures = [
     name: "meta.appInfo",
     input: z.void(),
     handler: () => ({
-      name: "vocab-app",
-      version: "0.8.1",
-      schemaTablesExpected: 24,
+      name: APP_IDENTIFIER,
+      version: APP_VERSION,
+      schemaTablesExpected: 28,
       dbPath: getDatabasePath(),
     }),
   }),

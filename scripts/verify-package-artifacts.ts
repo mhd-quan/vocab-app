@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { APP_DISPLAY_NAME, APP_EXECUTABLE_NAME } from "../src/application/appInfo";
 
 interface PackagedTarget {
   label: string;
@@ -11,32 +12,31 @@ interface PackagedTarget {
 const targets: PackagedTarget[] = [
   {
     label: "macOS x64",
-    appDir: path.resolve("out", "Vocab App-darwin-x64", "Vocab App.app", "Contents"),
+    appDir: path.resolve(
+      "out",
+      `${APP_DISPLAY_NAME}-darwin-x64`,
+      `${APP_DISPLAY_NAME}.app`,
+      "Contents",
+    ),
     executable: path.resolve(
       "out",
-      "Vocab App-darwin-x64",
-      "Vocab App.app",
+      `${APP_DISPLAY_NAME}-darwin-x64`,
+      `${APP_DISPLAY_NAME}.app`,
       "Contents",
       "MacOS",
-      "vocab-app",
+      APP_EXECUTABLE_NAME,
     ),
     nativeHeader: "mach-o",
   },
   {
     label: "Windows x64",
-    appDir: path.resolve("out", "Vocab App-win32-x64"),
-    executable: path.resolve("out", "Vocab App-win32-x64", "vocab-app.exe"),
+    appDir: path.resolve("out", `${APP_DISPLAY_NAME}-win32-x64`),
+    executable: path.resolve("out", `${APP_DISPLAY_NAME}-win32-x64`, `${APP_EXECUTABLE_NAME}.exe`),
     nativeHeader: "pe",
   },
 ];
 
-const requiredDrizzleFiles = [
-  "0000_init.sql",
-  "0001_colossal_makkari.sql",
-  "0002_hard_trauma.sql",
-  "0003_fair_hawkeye.sql",
-  path.join("meta", "_journal.json"),
-];
+const requiredDrizzleFiles = readRequiredDrizzleFiles();
 
 function main(): void {
   const failures: string[] = [];
@@ -138,3 +138,16 @@ function hasExpectedNativeHeader(filePath: string, expected: "mach-o" | "pe"): b
 }
 
 main();
+
+function readRequiredDrizzleFiles(): string[] {
+  const journalPath = path.resolve("drizzle", "meta", "_journal.json");
+  const journal = JSON.parse(fs.readFileSync(journalPath, "utf8")) as {
+    entries?: Array<{ tag?: string }>;
+  };
+  const migrations =
+    journal.entries
+      ?.map((entry) => entry.tag)
+      .filter((tag): tag is string => typeof tag === "string" && tag.length > 0)
+      .map((tag) => `${tag}.sql`) ?? [];
+  return [...migrations, path.join("meta", "_journal.json")];
+}

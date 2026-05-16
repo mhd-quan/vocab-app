@@ -8,3 +8,4 @@ export * from "./import";
 export * from "./settings";
 export * from "./rewards";
 export * from "./dictionaryLearning";
+export * from "./sync";

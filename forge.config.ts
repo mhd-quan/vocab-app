@@ -12,6 +12,7 @@ import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { VitePlugin } from "@electron-forge/plugin-vite";
 import type { ForgeConfig } from "@electron-forge/shared-types";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
+import { APP_BUNDLE_ID, APP_DISPLAY_NAME, APP_EXECUTABLE_NAME } from "./src/application/appInfo";
 
 const runtimeNativeDependencies = ["better-sqlite3", "bindings", "file-uri-to-path"];
 const execFileAsync = promisify(execFile);
@@ -62,7 +63,7 @@ async function installTargetBetterSqlitePrebuild(
       env: {
         ...process.env,
         npm_config_cache:
-          process.env.npm_config_cache ?? path.join(os.tmpdir(), "vocab-app-npm-cache"),
+          process.env.npm_config_cache ?? path.join(os.tmpdir(), "lexicon-lab-npm-cache"),
       },
       maxBuffer: 1024 * 1024 * 10,
     },
@@ -80,9 +81,9 @@ const config: ForgeConfig = {
   },
   packagerConfig: {
     asar: true,
-    name: "Vocab App",
-    executableName: "vocab-app",
-    appBundleId: "dev.mhd-quan.vocab-app",
+    name: APP_DISPLAY_NAME,
+    executableName: APP_EXECUTABLE_NAME,
+    appBundleId: APP_BUNDLE_ID,
     icon: undefined,
     // SQL migration files live alongside the app bundle so the runtime
     // migrator can read them. Resolved via `process.resourcesPath` in
@@ -91,7 +92,7 @@ const config: ForgeConfig = {
   },
   rebuildConfig: {},
   makers: [
-    new MakerSquirrel({ name: "vocab-app" }),
+    new MakerSquirrel({ name: APP_EXECUTABLE_NAME }),
     new MakerZIP({}, ["darwin", "win32"]),
     new MakerDMG({ format: "ULFO" }),
     new MakerDeb({}),

@@ -10,6 +10,7 @@ import { type ProgressRepository, createProgressRepository } from "./progress";
 import { type RewardsRepository, createRewardsRepository } from "./rewards";
 import { type SettingsRepository, createSettingsRepository } from "./settings";
 import { type StudentsRepository, createStudentsRepository } from "./students";
+import { type SyncRepository, createSyncRepository } from "./sync";
 import { type VocabRepository, createVocabRepository } from "./vocab";
 
 export interface Repositories {
@@ -22,6 +23,7 @@ export interface Repositories {
   imports: ImportRepository;
   progress: ProgressRepository;
   rewards: RewardsRepository;
+  sync: SyncRepository;
 }
 
 export function createRepositories(db: AppDatabase): Repositories {
@@ -35,6 +37,7 @@ export function createRepositories(db: AppDatabase): Repositories {
     imports: createImportRepository(db),
     progress: createProgressRepository(db),
     rewards: createRewardsRepository(db),
+    sync: createSyncRepository(db),
   };
 }
 
@@ -81,6 +84,7 @@ export {
 } from "./rewards";
 export { type SettingsRepository, createSettingsRepository } from "./settings";
 export { type StudentsRepository, createStudentsRepository } from "./students";
+export { type SyncRepository, createSyncRepository } from "./sync";
 export {
   type CollocationInput,
   createVocabRepository,

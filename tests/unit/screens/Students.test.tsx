@@ -118,4 +118,36 @@ describe("TutorStudents", () => {
     await waitFor(() => expect(window.api.students.archive).toHaveBeenCalledWith({ id: 1 }));
     await waitFor(() => screen.getByText(/No active students/i));
   });
+
+  it("imports a student log from the header action", async () => {
+    vi.spyOn(window.api.sync, "importStudentLog").mockResolvedValue({
+      canceled: false,
+      filePath: "/tmp/lexicon-lab-alice.json",
+      summary: {
+        packageId: "00000000-0000-4000-8000-000000000000",
+        studentId: 1,
+        studentName: "Alice",
+        createdStudent: false,
+        alreadyImported: false,
+        sessionsImported: 1,
+        sessionsSkipped: 0,
+        eventsImported: 3,
+        eventsSkipped: 0,
+        missingContentEvents: 0,
+        progressUpserted: 2,
+        progressSkipped: 0,
+        achievementsImported: 0,
+        dictionaryItemsUpserted: 1,
+      },
+    });
+
+    renderScreen();
+    await waitFor(() => screen.getByText(/No active students/i));
+    fireEvent.click(screen.getByRole("button", { name: /import log/i }));
+
+    await waitFor(() => {
+      expect(window.api.sync.importStudentLog).toHaveBeenCalledTimes(1);
+      expect(screen.getByText(/Imported 3 events, 2 progress rows/i)).toBeInTheDocument();
+    });
+  });
 });

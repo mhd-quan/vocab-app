@@ -6,6 +6,7 @@ import { getAchievement } from "@/modules/rewards";
 import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
+import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
 import {
   AccuracyIcon,
@@ -16,7 +17,7 @@ import {
 } from "@/ui/components/LearningIcons";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
 import { AchievementIcon } from "@/ui/components/rewards";
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 
 interface UnitWithLessons {
@@ -69,13 +70,47 @@ export function StudentHome() {
     enabled: Number.isFinite(id) && id > 0,
   });
 
+  const exportLog = useMutation({
+    mutationFn: () => api.sync.exportStudentLog({ studentId: id }),
+  });
+
   const studentName = studentQ.data?.displayName ?? studentQ.data?.name ?? "Unknown student";
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-7 px-8 py-10">
-      <Link to="/student" className="self-start text-xs font-medium text-muted hover:text-app">
-        Back to profiles
-      </Link>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Link to="/student" className="text-xs font-medium text-muted hover:text-app">
+          Back to profiles
+        </Link>
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={() => exportLog.mutate()}
+          disabled={exportLog.isPending || !Number.isFinite(id) || id <= 0}
+        >
+          {exportLog.isPending ? "Exporting..." : "Export log"}
+        </Button>
+      </div>
+
+      {exportLog.isSuccess && !exportLog.data.canceled ? (
+        <output className="rounded-2xl border border-success/35 bg-success/10 px-4 py-3 text-xs text-success">
+          Exported {exportLog.data.summary.events} events and {exportLog.data.summary.progressItems}{" "}
+          progress rows to {fileLabel(exportLog.data.filePath)}.
+        </output>
+      ) : null}
+      {exportLog.isSuccess && exportLog.data.canceled ? (
+        <output className="rounded-2xl border border-border-subtle bg-surface-1 px-4 py-3 text-xs text-muted">
+          Export canceled.
+        </output>
+      ) : null}
+      {exportLog.isError ? (
+        <p
+          role="alert"
+          className="rounded-2xl border border-danger/35 bg-danger/10 px-4 py-3 text-xs text-danger"
+        >
+          {exportLog.error instanceof Error ? exportLog.error.message : "Could not export log."}
+        </p>
+      ) : null}
 
       <header className="grid gap-4 lg:grid-cols-[1.25fr_1fr]">
         <BentoCard className="flex items-center gap-5 p-6" interactive tone="focus">
@@ -135,6 +170,11 @@ export function StudentHome() {
       )}
     </div>
   );
+}
+
+function fileLabel(filePath: string | null): string {
+  if (!filePath) return "the selected file";
+  return filePath.split(/[\\/]/).pop() ?? filePath;
 }
 
 function PersonalVocabularyCard({

@@ -1,12 +1,12 @@
-# Vocab App
+# Lexicon Lab
 
 Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
-student practice) running as a desktop app on Windows and macOS.
+student practice) running as a local-first desktop app on Windows and macOS.
 
-> **Status:** v0.6.2 — tutor assignments, vocabulary/grammar student flows,
-> SRS progress, rewards, in-app YAML import, settings, and authoring templates
-> remain backed by the same local SQLite schema.
+> **Status:** v0.9.0 — tutor assignments, vocabulary/grammar student flows,
+> SRS progress, rewards, dictionary learning, in-app YAML import, and manual
+> student-log sync remain backed by local SQLite. No server is required.
 
 ## Stack
 
@@ -29,20 +29,21 @@ student practice) running as a desktop app on Windows and macOS.
 ## Folder layout
 
 ```
-vocab-app/
+lexicon-lab/
 ├── electron/             # Main process + preload (Node only)
 │   ├── main.ts
 │   ├── preload.ts        # contextBridge → window.api (typed)
 │   ├── db/               # SQLite client, paths, migration runner
-│   │   └── repositories/ # curriculum, vocab, students, settings, imports
+│   │   └── repositories/ # curriculum, vocab, students, settings, imports, sync
 │   └── ipc/              # defineProcedure + Zod-validated handlers
-│       └── procedures/   # meta, curriculum, vocab, students, settings
+│       └── procedures/   # meta, curriculum, vocab, students, settings, sync
 ├── src/
 │   ├── data/
 │   │   ├── schema/       # Drizzle table definitions (1 file per domain)
 │   │   └── types.ts      # Inferred row types re-exports
 │   ├── application/
-│   │   └── import/       # YAML schema, parser, hash, ImportVocabUseCase
+│   │   ├── import/       # YAML schema, parser, hash, ImportVocabUseCase
+│   │   └── sync/         # student log package schema
 │   ├── App.tsx
 │   ├── main.tsx
 │   ├── styles/
@@ -117,7 +118,7 @@ resolved at runtime through `electron/db/paths.ts`.
 
 ### Schema overview
 
-20 tables, organized by domain:
+28 tables, organized by domain:
 
 - **Curriculum**: `books`, `units`, `lessons`
 - **Vocabulary** (PR #2 focus): `vocab_entries`, `vocab_senses`,
@@ -128,12 +129,30 @@ resolved at runtime through `electron/db/paths.ts`.
 - **Progress** (event-sourced): `practice_sessions`, `learning_events`,
   `item_progress`
 - **Rewards**: `student_achievements` (cache; recomputable from the event log)
+- **Dictionary learning**: search history, personal dictionary items, review history
 - **Import**: `import_runs`, `import_items`
 - **Settings**: `app_settings`
+- **Manual sync**: stable student identities, imported package/session/event ledgers
 
 Adding a new content kind later (custom exercise type, listening clip, …) is
 a single migration that adds the concrete table plus a row in `content_items`
 — no downstream change to progress or session code.
+
+## Manual student-log sync
+
+Lexicon Lab stays local-first. Student machines export a dated `.json` log from
+Student Home. Tutor machines import that log from Tutor → Students.
+
+The package is idempotent:
+
+- `student_sync_identities` gives each learner a stable sync identity without
+  changing the public `students` row shape.
+- `sync_imports`, `sync_imported_sessions`, and `sync_imported_events` prevent
+  duplicate imports when the same file is selected twice or overlapping logs are
+  exchanged.
+- Progress rows are merged by content reference (`book`, `unit`, `lesson`,
+  source id / headword / grammar slug), so local numeric ids can differ between
+  machines as long as the same curriculum content is installed.
 
 ## Authoring content
 
@@ -397,4 +416,5 @@ See `docs/roadmap.md` (added with PR #2). Current plan:
 | v0.6.0  | Vocabulary direct launch + grammar-only study layer + flashcard-first new words |
 | v0.6.1  | Remove vocab study-page flash + retire vocab study-page starter |
 | v0.6.2  | Include native SQLite runtime deps in packaged Windows/macOS apps |
+| v0.9.0  | Rename to Lexicon Lab + manual student-log export/import sync |
 | v1.0.0  | Beta packaging (signed installers, auto-update)           |

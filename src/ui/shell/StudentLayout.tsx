@@ -1,3 +1,4 @@
+import { APP_DISPLAY_NAME } from "@/application/appInfo";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
@@ -32,7 +33,7 @@ export function StudentLayout() {
           <span className="rounded-full border border-border-subtle bg-surface-2 px-2.5 py-1 text-xs font-semibold uppercase text-muted">
             Student
           </span>
-          <span className="text-base font-semibold">Vocab App</span>
+          <span className="text-base font-semibold">{APP_DISPLAY_NAME}</span>
         </Link>
         <div className="flex items-center gap-2 [-webkit-app-region:no-drag]">
           {dictionaryQ.data?.active ? (

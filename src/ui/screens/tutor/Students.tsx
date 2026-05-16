@@ -15,6 +15,7 @@ import { Link } from "@tanstack/react-router";
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 type Tab = "active" | "archived";
+type ImportLogResult = Awaited<ReturnType<typeof api.sync.importStudentLog>>;
 
 const COLOR_OPTIONS = [
   "#7c9cff", // accent
@@ -39,6 +40,7 @@ export function TutorStudents() {
   const [tab, setTab] = useState<Tab>("active");
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<Student | null>(null);
+  const queryClient = useQueryClient();
 
   const allQ = useQuery({
     queryKey: queryKeys.students.listAll(),
@@ -62,14 +64,36 @@ export function TutorStudents() {
     setEditorOpen(true);
   }
 
+  const importLog = useMutation({
+    mutationFn: () => api.sync.importStudentLog(),
+    onSuccess: async (result) => {
+      if (!result.canceled) {
+        await queryClient.invalidateQueries();
+      }
+    },
+  });
+
   return (
     <>
       <PageHeader
         eyebrow="Tutor"
         title="Students"
         subtitle="Profiles your learners use in student practice mode. Create one per child you tutor."
-        actions={<Button onClick={openCreate}>+ Add student</Button>}
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => importLog.mutate()}
+              disabled={importLog.isPending}
+            >
+              {importLog.isPending ? "Importing..." : "Import log"}
+            </Button>
+            <Button onClick={openCreate}>+ Add student</Button>
+          </div>
+        }
       />
+
+      <ImportLogStatus mutation={importLog} />
 
       <div className="flex items-center gap-1 border-b border-border-subtle px-8">
         <TabButton active={tab === "active"} onClick={() => setTab("active")}>
@@ -110,6 +134,56 @@ export function TutorStudents() {
 
       <StudentEditor open={editorOpen} onClose={() => setEditorOpen(false)} editing={editing} />
     </>
+  );
+}
+
+function ImportLogStatus({
+  mutation,
+}: {
+  mutation: {
+    isError: boolean;
+    error: unknown;
+    isSuccess: boolean;
+    data?: ImportLogResult;
+  };
+}) {
+  if (mutation.isError) {
+    return (
+      <div className="px-8 pt-4">
+        <p
+          role="alert"
+          className="rounded-2xl border border-danger/35 bg-danger/10 px-4 py-3 text-xs text-danger"
+        >
+          {mutation.error instanceof Error ? mutation.error.message : "Could not import log."}
+        </p>
+      </div>
+    );
+  }
+
+  if (!mutation.isSuccess) return null;
+  const data = mutation.data;
+  if (!data) return null;
+  if (data.canceled) {
+    return (
+      <div className="px-8 pt-4">
+        <output className="block rounded-2xl border border-border-subtle bg-surface-1 px-4 py-3 text-xs text-muted">
+          Import canceled.
+        </output>
+      </div>
+    );
+  }
+
+  const summary = data.summary;
+  if (!summary) return null;
+
+  return (
+    <div className="px-8 pt-4">
+      <output className="block rounded-2xl border border-success/35 bg-success/10 px-4 py-3 text-xs leading-5 text-success">
+        {summary.alreadyImported
+          ? `${summary.studentName}'s log was already imported.`
+          : `Imported ${summary.eventsImported} events, ${summary.progressUpserted} progress rows, and ${summary.dictionaryItemsUpserted} dictionary rows for ${summary.studentName}.`}
+      </output>
+    </div>
   );
 }
 
