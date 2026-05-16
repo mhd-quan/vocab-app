@@ -127,6 +127,8 @@ function entry(headword: string): DictionaryEntry {
     ],
     examples: ["She worked hard to achieve her goal."],
     audio: [{ ref: "sound/achieve__gb_1.mp3", label: "UK", accent: "uk" }],
+    images: [],
+    related: [],
     source: { dictionary: "oald10", file: "oald10_og.mdx" },
     lessonEntries: [],
   };

@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron";
 import type { ImportFileResult } from "../src/application/import";
 import type {
+  DictionaryAsset,
   DictionaryAudioAsset,
   DictionaryEntry,
   DictionarySearchResult,
@@ -120,7 +121,7 @@ interface UpdateStudentPatch {
 const api = {
   app: {
     name: "vocab-app",
-    version: "0.8.0",
+    version: "0.8.1",
     platform: process.platform,
   },
 
@@ -173,6 +174,7 @@ const api = {
     lookup: (input: { term: string }) => invoke<DictionaryEntry | null>("dictionary.lookup", input),
     audio: (input: { ref: string }) =>
       invoke<DictionaryAudioAsset | null>("dictionary.audio", input),
+    asset: (input: { ref: string }) => invoke<DictionaryAsset | null>("dictionary.asset", input),
     selectPackFolder: () => invoke<DictionaryStatus>("dictionary.selectPackFolder", {}),
     clearPackFolder: () => invoke<DictionaryStatus>("dictionary.clearPackFolder", {}),
   },

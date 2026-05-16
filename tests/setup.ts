@@ -8,14 +8,14 @@ Object.defineProperty(window, "api", {
   value: {
     app: {
       name: "vocab-app",
-      version: "0.8.0",
+      version: "0.8.1",
       platform: "test",
     },
     meta: {
       ping: async () => "pong" as const,
       appInfo: async () => ({
         name: "vocab-app",
-        version: "0.8.0",
+        version: "0.8.1",
         schemaTablesExpected: 24,
         dbPath: ":memory:",
       }),
@@ -54,6 +54,7 @@ Object.defineProperty(window, "api", {
       search: async () => [],
       lookup: async () => null,
       audio: async () => null,
+      asset: async () => null,
       selectPackFolder: async () => ({
         active: false,
         packPath: null,

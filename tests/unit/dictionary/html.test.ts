@@ -16,6 +16,7 @@ describe("parseDictionaryRecordHtml", () => {
           <a href="sound://sampled__gb_2.mp3"></a>
           <a href="sound://sample__us_1.mp3"></a>
           <a href="sound://samples__us_2.mp3"></a>
+          <img src="fullsize_sample.png" alt="Sample diagram" />
           <li class="sense">
             <span class="labels">(formal)</span>
             <span class="def">to test a small amount of something</span>
@@ -37,6 +38,8 @@ describe("parseDictionaryRecordHtml", () => {
       "sound://sample__gb_1.mp3",
       "sound://sample__us_1.mp3",
     ]);
+    expect(entry.images).toEqual([{ ref: "asset://fullsize_sample.png", alt: "Sample diagram" }]);
+    expect(entry.related).toEqual([]);
     expect(entry.lessonEntries).toEqual([]);
   });
 });
