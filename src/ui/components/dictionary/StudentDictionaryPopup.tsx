@@ -3,7 +3,15 @@ import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { DictionaryLookupPanel } from "./DictionaryLookupPanel";
 
-export function StudentDictionaryPopup({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function StudentDictionaryPopup({
+  open,
+  onClose,
+  studentId = null,
+}: {
+  open: boolean;
+  onClose: () => void;
+  studentId?: number | null;
+}) {
   useEffect(() => {
     if (!open) return;
     function onKeyDown(event: KeyboardEvent) {
@@ -27,7 +35,7 @@ export function StudentDictionaryPopup({ open, onClose }: { open: boolean; onClo
             Close
           </Button>
         </div>
-        <DictionaryLookupPanel density="popup" />
+        <DictionaryLookupPanel density="popup" studentId={studentId} />
       </div>
     </div>,
     document.body,
