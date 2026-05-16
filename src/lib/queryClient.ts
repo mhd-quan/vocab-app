@@ -42,6 +42,15 @@ export const queryKeys = {
     search: (query: string, limit: number) => ["dictionary", "search", query, limit] as const,
     lookup: (term: string) => ["dictionary", "lookup", term] as const,
     audio: (ref: string) => ["dictionary", "audio", ref] as const,
+    asset: (ref: string) => ["dictionary", "asset", ref] as const,
+  },
+  dictionaryLearning: {
+    summary: (studentId: number) => ["dictionaryLearning", "summary", studentId] as const,
+    recentSearches: (studentId: number, limit = 12) =>
+      ["dictionaryLearning", "recentSearches", studentId, limit] as const,
+    items: (studentId: number) => ["dictionaryLearning", "items", studentId] as const,
+    practiceQueue: (studentId: number, limit = 12) =>
+      ["dictionaryLearning", "practiceQueue", studentId, limit] as const,
   },
   grammar: {
     list: (lessonId: number) => ["grammar", "list", lessonId] as const,

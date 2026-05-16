@@ -1,4 +1,5 @@
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, or, sql } from "drizzle-orm";
+import type { DictionaryLessonEntry } from "../../../src/data/dictionary";
 import {
   type CefrLevel,
   type CollocationPattern,
@@ -6,7 +7,10 @@ import {
   type VocabFormKind,
   type VocabRegister,
   type VocabRelationKind,
+  books,
   contentItems,
+  lessons,
+  units,
   vocabCollocations,
   vocabEntries,
   vocabExamples,
@@ -132,6 +136,74 @@ export function createVocabRepository(db: AppDatabase) {
         .orderBy(asc(vocabEntries.headword))
         .all();
       return hydrateChildren(db, entries);
+    },
+
+    findDictionaryMatches(input: {
+      term: string;
+      headword?: string | null;
+    }): DictionaryLessonEntry[] {
+      const terms = dictionaryMatchTerms(input.term, input.headword);
+      if (terms.length === 0) return [];
+      const conditions = terms.flatMap((term) => [
+        sql`lower(${vocabEntries.headword}) = ${term}`,
+        sql`lower(coalesce(${vocabEntries.lemma}, '')) = ${term}`,
+      ]);
+
+      const rows = db
+        .select({
+          entry: vocabEntries,
+          lesson: lessons,
+          unit: units,
+          book: books,
+        })
+        .from(vocabEntries)
+        .innerJoin(lessons, eq(vocabEntries.lessonId, lessons.id))
+        .innerJoin(units, eq(lessons.unitId, units.id))
+        .innerJoin(books, eq(units.bookId, books.id))
+        .where(or(...conditions))
+        .orderBy(
+          asc(books.code),
+          asc(units.ordinal),
+          asc(lessons.ordinal),
+          asc(vocabEntries.headword),
+        )
+        .all();
+
+      const fullById = new Map(
+        hydrateChildren(
+          db,
+          rows.map((row) => row.entry),
+        ).map((entry) => [entry.id, entry]),
+      );
+      return rows.map(({ entry, lesson, unit, book }) => {
+        const full = fullById.get(entry.id);
+        return {
+          id: entry.id,
+          headword: entry.headword,
+          lemma: entry.lemma,
+          pos: entry.pos,
+          ipa: entry.ipa,
+          cefrLevel: entry.cefrLevel,
+          audioRef: entry.audioRef,
+          bookCode: book.code,
+          bookTitle: book.title,
+          unitCode: unit.code,
+          unitTitle: unit.title,
+          unitOrdinal: unit.ordinal,
+          lessonId: lesson.id,
+          lessonTitle: lesson.title,
+          senses:
+            full?.senses.map((sense) => ({
+              definitionEn: sense.definitionEn,
+              definitionVi: sense.definitionVi,
+            })) ?? [],
+          examples:
+            full?.examples.map((example) => ({
+              text: example.text,
+              translation: example.translation,
+            })) ?? [],
+        };
+      });
     },
 
     /**
@@ -282,6 +354,19 @@ export function createVocabRepository(db: AppDatabase) {
 }
 
 export type VocabRepository = ReturnType<typeof createVocabRepository>;
+
+function dictionaryMatchTerms(term: string, headword?: string | null): string[] {
+  const seeds = [term, headword ?? ""];
+  const out = new Set<string>();
+  for (const seed of seeds) {
+    const normalized = seed.trim().toLowerCase().replace(/\s+/g, " ");
+    if (!normalized) continue;
+    out.add(normalized);
+    out.add(normalized.replace(/-/g, " "));
+    out.add(normalized.replace(/\s+/g, "-"));
+  }
+  return [...out].filter(Boolean);
+}
 
 function hydrateChildren(db: AppDatabase, entries: VocabEntry[]): VocabEntryFull[] {
   if (entries.length === 0) return [];

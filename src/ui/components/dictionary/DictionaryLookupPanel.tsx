@@ -1,18 +1,19 @@
-import type { DictionaryEntry } from "@/data/dictionary";
+import type { DictionaryEntry, DictionaryLessonEntry } from "@/data/dictionary";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
 import { Badge } from "@/ui/components/Badge";
 import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
-import { useQuery } from "@tanstack/react-query";
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 interface DictionaryLookupPanelProps {
   className?: string;
   density?: "page" | "popup";
   showYamlAction?: boolean;
   initialQuery?: string;
+  studentId?: number | null;
 }
 
 export function DictionaryLookupPanel({
@@ -20,11 +21,15 @@ export function DictionaryLookupPanel({
   density = "page",
   showYamlAction = false,
   initialQuery = "",
+  studentId = null,
 }: DictionaryLookupPanelProps) {
+  const queryClient = useQueryClient();
   const [query, setQuery] = useState(initialQuery);
   const [selectedTerm, setSelectedTerm] = useState(initialQuery);
   const debouncedQuery = useDebouncedValue(query.trim(), 160);
   const [copied, setCopied] = useState(false);
+  const loggedLookupRef = useRef<Set<string>>(new Set());
+  const loggedMissRef = useRef<Set<string>>(new Set());
 
   const statusQ = useQuery({
     queryKey: queryKeys.dictionary.status(),
@@ -45,12 +50,48 @@ export function DictionaryLookupPanel({
 
   const suggestions = searchQ.data ?? [];
   const entry = entryQ.data ?? null;
+  const activeStudentId = Number.isFinite(studentId ?? Number.NaN) ? Number(studentId) : null;
 
   useEffect(() => {
     if (!selectedTerm && suggestions[0]?.exact) {
       setSelectedTerm(suggestions[0].key);
     }
   }, [selectedTerm, suggestions]);
+
+  useEffect(() => {
+    if (!activeStudentId || !entry) return;
+    const logKey = `${activeStudentId}:${entry.key}`;
+    if (loggedLookupRef.current.has(logKey)) return;
+    loggedLookupRef.current.add(logKey);
+    void api.dictionaryLearning
+      .recordLookup({
+        studentId: activeStudentId,
+        query: query.trim() || entry.headword,
+        dictionaryKey: entry.key,
+      })
+      .then(() =>
+        queryClient.invalidateQueries({
+          queryKey: ["dictionaryLearning"],
+        }),
+      )
+      .catch((error) => console.error("[DictionaryLookupPanel] recordLookup failed", error));
+  }, [activeStudentId, entry, query, queryClient]);
+
+  useEffect(() => {
+    if (!activeStudentId || !entryQ.isSuccess || entry || selectedTerm.trim().length === 0) return;
+    const queryText = selectedTerm.trim();
+    const logKey = `${activeStudentId}:${queryText}`;
+    if (loggedMissRef.current.has(logKey)) return;
+    loggedMissRef.current.add(logKey);
+    void api.dictionaryLearning
+      .recordSearch({ studentId: activeStudentId, query: queryText })
+      .then(() =>
+        queryClient.invalidateQueries({
+          queryKey: ["dictionaryLearning"],
+        }),
+      )
+      .catch((error) => console.error("[DictionaryLookupPanel] recordSearch failed", error));
+  }, [activeStudentId, entry, entryQ.isSuccess, queryClient, selectedTerm]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -100,17 +141,44 @@ export function DictionaryLookupPanel({
         <form onSubmit={onSubmit} className="border-b border-border-subtle p-4">
           <label className="flex flex-col gap-2">
             <span className="text-xs font-semibold uppercase text-muted-2">Search word</span>
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="achievement"
-              spellCheck={false}
-              className="h-11 rounded-xl border border-border-strong bg-surface-1 px-3 text-base text-app outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/25"
-            />
+            <div className="relative">
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="achievement"
+                spellCheck={false}
+                className="h-11 w-full rounded-xl border border-border-strong bg-surface-1 px-3 pr-10 text-base text-app outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/25"
+              />
+              {query.trim().length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuery("");
+                    setSelectedTerm("");
+                    setCopied(false);
+                  }}
+                  aria-label="Clear search"
+                  className="absolute right-2 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full border border-border-subtle bg-surface-2 text-base leading-none text-muted transition hover:border-border-strong hover:bg-surface-1 hover:text-app"
+                >
+                  ×
+                </button>
+              ) : null}
+            </div>
           </label>
         </form>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-2">
+          {entry?.related.length ? (
+            <WordFamilyList
+              items={entry.related}
+              selectedKey={selectedTerm}
+              onSelect={(item) => {
+                setSelectedTerm(item.key);
+                setQuery(item.label);
+                setCopied(false);
+              }}
+            />
+          ) : null}
           {searchQ.isFetching ? <p className="px-2 py-2 text-xs text-muted">Searching...</p> : null}
           {debouncedQuery.length === 0 ? (
             <p className="px-2 py-2 text-xs leading-5 text-muted">
@@ -136,7 +204,10 @@ export function DictionaryLookupPanel({
                         : "text-muted hover:bg-surface-2 hover:text-app",
                     )}
                   >
-                    <span className="block truncate font-medium">{item.label}</span>
+                    <span className="flex min-w-0 items-center justify-between gap-2">
+                      <span className="min-w-0 truncate font-medium">{item.label}</span>
+                      <PosPill active={selectedTerm === item.key} label={posLabel(item)} />
+                    </span>
                     {item.exact ? (
                       <span className="block text-[10px] uppercase opacity-75">Exact</span>
                     ) : null}
@@ -171,6 +242,54 @@ export function DictionaryLookupPanel({
   );
 }
 
+function WordFamilyList({
+  items,
+  selectedKey,
+  onSelect,
+}: {
+  items: DictionaryEntry["related"];
+  selectedKey: string;
+  onSelect: (item: DictionaryEntry["related"][number]) => void;
+}) {
+  return (
+    <section className="mb-3 rounded-xl border border-border-subtle bg-surface-1 p-2">
+      <p className="px-1 pb-2 text-[10px] font-semibold uppercase text-muted-2">Word family</p>
+      <ul className="flex flex-col gap-1">
+        {items.map((item) => (
+          <li key={item.key}>
+            <button
+              type="button"
+              onClick={() => onSelect(item)}
+              className={cn(
+                "flex w-full min-w-0 items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left text-xs transition",
+                selectedKey === item.key
+                  ? "bg-accent text-accent-fg"
+                  : "text-muted hover:bg-surface-2 hover:text-app",
+              )}
+            >
+              <span className="min-w-0 truncate font-medium">{item.label}</span>
+              <PosPill active={selectedKey === item.key} label={posLabel(item)} />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function PosPill({ label, active }: { label: string; active?: boolean }) {
+  return (
+    <span
+      className={cn(
+        "shrink-0 rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase",
+        active ? "border-white/40 text-current opacity-90" : "border-border-subtle text-muted-2",
+      )}
+    >
+      {label}
+    </span>
+  );
+}
+
 function EntryDetail({
   entry,
   showYamlAction,
@@ -183,20 +302,36 @@ function EntryDetail({
   onCopy: () => void;
 }) {
   const [playingRef, setPlayingRef] = useState<string | null>(null);
+  const audioElementRef = useRef<HTMLAudioElement | null>(null);
+  const audioQueries = useQueries({
+    queries: entry.audio.map((audio) => ({
+      queryKey: queryKeys.dictionary.audio(audio.ref),
+      queryFn: () => api.dictionary.audio({ ref: audio.ref }),
+      staleTime: Number.POSITIVE_INFINITY,
+    })),
+  });
+  const imageQueries = useQueries({
+    queries: entry.images.map((image) => ({
+      queryKey: queryKeys.dictionary.asset(image.ref),
+      queryFn: () => api.dictionary.asset({ ref: image.ref }),
+      staleTime: Number.POSITIVE_INFINITY,
+    })),
+  });
   const definitions = useMemo(
     () => entry.senses.filter((sense) => sense.definitionEn.trim().length > 0),
     [entry.senses],
   );
+  const curriculumBadges = useMemo(() => curriculumTags(entry), [entry]);
 
-  async function play(ref: string) {
+  async function play(ref: string, dataUrl: string | undefined) {
+    if (!dataUrl) return;
+    audioElementRef.current?.pause();
+    const player = new Audio(dataUrl);
+    audioElementRef.current = player;
     setPlayingRef(ref);
-    try {
-      const asset = await api.dictionary.audio({ ref });
-      if (!asset) return;
-      await new Audio(asset.dataUrl).play();
-    } finally {
-      setPlayingRef(null);
-    }
+    player.onended = () => setPlayingRef(null);
+    player.onerror = () => setPlayingRef(null);
+    await player.play().catch(() => setPlayingRef(null));
   }
 
   return (
@@ -205,9 +340,6 @@ function EntryDetail({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge tone="xp" uppercase>
-                OALD10
-              </Badge>
               <Badge tone="muted" uppercase>
                 {entry.posLabel ?? entry.posKey}
               </Badge>
@@ -216,6 +348,11 @@ function EntryDetail({
                   {entry.cefr}
                 </Badge>
               ) : null}
+              {curriculumBadges.map((tag) => (
+                <Badge key={tag} tone="xp" uppercase>
+                  {tag}
+                </Badge>
+              ))}
             </div>
             <h2 className="mt-3 break-words text-4xl font-semibold leading-tight">
               {entry.headword}
@@ -226,17 +363,21 @@ function EntryDetail({
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {entry.audio.map((audio) => (
-              <Button
-                key={audio.ref}
-                variant="secondary"
-                size="sm"
-                onClick={() => void play(audio.ref)}
-                disabled={playingRef === audio.ref}
-              >
-                {playingRef === audio.ref ? "Playing..." : audio.label}
-              </Button>
-            ))}
+            {entry.audio.map((audio, index) => {
+              const asset = audioQueries[index]?.data;
+              const loading = audioQueries[index]?.isLoading;
+              return (
+                <Button
+                  key={audio.ref}
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => void play(audio.ref, asset?.dataUrl)}
+                  disabled={!asset || playingRef === audio.ref}
+                >
+                  {playingRef === audio.ref ? "Playing..." : loading ? "Loading" : audio.label}
+                </Button>
+              );
+            })}
             {showYamlAction ? (
               <Button variant="secondary" size="sm" onClick={onCopy}>
                 {copied ? "Copied" : "Copy YAML seed"}
@@ -245,6 +386,12 @@ function EntryDetail({
           </div>
         </div>
       </header>
+
+      {entry.lessonEntries.length > 0 ? <LessonEntries entries={entry.lessonEntries} /> : null}
+
+      {entry.images.length > 0 ? (
+        <EntryImages images={entry.images} assets={imageQueries.map((query) => query.data)} />
+      ) : null}
 
       <section className="rounded-bento border border-border-subtle bg-surface-1 p-5">
         <h3 className="text-sm font-semibold uppercase text-muted-2">Definitions</h3>
@@ -302,6 +449,135 @@ function EntryDetail({
       </section>
     </article>
   );
+}
+
+function EntryImages({
+  images,
+  assets,
+}: {
+  images: DictionaryEntry["images"];
+  assets: Array<{ dataUrl: string; mime: string } | null | undefined>;
+}) {
+  const ready = images
+    .map((image, index) => ({ image, asset: assets[index] }))
+    .filter((item) => item.asset?.dataUrl);
+  if (ready.length === 0) return null;
+
+  return (
+    <section className="rounded-bento border border-border-subtle bg-surface-1 p-5">
+      <h3 className="text-sm font-semibold uppercase text-muted-2">Visuals</h3>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {ready.map(({ image, asset }) => (
+          <figure
+            key={image.ref}
+            className="overflow-hidden rounded-xl border border-border-subtle bg-surface-0"
+          >
+            <img
+              src={asset?.dataUrl}
+              alt={image.alt ?? ""}
+              className="h-52 w-full object-contain p-3"
+            />
+            {image.alt ? (
+              <figcaption className="border-t border-border-subtle px-3 py-2 text-xs text-muted">
+                {image.alt}
+              </figcaption>
+            ) : null}
+          </figure>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function LessonEntries({ entries }: { entries: DictionaryLessonEntry[] }) {
+  return (
+    <section className="rounded-bento border border-border-subtle bg-surface-1 p-5">
+      <h3 className="text-sm font-semibold uppercase text-muted-2">Lesson entries</h3>
+      <div className="mt-4 grid gap-3">
+        {entries.map((entry) => {
+          const viDefinitions = entry.senses
+            .map((sense) => sense.definitionVi)
+            .filter((text): text is string => Boolean(text?.trim()));
+          const viExamples = entry.examples
+            .map((example) => example.translation)
+            .filter((text): text is string => Boolean(text?.trim()));
+          return (
+            <article
+              key={entry.id}
+              className="rounded-xl border border-border-subtle bg-surface-0/75 p-4"
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge tone="xp" uppercase>
+                  {entry.bookTitle}
+                </Badge>
+                <Badge tone="focus" uppercase>
+                  Unit {entry.unitOrdinal}
+                </Badge>
+                <Badge tone="muted" uppercase>
+                  {entry.pos}
+                </Badge>
+                {entry.cefrLevel ? (
+                  <Badge tone="focus" uppercase>
+                    {entry.cefrLevel}
+                  </Badge>
+                ) : null}
+              </div>
+              <div className="mt-3 flex flex-col gap-1">
+                <p className="text-lg font-semibold text-app">{entry.headword}</p>
+                <p className="text-xs text-muted">
+                  {entry.unitTitle} / {entry.lessonTitle}
+                </p>
+              </div>
+              {viDefinitions.length > 0 ? (
+                <ul className="mt-3 grid gap-1 text-sm leading-6 text-app">
+                  {viDefinitions.map((definition) => (
+                    <li key={definition}>{definition}</li>
+                  ))}
+                </ul>
+              ) : null}
+              {viExamples.length > 0 ? (
+                <ul className="mt-3 list-disc pl-5 text-sm leading-6 text-muted">
+                  {viExamples.map((translation) => (
+                    <li key={translation}>{translation}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function curriculumTags(entry: DictionaryEntry): string[] {
+  const out = new Set<string>();
+  for (const lessonEntry of entry.lessonEntries) {
+    out.add(lessonEntry.bookTitle);
+    out.add(`Unit ${lessonEntry.unitOrdinal}`);
+    if (out.size >= 4) break;
+  }
+  return [...out];
+}
+
+const POS_LABELS: Record<string, string> = {
+  adjective: "adj",
+  adverb: "adv",
+  auxiliary: "aux",
+  conjunction: "conj",
+  determiner: "det",
+  interjection: "intj",
+  modal: "modal",
+  noun: "noun",
+  phrasal_verb: "phrv",
+  phrase: "phr",
+  preposition: "prep",
+  pronoun: "pron",
+  verb: "verb",
+};
+
+function posLabel(item: { posLabel: string | null; posKey: string }): string {
+  return POS_LABELS[item.posKey] ?? item.posLabel?.trim().slice(0, 6) ?? "phr";
 }
 
 function toYamlSeed(entry: DictionaryEntry): string {

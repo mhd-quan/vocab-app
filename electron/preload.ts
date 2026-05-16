@@ -1,11 +1,19 @@
 import { contextBridge, ipcRenderer } from "electron";
 import type { ImportFileResult } from "../src/application/import";
 import type {
+  DictionaryAsset,
   DictionaryAudioAsset,
   DictionaryEntry,
   DictionarySearchResult,
   DictionaryStatus,
 } from "../src/data/dictionary";
+import type {
+  DictionaryLearningItemView,
+  DictionaryLearningReviewResult,
+  DictionaryLearningSummary,
+  DictionarySearchHistoryItem,
+} from "../src/data/dictionaryLearning";
+import type { DictionaryLearningStage } from "../src/data/schema";
 import type { LessonKind, PracticeMode } from "../src/data/schema";
 import type {
   Book,
@@ -113,7 +121,7 @@ interface UpdateStudentPatch {
 const api = {
   app: {
     name: "vocab-app",
-    version: "0.7.0",
+    version: "0.8.1",
     platform: process.platform,
   },
 
@@ -166,8 +174,33 @@ const api = {
     lookup: (input: { term: string }) => invoke<DictionaryEntry | null>("dictionary.lookup", input),
     audio: (input: { ref: string }) =>
       invoke<DictionaryAudioAsset | null>("dictionary.audio", input),
+    asset: (input: { ref: string }) => invoke<DictionaryAsset | null>("dictionary.asset", input),
     selectPackFolder: () => invoke<DictionaryStatus>("dictionary.selectPackFolder", {}),
     clearPackFolder: () => invoke<DictionaryStatus>("dictionary.clearPackFolder", {}),
+  },
+
+  dictionaryLearning: {
+    recordSearch: (input: { studentId: number; query: string }) =>
+      invoke<DictionarySearchHistoryItem | null>("dictionaryLearning.recordSearch", input),
+    recordLookup: (input: { studentId: number; query: string; dictionaryKey: string }) =>
+      invoke<DictionaryLearningItemView>("dictionaryLearning.recordLookup", input),
+    summary: (input: { studentId: number }) =>
+      invoke<DictionaryLearningSummary>("dictionaryLearning.summary", input),
+    recentSearches: (input: { studentId: number; limit?: number }) =>
+      invoke<DictionarySearchHistoryItem[]>("dictionaryLearning.recentSearches", input),
+    listItems: (input: { studentId: number }) =>
+      invoke<DictionaryLearningItemView[]>("dictionaryLearning.listItems", input),
+    practiceQueue: (input: { studentId: number; limit?: number }) =>
+      invoke<DictionaryLearningItemView[]>("dictionaryLearning.practiceQueue", input),
+    recordReview: (input: {
+      studentId: number;
+      itemId: number;
+      stage: DictionaryLearningStage;
+      correct: boolean;
+      answer?: string | null;
+      expected?: string | null;
+      sessionId?: number | null;
+    }) => invoke<DictionaryLearningReviewResult>("dictionaryLearning.recordReview", input),
   },
 
   grammar: {

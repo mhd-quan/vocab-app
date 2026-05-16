@@ -4,6 +4,9 @@ import { type AppDatabase, closeDatabase, openDatabase } from "../../../electron
 import {
   books,
   contentItems,
+  dictionaryLearningItems,
+  dictionaryLearningReviews,
+  dictionarySearchEvents,
   enrollments,
   importItems,
   importRuns,
@@ -46,6 +49,9 @@ describe("DB schema migrations", () => {
       "app_settings",
       "books",
       "content_items",
+      "dictionary_learning_items",
+      "dictionary_learning_reviews",
+      "dictionary_search_events",
       "enrollments",
       "grammar_topics",
       "import_items",
@@ -306,6 +312,48 @@ describe("DB schema migrations", () => {
     expect(first(progress).streak).toBe(1);
 
     expect(db.select().from(unitAssignments).all()).toHaveLength(1);
+  });
+
+  it("cascades personal dictionary learning rows with the student", () => {
+    const student = first(db.insert(students).values({ name: "Alice" }).returning().all());
+    const item = first(
+      db
+        .insert(dictionaryLearningItems)
+        .values({
+          studentId: student.id,
+          dictionaryKey: "hello",
+          headword: "hello",
+          pos: "interjection",
+          definitionEn: "used as a greeting",
+        })
+        .returning()
+        .all(),
+    );
+
+    db.insert(dictionarySearchEvents)
+      .values({
+        studentId: student.id,
+        query: "hello",
+        dictionaryKey: "hello",
+        headword: "hello",
+      })
+      .run();
+    db.insert(dictionaryLearningReviews)
+      .values({
+        itemId: item.id,
+        studentId: student.id,
+        stageBefore: "flashcard",
+        stageAfter: "meaning_choice",
+        statusAfter: "learning",
+        correct: true,
+      })
+      .run();
+
+    db.delete(students).where(eq(students.id, student.id)).run();
+
+    expect(db.select().from(dictionaryLearningItems).all()).toHaveLength(0);
+    expect(db.select().from(dictionarySearchEvents).all()).toHaveLength(0);
+    expect(db.select().from(dictionaryLearningReviews).all()).toHaveLength(0);
   });
 
   it("logs import runs + items", () => {

@@ -1,6 +1,7 @@
 import path from "node:path";
 import { app } from "electron";
 import type {
+  DictionaryAsset,
   DictionaryAudioAsset,
   DictionaryEntry,
   DictionarySearchResult,
@@ -55,8 +56,15 @@ export function dictionaryAudio(
   ref: string,
   configuredPath?: string | null,
 ): DictionaryAudioAsset | null {
+  return dictionaryAsset(ref, configuredPath);
+}
+
+export function dictionaryAsset(
+  ref: string,
+  configuredPath?: string | null,
+): DictionaryAsset | null {
   const pack = tryGetDictionaryPack(configuredPath);
-  return pack ? pack.audio(ref) : null;
+  return pack ? pack.asset(ref) : null;
 }
 
 export function validateDictionaryPackPath(packPath: string): void {

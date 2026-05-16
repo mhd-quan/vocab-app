@@ -2,6 +2,7 @@ import { type OpenDialogOptions, dialog } from "electron";
 import { z } from "zod";
 import {
   DICTIONARY_PACK_PATH_KEY,
+  dictionaryAsset,
   dictionaryAudio,
   dictionaryLookup,
   dictionarySearch,
@@ -45,14 +46,32 @@ export const dictionaryProcedures = [
   defineProcedure({
     name: "dictionary.lookup",
     input: lookupInput,
-    handler: ({ term }, ctx) =>
-      dictionaryLookup(term, ctx.repos.settings.get<string>(DICTIONARY_PACK_PATH_KEY)),
+    handler: ({ term }, ctx) => {
+      const entry = dictionaryLookup(
+        term,
+        ctx.repos.settings.get<string>(DICTIONARY_PACK_PATH_KEY),
+      );
+      if (!entry) return null;
+      return {
+        ...entry,
+        lessonEntries: ctx.repos.vocab.findDictionaryMatches({
+          term,
+          headword: entry.headword,
+        }),
+      };
+    },
   }),
   defineProcedure({
     name: "dictionary.audio",
     input: audioInput,
     handler: ({ ref }, ctx) =>
       dictionaryAudio(ref, ctx.repos.settings.get<string>(DICTIONARY_PACK_PATH_KEY)),
+  }),
+  defineProcedure({
+    name: "dictionary.asset",
+    input: audioInput,
+    handler: ({ ref }, ctx) =>
+      dictionaryAsset(ref, ctx.repos.settings.get<string>(DICTIONARY_PACK_PATH_KEY)),
   }),
   defineProcedure({
     name: "dictionary.selectPackFolder",

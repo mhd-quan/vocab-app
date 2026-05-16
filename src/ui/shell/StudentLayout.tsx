@@ -5,7 +5,7 @@ import { useAppMode } from "@/providers/AppModeProvider";
 import { Button } from "@/ui/components/Button";
 import { StudentDictionaryPopup } from "@/ui/components/dictionary/StudentDictionaryPopup";
 import { useQuery } from "@tanstack/react-query";
-import { Link, Outlet } from "@tanstack/react-router";
+import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 import { LockIcon } from "./icons";
 
@@ -13,6 +13,8 @@ export function StudentLayout() {
   const { lock } = useAppMode();
   const isMac = window.api.app.platform === "darwin";
   const [dictionaryOpen, setDictionaryOpen] = useState(false);
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const activeStudentId = studentIdFromPath(pathname);
   const dictionaryQ = useQuery({
     queryKey: queryKeys.dictionary.status(),
     queryFn: () => api.dictionary.status(),
@@ -58,7 +60,18 @@ export function StudentLayout() {
       <main className="flex flex-1 overflow-y-auto">
         <Outlet />
       </main>
-      <StudentDictionaryPopup open={dictionaryOpen} onClose={() => setDictionaryOpen(false)} />
+      <StudentDictionaryPopup
+        open={dictionaryOpen}
+        onClose={() => setDictionaryOpen(false)}
+        studentId={activeStudentId}
+      />
     </div>
   );
+}
+
+function studentIdFromPath(pathname: string): number | null {
+  const match = pathname.match(/^\/student\/profile\/(\d+)/);
+  if (!match) return null;
+  const id = Number(match[1]);
+  return Number.isFinite(id) && id > 0 ? id : null;
 }

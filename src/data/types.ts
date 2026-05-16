@@ -2,6 +2,9 @@ import type {
   appSettings,
   books,
   contentItems,
+  dictionaryLearningItems,
+  dictionaryLearningReviews,
+  dictionarySearchEvents,
   enrollments,
   grammarTopics,
   importItems,
@@ -47,6 +50,13 @@ export type NewGrammarTopic = typeof grammarTopics.$inferInsert;
 
 export type ContentItem = typeof contentItems.$inferSelect;
 export type NewContentItem = typeof contentItems.$inferInsert;
+
+export type DictionarySearchEvent = typeof dictionarySearchEvents.$inferSelect;
+export type NewDictionarySearchEvent = typeof dictionarySearchEvents.$inferInsert;
+export type DictionaryLearningItem = typeof dictionaryLearningItems.$inferSelect;
+export type NewDictionaryLearningItem = typeof dictionaryLearningItems.$inferInsert;
+export type DictionaryLearningReview = typeof dictionaryLearningReviews.$inferSelect;
+export type NewDictionaryLearningReview = typeof dictionaryLearningReviews.$inferInsert;
 
 export type Student = typeof students.$inferSelect;
 export type NewStudent = typeof students.$inferInsert;

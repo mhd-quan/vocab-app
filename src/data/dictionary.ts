@@ -19,6 +19,8 @@ export interface DictionarySearchResult {
   key: string;
   label: string;
   exact: boolean;
+  posLabel: string | null;
+  posKey: PartOfSpeech;
 }
 
 export interface DictionaryAudioRef {
@@ -27,10 +29,40 @@ export interface DictionaryAudioRef {
   accent: "uk" | "us" | "other";
 }
 
+export interface DictionaryImageRef {
+  ref: string;
+  alt: string | null;
+}
+
 export interface DictionarySense {
   definitionEn: string;
   labels: string[];
   examples: string[];
+}
+
+export interface DictionaryLessonEntry {
+  id: number;
+  headword: string;
+  lemma: string | null;
+  pos: PartOfSpeech;
+  ipa: string | null;
+  cefrLevel: CefrLevel | null;
+  audioRef: string | null;
+  bookCode: string;
+  bookTitle: string;
+  unitCode: string;
+  unitTitle: string;
+  unitOrdinal: number;
+  lessonId: number;
+  lessonTitle: string;
+  senses: Array<{
+    definitionEn: string | null;
+    definitionVi: string | null;
+  }>;
+  examples: Array<{
+    text: string;
+    translation: string | null;
+  }>;
 }
 
 export interface DictionaryEntry {
@@ -45,13 +77,18 @@ export interface DictionaryEntry {
   senses: DictionarySense[];
   examples: string[];
   audio: DictionaryAudioRef[];
+  images: DictionaryImageRef[];
+  related: DictionarySearchResult[];
   source: {
     dictionary: "oald10";
     file: string;
   };
+  lessonEntries: DictionaryLessonEntry[];
 }
 
 export interface DictionaryAudioAsset {
   dataUrl: string;
   mime: string;
 }
+
+export type DictionaryAsset = DictionaryAudioAsset;
