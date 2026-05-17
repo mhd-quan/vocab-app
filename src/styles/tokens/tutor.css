@@ -3,9 +3,8 @@
  * `<html data-app-mode="tutor">` (set by RoleStyleProvider).
  *
  * Material Design 3 inspired palette — productivity-grade,
- * professional. Adds `--md-sys-color-*` variables for any future
- * `@material/web` components so they pick up our palette instead of
- * the MD3 default purple.
+ * professional. Keeps MD3-compatible `--md-sys-color-*` variables as
+ * valid CSS colors for any future full tutor-wide Material pass.
  */
 
 @layer base {
@@ -17,22 +16,22 @@
     --radius-bento: 1rem;
 
     /* MD3 sys-color mapping — Google "blue" key color */
-    --md-sys-color-primary: 31 111 235; /* #1F6FEB */
-    --md-sys-color-on-primary: 255 255 255;
-    --md-sys-color-primary-container: 217 232 255;
-    --md-sys-color-on-primary-container: 0 30 86;
-    --md-sys-color-secondary: 86 96 117;
-    --md-sys-color-on-secondary: 255 255 255;
-    --md-sys-color-tertiary: 116 89 168;
-    --md-sys-color-surface: var(--color-surface-1);
-    --md-sys-color-surface-container: var(--color-surface-2);
-    --md-sys-color-surface-container-high: var(--color-surface-3);
-    --md-sys-color-on-surface: var(--color-fg);
-    --md-sys-color-on-surface-variant: var(--color-muted);
-    --md-sys-color-outline: var(--color-border-strong);
-    --md-sys-color-outline-variant: var(--color-border-subtle);
-    --md-sys-color-error: 186 26 26;
-    --md-sys-color-on-error: 255 255 255;
+    --md-sys-color-primary: rgb(31 111 235); /* #1F6FEB */
+    --md-sys-color-on-primary: rgb(255 255 255);
+    --md-sys-color-primary-container: rgb(217 232 255);
+    --md-sys-color-on-primary-container: rgb(0 30 86);
+    --md-sys-color-secondary: rgb(86 96 117);
+    --md-sys-color-on-secondary: rgb(255 255 255);
+    --md-sys-color-tertiary: rgb(116 89 168);
+    --md-sys-color-surface: rgb(var(--color-surface-1));
+    --md-sys-color-surface-container: rgb(var(--color-surface-2));
+    --md-sys-color-surface-container-high: rgb(var(--color-surface-3));
+    --md-sys-color-on-surface: rgb(var(--color-fg));
+    --md-sys-color-on-surface-variant: rgb(var(--color-muted));
+    --md-sys-color-outline: rgb(var(--color-border-strong));
+    --md-sys-color-outline-variant: rgb(var(--color-border-subtle));
+    --md-sys-color-error: rgb(186 26 26);
+    --md-sys-color-on-error: rgb(255 255 255);
 
     /* Align our accent with MD3 primary so existing Tailwind classes
        still feel Material. */
@@ -48,12 +47,12 @@
   }
 
   [data-app-mode="tutor"].dark {
-    --md-sys-color-primary: 137 184 255;
-    --md-sys-color-on-primary: 0 49 109;
-    --md-sys-color-primary-container: 0 73 156;
-    --md-sys-color-on-primary-container: 218 232 255;
-    --md-sys-color-error: 255 180 171;
-    --md-sys-color-on-error: 105 0 5;
+    --md-sys-color-primary: rgb(137 184 255);
+    --md-sys-color-on-primary: rgb(0 49 109);
+    --md-sys-color-primary-container: rgb(0 73 156);
+    --md-sys-color-on-primary-container: rgb(218 232 255);
+    --md-sys-color-error: rgb(255 180 171);
+    --md-sys-color-on-error: rgb(105 0 5);
     --color-accent: 137 184 255;
     --color-accent-fg: 0 49 109;
   }

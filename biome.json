@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "ignore": ["node_modules", "out", ".vite", "dist", "coverage", "**/*.snap"]
+    "ignore": ["node_modules", "out", ".vite", "dist", "coverage", ".claude", "**/*.snap"]
   },
   "organizeImports": {
     "enabled": true

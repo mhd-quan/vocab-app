@@ -13,6 +13,12 @@ const ctx: BuildContext = {
   sessionSeed: "seed-7",
 };
 
+function buildExercise() {
+  const ex = sentenceRebuildPlugin.build(makeEntry(), ctx);
+  if (!ex) throw new Error("Expected sentence rebuild fixture to build an exercise");
+  return ex;
+}
+
 describe("sentenceRebuildPlugin.build", () => {
   it("builds when the example has ≥ 4 tokens", () => {
     const ex = sentenceRebuildPlugin.build(makeEntry(), ctx);
@@ -54,7 +60,7 @@ describe("sentenceRebuildPlugin.build", () => {
 
 describe("sentenceRebuildPlugin.grade", () => {
   it("correct when tokens match in order", () => {
-    const ex = sentenceRebuildPlugin.build(makeEntry(), ctx)!;
+    const ex = buildExercise();
     const grade = sentenceRebuildPlugin.grade(ex, {
       kind: "sentence_rebuild",
       tokens: ex.payload.correctOrder,
@@ -63,7 +69,7 @@ describe("sentenceRebuildPlugin.grade", () => {
   });
 
   it("incorrect when order is wrong", () => {
-    const ex = sentenceRebuildPlugin.build(makeEntry(), ctx)!;
+    const ex = buildExercise();
     const grade = sentenceRebuildPlugin.grade(ex, {
       kind: "sentence_rebuild",
       tokens: [...ex.payload.correctOrder].reverse(),

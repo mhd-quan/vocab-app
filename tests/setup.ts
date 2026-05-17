@@ -8,14 +8,14 @@ Object.defineProperty(window, "api", {
   value: {
     app: {
       name: "vocab-app",
-      version: "0.10.0",
+      version: "0.10.1",
       platform: "test",
     },
     meta: {
       ping: async () => "pong" as const,
       appInfo: async () => ({
         name: "vocab-app",
-        version: "0.10.0",
+        version: "0.10.1",
         schemaTablesExpected: 25,
         dbPath: ":memory:",
       }),
