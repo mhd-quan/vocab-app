@@ -1,6 +1,7 @@
 import { Badge } from "@/ui/components/Badge";
-import { Button } from "@/ui/components/Button";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
+import { MascotIcon } from "@/ui/student/components/MascotIcon";
+import { PressButton } from "@/ui/student/components/PressButton";
 
 export interface SessionSummaryStats {
   total: number;
@@ -23,6 +24,7 @@ export function SessionSummary({
   return (
     <article className="flex flex-col gap-7 rounded-bento border border-border-subtle bg-surface-1 p-8 text-center shadow-card dark:shadow-card-dark">
       <header className="flex flex-col items-center gap-2">
+        <MascotIcon mood={accuracy >= 80 ? "cheering" : "happy"} className="h-24 w-24" />
         <Badge tone={tone} uppercase>
           Session complete
         </Badge>
@@ -54,10 +56,10 @@ export function SessionSummary({
       </ul>
 
       <div className="flex justify-center gap-2">
-        <Button variant="secondary" onClick={onRestart}>
+        <PressButton variant="secondary" onClick={onRestart}>
           Practice again
-        </Button>
-        <Button onClick={onExit}>Back to lessons</Button>
+        </PressButton>
+        <PressButton onClick={onExit}>Back to lessons</PressButton>
       </div>
     </article>
   );

@@ -13,7 +13,7 @@ const VARIANT_CLASSES: Record<Variant, string> = {
   primary:
     "bg-accent text-accent-fg shadow-sm shadow-accent/20 hover:bg-accent/90 focus-visible:ring-accent/50 disabled:bg-accent/40 disabled:shadow-none",
   secondary:
-    "border border-border-strong bg-surface-2 text-app hover:bg-surface-1 focus-visible:ring-border-strong/60 disabled:opacity-50",
+    "border border-border-strong bg-surface-1 text-app hover:bg-surface-2 focus-visible:ring-border-strong/60 disabled:opacity-50",
   ghost:
     "bg-transparent text-app hover:bg-surface-2 focus-visible:ring-border-subtle disabled:opacity-50",
   danger:
@@ -35,7 +35,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       ref={ref}
       type={type}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-[background-color,border-color,color,box-shadow,transform]",
+        "inline-flex items-center justify-center gap-2 rounded-button font-semibold transition-[background-color,border-color,color,box-shadow,transform]",
         "hover:-translate-y-0.5 active:translate-y-px disabled:hover:translate-y-0",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-0",
         "disabled:cursor-not-allowed",

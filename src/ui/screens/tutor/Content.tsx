@@ -52,7 +52,7 @@ export function TutorContent() {
         subtitle="Books → units → lessons → vocab entries and grammar topics. Read-only — author content via YAML and `npm run import`."
       />
 
-      <div className="grid h-[calc(100vh-9rem)] grid-cols-[14rem_1fr_22rem] border-t border-border-subtle">
+      <div className="grid h-[calc(100vh-9rem)] grid-cols-[15rem_1fr_24rem] border-t border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)]">
         <BooksPane
           books={booksQ.data ?? []}
           loading={booksQ.isLoading}
@@ -83,8 +83,8 @@ function BooksPane({
   onSelect: (id: number) => void;
 }) {
   return (
-    <aside className="flex h-full flex-col overflow-y-auto border-r border-border-subtle bg-surface-1">
-      <div className="border-b border-border-subtle px-4 py-3">
+    <aside className="flex h-full flex-col overflow-y-auto border-r border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)]">
+      <div className="border-b border-border-subtle bg-[color:var(--md-sys-color-surface-container)] px-4 py-3">
         <h2 className="text-[10px] font-medium uppercase text-muted">Books</h2>
       </div>
       {loading ? (
@@ -173,8 +173,10 @@ function BookRow({
       <li>
         <form
           className={cn(
-            "rounded-xl border px-2 py-2",
-            selected ? "border-accent bg-accent/10" : "border-border-subtle bg-surface-1",
+            "rounded-[var(--shape-corner-lg)] border px-2 py-2",
+            selected
+              ? "border-accent bg-accent/10"
+              : "border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)]",
           )}
           onSubmit={onSubmit}
         >
@@ -195,7 +197,7 @@ function BookRow({
               }
             }}
             aria-label={`Edit title for ${book.code}`}
-            className="w-full rounded border border-border-subtle bg-surface-0 px-2 py-1 text-sm font-medium text-app outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/30"
+            className="w-full rounded-[var(--shape-corner-sm)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)] px-2 py-1 text-sm font-medium text-app outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/30"
           />
           <span className="mt-1 block truncate font-mono text-[10px] text-muted-2">
             {book.code}
@@ -210,8 +212,10 @@ function BookRow({
     <li>
       <div
         className={cn(
-          "group grid grid-cols-[1fr_auto] items-center rounded-xl transition-colors",
-          selected ? "bg-surface-2 text-app" : "text-muted hover:bg-surface-2 hover:text-app",
+          "group grid grid-cols-[1fr_auto] items-center rounded-[var(--shape-corner-lg)] transition-colors",
+          selected
+            ? "bg-[color:var(--md-sys-color-secondary-container)] text-[color:var(--md-sys-color-on-secondary-container)]"
+            : "text-muted hover:bg-accent/[var(--state-hover)] hover:text-app",
         )}
       >
         <button
@@ -227,7 +231,7 @@ function BookRow({
           type="button"
           aria-label={`Edit ${book.title}`}
           onClick={() => setEditing(true)}
-          className="mr-1 inline-flex h-7 w-7 items-center justify-center rounded text-muted-2 opacity-70 transition hover:bg-surface-1 hover:text-app group-hover:opacity-100"
+          className="mr-1 inline-flex h-7 w-7 items-center justify-center rounded-full text-muted-2 opacity-70 transition hover:bg-[color:var(--md-sys-color-surface-container-lowest)] hover:text-app group-hover:opacity-100"
         >
           <EditIcon />
         </button>
@@ -276,7 +280,7 @@ function LessonsPane({
   }
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto bg-app">
+    <div className="flex h-full flex-col overflow-y-auto bg-[color:var(--md-sys-color-surface)]">
       <ul className="flex flex-col">
         {units.map((unit) => (
           <UnitGroupRow
@@ -418,10 +422,10 @@ function EntryButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex w-full items-baseline gap-2 rounded-xl border px-3 py-2 text-left transition-colors",
+        "flex w-full items-baseline gap-2 rounded-[var(--shape-corner-md)] border px-3 py-2 text-left transition-colors",
         selected
           ? "border-accent bg-accent/10"
-          : "border-border-subtle bg-surface-1 hover:border-border-strong",
+          : "border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)] hover:border-border-strong hover:bg-accent/[var(--state-hover)]",
       )}
     >
       <span className="truncate text-sm font-medium">{entry.headword}</span>
@@ -451,10 +455,10 @@ function TopicButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex w-full items-baseline gap-2 rounded-xl border px-3 py-2 text-left transition-colors",
+        "flex w-full items-baseline gap-2 rounded-[var(--shape-corner-md)] border px-3 py-2 text-left transition-colors",
         selected
           ? "border-focus bg-focus/10"
-          : "border-border-subtle bg-surface-1 hover:border-border-strong",
+          : "border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)] hover:border-border-strong hover:bg-focus/[var(--state-hover)]",
       )}
     >
       <span className="truncate text-sm font-medium">{topic.title}</span>
@@ -480,7 +484,7 @@ function DetailPane({ selection }: { selection: ContentSelection }) {
   });
 
   return (
-    <aside className="h-full overflow-y-auto border-l border-border-subtle bg-surface-1">
+    <aside className="h-full overflow-y-auto border-l border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)]">
       {selection === null ? (
         <div className="flex h-full items-center justify-center px-6 text-center">
           <p className="text-xs text-muted">Pick a vocab entry or grammar topic to see details.</p>

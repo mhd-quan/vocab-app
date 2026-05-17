@@ -7,9 +7,14 @@ import { Badge } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
 import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
-import { Field, TextArea, TextInput, useFieldId } from "@/ui/components/Field";
+import { Field, useFieldId } from "@/ui/components/Field";
 import { Modal } from "@/ui/components/Modal";
 import { PageHeader } from "@/ui/components/PageHeader";
+import {
+  TutorSegmentedControl,
+  TutorTextAreaField,
+  TutorTextField,
+} from "@/ui/tutor/components/Material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from "react";
@@ -71,13 +76,16 @@ export function TutorStudents() {
         actions={<Button onClick={openCreate}>+ Add student</Button>}
       />
 
-      <div className="flex items-center gap-1 border-b border-border-subtle px-8">
-        <TabButton active={tab === "active"} onClick={() => setTab("active")}>
-          Active
-        </TabButton>
-        <TabButton active={tab === "archived"} onClick={() => setTab("archived")}>
-          Archived
-        </TabButton>
+      <div className="border-b border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] px-8 py-3">
+        <TutorSegmentedControl
+          value={tab}
+          options={[
+            { value: "active", label: "Active" },
+            { value: "archived", label: "Archived" },
+          ]}
+          onChange={(value) => setTab(value as Tab)}
+          className="max-w-xs"
+        />
       </div>
 
       <section className="px-8 py-6">
@@ -110,29 +118,6 @@ export function TutorStudents() {
 
       <StudentEditor open={editorOpen} onClose={() => setEditorOpen(false)} editing={editing} />
     </>
-  );
-}
-
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "border-b-2 px-4 py-3 text-sm font-semibold transition-colors",
-        active ? "border-accent text-app" : "border-transparent text-muted hover:text-app",
-      )}
-    >
-      {children}
-    </button>
   );
 }
 
@@ -417,41 +402,37 @@ function StudentEditor({ open, onClose, editing }: StudentEditorProps) {
             </div>
           </div>
         </Field>
-        <Field label="Name" htmlFor={nameId} hint="Full name. Required.">
-          <TextInput
-            id={nameId}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={80}
-            aria-required="true"
-            autoComplete="off"
-          />
-        </Field>
-        <Field
+        <TutorTextField
+          id={nameId}
+          label="Name"
+          supportingText="Full name. Required."
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={80}
+          aria-required="true"
+          autoComplete="off"
+        />
+        <TutorTextField
           label="Display name"
-          htmlFor={displayId}
-          hint="Shown in the picker if you'd like a nickname instead."
-        >
-          <TextInput
-            id={displayId}
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            maxLength={80}
-            autoComplete="off"
-          />
-        </Field>
+          id={displayId}
+          supportingText="Shown in the picker if you'd like a nickname instead."
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+          maxLength={80}
+          autoComplete="off"
+        />
         <Field label="Avatar color">
           <ColorSwatches value={color} onChange={setColor} />
         </Field>
-        <Field label="Notes" htmlFor={notesId} hint="Private — only you see these.">
-          <TextArea
-            id={notesId}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            maxLength={2000}
-            rows={3}
-          />
-        </Field>
+        <TutorTextAreaField
+          id={notesId}
+          label="Notes"
+          supportingText="Private - only you see these."
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          maxLength={2000}
+          rows={3}
+        />
         {error ? (
           <p
             className="rounded-xl border border-danger/40 bg-danger/10 px-3 py-2 text-xs text-danger"

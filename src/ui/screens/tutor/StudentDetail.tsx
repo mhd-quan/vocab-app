@@ -5,12 +5,12 @@ import { type HeatmapCell, bucketByDay } from "@/modules/analytics";
 import { type AchievementDefinition, getAchievement } from "@/modules/rewards";
 import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
-import { BentoCard } from "@/ui/components/BentoCard";
 import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { Heatmap } from "@/ui/components/Heatmap";
 import { PageHeader } from "@/ui/components/PageHeader";
 import { AchievementIcon } from "@/ui/components/rewards";
+import { TutorMetricCard, TutorPanel, TutorSelectField } from "@/ui/tutor/components/Material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
@@ -132,7 +132,7 @@ export function TutorStudentDetail() {
 
       <div className="flex flex-col gap-6 px-8 py-6">
         <section className="grid gap-4 lg:grid-cols-[18rem_1fr]">
-          <BentoCard className="flex items-center gap-4 p-6" tone="focus">
+          <TutorPanel className="flex items-center gap-4 p-6">
             <Avatar
               name={student?.displayName ?? student?.name ?? "?"}
               avatarSeed={student?.avatarSeed ?? null}
@@ -145,7 +145,7 @@ export function TutorStudentDetail() {
                 {streak?.practicedToday ? "Practised today" : "Ready for practice"}
               </p>
             </div>
-          </BentoCard>
+          </TutorPanel>
           <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <Stat label="Seen" value={summary?.totalSeen ?? 0} tone="xp" />
             <Stat label="Due" value={summary?.totalDue ?? 0} tone="warning" />
@@ -267,20 +267,13 @@ function AssignmentsPanel({
       ) : (
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <label className="flex flex-col gap-1 text-xs font-semibold uppercase text-muted-2">
-              Book
-              <select
-                className="min-h-11 rounded-2xl border border-border-strong bg-surface-0 px-3 text-sm normal-case text-app outline-none focus:border-accent"
-                value={bookId ?? ""}
-                onChange={(event) => setBookId(Number(event.target.value))}
-              >
-                {books.map((book) => (
-                  <option key={book.id} value={book.id}>
-                    {book.title}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <TutorSelectField
+              label="Book"
+              value={String(bookId ?? "")}
+              options={books.map((book) => ({ value: String(book.id), label: book.title }))}
+              onChange={(value) => setBookId(Number(value))}
+              containerClassName="sm:min-w-72"
+            />
             <Button
               onClick={() => saveAssignments.mutate()}
               disabled={bookId === null || saveAssignments.isPending}
@@ -369,10 +362,20 @@ function Stat({
   tone: "neutral" | "accent" | "success" | "warning" | "xp" | "mastery";
 }) {
   return (
-    <BentoCard as="div" tone={tone} className="p-4">
-      <dt className="text-xs font-semibold uppercase text-muted-2">{label}</dt>
-      <dd className="mt-1 font-mono text-2xl text-app">{value}</dd>
-    </BentoCard>
+    <TutorMetricCard
+      label={label}
+      value={value}
+      tone={
+        tone === "mastery"
+          ? "tertiary"
+          : tone === "warning"
+            ? "warning"
+            : tone === "success"
+              ? "success"
+              : "primary"
+      }
+      className="min-h-28 p-4"
+    />
   );
 }
 
@@ -535,13 +538,13 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <BentoCard tone={tone} className="p-5">
-      <header className="mb-3 flex items-baseline justify-between gap-2">
-        <h2 className="text-sm font-semibold">{title}</h2>
-        {caption ? <span className="text-[10px] text-muted-2">{caption}</span> : null}
-      </header>
+    <TutorPanel
+      title={title}
+      description={caption}
+      className={tone === "mastery" ? "border-mastery/30 bg-mastery/10" : undefined}
+    >
       {children}
-    </BentoCard>
+    </TutorPanel>
   );
 }
 

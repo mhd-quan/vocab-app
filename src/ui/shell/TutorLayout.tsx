@@ -3,9 +3,9 @@ import { queryKeys } from "@/lib/queryClient";
 import { useAppMode } from "@/providers/AppModeProvider";
 import { Button } from "@/ui/components/Button";
 import { SrsArchiveBanner } from "@/ui/components/SrsArchiveBanner";
+import { TutorBrand, type TutorNavItem, TutorNavigationRail } from "@/ui/tutor/components/Material";
 import { useQuery } from "@tanstack/react-query";
 import { Outlet } from "@tanstack/react-router";
-import { Sidebar, type SidebarItem } from "./Sidebar";
 import {
   ContentIcon,
   DashboardIcon,
@@ -17,7 +17,7 @@ import {
   StudentsIcon,
 } from "./icons";
 
-const ITEMS: SidebarItem[] = [
+const ITEMS: TutorNavItem[] = [
   { to: "/tutor/dashboard", label: "Dashboard", icon: <DashboardIcon /> },
   { to: "/tutor/students", label: "Students", icon: <StudentsIcon /> },
   { to: "/tutor/content", label: "Content", icon: <ContentIcon /> },
@@ -40,27 +40,21 @@ export function TutorLayout() {
         { to: "/tutor/dictionary", label: "Dictionary", icon: <DictionaryIcon /> },
         ITEMS[3],
         ITEMS[4],
-      ].filter((item): item is SidebarItem => Boolean(item))
+      ].filter((item): item is TutorNavItem => Boolean(item))
     : ITEMS;
 
   return (
-    <div className="flex h-screen w-screen bg-app">
-      <Sidebar
+    <div className="flex h-screen w-screen bg-[color:var(--md-sys-color-surface)]">
+      <TutorNavigationRail
         topInset={isMac}
-        brand={
-          <div className="flex flex-col gap-1">
-            <span className="text-xs font-semibold uppercase text-muted">Tutor</span>
-            <span className="text-lg font-semibold">Vocab App</span>
-            <span className="font-mono text-[11px] text-muted-2">v0.10.1</span>
-          </div>
-        }
+        brand={<TutorBrand version="v0.11.0" />}
         items={items}
         footer={
           <div className="flex flex-col gap-1.5">
             <Button
               variant="ghost"
               size="sm"
-              className="w-full justify-start text-muted hover:text-app"
+              className="w-full justify-start rounded-[var(--shape-corner-lg)] text-muted hover:text-app"
               onClick={switchToStudent}
             >
               <StudentModeIcon className="h-[22px] w-[22px]" />
@@ -69,7 +63,7 @@ export function TutorLayout() {
             <Button
               variant="ghost"
               size="sm"
-              className="w-full justify-start text-muted hover:text-app"
+              className="w-full justify-start rounded-[var(--shape-corner-lg)] text-muted hover:text-app"
               onClick={lock}
             >
               <LockIcon className="h-[22px] w-[22px]" />

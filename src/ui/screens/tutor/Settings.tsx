@@ -1,6 +1,5 @@
 import type { PracticeMode } from "@/data/schema";
 import { api } from "@/lib/api";
-import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
 import { useAppMode } from "@/providers/AppModeProvider";
 import {
@@ -11,8 +10,15 @@ import { type ThemePreference, useTheme } from "@/providers/ThemeProvider";
 import { Button } from "@/ui/components/Button";
 import { PageHeader } from "@/ui/components/PageHeader";
 import { PinInput } from "@/ui/components/PinInput";
+import {
+  TutorPanel,
+  TutorSegmentedControl,
+  TutorSelectField,
+  TutorSwitchField,
+  TutorTextField,
+} from "@/ui/tutor/components/Material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type FormEvent, type ReactNode, useCallback, useEffect, useId, useState } from "react";
+import { type FormEvent, type ReactNode, useCallback, useEffect, useState } from "react";
 
 const MIN_PIN = 4;
 const MAX_PIN = 12;
@@ -84,7 +90,7 @@ function PreferencesCard() {
     <SettingsCard title="Preferences" description="Appearance and learner feedback.">
       <div className="divide-y divide-border-subtle overflow-hidden rounded-bento border border-border-subtle bg-surface-0/70">
         <PreferenceRow title="Theme">
-          <SegmentedControl
+          <TutorSegmentedControl
             value={theme}
             options={options.map((option) => ({
               value: option.value,
@@ -499,18 +505,9 @@ function SettingsCard({
   className?: string;
 }) {
   return (
-    <article
-      className={cn(
-        "flex flex-col gap-4 rounded-bento border border-border-subtle bg-surface-1 p-5 shadow-sm",
-        className,
-      )}
-    >
-      <header className="flex flex-col gap-1">
-        <h2 className="text-base font-semibold">{title}</h2>
-        <p className="text-xs text-muted">{description}</p>
-      </header>
+    <TutorPanel title={title} description={description} className={className}>
       <div className="flex min-w-0 flex-col gap-3">{children}</div>
-    </article>
+    </TutorPanel>
   );
 }
 
@@ -523,50 +520,6 @@ function PreferenceRow({ title, children }: { title: string; children: ReactNode
   );
 }
 
-function SegmentedControl({
-  value,
-  options,
-  onChange,
-}: {
-  value: string;
-  options: Array<{ value: string; label: string; detail?: string }>;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div className="grid grid-cols-3 gap-1 rounded-button bg-surface-2 p-1">
-      {options.map((option) => {
-        const active = value === option.value;
-        return (
-          <button
-            key={option.value}
-            type="button"
-            onClick={() => onChange(option.value)}
-            className={cn(
-              "min-w-0 rounded-button px-3 py-2 text-left transition-[background-color,color,box-shadow]",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/35",
-              active ? "bg-surface-1 text-app shadow-sm" : "text-muted hover:text-app",
-            )}
-          >
-            <span className="block truncate text-sm font-semibold">{option.label}</span>
-            {option.detail ? (
-              <span className="mt-0.5 block truncate text-[10px] uppercase text-muted-2">
-                {option.detail}
-              </span>
-            ) : null}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-/**
- * Tutor settings use app-native controls, not partial Material Web
- * wrappers. v0.10.0 only introduced Material on this screen, which made
- * typography and menu behavior diverge from the rest of tutor mode. These
- * primitives stay token-driven and can be swapped behind the same helper
- * shape if a full tutor-wide Material pass lands later.
- */
 function SettingSelect({
   label,
   value,
@@ -580,30 +533,17 @@ function SettingSelect({
   disabled?: boolean;
   onChange: (value: string) => void;
 }) {
-  const id = useId();
-
   return (
-    <div className="flex min-w-0 flex-col gap-1.5">
-      <label htmlFor={id} className="text-xs font-semibold uppercase text-muted-2">
-        {label}
-      </label>
-      <span className="relative block min-w-0">
-        <select
-          id={id}
-          value={value}
-          disabled={disabled}
-          onChange={(event) => onChange(event.currentTarget.value)}
-          className={cn(FIELD_CLASSNAME, "appearance-none pr-9")}
-        >
-          {options.map(([optionValue, optionLabel]) => (
-            <option key={optionValue} value={optionValue}>
-              {optionLabel}
-            </option>
-          ))}
-        </select>
-        <SelectArrowIcon className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-2" />
-      </span>
-    </div>
+    <TutorSelectField
+      label={label}
+      value={value}
+      disabled={disabled}
+      options={options.map(([optionValue, optionLabel]) => ({
+        value: optionValue,
+        label: optionLabel,
+      }))}
+      onChange={onChange}
+    />
   );
 }
 
@@ -626,8 +566,6 @@ function SettingNumberInput({
   supportingText?: string;
   onCommit: (value: number) => void;
 }) {
-  const id = useId();
-  const supportingTextId = `${id}-supporting`;
   const [draft, setDraft] = useState(() => String(value));
 
   useEffect(() => {
@@ -644,35 +582,24 @@ function SettingNumberInput({
   }, [draft, max, min, onCommit, value]);
 
   return (
-    <div className="flex min-w-0 flex-col gap-1.5">
-      <label htmlFor={id} className="text-xs font-semibold uppercase text-muted-2">
-        {label}
-      </label>
-      <input
-        id={id}
-        type="number"
-        inputMode="decimal"
-        min={min}
-        max={max}
-        step={step}
-        value={draft}
-        disabled={disabled}
-        onChange={(event) => setDraft(event.currentTarget.value)}
-        onBlur={commit}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") {
-            event.currentTarget.blur();
-          }
-        }}
-        aria-describedby={supportingText ? supportingTextId : undefined}
-        className={FIELD_CLASSNAME}
-      />
-      {supportingText ? (
-        <span id={supportingTextId} className="text-xs text-muted-2">
-          {supportingText}
-        </span>
-      ) : null}
-    </div>
+    <TutorTextField
+      label={label}
+      type="number"
+      inputMode="decimal"
+      min={min}
+      max={max}
+      step={step}
+      value={draft}
+      disabled={disabled}
+      supportingText={supportingText}
+      onChange={(event) => setDraft(event.currentTarget.value)}
+      onBlur={commit}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") {
+          event.currentTarget.blur();
+        }
+      }}
+    />
   );
 }
 
@@ -689,69 +616,16 @@ function SettingToggle({
   disabled?: boolean;
   onChange: (checked: boolean) => void;
 }) {
-  const id = useId();
-  const labelId = `${id}-label`;
-  const descriptionId = `${id}-description`;
-
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-labelledby={labelId}
-      aria-describedby={description ? descriptionId : undefined}
+    <TutorSwitchField
+      label={label}
+      description={description}
+      checked={checked}
       disabled={disabled}
-      onClick={() => onChange(!checked)}
-      className={cn(
-        "flex min-w-0 items-center justify-between gap-4 rounded-button border border-border-subtle bg-surface-0 px-3 py-2 text-left",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-1",
-        disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer",
-      )}
-    >
-      <span className="min-w-0">
-        <span id={labelId} className="block text-sm font-medium text-app">
-          {label}
-        </span>
-        {description ? (
-          <span id={descriptionId} className="mt-0.5 block text-xs text-muted">
-            {description}
-          </span>
-        ) : null}
-      </span>
-      <span
-        aria-hidden
-        className={cn(
-          "relative h-6 w-11 shrink-0 rounded-full border transition-[background-color,border-color]",
-          checked ? "border-accent bg-accent" : "border-border-strong bg-surface-2",
-        )}
-      >
-        <span
-          className={cn(
-            "absolute top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-surface-1 shadow-sm transition-transform",
-            checked ? "translate-x-[1.25rem]" : "translate-x-0.5",
-          )}
-        />
-      </span>
-    </button>
+      onChange={onChange}
+    />
   );
 }
-
-function SelectArrowIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false" className={className}>
-      <path
-        fill="currentColor"
-        d="M4.2 6.1a.7.7 0 0 1 1 0L8 8.9l2.8-2.8a.7.7 0 0 1 1 1L8.5 10.4a.7.7 0 0 1-1 0L4.2 7.1a.7.7 0 0 1 0-1Z"
-      />
-    </svg>
-  );
-}
-
-const FIELD_CLASSNAME = cn(
-  "h-10 w-full min-w-0 rounded-button border border-border-subtle bg-surface-1 px-3 text-sm text-app shadow-sm",
-  "focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20",
-  "disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-muted",
-);
 
 function useSetting<T>(key: string, fallback: T) {
   const queryClient = useQueryClient();

@@ -4,7 +4,9 @@ import { queryKeys } from "@/lib/queryClient";
 import { useAppMode } from "@/providers/AppModeProvider";
 import { Button } from "@/ui/components/Button";
 import { StudentDictionaryPopup } from "@/ui/components/dictionary/StudentDictionaryPopup";
+import { HeartsBar } from "@/ui/student/components/HeartsBar";
 import { StreakBanner } from "@/ui/student/components/StreakBanner";
+import { XPBadge } from "@/ui/student/components/XPBadge";
 import { useQuery } from "@tanstack/react-query";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
@@ -28,23 +30,38 @@ export function StudentLayout() {
     queryFn: () => api.rewards.streak({ studentId: activeStudentId ?? 0 }),
     enabled: activeStudentId !== null,
   });
+  const summaryQ = useQuery({
+    queryKey: queryKeys.progress.summary(activeStudentId ?? 0),
+    queryFn: () => api.progress.studentSummary({ studentId: activeStudentId ?? 0 }),
+    enabled: activeStudentId !== null,
+  });
+  const summary = summaryQ.data;
+  const hearts =
+    summary && summary.totalSeen > 0 ? Math.max(1, Math.round(summary.accuracy * 5)) : 5;
+  const xp = summary ? summary.totalSeen * 10 + Math.round(summary.accuracy * 100) : 0;
 
   return (
     <div className="flex h-screen w-screen flex-col bg-app">
       <header
         className={cn(
-          "flex items-center justify-between border-b border-border-subtle bg-surface-1/95 py-3 pr-6 shadow-sm [-webkit-app-region:drag]",
+          "flex min-h-[var(--student-header-height)] items-center justify-between gap-4 border-b border-border-subtle bg-surface-1/95 py-3 pr-6 shadow-sm [-webkit-app-region:drag]",
           isMac ? "pl-20" : "pl-6",
         )}
       >
         <Link to="/student" className="flex items-center gap-3 [-webkit-app-region:no-drag]">
-          <span className="rounded-full border border-border-subtle bg-surface-2 px-2.5 py-1 text-xs font-semibold uppercase text-muted">
+          <span className="rounded-full border border-success/25 bg-success/10 px-2.5 py-1 text-xs font-semibold uppercase text-success">
             Student
           </span>
-          <span className="text-base font-semibold">Vocab App</span>
+          <span className="font-display text-base font-semibold">Vocab App</span>
         </Link>
-        <div className="flex items-center gap-2 [-webkit-app-region:no-drag]">
-          {activeStudentId !== null ? <StreakBanner stats={streakQ.data} /> : null}
+        <div className="flex min-w-0 flex-1 items-center justify-end gap-2 [-webkit-app-region:no-drag]">
+          {activeStudentId !== null ? (
+            <div className="hidden items-center gap-2 md:flex">
+              <HeartsBar remaining={hearts} />
+              <XPBadge xp={xp} />
+              <StreakBanner stats={streakQ.data} />
+            </div>
+          ) : null}
           {dictionaryQ.data?.active ? (
             <Button
               variant="secondary"
