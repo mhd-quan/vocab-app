@@ -4,9 +4,22 @@ import {
   type SessionResult,
   type SessionResultPersistence,
 } from "@/ui/screens/student/session/SessionPlayer";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { makeEntries } from "../exercises/fixtures";
+
+/**
+ * SessionPlayer pulls in `useAudioPrefetch`, which calls `useQueryClient`.
+ * Wrap every render in a fresh QueryClient so the player doesn't crash on
+ * mount in the jsdom test harness — production gets the renderer-wide
+ * client via App.tsx.
+ */
+function withQueryClient(children: ReactNode) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+}
 
 function renderPlayer(
   opts: {
@@ -25,12 +38,14 @@ function renderPlayer(
     deck,
     onExit,
     ...render(
-      <SessionPlayer
-        deck={deck}
-        onExit={onExit}
-        autoAdvanceDelayMs={opts.autoAdvanceDelayMs ?? 0}
-        onResult={opts.onResult}
-      />,
+      withQueryClient(
+        <SessionPlayer
+          deck={deck}
+          onExit={onExit}
+          autoAdvanceDelayMs={opts.autoAdvanceDelayMs ?? 0}
+          onResult={opts.onResult}
+        />,
+      ),
     ),
   };
 }
@@ -38,7 +53,7 @@ function renderPlayer(
 describe("SessionPlayer — empty deck", () => {
   it("shows an empty-deck panel and an End session button", () => {
     const onExit = vi.fn();
-    render(<SessionPlayer deck={[]} onExit={onExit} autoAdvanceDelayMs={0} />);
+    render(withQueryClient(<SessionPlayer deck={[]} onExit={onExit} autoAdvanceDelayMs={0} />));
     expect(screen.getByText(/no exercises in this deck/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /end session/i }));
     expect(onExit).toHaveBeenCalledTimes(1);

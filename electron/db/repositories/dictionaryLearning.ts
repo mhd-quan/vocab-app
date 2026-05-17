@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, lte, or } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, lte, or } from "drizzle-orm";
 import type { DictionaryEntry } from "../../../src/data/dictionary";
 import type {
   DictionaryLearningItemView,
@@ -9,22 +9,31 @@ import type {
 import {
   type DictionaryLearningStage,
   type DictionaryLearningStatus,
+  appSettings,
   dictionaryLearningItems,
   dictionaryLearningReviews,
   dictionarySearchEvents,
 } from "../../../src/data/schema";
-import type { AppDatabase } from "../client";
+import { fsrs } from "../../../src/modules/srs";
+import type { AppDatabase, AppTransaction } from "../client";
 
-const STAGE_ORDER: DictionaryLearningStage[] = [
+/**
+ * Kind rotation for the UI dispatcher. Each correct review advances the
+ * stage hint one entry forward; a wrong review resets to "flashcard"
+ * (the gentlest re-introduction). Mirrors the legacy SM-2-flavored
+ * cycle so the UI never has to know we swapped schedulers underneath.
+ */
+const STAGE_ROTATION: DictionaryLearningStage[] = [
   "flashcard",
   "meaning_choice",
   "reverse_choice",
   "cloze",
   "typing",
+  "retention",
 ];
-const SHORT_TERM_THRESHOLD = 7;
-const LONG_TERM_THRESHOLD = 3;
-const DAY_MS = 24 * 60 * 60 * 1000;
+
+const FSRS_SHORT_TERM_KEY = "fsrs_short_term_days";
+const FSRS_LONG_TERM_KEY = "fsrs_long_term_days";
 
 export interface RecordSearchInput {
   studentId: number;
@@ -133,7 +142,10 @@ export function createDictionaryLearningRepository(db: AppDatabase) {
         .where(eq(dictionaryLearningItems.studentId, studentId))
         .all();
       const due = rows.filter((row) => isDue(row.nextDueAt, now));
-      const scoreSum = rows.reduce((sum, row) => sum + row.score, 0);
+      // `averageScore` is now derived from FSRS stability: items with
+      // higher stability score better. Clamp to 0..100 for legacy UI
+      // gauges that expect that range. 7 days stability ≈ 50 points.
+      const scoreSum = rows.reduce((sum, row) => sum + stabilityScore(row.stability), 0);
       return {
         total: rows.length,
         due: due.length,
@@ -199,29 +211,42 @@ export function createDictionaryLearningRepository(db: AppDatabase) {
           .get();
         if (!item) throw new Error("Dictionary learning item not found");
 
-        const next = nextLearningState({
-          status: item.status,
-          stage: item.stage,
-          correctInCycle: item.correctInCycle,
-          shortTermCorrect: item.shortTermCorrect,
-          totalCorrect: item.totalCorrect,
-          totalWrong: item.totalWrong,
-          correct: input.correct,
+        // FSRS-lite scheduling: thresholds are tutor-tunable, same key set
+        // as the curated track so a single Settings panel drives both.
+        const thresholds = loadFsrsThresholds(tx);
+        const rating: fsrs.FsrsRating = input.correct ? 3 : 1;
+        const next = fsrs.applyAnswer({
+          prev: {
+            stability: item.stability,
+            difficulty: item.difficulty,
+            state: item.state,
+            reps: item.reps,
+            lapses: item.lapses,
+          },
+          rating,
           now,
+          thresholds,
         });
+
+        const nextStatus = mapFsrsStateToStatus(next.state);
+        const nextStage = nextStageHint(item.stage, input.correct);
+        const totalCorrect = item.totalCorrect + (input.correct ? 1 : 0);
+        const totalWrong = item.totalWrong + (input.correct ? 0 : 1);
 
         const updated = tx
           .update(dictionaryLearningItems)
           .set({
-            status: next.status,
-            stage: next.stage,
-            correctInCycle: next.correctInCycle,
-            shortTermCorrect: next.shortTermCorrect,
-            totalCorrect: next.totalCorrect,
-            totalWrong: next.totalWrong,
-            score: scoreLearningItem(next),
+            status: nextStatus,
+            stage: nextStage,
+            stability: next.stability,
+            difficulty: next.difficulty,
+            state: next.state,
+            reps: next.reps,
+            lapses: next.lapses,
+            totalCorrect,
+            totalWrong,
             lastReviewedAt: now,
-            nextDueAt: next.nextDueAt,
+            nextDueAt: next.dueAt,
             updatedAt: now,
           })
           .where(eq(dictionaryLearningItems.id, item.id))
@@ -279,87 +304,64 @@ function seedLearningItem(studentId: number, entry: DictionaryEntry) {
   };
 }
 
-function nextLearningState(input: {
-  status: DictionaryLearningStatus;
-  stage: DictionaryLearningStage;
-  correctInCycle: number;
-  shortTermCorrect: number;
-  totalCorrect: number;
-  totalWrong: number;
-  correct: boolean;
-  now: Date;
-}) {
-  if (!input.correct) {
-    return {
-      status: "learning" as const,
-      stage: "flashcard" as const,
-      correctInCycle: 0,
-      shortTermCorrect: 0,
-      totalCorrect: input.totalCorrect,
-      totalWrong: input.totalWrong + 1,
-      nextDueAt: input.now,
-    };
-  }
+/**
+ * Pick the next exercise kind the UI should render. On a correct answer
+ * the rotation walks STAGE_ROTATION forward by one; on a wrong answer we
+ * reset to "flashcard" so the kid gets a gentler re-introduction. This
+ * keeps the perceived "stage cycle" UX from the legacy algorithm while
+ * the underlying scheduling is FSRS-lite.
+ */
+function nextStageHint(
+  current: DictionaryLearningStage,
+  correct: boolean,
+): DictionaryLearningStage {
+  if (!correct) return "flashcard";
+  const index = STAGE_ROTATION.indexOf(current);
+  if (index < 0) return "meaning_choice";
+  return STAGE_ROTATION[(index + 1) % STAGE_ROTATION.length] ?? "flashcard";
+}
 
-  if (input.status === "short_term" || input.status === "long_term") {
-    const shortTermCorrect = input.shortTermCorrect + 1;
-    const longTerm = input.status === "long_term" || shortTermCorrect >= LONG_TERM_THRESHOLD;
-    return {
-      status: longTerm ? ("long_term" as const) : ("short_term" as const),
-      stage: "retention" as const,
-      correctInCycle: input.correctInCycle,
-      shortTermCorrect,
-      totalCorrect: input.totalCorrect + 1,
-      totalWrong: input.totalWrong,
-      nextDueAt: new Date(input.now.getTime() + (longTerm ? 14 : 1) * DAY_MS),
-    };
-  }
+/** FSRS state → legacy `status` label so the UI grouping stays meaningful. */
+function mapFsrsStateToStatus(state: fsrs.FsrsState): DictionaryLearningStatus {
+  if (state === "long_term") return "long_term";
+  if (state === "short_term") return "short_term";
+  return "learning";
+}
 
-  const correctInCycle = input.correctInCycle + 1;
-  if (correctInCycle >= SHORT_TERM_THRESHOLD) {
-    return {
-      status: "short_term" as const,
-      stage: "retention" as const,
-      correctInCycle,
-      shortTermCorrect: 0,
-      totalCorrect: input.totalCorrect + 1,
-      totalWrong: input.totalWrong,
-      nextDueAt: new Date(input.now.getTime() + DAY_MS),
-    };
-  }
-
+function loadFsrsThresholds(tx: AppTransaction): fsrs.FsrsThresholds {
+  const rows = tx
+    .select({ key: appSettings.key, value: appSettings.value })
+    .from(appSettings)
+    .where(inArray(appSettings.key, [FSRS_SHORT_TERM_KEY, FSRS_LONG_TERM_KEY]))
+    .all();
+  const lookup = new Map(rows.map((row) => [row.key, row.value]));
+  const shortTerm = numericSetting(lookup.get(FSRS_SHORT_TERM_KEY));
+  const longTerm = numericSetting(lookup.get(FSRS_LONG_TERM_KEY));
   return {
-    status: "learning" as const,
-    stage: nextStage(input.stage),
-    correctInCycle,
-    shortTermCorrect: input.shortTermCorrect,
-    totalCorrect: input.totalCorrect + 1,
-    totalWrong: input.totalWrong,
-    nextDueAt: input.now,
+    shortTermDays: shortTerm ?? fsrs.DEFAULT_THRESHOLDS.shortTermDays,
+    longTermDays: longTerm ?? fsrs.DEFAULT_THRESHOLDS.longTermDays,
   };
 }
 
-function nextStage(stage: DictionaryLearningStage): DictionaryLearningStage {
-  const index = STAGE_ORDER.indexOf(stage);
-  if (index < 0) return "flashcard";
-  return STAGE_ORDER[(index + 1) % STAGE_ORDER.length] ?? "flashcard";
+function numericSetting(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  }
+  return null;
 }
 
-function scoreLearningItem(input: {
-  status: DictionaryLearningStatus;
-  correctInCycle: number;
-  shortTermCorrect: number;
-  totalCorrect: number;
-  totalWrong: number;
-}): number {
-  const statusBonus = input.status === "long_term" ? 80 : input.status === "short_term" ? 55 : 0;
-  const raw =
-    statusBonus +
-    input.correctInCycle * 8 +
-    input.shortTermCorrect * 12 +
-    input.totalCorrect * 4 -
-    input.totalWrong * 18;
-  return Math.min(100, Math.max(0, raw));
+/**
+ * Map FSRS stability (days) onto the legacy 0..100 score the summary
+ * surfaces. 0 days → 0; 21 days (default long-term threshold) → 100;
+ * linear in between. Cosmetic only — never feeds the scheduler.
+ */
+function stabilityScore(stability: number): number {
+  const ceiling = fsrs.DEFAULT_THRESHOLDS.longTermDays;
+  if (stability <= 0) return 0;
+  const ratio = stability / ceiling;
+  return Math.round(Math.max(0, Math.min(1, ratio)) * 100);
 }
 
 function isDue(nextDueAt: Date | null, now: Date): boolean {
@@ -382,11 +384,12 @@ function toItemView(row: typeof dictionaryLearningItems.$inferSelect): Dictionar
     audioRef: row.audioRef,
     status: row.status,
     stage: row.stage,
-    correctInCycle: row.correctInCycle,
-    shortTermCorrect: row.shortTermCorrect,
+    stability: row.stability,
+    difficulty: row.difficulty,
+    reps: row.reps,
+    lapses: row.lapses,
     totalCorrect: row.totalCorrect,
     totalWrong: row.totalWrong,
-    score: row.score,
     lastReviewedAt: row.lastReviewedAt,
     nextDueAt: row.nextDueAt,
     updatedAt: row.updatedAt,

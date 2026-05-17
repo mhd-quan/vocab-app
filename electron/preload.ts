@@ -121,7 +121,7 @@ interface UpdateStudentPatch {
 const api = {
   app: {
     name: "vocab-app",
-    version: "0.8.1",
+    version: "0.10.0",
     platform: process.platform,
   },
 
@@ -131,6 +131,8 @@ const api = {
       invoke<{ name: string; version: string; schemaTablesExpected: number; dbPath: string }>(
         "meta.appInfo",
       ),
+    srsArchiveStatus: () =>
+      invoke<{ acknowledged: boolean; legacyRowCount: number }>("meta.srsArchiveStatus"),
   },
 
   auth: {
@@ -172,6 +174,8 @@ const api = {
     search: (input: { query: string; limit?: number }) =>
       invoke<DictionarySearchResult[]>("dictionary.search", input),
     lookup: (input: { term: string }) => invoke<DictionaryEntry | null>("dictionary.lookup", input),
+    batchLookup: (input: { terms: string[] }) =>
+      invoke<{ entries: Record<string, DictionaryEntry | null> }>("dictionary.batchLookup", input),
     audio: (input: { ref: string }) =>
       invoke<DictionaryAudioAsset | null>("dictionary.audio", input),
     asset: (input: { ref: string }) => invoke<DictionaryAsset | null>("dictionary.asset", input),

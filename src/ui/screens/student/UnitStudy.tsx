@@ -10,9 +10,9 @@ import {
 } from "@/modules/studySections";
 import { Badge } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
-import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { LessonIcon } from "@/ui/components/LearningIcons";
+import { PressButton } from "@/ui/student/components/PressButton";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
@@ -163,9 +163,9 @@ export function StudentUnitStudy() {
                 Pick one or more sections. Practice will only use matching cards.
               </p>
             </div>
-            <Button onClick={startVocab} disabled={selectedEntries.length === 0}>
+            <PressButton size="md" onClick={startVocab} disabled={selectedEntries.length === 0}>
               Start {selectedEntries.length} cards
-            </Button>
+            </PressButton>
           </header>
 
           {entriesQ.isLoading ? (

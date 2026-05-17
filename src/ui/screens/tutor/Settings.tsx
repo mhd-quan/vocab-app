@@ -9,9 +9,10 @@ import {
 } from "@/providers/DisplayPreferencesProvider";
 import { type ThemePreference, useTheme } from "@/providers/ThemeProvider";
 import { Button } from "@/ui/components/Button";
-import { Field } from "@/ui/components/Field";
 import { PageHeader } from "@/ui/components/PageHeader";
 import { PinInput } from "@/ui/components/PinInput";
+import { MdSelectField } from "@/ui/tutor/components/MdSelectField";
+import { MdSwitchField } from "@/ui/tutor/components/MdSwitchField";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, type ReactNode, useCallback, useState } from "react";
 
@@ -27,6 +28,8 @@ const SETTINGS = {
   definitionPriority: "definition_priority",
   idleTimeout: "idle_timeout_minutes",
   lockOnClose: "lock_on_close",
+  fsrsShortTermDays: "fsrs_short_term_days",
+  fsrsLongTermDays: "fsrs_long_term_days",
 } as const;
 
 const LEGACY_SETTING_KEYS = ["display_compact", "locale"] as const;
@@ -56,6 +59,7 @@ export function TutorSettings() {
         <div className="flex flex-col gap-5">
           <PreferencesCard />
           <SessionDefaultsCard />
+          <SrsThresholdsCard />
         </div>
       </section>
     </>
@@ -64,7 +68,11 @@ export function TutorSettings() {
 
 function PreferencesCard() {
   const { theme, resolvedTheme, setTheme } = useTheme();
-  const { fontSize, setFontSize } = useDisplayPreferences();
+  // Display preferences provider owns autoplay state — using the provider
+  // (instead of the generic useSetting) keeps a single source of truth so
+  // any in-session card reads the same boolean a re-render later.
+  const { fontSize, setFontSize, pronunciationAutoplay, setPronunciationAutoplay } =
+    useDisplayPreferences();
   const sound = useSetting<boolean>(SOUND_KEY, false);
   const priority = useSetting<string>(SETTINGS.definitionPriority, "en_first");
   const soundEnabled = sound.value === true;
@@ -108,6 +116,18 @@ function PreferencesCard() {
             checked={soundEnabled}
             disabled={sound.loading || sound.saving}
             onChange={sound.setValue}
+          />
+        </PreferenceRow>
+
+        <PreferenceRow title="Pronunciation autoplay">
+          <MdSwitchField
+            label={
+              pronunciationAutoplay
+                ? "Autoplay headword audio on every new card"
+                : "Manual playback only — kid taps to listen"
+            }
+            checked={pronunciationAutoplay}
+            onChange={setPronunciationAutoplay}
           />
         </PreferenceRow>
 
@@ -165,6 +185,48 @@ function SessionDefaultsCard() {
           checked={shuffle.value === true}
           disabled={shuffle.loading || shuffle.saving}
           onChange={shuffle.setValue}
+        />
+      </div>
+    </SettingsCard>
+  );
+}
+
+function SrsThresholdsCard() {
+  // FSRS-lite state transitions: stability < shortTerm → "learning",
+  // stability ≥ shortTerm → "short_term", stability ≥ longTerm → "long_term".
+  // The defaults (1 / 21 days) are what the migration seeded.
+  const shortTerm = useSetting<number>(SETTINGS.fsrsShortTermDays, 1);
+  const longTerm = useSetting<number>(SETTINGS.fsrsLongTermDays, 21);
+
+  return (
+    <SettingsCard
+      title="SRS thresholds"
+      description="Tune how aggressively FSRS-lite graduates words to short-term and long-term memory."
+    >
+      <div className="grid gap-3 lg:grid-cols-2">
+        <SettingSelect
+          label="Short-term (days)"
+          value={String(shortTerm.value)}
+          disabled={shortTerm.loading || shortTerm.saving}
+          options={[
+            ["0.5", "0.5 — same day"],
+            ["1", "1 — next day (default)"],
+            ["2", "2 days"],
+            ["3", "3 days"],
+          ]}
+          onChange={(value) => shortTerm.setValue(Number(value))}
+        />
+        <SettingSelect
+          label="Long-term (days)"
+          value={String(longTerm.value)}
+          disabled={longTerm.loading || longTerm.saving}
+          options={[
+            ["7", "7 — weekly"],
+            ["14", "14 — fortnightly"],
+            ["21", "21 (default)"],
+            ["30", "30 — monthly"],
+          ]}
+          onChange={(value) => longTerm.setValue(Number(value))}
         />
       </div>
     </SettingsCard>
@@ -499,6 +561,12 @@ function SegmentedControl({
   );
 }
 
+/**
+ * Settings selects/toggles route through Material wrappers in tutor mode
+ * so the entire form picks up M3 typography, focus rings, and ripples
+ * from `@material/web`. The public shape of these helpers is preserved
+ * so every call site keeps working without edits.
+ */
 function SettingSelect({
   label,
   value,
@@ -513,20 +581,16 @@ function SettingSelect({
   onChange: (value: string) => void;
 }) {
   return (
-    <Field label={label}>
-      <select
-        value={value}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-10 w-full rounded-xl border border-border-subtle bg-surface-0 px-3 text-sm text-app outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40 disabled:opacity-60"
-      >
-        {options.map(([optionValue, optionLabel]) => (
-          <option key={optionValue} value={optionValue}>
-            {optionLabel}
-          </option>
-        ))}
-      </select>
-    </Field>
+    <MdSelectField
+      label={label}
+      value={value}
+      disabled={disabled}
+      options={options.map(([optionValue, optionLabel]) => ({
+        value: optionValue,
+        label: optionLabel,
+      }))}
+      onChange={onChange}
+    />
   );
 }
 
@@ -541,18 +605,7 @@ function SettingToggle({
   disabled?: boolean;
   onChange: (checked: boolean) => void;
 }) {
-  return (
-    <label className="inline-flex min-h-10 cursor-pointer items-center gap-3 rounded-xl border border-border-subtle bg-surface-0 px-3 text-sm">
-      <input
-        type="checkbox"
-        checked={checked}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.checked)}
-        className="h-4 w-4 cursor-pointer accent-accent disabled:cursor-not-allowed"
-      />
-      <span>{label}</span>
-    </label>
-  );
+  return <MdSwitchField label={label} checked={checked} disabled={disabled} onChange={onChange} />;
 }
 
 function useSetting<T>(key: string, fallback: T) {

@@ -12,6 +12,7 @@ import {
   buildGrammarDeck,
 } from "@/modules/grammarPractice";
 import { filterVocabEntriesBySections, parseStudySectionParam } from "@/modules/studySections";
+import { useDisplayPreferences } from "@/providers/DisplayPreferencesProvider";
 import { Button } from "@/ui/components/Button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
@@ -57,6 +58,9 @@ export function StudentSession() {
   );
 
   const [seed] = useState(() => defaultSessionSeed(lessonIdNum));
+  // Pronunciation autoplay is global to the tutor's preferences; the
+  // provider already hydrates from app_settings, so reads here are sync.
+  const { pronunciationAutoplay } = useDisplayPreferences();
 
   const lessonQ = useQuery({
     queryKey: queryKeys.curriculum.lessonById(lessonIdNum),
@@ -315,6 +319,7 @@ export function StudentSession() {
       onResult={handleResult}
       contextLabel={contextLabel}
       soundEnabled={soundQ.data === true}
+      autoplay={pronunciationAutoplay}
     />
   );
 }
@@ -334,6 +339,16 @@ function normalizeDefinitionPriority(value: unknown): "en_first" | "vi_first" {
   return value === "vi_first" ? "vi_first" : "en_first";
 }
 
+/**
+ * Map the user's session-mode preference to the plugin kinds we feed the
+ * deck builder. In "mixed" mode we pull from every plugin we've registered
+ * — kind diversity + intro-gating in `buildDeck` keep the rotation sane.
+ * Build-failing plugins for a given entry (e.g. no audio → audio_recall
+ * skipped) drop out automatically.
+ */
 function exerciseKindsForMode(mode: "mixed" | "flashcard" | "multiple_choice"): ExerciseKind[] {
-  return mode === "mixed" ? ["flashcard", "multiple_choice"] : [mode];
+  if (mode === "mixed") {
+    return ["flashcard", "multiple_choice", "audio_recall", "sentence_rebuild", "definition_match"];
+  }
+  return [mode];
 }

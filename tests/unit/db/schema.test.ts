@@ -56,7 +56,10 @@ describe("DB schema migrations", () => {
       "grammar_topics",
       "import_items",
       "import_runs",
-      "item_progress",
+      // v0.10 migration 0004 renames legacy `item_progress` → `_v1_archive`
+      // and creates `item_progress_v2`. Kept (not dropped) until v0.11.
+      "item_progress_v1_archive",
+      "item_progress_v2",
       "learning_events",
       "lessons",
       "practice_sessions",
@@ -294,7 +297,7 @@ describe("DB schema migrations", () => {
       .values({
         studentId: student.id,
         contentItemId: item.id,
-        streak: 1,
+        reps: 1,
         totalCorrect: 1,
       })
       .run();
@@ -309,7 +312,7 @@ describe("DB schema migrations", () => {
 
     const progress = db.select().from(itemProgress).all();
     expect(progress).toHaveLength(1);
-    expect(first(progress).streak).toBe(1);
+    expect(first(progress).reps).toBe(1);
 
     expect(db.select().from(unitAssignments).all()).toHaveLength(1);
   });

@@ -22,6 +22,7 @@ export const queryClient = new QueryClient({
 export const queryKeys = {
   meta: {
     appInfo: () => ["meta", "appInfo"] as const,
+    srsArchiveStatus: () => ["meta", "srsArchiveStatus"] as const,
   },
   auth: {
     hasPin: () => ["auth", "hasPin"] as const,
@@ -41,6 +42,12 @@ export const queryKeys = {
     status: () => ["dictionary", "status"] as const,
     search: (query: string, limit: number) => ["dictionary", "search", query, limit] as const,
     lookup: (term: string) => ["dictionary", "lookup", term] as const,
+    /**
+     * Batch lookup key. We sort the input terms so two callers asking for
+     * `["a", "b"]` and `["b", "a"]` share the same cache entry.
+     */
+    batchLookup: (terms: ReadonlyArray<string>) =>
+      ["dictionary", "batchLookup", [...terms].sort().join("|")] as const,
     audio: (ref: string) => ["dictionary", "audio", ref] as const,
     asset: (ref: string) => ["dictionary", "asset", ref] as const,
   },

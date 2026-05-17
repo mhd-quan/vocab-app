@@ -298,7 +298,7 @@ function FlashcardPractice({
           Flashcard
         </Badge>
         <Badge tone="muted" uppercase>
-          {item.correctInCycle}/7
+          Reps {item.reps}
         </Badge>
       </div>
       <h1 className="mt-5 break-words text-5xl font-semibold leading-tight">{item.headword}</h1>
@@ -379,7 +379,7 @@ function ChoicePractice({
           Choice
         </Badge>
         <Badge tone="muted" uppercase>
-          {item.correctInCycle}/7
+          Reps {item.reps}
         </Badge>
       </div>
       <p className="mt-5 text-xs font-semibold uppercase text-muted-2">
@@ -441,7 +441,7 @@ function TextPractice({
           {cloze ? "Cloze" : "Typing"}
         </Badge>
         <Badge tone="muted" uppercase>
-          {item.correctInCycle}/7
+          Reps {item.reps}
         </Badge>
       </div>
       <p className="mt-5 text-xs font-semibold uppercase text-muted-2">

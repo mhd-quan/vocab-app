@@ -10,6 +10,7 @@ import {
   resetDictionaryCache,
   validateDictionaryPackPath,
 } from "../../dictionary";
+import { dictionaryBatchLookup } from "../../dictionary/batch";
 import { defineProcedure } from "../procedure";
 
 const searchInput = z.object({
@@ -19,6 +20,10 @@ const searchInput = z.object({
 
 const lookupInput = z.object({
   term: z.string().min(1),
+});
+
+const batchLookupInput = z.object({
+  terms: z.array(z.string().min(1)).max(200),
 });
 
 const audioInput = z.object({
@@ -60,6 +65,12 @@ export const dictionaryProcedures = [
         }),
       };
     },
+  }),
+  defineProcedure({
+    name: "dictionary.batchLookup",
+    input: batchLookupInput,
+    handler: ({ terms }, ctx) =>
+      dictionaryBatchLookup(terms, ctx.repos.settings.get<string>(DICTIONARY_PACK_PATH_KEY)),
   }),
   defineProcedure({
     name: "dictionary.audio",

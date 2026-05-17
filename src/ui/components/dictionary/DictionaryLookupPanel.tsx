@@ -5,6 +5,7 @@ import { queryKeys } from "@/lib/queryClient";
 import { Badge } from "@/ui/components/Badge";
 import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
+import { PronunciationControls } from "@/ui/components/PronunciationControls";
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
@@ -301,15 +302,6 @@ function EntryDetail({
   copied: boolean;
   onCopy: () => void;
 }) {
-  const [playingRef, setPlayingRef] = useState<string | null>(null);
-  const audioElementRef = useRef<HTMLAudioElement | null>(null);
-  const audioQueries = useQueries({
-    queries: entry.audio.map((audio) => ({
-      queryKey: queryKeys.dictionary.audio(audio.ref),
-      queryFn: () => api.dictionary.audio({ ref: audio.ref }),
-      staleTime: Number.POSITIVE_INFINITY,
-    })),
-  });
   const imageQueries = useQueries({
     queries: entry.images.map((image) => ({
       queryKey: queryKeys.dictionary.asset(image.ref),
@@ -322,17 +314,6 @@ function EntryDetail({
     [entry.senses],
   );
   const curriculumBadges = useMemo(() => curriculumTags(entry), [entry]);
-
-  async function play(ref: string, dataUrl: string | undefined) {
-    if (!dataUrl) return;
-    audioElementRef.current?.pause();
-    const player = new Audio(dataUrl);
-    audioElementRef.current = player;
-    setPlayingRef(ref);
-    player.onended = () => setPlayingRef(null);
-    player.onerror = () => setPlayingRef(null);
-    await player.play().catch(() => setPlayingRef(null));
-  }
 
   return (
     <article className="mx-auto flex max-w-4xl flex-col gap-5 px-6 py-6">
@@ -363,21 +344,7 @@ function EntryDetail({
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {entry.audio.map((audio, index) => {
-              const asset = audioQueries[index]?.data;
-              const loading = audioQueries[index]?.isLoading;
-              return (
-                <Button
-                  key={audio.ref}
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => void play(audio.ref, asset?.dataUrl)}
-                  disabled={!asset || playingRef === audio.ref}
-                >
-                  {playingRef === audio.ref ? "Playing..." : loading ? "Loading" : audio.label}
-                </Button>
-              );
-            })}
+            <PronunciationControls audioRefs={entry.audio} size="sm" />
             {showYamlAction ? (
               <Button variant="secondary" size="sm" onClick={onCopy}>
                 {copied ? "Copied" : "Copy YAML seed"}

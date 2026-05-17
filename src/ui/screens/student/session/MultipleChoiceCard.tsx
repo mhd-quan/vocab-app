@@ -76,8 +76,11 @@ export function MultipleChoiceCard({ exercise, onAnswer, outcome }: MultipleChoi
                 aria-pressed={isPicked}
                 aria-label={`Option ${idx + 1}: ${option.text}`}
                 className={cn(
-                  "flex min-h-16 w-full items-center gap-3 rounded-2xl border px-5 py-4 text-left text-base transition-[background-color,border-color,color,box-shadow,transform]",
-                  !locked && "hover:-translate-y-0.5 hover:shadow-lift",
+                  // Duolingo-style answer chip: 2px border, large radius
+                  // from student tokens, press-bounce shadow stack
+                  // collapses on tap. Disabled when answer locked.
+                  "flex min-h-16 w-full items-center gap-3 rounded-button border-2 px-5 py-4 text-left text-base transition-[background-color,border-color,color,box-shadow,transform]",
+                  !locked && "press-bounce hover:translate-y-0 active:translate-y-[3px]",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-1",
                   tone,
                 )}

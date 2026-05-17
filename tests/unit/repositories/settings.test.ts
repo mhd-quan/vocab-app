@@ -3,12 +3,21 @@ import { type AppDatabase, closeDatabase } from "../../../electron/db";
 import type { Repositories } from "../../../electron/db/repositories";
 import { freshDb } from "../../helpers";
 
+/**
+ * Migrations seed a handful of app_settings rows (FSRS thresholds + the
+ * SRS archive ack flag — see drizzle/0004_lexicon_v0_10_fsrs.sql). The
+ * tests below want to isolate the rows they themselves write, so we
+ * wipe the migration seeds in beforeEach.
+ */
+const SEEDED_KEYS = ["srs_archive_acknowledged", "fsrs_short_term_days", "fsrs_long_term_days"];
+
 describe("SettingsRepository", () => {
   let db: AppDatabase;
   let repos: Repositories;
 
   beforeEach(() => {
     ({ db, repos } = freshDb());
+    for (const key of SEEDED_KEYS) repos.settings.delete(key);
   });
 
   afterEach(() => {
