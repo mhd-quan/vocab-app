@@ -2,9 +2,11 @@
  * Tutor-mode token overrides. Activated when
  * `<html data-app-mode="tutor">` (set by RoleStyleProvider).
  *
- * Material Design 3 inspired palette — productivity-grade,
- * professional. Keeps MD3-compatible `--md-sys-color-*` variables as
- * valid CSS colors for any future full tutor-wide Material pass.
+ * Material Design 3 inspired palette — productivity-grade, tonal,
+ * and expressive enough for a focused tutor workspace. These tokens
+ * intentionally keep both the generic app roles (`--color-*`) and
+ * MD3 system roles (`--md-sys-color-*`) in sync; tutor components use
+ * both utility families, so dark mode must redefine the complete set.
  */
 
 @layer base {
@@ -18,57 +20,66 @@
     /* Material 3/Expressive shape language: rounded but desk-dense. */
     --radius-button: 1.25rem;
     --radius-chip: 0.75rem;
-    --radius-bento: 1.5rem;
+    --radius-bento: 1.375rem;
     --shape-corner-xs: 0.25rem;
     --shape-corner-sm: 0.5rem;
-    --shape-corner-md: 0.75rem;
-    --shape-corner-lg: 1rem;
-    --shape-corner-xl: 1.75rem;
+    --shape-corner-md: 0.875rem;
+    --shape-corner-lg: 1.25rem;
+    --shape-corner-xl: 1.625rem;
     --shape-corner-full: 9999px;
 
     /* MD3 sys-color roles, tuned for an English-tutor productivity surface. */
-    --md-sys-color-primary: rgb(60 91 201);
+    --md-sys-color-primary: rgb(52 84 189);
     --md-sys-color-on-primary: rgb(255 255 255);
-    --md-sys-color-primary-container: rgb(221 225 255);
-    --md-sys-color-on-primary-container: rgb(20 42 128);
-    --md-sys-color-secondary: rgb(89 92 113);
+    --md-sys-color-primary-container: rgb(225 230 255);
+    --md-sys-color-on-primary-container: rgb(22 42 119);
+    --md-sys-color-secondary: rgb(78 94 88);
     --md-sys-color-on-secondary: rgb(255 255 255);
-    --md-sys-color-secondary-container: rgb(225 224 249);
-    --md-sys-color-on-secondary-container: rgb(32 36 58);
-    --md-sys-color-tertiary: rgb(118 78 111);
+    --md-sys-color-secondary-container: rgb(218 235 227);
+    --md-sys-color-on-secondary-container: rgb(28 50 43);
+    --md-sys-color-tertiary: rgb(132 75 68);
     --md-sys-color-on-tertiary: rgb(255 255 255);
-    --md-sys-color-tertiary-container: rgb(255 215 245);
-    --md-sys-color-on-tertiary-container: rgb(91 55 85);
-    --md-sys-color-surface: rgb(252 248 255);
-    --md-sys-color-surface-dim: rgb(220 217 225);
-    --md-sys-color-surface-bright: rgb(252 248 255);
+    --md-sys-color-tertiary-container: rgb(255 221 214);
+    --md-sys-color-on-tertiary-container: rgb(91 47 41);
+    --md-sys-color-surface: rgb(248 250 252);
+    --md-sys-color-surface-dim: rgb(222 229 235);
+    --md-sys-color-surface-bright: rgb(255 255 255);
     --md-sys-color-surface-container-lowest: rgb(255 255 255);
-    --md-sys-color-surface-container-low: rgb(246 242 251);
-    --md-sys-color-surface-container: rgb(241 237 245);
-    --md-sys-color-surface-container-high: rgb(235 231 239);
-    --md-sys-color-surface-container-highest: rgb(229 226 233);
+    --md-sys-color-surface-container-low: rgb(244 248 250);
+    --md-sys-color-surface-container: rgb(238 244 247);
+    --md-sys-color-surface-container-high: rgb(230 238 242);
+    --md-sys-color-surface-container-highest: rgb(222 232 237);
     --md-sys-color-on-surface: rgb(var(--color-fg));
     --md-sys-color-on-surface-variant: rgb(var(--color-muted));
-    --md-sys-color-outline: rgb(119 118 128);
-    --md-sys-color-outline-variant: rgb(199 197 208);
+    --md-sys-color-outline: rgb(111 124 134);
+    --md-sys-color-outline-variant: rgb(196 209 217);
     --md-sys-color-error: rgb(186 26 26);
     --md-sys-color-on-error: rgb(255 255 255);
 
-    --color-fg: 28 27 33;
-    --color-muted: 73 72 82;
-    --color-muted-2: 111 109 122;
-    --color-surface-0: 246 242 251;
+    --color-fg: 25 32 39;
+    --color-muted: 77 91 102;
+    --color-muted-2: 112 127 139;
+    --color-surface-0: 248 250 252;
     --color-surface-1: 255 255 255;
-    --color-surface-2: 241 237 245;
-    --color-surface-3: 229 226 233;
-    --color-border-subtle: 215 212 224;
-    --color-border-strong: 119 118 128;
-    --color-accent: 60 91 201;
+    --color-surface-2: 238 244 247;
+    --color-surface-3: 222 232 237;
+    --color-border-subtle: 204 216 224;
+    --color-border-strong: 111 124 134;
+    --color-accent: 52 84 189;
     --color-accent-fg: 255 255 255;
     --color-focus: 0 128 118;
-    --color-success: 28 126 87;
-    --color-warning: 183 116 0;
+    --color-success: 24 132 90;
+    --color-warning: 179 111 0;
     --color-danger: 186 26 26;
+    --color-xp: 0 132 158;
+    --color-rare: 86 102 210;
+    --color-epic: 157 83 184;
+    --color-mastery: 178 123 22;
+    --color-sky: 35 132 204;
+    --color-coral: 196 87 75;
+    --color-lime: 93 145 50;
+    --color-pink: 191 83 145;
+    --color-ember: 206 94 34;
 
     /* MD3 elevation tier shadows */
     --md-sys-elevation-1: 0 1px 2px rgb(0 0 0 / 0.1), 0 1px 3px rgb(0 0 0 / 0.05);
@@ -78,31 +89,119 @@
     --shadow-card: var(--md-sys-elevation-2);
     --shadow-lift: var(--md-sys-elevation-3);
 
-    --tutor-nav-width: 17.5rem;
-    --tutor-header-height: 7.25rem;
+    --tutor-nav-width: 16.5rem;
+    --tutor-header-height: 6.75rem;
     --tutor-state-layer: rgb(var(--color-accent) / var(--state-hover));
+    --tutor-workspace-bg: linear-gradient(
+      135deg,
+      rgb(248 250 252) 0%,
+      rgb(239 247 247) 46%,
+      rgb(247 248 255) 100%
+    );
   }
 
   [data-app-mode="tutor"].dark {
-    --md-sys-color-primary: rgb(184 196 255);
-    --md-sys-color-on-primary: rgb(34 58 150);
-    --md-sys-color-primary-container: rgb(55 80 176);
-    --md-sys-color-on-primary-container: rgb(222 225 255);
-    --md-sys-color-secondary-container: rgb(65 68 88);
-    --md-sys-color-on-secondary-container: rgb(226 224 249);
-    --md-sys-color-tertiary-container: rgb(92 55 84);
-    --md-sys-color-on-tertiary-container: rgb(255 215 245);
-    --md-sys-color-surface: rgb(20 19 25);
-    --md-sys-color-surface-dim: rgb(20 19 25);
-    --md-sys-color-surface-bright: rgb(55 53 62);
-    --md-sys-color-surface-container-lowest: rgb(14 14 19);
-    --md-sys-color-surface-container-low: rgb(28 27 33);
-    --md-sys-color-surface-container: rgb(32 31 38);
-    --md-sys-color-surface-container-high: rgb(43 41 49);
-    --md-sys-color-surface-container-highest: rgb(54 52 60);
+    --md-sys-color-primary: rgb(184 202 255);
+    --md-sys-color-on-primary: rgb(24 45 109);
+    --md-sys-color-primary-container: rgb(47 69 145);
+    --md-sys-color-on-primary-container: rgb(222 229 255);
+    --md-sys-color-secondary: rgb(184 205 196);
+    --md-sys-color-on-secondary: rgb(27 50 43);
+    --md-sys-color-secondary-container: rgb(50 72 64);
+    --md-sys-color-on-secondary-container: rgb(218 235 227);
+    --md-sys-color-tertiary: rgb(255 181 169);
+    --md-sys-color-on-tertiary: rgb(86 43 36);
+    --md-sys-color-tertiary-container: rgb(114 58 50);
+    --md-sys-color-on-tertiary-container: rgb(255 221 214);
+    --md-sys-color-surface: rgb(17 21 25);
+    --md-sys-color-surface-dim: rgb(12 15 18);
+    --md-sys-color-surface-bright: rgb(49 58 64);
+    --md-sys-color-surface-container-lowest: rgb(10 13 16);
+    --md-sys-color-surface-container-low: rgb(21 26 31);
+    --md-sys-color-surface-container: rgb(27 33 38);
+    --md-sys-color-surface-container-high: rgb(36 43 49);
+    --md-sys-color-surface-container-highest: rgb(47 56 63);
+    --md-sys-color-on-surface: rgb(var(--color-fg));
+    --md-sys-color-on-surface-variant: rgb(var(--color-muted));
+    --md-sys-color-outline: rgb(137 151 161);
+    --md-sys-color-outline-variant: rgb(62 74 83);
     --md-sys-color-error: rgb(255 180 171);
     --md-sys-color-on-error: rgb(105 0 5);
+    --color-fg: 235 241 246;
+    --color-muted: 178 190 199;
+    --color-muted-2: 133 148 159;
+    --color-surface-0: 13 17 21;
+    --color-surface-1: 22 27 32;
+    --color-surface-2: 30 37 43;
+    --color-surface-3: 43 52 59;
+    --color-border-subtle: 57 70 80;
+    --color-border-strong: 137 151 161;
     --color-accent: 184 196 255;
     --color-accent-fg: 34 58 150;
+    --color-focus: 112 221 207;
+    --color-success: 129 216 175;
+    --color-warning: 255 198 118;
+    --color-danger: 255 180 171;
+    --color-xp: 116 214 235;
+    --color-rare: 181 194 255;
+    --color-epic: 229 177 242;
+    --color-mastery: 240 196 100;
+    --color-sky: 126 203 255;
+    --color-coral: 255 181 169;
+    --color-lime: 177 224 121;
+    --color-pink: 244 183 220;
+    --color-ember: 255 182 114;
+    --md-sys-elevation-1: 0 1px 2px rgb(0 0 0 / 0.34), 0 1px 3px rgb(0 0 0 / 0.24);
+    --md-sys-elevation-2: 0 2px 8px rgb(0 0 0 / 0.34), 0 1px 2px rgb(0 0 0 / 0.32);
+    --md-sys-elevation-3: 0 6px 18px rgb(0 0 0 / 0.36), 0 2px 5px rgb(0 0 0 / 0.32);
+    --md-sys-elevation-4: 0 12px 28px rgb(0 0 0 / 0.38), 0 4px 10px rgb(0 0 0 / 0.34);
+    --tutor-workspace-bg: linear-gradient(
+      135deg,
+      rgb(13 17 21) 0%,
+      rgb(18 25 29) 48%,
+      rgb(19 23 34) 100%
+    );
+  }
+}
+
+@layer components {
+  [data-app-mode="tutor"] .tutor-workspace-shell {
+    background: var(--tutor-workspace-bg);
+  }
+
+  [data-app-mode="tutor"] .tutor-main-surface {
+    background: linear-gradient(
+        180deg,
+        rgb(var(--color-surface-1) / 0.66) 0%,
+        rgb(var(--color-surface-0) / 0) 18rem
+      ), rgb(var(--color-surface-0));
+  }
+
+  [data-app-mode="tutor"].dark .tutor-main-surface {
+    background: linear-gradient(
+        180deg,
+        rgb(var(--color-surface-2) / 0.38) 0%,
+        rgb(var(--color-surface-0) / 0) 18rem
+      ), rgb(var(--color-surface-0));
+  }
+
+  [data-app-mode="tutor"] .tutor-scrollbar {
+    scrollbar-color: rgb(var(--color-border-strong) / 0.72) transparent;
+  }
+
+  [data-app-mode="tutor"] .tutor-scrollbar::-webkit-scrollbar {
+    height: 0.75rem;
+    width: 0.75rem;
+  }
+
+  [data-app-mode="tutor"] .tutor-scrollbar::-webkit-scrollbar-thumb {
+    background: rgb(var(--color-border-strong) / 0.58);
+    border: 3px solid transparent;
+    border-radius: 9999px;
+    background-clip: content-box;
+  }
+
+  [data-app-mode="tutor"] .tutor-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
   }
 }

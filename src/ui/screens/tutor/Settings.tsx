@@ -88,7 +88,7 @@ function PreferencesCard() {
 
   return (
     <SettingsCard title="Preferences" description="Appearance and learner feedback.">
-      <div className="divide-y divide-border-subtle overflow-hidden rounded-bento border border-border-subtle bg-surface-0/70">
+      <div className="divide-y divide-border-subtle overflow-hidden rounded-[var(--shape-corner-xl)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)]">
         <PreferenceRow title="Theme">
           <TutorSegmentedControl
             value={theme}

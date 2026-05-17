@@ -4,7 +4,6 @@ import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
 import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
-import { BentoCard } from "@/ui/components/BentoCard";
 import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { Field, useFieldId } from "@/ui/components/Field";
@@ -140,7 +139,7 @@ function StudentRow({ student, onEdit }: { student: Student; onEdit: () => void 
   );
 
   return (
-    <BentoCard as="li" interactive className="flex items-center gap-4 p-4">
+    <li className="motion-card motion-enter flex items-center gap-4 rounded-[var(--shape-corner-xl)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)] p-4 shadow-card transition-[background-color,border-color,box-shadow,transform] hover:-translate-y-1 hover:border-accent/30 hover:bg-[color:var(--md-sys-color-surface-container-low)] hover:shadow-lift">
       <Avatar
         name={student.displayName ?? student.name}
         avatarSeed={student.avatarSeed}
@@ -200,7 +199,7 @@ function StudentRow({ student, onEdit }: { student: Student; onEdit: () => void 
           </>
         )}
       </div>
-    </BentoCard>
+    </li>
   );
 }
 
