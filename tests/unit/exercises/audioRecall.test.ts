@@ -1,4 +1,9 @@
-import { type BuildContext, audioRecallPlugin, mulberry32, normaliseSpelling } from "@/modules/exercises";
+import {
+  type BuildContext,
+  audioRecallPlugin,
+  mulberry32,
+  normaliseSpelling,
+} from "@/modules/exercises";
 import { describe, expect, it } from "vitest";
 import { makeEntry } from "./fixtures";
 
@@ -55,26 +60,28 @@ describe("audioRecallPlugin.build", () => {
 
 describe("audioRecallPlugin.grade", () => {
   function buildExercise() {
-    return audioRecallPlugin.build(
+    const ex = audioRecallPlugin.build(
       makeEntry({ audioRef: "sound://relative", headword: "Ice-cream" }),
       ctx,
     );
+    if (!ex) throw new Error("Expected audio recall fixture to build an exercise");
+    return ex;
   }
 
   it("grades correctly for exact match (ignoring case)", () => {
-    const ex = buildExercise()!;
+    const ex = buildExercise();
     const grade = audioRecallPlugin.grade(ex, { kind: "audio_recall", spelling: "Ice-cream" });
     expect(grade.correct).toBe(true);
   });
 
   it("grades correctly when hyphen replaced by space", () => {
-    const ex = buildExercise()!;
+    const ex = buildExercise();
     const grade = audioRecallPlugin.grade(ex, { kind: "audio_recall", spelling: "ice cream" });
     expect(grade.correct).toBe(true);
   });
 
   it("grades incorrectly for misspellings", () => {
-    const ex = buildExercise()!;
+    const ex = buildExercise();
     const grade = audioRecallPlugin.grade(ex, { kind: "audio_recall", spelling: "icecreams" });
     expect(grade.correct).toBe(false);
     expect(grade.feedback).toContain("Ice-cream");

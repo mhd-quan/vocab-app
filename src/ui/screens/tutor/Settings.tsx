@@ -11,10 +11,8 @@ import { type ThemePreference, useTheme } from "@/providers/ThemeProvider";
 import { Button } from "@/ui/components/Button";
 import { PageHeader } from "@/ui/components/PageHeader";
 import { PinInput } from "@/ui/components/PinInput";
-import { MdSelectField } from "@/ui/tutor/components/MdSelectField";
-import { MdSwitchField } from "@/ui/tutor/components/MdSwitchField";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type FormEvent, type ReactNode, useCallback, useState } from "react";
+import { type FormEvent, type ReactNode, useCallback, useEffect, useId, useState } from "react";
 
 const MIN_PIN = 4;
 const MAX_PIN = 12;
@@ -84,7 +82,7 @@ function PreferencesCard() {
 
   return (
     <SettingsCard title="Preferences" description="Appearance and learner feedback.">
-      <div className="divide-y divide-border-subtle overflow-hidden rounded-2xl border border-border-subtle bg-surface-0/70">
+      <div className="divide-y divide-border-subtle overflow-hidden rounded-bento border border-border-subtle bg-surface-0/70">
         <PreferenceRow title="Theme">
           <SegmentedControl
             value={theme}
@@ -112,19 +110,23 @@ function PreferencesCard() {
 
         <PreferenceRow title="Reward sound">
           <SettingToggle
-            label={soundEnabled ? "Reward sounds enabled" : "Reward sounds muted"}
+            label="Reward sounds"
+            description={
+              soundEnabled ? "Achievement chimes are enabled." : "Achievement chimes are muted."
+            }
             checked={soundEnabled}
             disabled={sound.loading || sound.saving}
             onChange={sound.setValue}
           />
         </PreferenceRow>
 
-        <PreferenceRow title="Pronunciation autoplay">
-          <MdSwitchField
-            label={
+        <PreferenceRow title="Pronunciation">
+          <SettingToggle
+            label="Autoplay headword audio"
+            description={
               pronunciationAutoplay
-                ? "Autoplay headword audio on every new card"
-                : "Manual playback only — kid taps to listen"
+                ? "Cards play pronunciation when they appear."
+                : "Students tap the audio button manually."
             }
             checked={pronunciationAutoplay}
             onChange={setPronunciationAutoplay}
@@ -184,6 +186,7 @@ function SessionDefaultsCard() {
           label="Shuffle"
           checked={shuffle.value === true}
           disabled={shuffle.loading || shuffle.saving}
+          description="Randomize eligible cards in each deck."
           onChange={shuffle.setValue}
         />
       </div>
@@ -204,29 +207,25 @@ function SrsThresholdsCard() {
       description="Tune how aggressively FSRS-lite graduates words to short-term and long-term memory."
     >
       <div className="grid gap-3 lg:grid-cols-2">
-        <SettingSelect
+        <SettingNumberInput
           label="Short-term (days)"
-          value={String(shortTerm.value)}
+          value={shortTerm.value}
           disabled={shortTerm.loading || shortTerm.saving}
-          options={[
-            ["0.5", "0.5 — same day"],
-            ["1", "1 — next day (default)"],
-            ["2", "2 days"],
-            ["3", "3 days"],
-          ]}
-          onChange={(value) => shortTerm.setValue(Number(value))}
+          min={0.5}
+          max={30}
+          step={0.5}
+          supportingText="Default: 1 day"
+          onCommit={shortTerm.setValue}
         />
-        <SettingSelect
+        <SettingNumberInput
           label="Long-term (days)"
-          value={String(longTerm.value)}
+          value={longTerm.value}
           disabled={longTerm.loading || longTerm.saving}
-          options={[
-            ["7", "7 — weekly"],
-            ["14", "14 — fortnightly"],
-            ["21", "21 (default)"],
-            ["30", "30 — monthly"],
-          ]}
-          onChange={(value) => longTerm.setValue(Number(value))}
+          min={1}
+          max={365}
+          step={1}
+          supportingText="Default: 21 days"
+          onCommit={longTerm.setValue}
         />
       </div>
     </SettingsCard>
@@ -502,7 +501,7 @@ function SettingsCard({
   return (
     <article
       className={cn(
-        "flex flex-col gap-4 rounded-2xl border border-border-subtle bg-surface-1 p-5 shadow-sm",
+        "flex flex-col gap-4 rounded-bento border border-border-subtle bg-surface-1 p-5 shadow-sm",
         className,
       )}
     >
@@ -510,14 +509,14 @@ function SettingsCard({
         <h2 className="text-base font-semibold">{title}</h2>
         <p className="text-xs text-muted">{description}</p>
       </header>
-      <div className="flex flex-col gap-3">{children}</div>
+      <div className="flex min-w-0 flex-col gap-3">{children}</div>
     </article>
   );
 }
 
 function PreferenceRow({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="grid gap-3 px-4 py-3 md:grid-cols-[8rem_1fr] md:items-center">
+    <section className="grid gap-3 px-4 py-3 md:grid-cols-[8rem_minmax(0,1fr)] md:items-center">
       <h3 className="text-xs font-semibold uppercase text-muted-2">{title}</h3>
       <div className="min-w-0">{children}</div>
     </section>
@@ -534,7 +533,7 @@ function SegmentedControl({
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="grid grid-cols-3 gap-1 rounded-xl bg-surface-2 p-1">
+    <div className="grid grid-cols-3 gap-1 rounded-button bg-surface-2 p-1">
       {options.map((option) => {
         const active = value === option.value;
         return (
@@ -543,7 +542,7 @@ function SegmentedControl({
             type="button"
             onClick={() => onChange(option.value)}
             className={cn(
-              "min-w-0 rounded-lg px-3 py-2 text-left transition-[background-color,color,box-shadow]",
+              "min-w-0 rounded-button px-3 py-2 text-left transition-[background-color,color,box-shadow]",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/35",
               active ? "bg-surface-1 text-app shadow-sm" : "text-muted hover:text-app",
             )}
@@ -562,10 +561,11 @@ function SegmentedControl({
 }
 
 /**
- * Settings selects/toggles route through Material wrappers in tutor mode
- * so the entire form picks up M3 typography, focus rings, and ripples
- * from `@material/web`. The public shape of these helpers is preserved
- * so every call site keeps working without edits.
+ * Tutor settings use app-native controls, not partial Material Web
+ * wrappers. v0.10.0 only introduced Material on this screen, which made
+ * typography and menu behavior diverge from the rest of tutor mode. These
+ * primitives stay token-driven and can be swapped behind the same helper
+ * shape if a full tutor-wide Material pass lands later.
  */
 function SettingSelect({
   label,
@@ -580,33 +580,178 @@ function SettingSelect({
   disabled?: boolean;
   onChange: (value: string) => void;
 }) {
+  const id = useId();
+
   return (
-    <MdSelectField
-      label={label}
-      value={value}
-      disabled={disabled}
-      options={options.map(([optionValue, optionLabel]) => ({
-        value: optionValue,
-        label: optionLabel,
-      }))}
-      onChange={onChange}
-    />
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <label htmlFor={id} className="text-xs font-semibold uppercase text-muted-2">
+        {label}
+      </label>
+      <span className="relative block min-w-0">
+        <select
+          id={id}
+          value={value}
+          disabled={disabled}
+          onChange={(event) => onChange(event.currentTarget.value)}
+          className={cn(FIELD_CLASSNAME, "appearance-none pr-9")}
+        >
+          {options.map(([optionValue, optionLabel]) => (
+            <option key={optionValue} value={optionValue}>
+              {optionLabel}
+            </option>
+          ))}
+        </select>
+        <SelectArrowIcon className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-2" />
+      </span>
+    </div>
+  );
+}
+
+function SettingNumberInput({
+  label,
+  value,
+  min,
+  max,
+  step,
+  disabled,
+  supportingText,
+  onCommit,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  disabled?: boolean;
+  supportingText?: string;
+  onCommit: (value: number) => void;
+}) {
+  const id = useId();
+  const supportingTextId = `${id}-supporting`;
+  const [draft, setDraft] = useState(() => String(value));
+
+  useEffect(() => {
+    setDraft(String(value));
+  }, [value]);
+
+  const commit = useCallback(() => {
+    const parsed = Number(draft);
+    if (!Number.isFinite(parsed) || parsed < min || parsed > max) {
+      setDraft(String(value));
+      return;
+    }
+    onCommit(parsed);
+  }, [draft, max, min, onCommit, value]);
+
+  return (
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <label htmlFor={id} className="text-xs font-semibold uppercase text-muted-2">
+        {label}
+      </label>
+      <input
+        id={id}
+        type="number"
+        inputMode="decimal"
+        min={min}
+        max={max}
+        step={step}
+        value={draft}
+        disabled={disabled}
+        onChange={(event) => setDraft(event.currentTarget.value)}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.currentTarget.blur();
+          }
+        }}
+        aria-describedby={supportingText ? supportingTextId : undefined}
+        className={FIELD_CLASSNAME}
+      />
+      {supportingText ? (
+        <span id={supportingTextId} className="text-xs text-muted-2">
+          {supportingText}
+        </span>
+      ) : null}
+    </div>
   );
 }
 
 function SettingToggle({
   label,
+  description,
   checked,
   disabled,
   onChange,
 }: {
   label: string;
+  description?: string;
   checked: boolean;
   disabled?: boolean;
   onChange: (checked: boolean) => void;
 }) {
-  return <MdSwitchField label={label} checked={checked} disabled={disabled} onChange={onChange} />;
+  const id = useId();
+  const labelId = `${id}-label`;
+  const descriptionId = `${id}-description`;
+
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-labelledby={labelId}
+      aria-describedby={description ? descriptionId : undefined}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className={cn(
+        "flex min-w-0 items-center justify-between gap-4 rounded-button border border-border-subtle bg-surface-0 px-3 py-2 text-left",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-1",
+        disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer",
+      )}
+    >
+      <span className="min-w-0">
+        <span id={labelId} className="block text-sm font-medium text-app">
+          {label}
+        </span>
+        {description ? (
+          <span id={descriptionId} className="mt-0.5 block text-xs text-muted">
+            {description}
+          </span>
+        ) : null}
+      </span>
+      <span
+        aria-hidden
+        className={cn(
+          "relative h-6 w-11 shrink-0 rounded-full border transition-[background-color,border-color]",
+          checked ? "border-accent bg-accent" : "border-border-strong bg-surface-2",
+        )}
+      >
+        <span
+          className={cn(
+            "absolute top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-surface-1 shadow-sm transition-transform",
+            checked ? "translate-x-[1.25rem]" : "translate-x-0.5",
+          )}
+        />
+      </span>
+    </button>
+  );
 }
+
+function SelectArrowIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false" className={className}>
+      <path
+        fill="currentColor"
+        d="M4.2 6.1a.7.7 0 0 1 1 0L8 8.9l2.8-2.8a.7.7 0 0 1 1 1L8.5 10.4a.7.7 0 0 1-1 0L4.2 7.1a.7.7 0 0 1 0-1Z"
+      />
+    </svg>
+  );
+}
+
+const FIELD_CLASSNAME = cn(
+  "h-10 w-full min-w-0 rounded-button border border-border-subtle bg-surface-1 px-3 text-sm text-app shadow-sm",
+  "focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20",
+  "disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-muted",
+);
 
 function useSetting<T>(key: string, fallback: T) {
   const queryClient = useQueryClient();

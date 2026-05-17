@@ -4,21 +4,22 @@
  * layer is a one-line import.
  *
  * Import order matters:
- *   1. Tailwind directives first (so `@layer base` overrides cleanly cascade).
- *   2. `base.css`        — shared `:root` + `.dark` tokens.
- *   3. `student.css`     — `[data-app-mode="student"]` overrides.
- *   4. `tutor.css`       — `[data-app-mode="tutor"]` overrides.
- *   5. `motion.css`      — keyframes and motion utility classes.
+ *   1. `base.css`        — shared `:root` + `.dark` tokens.
+ *   2. `student.css`     — `[data-app-mode="student"]` overrides.
+ *   3. `tutor.css`       — `[data-app-mode="tutor"]` overrides.
+ *   4. `motion.css`      — keyframes and motion utility classes.
+ *   5. Tailwind directives. CSS requires `@import` to precede them; the
+ *      imported files use Tailwind layers, so cascade order remains explicit.
  */
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 @import "./tokens/base.css";
 @import "./tokens/student.css";
 @import "./tokens/tutor.css";
 @import "./tokens/motion.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   html,
