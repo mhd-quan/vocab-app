@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, or, sql } from "drizzle-orm";
+import { and, asc, eq, or, sql } from "drizzle-orm";
 import type { DictionaryLessonEntry } from "../../../src/data/dictionary";
 import {
   type CefrLevel,
@@ -27,6 +27,7 @@ import type {
   VocabSense,
 } from "../../../src/data/types";
 import type { AppDatabase } from "../client";
+import { hydrateChildrenSingleQuery } from "./vocab.joins";
 
 export interface VocabEntryFull extends VocabEntry {
   senses: VocabSense[];
@@ -370,38 +371,20 @@ function dictionaryMatchTerms(term: string, headword?: string | null): string[] 
 
 function hydrateChildren(db: AppDatabase, entries: VocabEntry[]): VocabEntryFull[] {
   if (entries.length === 0) return [];
-  const ids = entries.map((e) => e.id);
-
-  const [senses, examples, forms, collocations, relations] = [
-    db.select().from(vocabSenses).where(inArray(vocabSenses.entryId, ids)).all(),
-    db.select().from(vocabExamples).where(inArray(vocabExamples.entryId, ids)).all(),
-    db.select().from(vocabForms).where(inArray(vocabForms.entryId, ids)).all(),
-    db.select().from(vocabCollocations).where(inArray(vocabCollocations.entryId, ids)).all(),
-    db.select().from(vocabRelations).where(inArray(vocabRelations.entryId, ids)).all(),
-  ];
-
-  const groupBy = <T extends { entryId: number }>(rows: T[]) => {
-    const map = new Map<number, T[]>();
-    for (const row of rows) {
-      const list = map.get(row.entryId) ?? [];
-      list.push(row);
-      map.set(row.entryId, list);
-    }
-    return map;
-  };
-
-  const sensesByEntry = groupBy(senses);
-  const examplesByEntry = groupBy(examples);
-  const formsByEntry = groupBy(forms);
-  const collocationsByEntry = groupBy(collocations);
-  const relationsByEntry = groupBy(relations);
-
-  return entries.map((entry) => ({
-    ...entry,
-    senses: sensesByEntry.get(entry.id) ?? [],
-    examples: examplesByEntry.get(entry.id) ?? [],
-    forms: formsByEntry.get(entry.id) ?? [],
-    collocations: collocationsByEntry.get(entry.id) ?? [],
-    relations: relationsByEntry.get(entry.id) ?? [],
-  }));
+  // One SQL round trip — see `vocab.joins.ts` for the UNION ALL query.
+  const bundles = hydrateChildrenSingleQuery(
+    db,
+    entries.map((e) => e.id),
+  );
+  return entries.map((entry) => {
+    const bundle = bundles.get(entry.id);
+    return {
+      ...entry,
+      senses: bundle?.senses ?? [],
+      examples: bundle?.examples ?? [],
+      forms: bundle?.forms ?? [],
+      collocations: bundle?.collocations ?? [],
+      relations: bundle?.relations ?? [],
+    };
+  });
 }

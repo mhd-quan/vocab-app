@@ -179,16 +179,17 @@ function LearningItemRow({ item }: { item: DictionaryLearningItemView }) {
       </div>
       <div className="mt-3 flex items-baseline justify-between gap-3">
         <h3 className="min-w-0 truncate text-xl font-semibold">{item.headword}</h3>
-        <span className="font-mono text-sm text-muted">{item.score}%</span>
+        {/* Mastery is derived from FSRS stability — 21-day stability ≈ 100%. */}
+        <span className="font-mono text-sm text-muted">{masteryPercent(item.stability)}%</span>
       </div>
       <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted">
         {item.definitionVi ?? item.definitionEn}
       </p>
       <ProgressMeter
-        value={item.score}
+        value={masteryPercent(item.stability)}
         max={100}
         label={`${item.headword} mastery`}
-        tone={item.score >= 80 ? "success" : "accent"}
+        tone={masteryPercent(item.stability) >= 80 ? "success" : "accent"}
         className="mt-3"
       />
     </li>
@@ -219,6 +220,18 @@ function SearchHistoryList({
       ))}
     </ul>
   );
+}
+
+/**
+ * Mastery percent surfaced to students — derived from FSRS stability.
+ * 0 days → 0%; ≥ 21 days (the long-term threshold) → 100%. Linear in
+ * between. Read-only convenience for the LearningItemRow + dashboard
+ * gauges; never feeds the scheduler.
+ */
+function masteryPercent(stability: number): number {
+  if (!Number.isFinite(stability) || stability <= 0) return 0;
+  const ratio = stability / 21;
+  return Math.round(Math.max(0, Math.min(1, ratio)) * 100);
 }
 
 function statusLabel(status: DictionaryLearningItemView["status"]): string {

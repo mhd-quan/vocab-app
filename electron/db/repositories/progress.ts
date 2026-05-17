@@ -2,6 +2,7 @@ import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lte, or, sql } fro
 import {
   type LearningEventKind,
   type PracticeMode,
+  appSettings,
   contentItems,
   itemProgress,
   learningEvents,
@@ -20,9 +21,41 @@ import type {
 } from "../../../src/data/types";
 import type { GradeOutcome } from "../../../src/modules/exercises";
 import { evaluateAchievements } from "../../../src/modules/rewards";
-import { applyAnswer, qualityFromOutcome } from "../../../src/modules/srs";
-import type { AppDatabase } from "../client";
+import { fsrs } from "../../../src/modules/srs";
+import type { AppDatabase, AppTransaction } from "../client";
 import { _internal as rewardsInternal } from "./rewards";
+
+const FSRS_SHORT_TERM_KEY = "fsrs_short_term_days";
+const FSRS_LONG_TERM_KEY = "fsrs_long_term_days";
+
+/**
+ * Read tutor-tunable FSRS thresholds out of `app_settings`. Returns the
+ * library defaults if either value is missing or malformed — we never
+ * fail a review write just because settings haven't been seeded.
+ */
+function loadFsrsThresholds(tx: AppTransaction): fsrs.FsrsThresholds {
+  const rows = tx
+    .select({ key: appSettings.key, value: appSettings.value })
+    .from(appSettings)
+    .where(inArray(appSettings.key, [FSRS_SHORT_TERM_KEY, FSRS_LONG_TERM_KEY]))
+    .all();
+  const lookup = new Map(rows.map((row) => [row.key, row.value]));
+  const shortTerm = numericSetting(lookup.get(FSRS_SHORT_TERM_KEY));
+  const longTerm = numericSetting(lookup.get(FSRS_LONG_TERM_KEY));
+  return {
+    shortTermDays: shortTerm ?? fsrs.DEFAULT_THRESHOLDS.shortTermDays,
+    longTermDays: longTerm ?? fsrs.DEFAULT_THRESHOLDS.longTermDays,
+  };
+}
+
+function numericSetting(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  }
+  return null;
+}
 
 export interface StartSessionInput {
   studentId: number;
@@ -188,29 +221,37 @@ export function createProgressRepository(db: AppDatabase) {
         )
         .get();
 
-      const quality = qualityFromOutcome(input.outcome);
-      const next = applyAnswer({
+      const thresholds = loadFsrsThresholds(tx);
+      const rating = fsrs.ratingFromOutcome(input.outcome);
+      const next = fsrs.applyAnswer({
         prev: prevRow
           ? {
-              ease: prevRow.ease ?? 250,
-              intervalDays: prevRow.intervalDays ?? 0,
-              repetitions: prevRow.streak,
+              stability: prevRow.stability,
+              difficulty: prevRow.difficulty,
+              state: prevRow.state,
+              reps: prevRow.reps,
+              lapses: prevRow.lapses,
             }
           : null,
-        quality,
+        rating,
         now,
+        thresholds,
       });
 
       const progressValues = {
         studentId: input.studentId,
         contentItemId: itemRow.id,
-        lastSeenAt: next.lastSeenAt,
-        nextDueAt: next.nextDueAt,
-        ease: next.ease,
-        intervalDays: next.intervalDays,
-        streak: next.repetitions,
+        track: prevRow?.track ?? ("curated" as const),
+        stability: next.stability,
+        difficulty: next.difficulty,
+        state: next.state,
+        reps: next.reps,
+        lapses: next.lapses,
+        lastSeenAt: next.lastReviewedAt,
+        nextDueAt: next.dueAt,
         totalCorrect: (prevRow?.totalCorrect ?? 0) + (input.outcome.correct ? 1 : 0),
         totalWrong: (prevRow?.totalWrong ?? 0) + (input.outcome.correct ? 0 : 1),
+        currentStageKind: prevRow?.currentStageKind ?? null,
         updatedAt: now,
       };
 
@@ -220,11 +261,13 @@ export function createProgressRepository(db: AppDatabase) {
         .onConflictDoUpdate({
           target: [itemProgress.studentId, itemProgress.contentItemId],
           set: {
+            stability: progressValues.stability,
+            difficulty: progressValues.difficulty,
+            state: progressValues.state,
+            reps: progressValues.reps,
+            lapses: progressValues.lapses,
             lastSeenAt: progressValues.lastSeenAt,
             nextDueAt: progressValues.nextDueAt,
-            ease: progressValues.ease,
-            intervalDays: progressValues.intervalDays,
-            streak: progressValues.streak,
             totalCorrect: progressValues.totalCorrect,
             totalWrong: progressValues.totalWrong,
             updatedAt: progressValues.updatedAt,

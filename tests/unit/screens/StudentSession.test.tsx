@@ -1,5 +1,6 @@
 import type { Lesson } from "@/data/types";
 import { queryKeys } from "@/lib/queryClient";
+import { DisplayPreferencesProvider } from "@/providers/DisplayPreferencesProvider";
 import { StudentSession } from "@/ui/screens/student/Session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
@@ -89,9 +90,14 @@ function renderSession(client?: QueryClient) {
     new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
+  // StudentSession reads `pronunciationAutoplay` via DisplayPreferencesProvider
+  // (Phase 7b). Wrap so the hook resolves; the provider's settings reads go
+  // through the global api mock in tests/setup.ts.
   return render(
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <DisplayPreferencesProvider>
+        <RouterProvider router={router} />
+      </DisplayPreferencesProvider>
     </QueryClientProvider>,
   );
 }

@@ -95,8 +95,11 @@ describe("ProgressRepository", () => {
 
       expect(result.event.kind).toBe("answered_correct");
       expect(result.progress.totalCorrect).toBe(1);
-      expect(result.progress.streak).toBe(1);
-      expect(result.progress.intervalDays).toBe(1);
+      // FSRS-lite: first "good" rating seeds stability=1 day, state=short_term
+      // (with default shortTermDays=1). reps increments to 1.
+      expect(result.progress.reps).toBe(1);
+      expect(result.progress.state).toBe("short_term");
+      expect(result.progress.stability).toBe(1);
       expect(result.progress.nextDueAt?.getTime()).toBe(T0.getTime() + DAY_MS);
     });
 
@@ -122,7 +125,10 @@ describe("ProgressRepository", () => {
         outcome: wrong(),
         now: new Date(T0.getTime() + DAY_MS),
       });
-      expect(after.progress.streak).toBe(0);
+      // FSRS-lite lapse path: reps resets to 0, lapses ticks up.
+      expect(after.progress.reps).toBe(0);
+      expect(after.progress.lapses).toBe(1);
+      expect(after.progress.state).toBe("learning");
       expect(after.progress.totalCorrect).toBe(1);
       expect(after.progress.totalWrong).toBe(1);
     });

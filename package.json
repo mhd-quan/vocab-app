@@ -1,6 +1,6 @@
 {
   "name": "vocab-app",
-  "version": "0.8.1",
+  "version": "0.10.0",
   "description": "Interactive vocabulary & grammar tutoring platform for Destination B1/B2",
   "main": ".vite/build/main.js",
   "private": true,
@@ -28,6 +28,7 @@
     "import:dry-run": "VOCAB_DB_PATH=\"$HOME/Library/Application Support/vocab-app/vocab.dev.db\" ELECTRON_RUN_AS_NODE=1 electron --import tsx scripts/import-content.ts --dry-run"
   },
   "dependencies": {
+    "@material/web": "^2.4.0",
     "@tanstack/react-query": "^5.62.16",
     "@tanstack/react-router": "^1.95.1",
     "better-sqlite3": "^11.7.0",

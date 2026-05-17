@@ -1,7 +1,8 @@
 import { sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { students } from "./learner";
 import { practiceSessions } from "./progress";
+import type { FsrsScheduleState } from "./srs";
 import type { CefrLevel, PartOfSpeech } from "./vocabulary";
 
 export const dictionaryLearningStages = [
@@ -40,6 +41,16 @@ export const dictionarySearchEvents = sqliteTable(
   }),
 );
 
+/**
+ * Personal dictionary items — entry metadata + per-(student, dict_key)
+ * FSRS-lite scheduling state. v0.10 migration 0005 drops the legacy
+ * SM-2-flavored columns (correct_in_cycle, short_term_correct, score)
+ * and adds the FSRS triple (stability / difficulty / state) plus reps
+ * + lapses. `status` and `stage` remain on the row as UI hints that the
+ * repository computes from the FSRS output + a deterministic kind
+ * rotation, so the existing DictionaryLearningSession dispatcher keeps
+ * working unchanged.
+ */
 export const dictionaryLearningItems = sqliteTable(
   "dictionary_learning_items",
   {
@@ -57,13 +68,19 @@ export const dictionaryLearningItems = sqliteTable(
     exampleText: text("example_text"),
     exampleTranslation: text("example_translation"),
     audioRef: text("audio_ref"),
+    /** UI grouping label, computed from FSRS state at write time. */
     status: text("status").$type<DictionaryLearningStatus>().notNull().default("learning"),
+    /** UI dispatch hint — which exercise kind to render on next pickup. */
     stage: text("stage").$type<DictionaryLearningStage>().notNull().default("flashcard"),
-    correctInCycle: integer("correct_in_cycle").notNull().default(0),
-    shortTermCorrect: integer("short_term_correct").notNull().default(0),
+    /* ---------------- FSRS-lite scheduling state (v0.10+) ---------------- */
+    stability: real("stability").notNull().default(0),
+    difficulty: real("difficulty").notNull().default(5),
+    state: text("state").$type<FsrsScheduleState>().notNull().default("new"),
+    reps: integer("reps").notNull().default(0),
+    lapses: integer("lapses").notNull().default(0),
+    /* ---------------- Lifetime tallies + timestamps ---------------- */
     totalCorrect: integer("total_correct").notNull().default(0),
     totalWrong: integer("total_wrong").notNull().default(0),
-    score: integer("score").notNull().default(0),
     lastReviewedAt: integer("last_reviewed_at", { mode: "timestamp_ms" }),
     nextDueAt: integer("next_due_at", { mode: "timestamp_ms" }),
     createdAt: integer("created_at", { mode: "timestamp_ms" })

@@ -1,17 +1,23 @@
 import type { VocabEntryFull } from "../../../electron/db/repositories/vocab";
+import { audioRecallPlugin } from "./audioRecall";
+import { definitionMatchPlugin } from "./definitionMatch";
 import { flashcardPlugin } from "./flashcard";
+import { createLazyDeck } from "./lazyDeck";
 import { multipleChoicePlugin } from "./multipleChoice";
-import { rngFromSeed, shuffle } from "./random";
+import { sentenceRebuildPlugin } from "./sentenceRebuild";
 import type {
   Answer,
   AnyExercisePlugin,
-  BuildContext,
   BuildSkipReason,
   DefinitionPriority,
   Exercise,
   ExerciseKind,
   GradeOutcome,
 } from "./types";
+
+// Re-export the lazy API so callers have one import surface (`engine.ts`).
+export { createLazyDeck } from "./lazyDeck";
+export type { LazyDeck, LazyBuildOptions, SkipRecord } from "./lazyDeck";
 
 /**
  * Plugin registry. Adding a new exercise kind = drop a new plugin file
@@ -24,6 +30,9 @@ import type {
 const PLUGINS: Record<ExerciseKind, AnyExercisePlugin> = {
   flashcard: flashcardPlugin as unknown as AnyExercisePlugin,
   multiple_choice: multipleChoicePlugin as unknown as AnyExercisePlugin,
+  audio_recall: audioRecallPlugin as unknown as AnyExercisePlugin,
+  definition_match: definitionMatchPlugin as unknown as AnyExercisePlugin,
+  sentence_rebuild: sentenceRebuildPlugin as unknown as AnyExercisePlugin,
 };
 
 export function getPlugin(kind: ExerciseKind): AnyExercisePlugin {
@@ -64,74 +73,24 @@ export interface BuildDeckResult {
 /**
  * Generate an exercise deck deterministically from a seed.
  *
- * Strategy: for each entry, ask each requested plugin to build an
- * exercise. Collect the successes, shuffle with the seeded RNG so adjacent
- * items aren't always the same kind, and trim to `maxExercises`.
- *
- * When `requireFlashcardForNew` is enabled, entries missing from
- * `seenEntryIds` are put through a flashcard-only intro phase. This
- * keeps a brand-new word's first contact explanatory before the student
- * sees recall/recognition drills.
+ * Eager wrapper around `createLazyDeck` — keeps a single source of truth
+ * for intro-gating, deterministic shuffles, and the kind-diversity pass.
+ * Callers that want streaming construction should import `createLazyDeck`
+ * directly and use `peek` / `prefetch`.
  */
 export function buildDeck(opts: BuildDeckOptions): BuildDeckResult {
-  const rng = rngFromSeed(opts.sessionSeed);
-  const distractorPool = opts.entries.map((e) => e.headword);
-  const seenEntryIds = new Set(opts.seenEntryIds ?? []);
-  const shouldGateNewEntries = opts.requireFlashcardForNew === true;
-
-  const introExercises: Exercise[] = [];
-  const reviewExercises: Exercise[] = [];
-  const skipped: BuildDeckResult["skipped"] = [];
-
-  const buildForKind = (entry: VocabEntryFull, kind: ExerciseKind): Exercise | null => {
-    const plugin = getPlugin(kind);
-    const ctx: BuildContext = {
-      distractorPool,
-      definitionPriority: opts.definitionPriority ?? "en_first",
-      rng,
-      sessionSeed: opts.sessionSeed,
-    };
-    return plugin.build(entry, ctx);
-  };
-
-  for (const entry of opts.entries) {
-    const isNewEntry = shouldGateNewEntries && !seenEntryIds.has(entry.id);
-    if (isNewEntry) {
-      const flashcard = buildForKind(entry, "flashcard");
-      if (flashcard) {
-        introExercises.push(flashcard);
-      } else {
-        skipped.push({ entryId: entry.id, kind: "flashcard", reason: "build_returned_null" });
-      }
-
-      for (const kind of opts.kinds) {
-        if (kind !== "flashcard") {
-          skipped.push({ entryId: entry.id, kind, reason: "requires_flashcard_first" });
-        }
-      }
-      continue;
-    }
-
-    for (const kind of opts.kinds) {
-      const exercise = buildForKind(entry, kind);
-      if (exercise) {
-        reviewExercises.push(exercise);
-      } else {
-        skipped.push({ entryId: entry.id, kind, reason: "build_returned_null" });
-      }
-    }
-  }
-
-  const ordered =
-    opts.shuffle === false
-      ? [...introExercises, ...reviewExercises]
-      : [...shuffle(introExercises, rng), ...shuffle(reviewExercises, rng)];
-  const trimmed =
-    typeof opts.maxExercises === "number" && opts.maxExercises >= 0
-      ? ordered.slice(0, opts.maxExercises)
-      : ordered;
-
-  return { exercises: trimmed, skipped };
+  const lazy = createLazyDeck({
+    entries: opts.entries,
+    kinds: opts.kinds,
+    sessionSeed: opts.sessionSeed,
+    getPlugin,
+    definitionPriority: opts.definitionPriority,
+    shuffle: opts.shuffle,
+    seenEntryIds: opts.seenEntryIds,
+    requireFlashcardForNew: opts.requireFlashcardForNew,
+    maxExercises: opts.maxExercises,
+  });
+  return lazy.materialize();
 }
 
 /**

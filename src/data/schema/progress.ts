@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { contentItems } from "./content";
 import { students } from "./learner";
 
@@ -48,9 +48,10 @@ export const learningEventKinds = [
 export type LearningEventKind = (typeof learningEventKinds)[number];
 
 /**
- * Append-only event log. All progress metrics (streak, ease, mastery) are
- * derivable from this table, so changing SRS algorithm later won't corrupt
- * historical data.
+ * Append-only event log. All progress metrics (state, stability, mastery) are
+ * derivable from this table, so changing the SRS algorithm doesn't corrupt
+ * historical data. v0.10 migrated from SM-2 → FSRS-lite (see `./srs.ts`)
+ * without touching this table.
  */
 export const learningEvents = sqliteTable(
   "learning_events",
@@ -78,31 +79,14 @@ export const learningEvents = sqliteTable(
 );
 
 /**
- * Materialized snapshot of per-item progress. Always rebuildable from
- * learning_events, so we never block on it for correctness.
+ * `itemProgress` now points at the FSRS-lite v2 table. Re-exported here
+ * so all the existing repo / analytics code that imports `itemProgress`
+ * by name keeps compiling. The legacy SM-2 columns (`ease`,
+ * `interval_days`, `streak`) are gone; new code reads `stability`,
+ * `difficulty`, `state`, `reps`, `lapses` instead. Reads that only
+ * touched `next_due_at`, `last_seen_at`, `total_correct`, `total_wrong`
+ * keep working unchanged.
  */
-export const itemProgress = sqliteTable(
-  "item_progress",
-  {
-    studentId: integer("student_id")
-      .notNull()
-      .references(() => students.id, { onDelete: "cascade" }),
-    contentItemId: integer("content_item_id")
-      .notNull()
-      .references(() => contentItems.id, { onDelete: "cascade" }),
-    lastSeenAt: integer("last_seen_at", { mode: "timestamp_ms" }),
-    nextDueAt: integer("next_due_at", { mode: "timestamp_ms" }),
-    ease: integer("ease"),
-    intervalDays: integer("interval_days"),
-    streak: integer("streak").notNull().default(0),
-    totalCorrect: integer("total_correct").notNull().default(0),
-    totalWrong: integer("total_wrong").notNull().default(0),
-    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
-      .notNull()
-      .default(sql`(unixepoch() * 1000)`),
-  },
-  (t) => ({
-    pk: primaryKey({ columns: [t.studentId, t.contentItemId] }),
-    nextDueIdx: index("item_progress_next_due_idx").on(t.studentId, t.nextDueAt),
-  }),
-);
+export { itemProgressV2 as itemProgress, itemProgressV1Archive } from "./srs";
+export type { FsrsScheduleState, SrsTrack } from "./srs";
+export { fsrsStates, srsTracks } from "./srs";

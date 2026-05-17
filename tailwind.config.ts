@@ -52,12 +52,17 @@ const config: Config = {
         mono: ["JetBrains Mono", "ui-monospace", "Menlo", "monospace"],
       },
       borderRadius: {
-        bento: "1.375rem",
+        bento: "var(--radius-bento)",
+        pill: "var(--radius-pill)",
+        chip: "var(--radius-chip)",
+        button: "var(--radius-button)",
       },
       boxShadow: {
-        card: "0 18px 45px rgb(15 23 42 / 0.08)",
+        card: "var(--shadow-card)",
         "card-dark": "0 18px 45px rgb(0 0 0 / 0.24)",
-        lift: "0 12px 30px rgb(15 23 42 / 0.12)",
+        lift: "var(--shadow-lift)",
+        press: "var(--shadow-press)",
+        "press-active": "var(--shadow-press-active)",
       },
       maxWidth: {
         "screen-3xl": "1920px",

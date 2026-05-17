@@ -1,4 +1,4 @@
 export { AchievementIcon } from "./AchievementIcon";
-export { ConfettiBurst } from "./Confetti";
-export { RewardToast } from "./RewardToast";
+export { ConfettiBurst, type ConfettiBurstProps } from "./Confetti";
+export { RewardToast, type RewardToastProps } from "./RewardToast";
 export { useChime } from "./useChime";

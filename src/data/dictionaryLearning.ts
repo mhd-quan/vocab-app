@@ -18,13 +18,18 @@ export interface DictionaryLearningItemView {
   exampleText: string | null;
   exampleTranslation: string | null;
   audioRef: string | null;
+  /** UI grouping label derived from FSRS state. */
   status: DictionaryLearningStatus;
+  /** Next exercise kind the dispatcher should render. */
   stage: DictionaryLearningStage;
-  correctInCycle: number;
-  shortTermCorrect: number;
+  /* ----- FSRS-lite scheduling state, surfaced for tutor diagnostics ----- */
+  stability: number;
+  difficulty: number;
+  reps: number;
+  lapses: number;
+  /* ----- Lifetime tallies + timestamps ----- */
   totalCorrect: number;
   totalWrong: number;
-  score: number;
   lastReviewedAt: Date | null;
   nextDueAt: Date | null;
   updatedAt: Date;

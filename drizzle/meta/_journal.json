@@ -29,6 +29,20 @@
       "when": 1778864957302,
       "tag": "0003_fair_hawkeye",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1779000000000,
+      "tag": "0004_lexicon_v0_10_fsrs",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1779100000000,
+      "tag": "0005_personal_dict_fsrs",
+      "breakpoints": true
     }
   ]
 }

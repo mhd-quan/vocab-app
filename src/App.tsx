@@ -1,6 +1,7 @@
 import { queryClient } from "@/lib/queryClient";
 import { AppModeProvider } from "@/providers/AppModeProvider";
 import { DisplayPreferencesProvider } from "@/providers/DisplayPreferencesProvider";
+import { RoleStyleProvider } from "@/providers/RoleStyleProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { AppRoot } from "@/ui/shell/AppRoot";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -11,7 +12,9 @@ export function App() {
       <ThemeProvider>
         <DisplayPreferencesProvider>
           <AppModeProvider>
-            <AppRoot />
+            <RoleStyleProvider>
+              <AppRoot />
+            </RoleStyleProvider>
           </AppModeProvider>
         </DisplayPreferencesProvider>
       </ThemeProvider>

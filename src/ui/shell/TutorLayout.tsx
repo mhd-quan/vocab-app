@@ -2,6 +2,8 @@ import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryClient";
 import { useAppMode } from "@/providers/AppModeProvider";
 import { Button } from "@/ui/components/Button";
+import { SrsArchiveBanner } from "@/ui/components/SrsArchiveBanner";
+import { MaterialBoot } from "@/ui/tutor/MaterialBoot";
 import { useQuery } from "@tanstack/react-query";
 import { Outlet } from "@tanstack/react-router";
 import { Sidebar, type SidebarItem } from "./Sidebar";
@@ -43,43 +45,48 @@ export function TutorLayout() {
     : ITEMS;
 
   return (
-    <div className="flex h-screen w-screen bg-app">
-      <Sidebar
-        topInset={isMac}
-        brand={
-          <div className="flex flex-col gap-1">
-            <span className="text-xs font-semibold uppercase text-muted">Tutor</span>
-            <span className="text-lg font-semibold">Vocab App</span>
-            <span className="font-mono text-[11px] text-muted-2">v0.8.1</span>
+    <MaterialBoot>
+      <div className="flex h-screen w-screen bg-app">
+        <Sidebar
+          topInset={isMac}
+          brand={
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-semibold uppercase text-muted">Tutor</span>
+              <span className="text-lg font-semibold">Vocab App</span>
+              <span className="font-mono text-[11px] text-muted-2">v0.10.0</span>
+            </div>
+          }
+          items={items}
+          footer={
+            <div className="flex flex-col gap-1.5">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start text-muted hover:text-app"
+                onClick={switchToStudent}
+              >
+                <StudentModeIcon className="h-[22px] w-[22px]" />
+                <span>Student practice</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start text-muted hover:text-app"
+                onClick={lock}
+              >
+                <LockIcon className="h-[22px] w-[22px]" />
+                <span>Lock</span>
+              </Button>
+            </div>
+          }
+        />
+        <main className="flex-1 overflow-y-auto">
+          <div className="px-6 pt-4">
+            <SrsArchiveBanner />
           </div>
-        }
-        items={items}
-        footer={
-          <div className="flex flex-col gap-1.5">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start text-muted hover:text-app"
-              onClick={switchToStudent}
-            >
-              <StudentModeIcon className="h-[22px] w-[22px]" />
-              <span>Student practice</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start text-muted hover:text-app"
-              onClick={lock}
-            >
-              <LockIcon className="h-[22px] w-[22px]" />
-              <span>Lock</span>
-            </Button>
-          </div>
-        }
-      />
-      <main className="flex-1 overflow-y-auto">
-        <Outlet />
-      </main>
-    </div>
+          <Outlet />
+        </main>
+      </div>
+    </MaterialBoot>
   );
 }

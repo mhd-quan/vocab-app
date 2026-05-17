@@ -3,6 +3,8 @@ import { type FlashcardExercise, type SelfGrade, selfGrades } from "@/modules/ex
 import { Badge } from "@/ui/components/Badge";
 import { Button } from "@/ui/components/Button";
 import { ClozeText } from "@/ui/components/ClozeText";
+import { PronunciationControls } from "@/ui/components/PronunciationControls";
+import { PressButton } from "@/ui/student/components/PressButton";
 import { useEffect, useState } from "react";
 
 const GRADE_LABELS: Record<
@@ -25,6 +27,8 @@ const GRADE_KEY_MAP: Record<string, SelfGrade> = {
 export interface FlashcardCardProps {
   exercise: FlashcardExercise;
   onAnswer: (grade: SelfGrade) => void;
+  /** Auto-play the headword pronunciation on mount. Defaults to true. */
+  autoplay?: boolean;
 }
 
 /**
@@ -33,7 +37,7 @@ export interface FlashcardCardProps {
  * `key={exercise.id}`). That keeps the component stateful and side-effect
  * free at the same time.
  */
-export function FlashcardCard({ exercise, onAnswer }: FlashcardCardProps) {
+export function FlashcardCard({ exercise, onAnswer, autoplay = true }: FlashcardCardProps) {
   const [revealed, setRevealed] = useState(false);
 
   // Keyboard: Space/Enter to flip; 1-4 to grade once revealed.
@@ -85,13 +89,24 @@ export function FlashcardCard({ exercise, onAnswer }: FlashcardCardProps) {
           <span className="font-mono text-base">{front.pos}</span>
           {front.ipa ? <span className="font-mono text-base">{front.ipa}</span> : null}
         </div>
+        {front.audioRef ? (
+          <PronunciationControls
+            audioRefs={[{ ref: front.audioRef, label: "🔊 Listen", accent: "other" }]}
+            // autoPlayKey gates autoplay: the same exercise.id only fires
+            // once, and we suppress entirely when the tutor turned the
+            // pronunciation_autoplay setting off.
+            autoPlayKey={autoplay ? exercise.id : null}
+            size="sm"
+            className="justify-center"
+          />
+        ) : null}
       </div>
 
       {!revealed ? (
         <div className="flex justify-center">
-          <Button size="lg" onClick={() => setRevealed(true)} aria-label="Reveal answer">
+          <PressButton size="lg" onClick={() => setRevealed(true)} aria-label="Reveal answer">
             Reveal &nbsp; <span className="font-mono text-[10px] text-accent-fg/70">space</span>
-          </Button>
+          </PressButton>
         </div>
       ) : (
         <FlashcardBack back={back} onAnswer={onAnswer} />
@@ -153,11 +168,19 @@ function FlashcardBack({
               variant="secondary"
               onClick={() => onAnswer(grade)}
               className={cn(
-                "py-4 text-base font-semibold",
-                meta.tone === "danger" && "border-danger/50 text-danger hover:bg-danger/10",
-                meta.tone === "warning" && "border-warning/50 text-warning hover:bg-warning/10",
-                meta.tone === "success" && "border-success/50 text-success hover:bg-success/10",
-                meta.tone === "accent" && "border-accent/50 text-accent hover:bg-accent/10",
+                // Duolingo-style grade chip — 2px coloured border + the
+                // press-bounce shadow stack collapses on tap. Tone colour
+                // gives each grade a strong identity.
+                "press-bounce min-h-14 rounded-button border-2 py-4 text-base font-semibold uppercase tracking-wide",
+                "hover:translate-y-0 active:translate-y-[3px]",
+                meta.tone === "danger" &&
+                  "border-danger bg-danger/5 text-danger hover:bg-danger/15",
+                meta.tone === "warning" &&
+                  "border-warning bg-warning/5 text-warning hover:bg-warning/15",
+                meta.tone === "success" &&
+                  "border-success bg-success/5 text-success hover:bg-success/15",
+                meta.tone === "accent" &&
+                  "border-accent bg-accent/5 text-accent hover:bg-accent/15",
               )}
             >
               {meta.label}
