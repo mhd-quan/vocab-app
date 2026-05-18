@@ -305,6 +305,12 @@ Object.defineProperty(window, "api", {
         encrypted: false,
         sha256: "",
       }),
+      importStudentData: async () => ({
+        canceled: true,
+        imported: false,
+        studentId: null,
+        stats: null,
+      }),
     },
     rewards: {
       listUnlocked: async () => [],

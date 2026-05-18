@@ -2,7 +2,7 @@ import type { Book, Lesson, Unit } from "@/data/types";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
-import { getAchievement } from "@/modules/rewards";
+import { getAchievement, summarizeStudentProgress } from "@/modules/rewards";
 import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
@@ -98,7 +98,11 @@ export function StudentHome() {
           <MascotIcon mood="cheering" className="hidden h-24 w-24 shrink-0 text-success sm:block" />
         </BentoCard>
         {summaryQ.data ? (
-          <SummaryStats summary={summaryQ.data} streak={streakQ.data?.currentStreak ?? 0} />
+          <SummaryStats
+            summary={summaryQ.data}
+            streak={streakQ.data?.currentStreak ?? 0}
+            practicedToday={streakQ.data?.practicedToday ?? false}
+          />
         ) : (
           <BentoCard className="flex items-center justify-center text-sm text-muted">
             Loading progress...
@@ -204,13 +208,47 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 function SummaryStats({
   summary,
   streak,
+  practicedToday,
 }: {
-  summary: { totalSeen: number; totalDue: number; accuracy: number };
+  summary: {
+    totalSeen: number;
+    totalDue: number;
+    totalCorrect: number;
+    totalWrong: number;
+    accuracy: number;
+  };
   streak: number;
+  practicedToday: boolean;
 }) {
-  const accuracyPct = Math.round(summary.accuracy * 100);
+  const progress = summarizeStudentProgress({
+    totalSeen: summary.totalSeen,
+    totalCorrect: summary.totalCorrect,
+    totalWrong: summary.totalWrong,
+    accuracy: summary.accuracy,
+    streakDays: streak,
+    practicedToday,
+  });
   return (
     <dl className="grid grid-cols-2 gap-3">
+      <BentoCard as="div" tone="xp" className="col-span-2 p-4" interactive>
+        <dt className="flex items-center justify-between gap-3">
+          <span className="text-xs font-semibold uppercase text-muted-2">Learning summary</span>
+          <Badge tone="xp" uppercase>
+            {progress.xp} XP
+          </Badge>
+        </dt>
+        <dd className="mt-3">
+          <p className="font-display text-xl font-semibold text-app">{progress.headline}</p>
+          <p className="mt-1 text-sm leading-6 text-muted">{progress.note}</p>
+        </dd>
+      </BentoCard>
+      <BentoCard as="div" tone="sky" className="p-4" interactive>
+        <dt className="flex items-center justify-between gap-2 text-xs font-semibold uppercase text-muted-2">
+          <span>Studied</span>
+          <SeenIcon className="h-7 w-7 text-sky" />
+        </dt>
+        <dd className="mt-2 font-mono text-2xl text-app">{progress.wordsLabel}</dd>
+      </BentoCard>
       <BentoCard as="div" tone={streak > 0 ? "ember" : "neutral"} className="p-4" interactive>
         <dt className="flex items-center justify-between gap-2 text-xs font-semibold uppercase text-muted-2">
           <span>Streak</span>
@@ -219,13 +257,6 @@ function SummaryStats({
         <dd className="mt-2 flex items-center gap-2 font-mono text-2xl text-app">
           {streak > 0 ? `${streak}d` : "0d"}
         </dd>
-      </BentoCard>
-      <BentoCard as="div" tone="sky" className="p-4" interactive>
-        <dt className="flex items-center justify-between gap-2 text-xs font-semibold uppercase text-muted-2">
-          <span>Seen</span>
-          <SeenIcon className="h-7 w-7 text-sky" />
-        </dt>
-        <dd className="mt-2 font-mono text-2xl text-app">{summary.totalSeen}</dd>
       </BentoCard>
       <BentoCard
         as="div"
@@ -239,17 +270,22 @@ function SummaryStats({
         </dt>
         <dd className="mt-2 font-mono text-2xl text-app">{summary.totalDue}</dd>
       </BentoCard>
-      <BentoCard as="div" tone={accuracyPct >= 80 ? "success" : "rare"} className="p-4" interactive>
+      <BentoCard
+        as="div"
+        tone={progress.accuracyPct >= 80 ? "success" : "rare"}
+        className="p-4"
+        interactive
+      >
         <dt className="flex items-center justify-between gap-2 text-xs font-semibold uppercase text-muted-2">
           <span>Accuracy</span>
           <AccuracyIcon className="h-7 w-7 text-rare" />
         </dt>
-        <dd className="mt-2 font-mono text-2xl text-app">{accuracyPct}%</dd>
+        <dd className="mt-2 font-mono text-2xl text-app">{progress.accuracyPct}%</dd>
         <ProgressMeter
-          value={accuracyPct}
+          value={progress.accuracyPct}
           max={100}
           label="Accuracy progress"
-          tone={accuracyPct >= 80 ? "success" : "rare"}
+          tone={progress.accuracyPct >= 80 ? "success" : "rare"}
           className="mt-3"
         />
       </BentoCard>

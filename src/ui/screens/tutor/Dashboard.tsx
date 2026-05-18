@@ -4,9 +4,11 @@ import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { PageHeader } from "@/ui/components/PageHeader";
+import { ContentIcon, DashboardIcon, StudentModeIcon, StudentsIcon } from "@/ui/shell/icons";
 import { TutorDataTable, TutorMetricCard } from "@/ui/tutor/components/Material";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import type React from "react";
 
 /**
  * Tutor overview: a few corpus stats up top, then a per-student
@@ -50,35 +52,40 @@ export function TutorDashboard() {
           value={booksQ.isLoading ? "…" : String(books.length)}
           hint={books.length === 0 ? "Run npm run import" : "imported"}
           to="/tutor/content"
+          icon={<ContentIcon />}
         />
         <Stat
           label="Units"
           value={totalUnits === null ? "…" : String(totalUnits)}
           hint="across all books"
           to="/tutor/content"
+          icon={<DashboardIcon />}
         />
         <Stat
           label="Students"
           value={studentsQ.isLoading ? "…" : String(students.length)}
           hint="active profiles"
           to="/tutor/students"
+          icon={<StudentsIcon />}
         />
         <Stat
           label="Sessions"
           value={overviewQ.data ? String(sumPracticed(overviewQ.data)) : "…"}
           hint="have practised"
+          icon={<StudentModeIcon />}
         />
         <Stat
           label="Review flags"
           value={evidenceQ.data ? String(sumReviewFlags(evidenceQ.data)) : "…"}
           hint="attention signals"
+          icon={<DashboardIcon />}
         />
       </section>
 
       <section className="px-8 pb-10">
         <header className="mb-3 flex items-baseline justify-between">
-          <h2 className="text-sm font-semibold uppercase text-muted">Students</h2>
-          <Link to="/tutor/students" className="text-xs text-muted hover:text-app">
+          <h2 className="text-xs font-semibold uppercase text-muted-2">Students</h2>
+          <Link to="/tutor/students" className="text-xs font-semibold text-muted hover:text-app">
             Manage
           </Link>
         </header>
@@ -124,7 +131,7 @@ function StudentTable({
   return (
     <TutorDataTable>
       <table className="w-full text-left text-sm">
-        <thead className="border-b border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] text-xs uppercase text-muted-2">
+        <thead className="border-b border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] text-[11px] uppercase text-muted-2">
           <tr>
             <th className="px-4 py-2 font-medium">Student</th>
             <th className="px-4 py-2 font-medium">Seen</th>
@@ -247,17 +254,20 @@ function Stat({
   value,
   hint,
   to,
+  icon,
 }: {
   label: string;
   value: string;
   hint?: string;
   to?: string;
+  icon?: React.ReactNode;
 }) {
   const card = (
     <TutorMetricCard
       label={label}
       value={value}
       hint={hint}
+      icon={icon}
       tone={label === "Sessions" ? "success" : label === "Students" ? "secondary" : "primary"}
       className={to ? "hover:-translate-y-1 hover:shadow-lift" : undefined}
     />

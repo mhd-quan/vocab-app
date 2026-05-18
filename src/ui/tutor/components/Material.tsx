@@ -30,10 +30,10 @@ export function TutorNavigationRail({ brand, items, footer, topInset }: TutorNav
   const currentPath = location.pathname;
 
   return (
-    <aside className="flex h-full w-[var(--tutor-nav-width)] shrink-0 flex-col border-r border-border-subtle bg-[color:var(--md-sys-color-surface-container)] shadow-[var(--md-sys-elevation-1)]">
+    <aside className="flex h-full w-[var(--tutor-nav-width)] shrink-0 flex-col border-r border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)] shadow-[var(--md-sys-elevation-1)]">
       {topInset ? <div className="h-10 w-full shrink-0 [-webkit-app-region:drag]" /> : null}
       <div className={cn("px-4 pb-5", topInset ? "pt-2" : "pt-5")}>{brand}</div>
-      <nav className="flex flex-1 flex-col gap-2 px-3" aria-label="Tutor navigation">
+      <nav className="flex flex-1 flex-col gap-1.5 px-3" aria-label="Tutor navigation">
         {items.map((item) => {
           const active = currentPath === item.to || currentPath.startsWith(`${item.to}/`);
           return <TutorNavigationItem key={item.to} item={item} active={active} />;
@@ -50,24 +50,24 @@ export function TutorNavigationRail({ brand, items, footer, topInset }: TutorNav
 
 function TutorNavigationItem({ item, active }: { item: TutorNavItem; active: boolean }) {
   const className = cn(
-    "group relative flex min-h-12 items-center gap-3 overflow-hidden rounded-[var(--shape-corner-xl)] border px-3 text-sm font-semibold",
+    "group relative flex min-h-11 items-center gap-3 overflow-hidden rounded-[var(--shape-corner-lg)] border px-3 text-sm font-semibold",
     "transition-[background-color,color,box-shadow,transform] duration-200 ease-[var(--motion-emphasized)]",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-0",
     item.disabled
       ? "cursor-not-allowed text-muted-2"
       : active
         ? "border-transparent bg-[color:var(--md-sys-color-primary-container)] text-[color:var(--md-sys-color-on-primary-container)] shadow-[var(--md-sys-elevation-1)]"
-        : "border-transparent text-muted hover:border-border-subtle hover:bg-[color:var(--md-sys-color-surface-container-high)] hover:text-app active:bg-accent/[var(--state-pressed)]",
+        : "border-transparent text-muted hover:border-border-subtle hover:bg-[color:var(--md-sys-color-surface-container)] hover:text-app active:bg-accent/[var(--state-pressed)]",
   );
 
   const content = (
     <>
       <span
         className={cn(
-          "grid h-9 w-9 shrink-0 place-items-center rounded-full transition-[background-color,color,transform]",
+          "grid h-8 w-8 shrink-0 place-items-center rounded-[var(--shape-corner-md)] transition-[background-color,color,transform]",
           active
             ? "bg-[color:var(--md-sys-color-primary)] text-[color:var(--md-sys-color-on-primary)]"
-            : "bg-[color:var(--md-sys-color-surface-container-high)] text-muted group-hover:bg-[color:var(--md-sys-color-surface-container-highest)] group-hover:text-app",
+            : "bg-[color:var(--md-sys-color-surface-container)] text-muted group-hover:bg-[color:var(--md-sys-color-surface-container-high)] group-hover:text-app",
         )}
       >
         {item.icon}
@@ -95,7 +95,7 @@ function TutorNavigationItem({ item, active }: { item: TutorNavItem; active: boo
 export function TutorBrand({ version }: { version: string }) {
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-[var(--shape-corner-xl)] bg-[color:var(--md-sys-color-primary)] text-base font-black text-[color:var(--md-sys-color-on-primary)] shadow-[var(--md-sys-elevation-2)]">
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[var(--shape-corner-lg)] bg-[color:var(--md-sys-color-primary)] text-base font-black text-[color:var(--md-sys-color-on-primary)] shadow-[var(--md-sys-elevation-2)]">
         V
       </span>
       <span className="min-w-0">
@@ -167,14 +167,14 @@ export function TutorMetricCard({
   return (
     <div
       className={cn(
-        "motion-card motion-enter relative isolate flex min-h-36 flex-col justify-between overflow-hidden rounded-[var(--shape-corner-xl)] border bg-[color:var(--md-sys-color-surface-container-lowest)] p-5 shadow-card",
+        "motion-card motion-enter relative isolate flex min-h-32 flex-col justify-between overflow-hidden rounded-[var(--shape-corner-xl)] border bg-[color:var(--md-sys-color-surface-container-lowest)] p-4 shadow-card",
         metricTone(tone),
         className,
       )}
     >
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-x-5 top-0 h-1 rounded-b-full bg-current opacity-70"
+        className="pointer-events-none absolute inset-x-4 top-0 h-0.5 rounded-b-full bg-current opacity-70"
       />
       <div className="flex items-center justify-between gap-4">
         <span className="text-xs font-semibold uppercase tracking-normal text-current">
@@ -183,7 +183,7 @@ export function TutorMetricCard({
         {icon ? <span className="text-muted-2">{icon}</span> : null}
       </div>
       <div>
-        <p className="font-mono text-4xl leading-none text-app">{value}</p>
+        <p className="font-mono text-3xl leading-none text-app">{value}</p>
         {hint ? <p className="mt-2 text-xs text-muted-2">{hint}</p> : null}
       </div>
     </div>
@@ -403,7 +403,7 @@ export function TutorSwitchField({
       <span
         aria-hidden
         className={cn(
-          "relative h-8 w-[3.25rem] shrink-0 rounded-full border-2 transition-[background-color,border-color]",
+          "relative h-7 w-12 shrink-0 rounded-full border-2 transition-[background-color,border-color]",
           checked
             ? "border-accent bg-accent"
             : "border-[color:var(--md-sys-color-outline)] bg-[color:var(--md-sys-color-surface-container-highest)]",
@@ -411,8 +411,8 @@ export function TutorSwitchField({
       >
         <span
           className={cn(
-            "absolute top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full bg-[color:var(--md-sys-color-surface-container-lowest)] shadow-[var(--md-sys-elevation-1)] transition-transform",
-            checked ? "translate-x-[1.35rem]" : "translate-x-0.5",
+            "absolute top-1/2 grid h-5 w-5 -translate-y-1/2 place-items-center rounded-full bg-[color:var(--md-sys-color-surface-container-lowest)] shadow-[var(--md-sys-elevation-1)] transition-transform",
+            checked ? "translate-x-[1.32rem]" : "translate-x-0.5",
           )}
         >
           {checked ? <CheckIcon className="h-3.5 w-3.5 text-accent" /> : null}
@@ -436,7 +436,7 @@ export function TutorSegmentedControl({
   return (
     <div
       className={cn(
-        "grid gap-1 rounded-[var(--shape-corner-full)] bg-[color:var(--md-sys-color-surface-container-high)] p-1",
+        "grid gap-1 rounded-[var(--shape-corner-lg)] bg-[color:var(--md-sys-color-surface-container-high)] p-1",
         className,
       )}
       style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
@@ -449,7 +449,7 @@ export function TutorSegmentedControl({
             type="button"
             onClick={() => onChange(option.value)}
             className={cn(
-              "min-w-0 rounded-[var(--shape-corner-full)] px-3 py-2 text-left transition-[background-color,color,box-shadow]",
+              "min-w-0 rounded-[var(--shape-corner-md)] px-3 py-2 text-left transition-[background-color,color,box-shadow]",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/35",
               active
                 ? "bg-[color:var(--md-sys-color-primary-container)] text-[color:var(--md-sys-color-on-primary-container)] shadow-[var(--md-sys-elevation-1)]"
@@ -478,7 +478,7 @@ export function TutorIconButton({
     <button
       type="button"
       className={cn(
-        "inline-grid h-10 w-10 place-items-center rounded-full text-muted transition-[background-color,color,transform]",
+        "inline-grid h-9 w-9 place-items-center rounded-[var(--shape-corner-md)] text-muted transition-[background-color,color,transform]",
         "hover:bg-accent/[var(--state-hover)] hover:text-app active:scale-95",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/35",
         className,
@@ -491,7 +491,7 @@ export function TutorIconButton({
 }
 
 export const tutorFieldClassName = cn(
-  "h-12 w-full min-w-0 rounded-[var(--shape-corner-lg)] border border-border-subtle",
+  "h-11 w-full min-w-0 rounded-[var(--shape-corner-lg)] border border-border-subtle",
   "bg-[color:var(--md-sys-color-surface-container-low)] px-3.5 text-sm text-app shadow-sm",
   "transition-[background-color,border-color,box-shadow] placeholder:text-muted-2",
   "focus:border-accent focus:bg-[color:var(--md-sys-color-surface-container-lowest)] focus:outline-none focus:ring-4 focus:ring-accent/15",
