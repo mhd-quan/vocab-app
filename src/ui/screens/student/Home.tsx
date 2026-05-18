@@ -2,7 +2,7 @@ import type { Book, Lesson, Unit } from "@/data/types";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
-import { ACHIEVEMENTS, getAchievement, summarizeStudentProgress } from "@/modules/rewards";
+import { summarizeStudentProgress } from "@/modules/rewards";
 import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
@@ -15,7 +15,6 @@ import {
   StreakFlame,
 } from "@/ui/components/LearningIcons";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
-import { AchievementIcon } from "@/ui/components/rewards";
 import { MascotIcon } from "@/ui/student/components/MascotIcon";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
@@ -55,12 +54,6 @@ export function StudentHome() {
   const streakQ = useQuery({
     queryKey: queryKeys.rewards.streak(id),
     queryFn: () => api.rewards.streak({ studentId: id }),
-    enabled: Number.isFinite(id) && id > 0,
-  });
-
-  const unlockedQ = useQuery({
-    queryKey: queryKeys.rewards.listUnlocked(id),
-    queryFn: () => api.rewards.listUnlocked({ studentId: id }),
     enabled: Number.isFinite(id) && id > 0,
   });
 
@@ -110,7 +103,22 @@ export function StudentHome() {
         )}
       </header>
 
-      <AchievementsGallery ids={(unlockedQ.data ?? []).map((u) => u.achievementId)} />
+      <Link
+        to="/student/profile/$studentId/achievements"
+        params={{ studentId: String(id) }}
+        className="motion-card grid gap-3 rounded-bento border border-mastery/30 bg-mastery/10 px-5 py-4 shadow-card transition hover:-translate-y-0.5 hover:border-mastery/50 hover:shadow-lift sm:grid-cols-[1fr_auto] sm:items-center"
+      >
+        <div>
+          <Badge tone="mastery" uppercase>
+            Achievement hall
+          </Badge>
+          <h2 className="mt-2 font-display text-2xl font-semibold">Learning summary & trophies</h2>
+          <p className="mt-1 text-sm text-muted">
+            Open the dedicated trophy page to see polished badges, tiers, and next progress bars.
+          </p>
+        </div>
+        <span className="font-semibold text-mastery">View hall →</span>
+      </Link>
 
       <PersonalVocabularyCard
         studentId={id}
@@ -288,76 +296,6 @@ function SummaryStats({
         />
       </BentoCard>
     </dl>
-  );
-}
-
-function AchievementsGallery({ ids }: { ids: string[] }) {
-  const unlocked = new Set(ids);
-  const unlockedDefs = ids
-    .map((id) => getAchievement(id))
-    .filter((def): def is NonNullable<ReturnType<typeof getAchievement>> => def !== null);
-  const preview = [
-    ...unlockedDefs.slice(0, 18),
-    ...ACHIEVEMENTS.filter((def) => !unlocked.has(def.id)).slice(
-      0,
-      Math.max(0, 30 - unlockedDefs.length),
-    ),
-  ];
-
-  return (
-    <BentoCard tone="mastery" className="px-5 py-4">
-      <header className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h2 className="text-base font-semibold">Achievements</h2>
-          <p className="text-xs text-muted">
-            {ids.length} unlocked out of {ACHIEVEMENTS.length}. Keep practicing to reveal more.
-          </p>
-        </div>
-        <Badge tone="mastery" uppercase>
-          Trophy shelf
-        </Badge>
-      </header>
-      <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {preview.map((def) => (
-          <AchievementChip key={def.id} achievement={def} unlocked={unlocked.has(def.id)} />
-        ))}
-      </ul>
-    </BentoCard>
-  );
-}
-
-function AchievementChip({
-  achievement,
-  unlocked,
-}: {
-  achievement: NonNullable<ReturnType<typeof getAchievement>>;
-  unlocked: boolean;
-}) {
-  return (
-    <li
-      className={cn(
-        "flex min-h-14 items-center gap-3 rounded-xl border px-3 py-2 text-xs transition",
-        unlocked
-          ? "border-mastery/40 bg-mastery/10 text-mastery"
-          : "border-border-subtle bg-surface-0/55 text-muted grayscale",
-      )}
-      title={achievement.description}
-    >
-      <span
-        className={cn(
-          "grid h-8 w-8 shrink-0 place-items-center rounded-full border",
-          unlocked ? "border-mastery/40 bg-mastery/15" : "border-border-subtle bg-surface-1",
-        )}
-      >
-        <AchievementIcon icon={achievement.icon} className="h-4 w-4" />
-      </span>
-      <span className="min-w-0">
-        <span className={cn("block font-semibold", unlocked ? "text-app" : "text-muted")}>
-          {achievement.title}
-        </span>
-        <span className="block truncate text-muted-2">{achievement.description}</span>
-      </span>
-    </li>
   );
 }
 

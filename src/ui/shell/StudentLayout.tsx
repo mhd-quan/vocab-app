@@ -18,6 +18,12 @@ export function StudentLayout() {
   const [dictionaryOpen, setDictionaryOpen] = useState(false);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const activeStudentId = studentIdFromPath(pathname);
+  const backgroundQ = useQuery({
+    queryKey: ["studentPrefs", activeStudentId ?? 0, "studyBackground"],
+    queryFn: () =>
+      api.settings.get<string>({ key: `student_profile:${activeStudentId}:study_background` }),
+    enabled: activeStudentId !== null,
+  });
   const dictionaryQ = useQuery({
     queryKey: queryKeys.dictionary.status(),
     queryFn: () => api.dictionary.status(),
@@ -48,7 +54,11 @@ export function StudentLayout() {
     : 0;
 
   return (
-    <div className="flex h-screen w-screen flex-col bg-app">
+    <div
+      className="flex h-screen w-screen flex-col bg-app"
+      data-student-bg={backgroundQ.data ? "custom" : "default"}
+      style={backgroundQ.data ? { background: backgroundQ.data, colorScheme: "light" } : undefined}
+    >
       <header
         className={cn(
           "flex min-h-[var(--student-header-height)] items-center justify-between gap-4 border-b border-border-subtle bg-surface-1/95 py-3 pr-6 shadow-sm [-webkit-app-region:drag]",
@@ -78,6 +88,15 @@ export function StudentLayout() {
               Search word
             </Button>
           ) : null}
+          {activeStudentId !== null ? (
+            <Link
+              to="/student/profile/$studentId/settings"
+              params={{ studentId: String(activeStudentId) }}
+              className="inline-flex h-8 items-center rounded-button border border-border-strong bg-surface-1 px-3 text-xs font-semibold text-muted hover:bg-surface-2 hover:text-app"
+            >
+              Fun settings
+            </Link>
+          ) : null}
           <Button
             variant="ghost"
             size="sm"
@@ -90,7 +109,7 @@ export function StudentLayout() {
           </Button>
         </div>
       </header>
-      <main className="min-w-0 flex-1 overflow-y-auto">
+      <main className="min-w-0 flex-1 overflow-y-auto bg-app/85 backdrop-blur-[1px]">
         <Outlet />
       </main>
       <StudentDictionaryPopup

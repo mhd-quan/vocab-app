@@ -134,7 +134,7 @@ describe("TutorStudentDetail", () => {
     ]);
     renderDetail();
     await waitFor(() => {
-      expect(screen.getByText(/first steps/i)).toBeInTheDocument();
+      expect(screen.getByText(/spark rookie/i)).toBeInTheDocument();
     });
   });
 

@@ -75,7 +75,7 @@ export interface SessionPlayerProps {
   preferredAccent?: "uk" | "us" | "any";
 }
 
-const DEFAULT_AUTO_ADVANCE_MS = 1_200;
+const DEFAULT_AUTO_ADVANCE_MS = 4_000;
 /** In-session correct runs that fire confetti + a chime. */
 const CONFETTI_THRESHOLDS = new Set([5, 10]);
 
@@ -134,9 +134,11 @@ export function SessionPlayer({
   const [results, setResults] = useState<SessionResult[]>([]);
   /** Set when an auto-graded exercise is locked but not yet advanced. */
   const [pendingOutcome, setPendingOutcome] = useState<GradeOutcome | null>(null);
+  const [pendingResult, setPendingResult] = useState<SessionResult | null>(null);
   const [correctRun, setCorrectRun] = useState(0);
   const [confettiKey, setConfettiKey] = useState(0);
   const [toasts, setToasts] = useState<ToastSpec[]>([]);
+  const advancedExerciseIds = useRef(new Set<string>());
 
   const total = deck.length;
   const current = deck[index] ?? null;
@@ -187,10 +189,17 @@ export function SessionPlayer({
   usePronunciationLookupPrefetch(upcomingPronunciationTerms, preferredAccent);
 
   const advance = useCallback((result: SessionResult) => {
+    if (advancedExerciseIds.current.has(result.exerciseId)) return;
+    advancedExerciseIds.current.add(result.exerciseId);
     setResults((prev) => [...prev, result]);
     setPendingOutcome(null);
+    setPendingResult(null);
     setIndex((prev) => prev + 1);
   }, []);
+
+  const advancePending = useCallback(() => {
+    if (pendingResult) advance(pendingResult);
+  }, [advance, pendingResult]);
 
   const dismissToast = useCallback((key: number) => {
     setToasts((prev) => prev.filter((t) => t.key !== key));
@@ -269,6 +278,7 @@ export function SessionPlayer({
       // marks, then advance after a short pause. `autoAdvanceDelayMs=0`
       // (used in tests) collapses this into the next tick.
       setPendingOutcome(outcome);
+      setPendingResult(result);
       if (autoAdvanceDelayMs <= 0) {
         advance(result);
       } else {
@@ -307,6 +317,7 @@ export function SessionPlayer({
             setResults([]);
             setIndex(0);
             setCorrectRun(0);
+            advancedExerciseIds.current.clear();
           }}
           onExit={onExit}
         />
@@ -342,6 +353,13 @@ export function SessionPlayer({
           autoplay={autoplay}
           preferredAccent={preferredAccent}
         />
+        {pendingResult ? (
+          <div className="flex justify-end">
+            <PressButton onClick={advancePending} variant="primary" size="md">
+              Next
+            </PressButton>
+          </div>
+        ) : null}
       </div>
     </PlayerShell>
   );

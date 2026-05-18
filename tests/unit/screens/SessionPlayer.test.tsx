@@ -167,7 +167,7 @@ describe("SessionPlayer — reward feedback", () => {
     await waitFor(() => {
       expect(screen.getByTestId("reward-toast-first_answer")).toBeInTheDocument();
     });
-    expect(screen.getByText(/first steps/i)).toBeInTheDocument();
+    expect(screen.getByText(/spark rookie/i)).toBeInTheDocument();
   });
 
   it("ignores unknown achievement ids gracefully", async () => {

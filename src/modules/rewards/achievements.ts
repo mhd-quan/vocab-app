@@ -9,7 +9,21 @@ export interface AchievementDefinition {
   title: string;
   description: string;
   /** Lucide-ish icon hint for the UI; renderer maps these to glyphs. */
-  icon: "spark" | "flame" | "target" | "trophy" | "calendar" | "star";
+  icon:
+    | "spark"
+    | "flame"
+    | "target"
+    | "trophy"
+    | "calendar"
+    | "star"
+    | "compass"
+    | "phoenix"
+    | "gem"
+    | "crown";
+  tier: "bronze" | "silver" | "gold" | "platinum" | "mythic";
+  goal:
+    | { metric: keyof AchievementStats; target: number }
+    | { metric: "accuracy"; target: number; floor: number };
 }
 
 export interface AchievementStats {
@@ -32,58 +46,74 @@ interface AchievementRule extends AchievementDefinition {
 const LEGACY_RULES: AchievementRule[] = [
   {
     id: "first_answer",
-    title: "First steps",
+    title: "Spark Rookie",
     description: "Answered your very first question correctly.",
     icon: "spark",
+    tier: "bronze",
+    goal: { metric: "totalCorrect", target: 1 },
     earned: (stats) => stats.totalCorrect >= 1,
   },
   {
     id: "streak_5",
-    title: "On a roll",
+    title: "Flame Runner",
     description: "Got 5 in a row right inside one session.",
     icon: "flame",
+    tier: "silver",
+    goal: { metric: "bestSessionRun", target: 5 },
     earned: (stats) => stats.bestSessionRun >= 5,
   },
   {
     id: "streak_10",
-    title: "Unstoppable",
+    title: "Dragon Mode",
     description: "Got 10 in a row right inside one session.",
     icon: "flame",
+    tier: "gold",
+    goal: { metric: "bestSessionRun", target: 10 },
     earned: (stats) => stats.bestSessionRun >= 10,
   },
   {
     id: "daily_3",
-    title: "Three days strong",
+    title: "Calendar Scout",
     description: "Practised three days in a row.",
     icon: "calendar",
+    tier: "silver",
+    goal: { metric: "currentStreak", target: 3 },
     earned: (stats) => stats.currentStreak >= 3,
   },
   {
     id: "daily_7",
-    title: "One full week",
+    title: "Seven-Day Sentinel",
     description: "Practised every day for a week straight.",
     icon: "calendar",
+    tier: "gold",
+    goal: { metric: "currentStreak", target: 7 },
     earned: (stats) => stats.currentStreak >= 7,
   },
   {
     id: "learned_25",
-    title: "Quarter century",
+    title: "Word Ranger",
     description: "Answered 25 different words correctly.",
     icon: "target",
+    tier: "gold",
+    goal: { metric: "distinctCorrect", target: 25 },
     earned: (stats) => stats.distinctCorrect >= 25,
   },
   {
     id: "learned_100",
-    title: "Word collector",
+    title: "Lexicon Vault Keeper",
     description: "Answered 100 different words correctly.",
     icon: "trophy",
+    tier: "platinum",
+    goal: { metric: "distinctCorrect", target: 100 },
     earned: (stats) => stats.distinctCorrect >= 100,
   },
   {
     id: "accuracy_master",
-    title: "Sharpshooter",
+    title: "Crystal Aim",
     description: "Hit 90% accuracy with at least 50 answers.",
     icon: "star",
+    tier: "platinum",
+    goal: { metric: "accuracy", target: 90, floor: 50 },
     earned: (stats) => accuracy(stats) >= 0.9 && stats.totalAttempts >= 50,
   },
 ];
@@ -115,45 +145,55 @@ const RULES: AchievementRule[] = dedupeRules([
   ...ANSWER_THRESHOLDS.map((threshold) =>
     thresholdRule({
       id: `answers_${threshold}`,
-      title: `${threshold} correct`,
+      title: correctTitle(threshold),
       description: `Answered ${threshold} questions correctly.`,
-      icon: threshold >= 1000 ? "trophy" : "spark",
+      icon: threshold >= 2000 ? "crown" : threshold >= 500 ? "trophy" : "spark",
+      tier: tierFor(threshold, [25, 100, 500, 1500]),
+      goal: { metric: "totalCorrect", target: threshold },
       earned: (stats) => stats.totalCorrect >= threshold,
     }),
   ),
   ...WORD_THRESHOLDS.map((threshold) =>
     thresholdRule({
       id: `words_${threshold}`,
-      title: `${threshold} words remembered`,
+      title: wordTitle(threshold),
       description: `Answered ${threshold} different vocabulary words correctly.`,
-      icon: threshold >= 500 ? "trophy" : "target",
+      icon: threshold >= 1000 ? "gem" : threshold >= 500 ? "trophy" : "target",
+      tier: tierFor(threshold, [25, 100, 500, 1000]),
+      goal: { metric: "distinctCorrect", target: threshold },
       earned: (stats) => stats.distinctCorrect >= threshold,
     }),
   ),
   ...ATTEMPT_THRESHOLDS.map((threshold) =>
     thresholdRule({
       id: `practice_${threshold}`,
-      title: `${threshold} practice reps`,
+      title: practiceTitle(threshold),
       description: `Completed ${threshold} total practice attempts.`,
-      icon: threshold >= 1000 ? "trophy" : "star",
+      icon: threshold >= 3000 ? "crown" : threshold >= 1000 ? "trophy" : "star",
+      tier: tierFor(threshold, [50, 200, 1000, 3000]),
+      goal: { metric: "totalAttempts", target: threshold },
       earned: (stats) => stats.totalAttempts >= threshold,
     }),
   ),
   ...DAILY_THRESHOLDS.map((threshold) =>
     thresholdRule({
       id: `daily_${threshold}`,
-      title: `${threshold}-day cadence`,
+      title: streakDayTitle(threshold),
       description: `Kept a learning streak for ${threshold} days.`,
-      icon: threshold >= 30 ? "trophy" : "calendar",
+      icon: threshold >= 180 ? "phoenix" : threshold >= 30 ? "trophy" : "calendar",
+      tier: tierFor(threshold, [5, 14, 60, 180]),
+      goal: { metric: "currentStreak", target: threshold },
       earned: (stats) => stats.currentStreak >= threshold,
     }),
   ),
   ...SESSION_RUN_THRESHOLDS.map((threshold) =>
     thresholdRule({
       id: `streak_${threshold}`,
-      title: `${threshold} clean in a row`,
+      title: runTitle(threshold),
       description: `Got ${threshold} answers correct in one session without a miss.`,
-      icon: threshold >= 20 ? "trophy" : "flame",
+      icon: threshold >= 60 ? "phoenix" : threshold >= 20 ? "trophy" : "flame",
+      tier: tierFor(threshold, [5, 10, 20, 60]),
+      goal: { metric: "bestSessionRun", target: threshold },
       earned: (stats) => stats.bestSessionRun >= threshold,
     }),
   ),
@@ -161,9 +201,20 @@ const RULES: AchievementRule[] = dedupeRules([
     ACCURACY_THRESHOLDS.map((pct) =>
       thresholdRule({
         id: `accuracy_${pct}_after_${floor}`,
-        title: `${pct}% focus · ${floor}+ reps`,
+        title: accuracyTitle(pct, floor),
         description: `Held at least ${pct}% accuracy after ${floor} practice attempts.`,
-        icon: pct >= 95 ? "trophy" : "star",
+        icon: pct >= 98 ? "gem" : pct >= 95 ? "trophy" : "star",
+        tier:
+          pct >= 98 && floor >= 800
+            ? "mythic"
+            : pct >= 95
+              ? "platinum"
+              : pct >= 88
+                ? "gold"
+                : pct >= 75
+                  ? "silver"
+                  : "bronze",
+        goal: { metric: "accuracy", target: pct, floor },
         earned: (stats) => stats.totalAttempts >= floor && accuracy(stats) >= pct / 100,
       }),
     ),
@@ -171,9 +222,11 @@ const RULES: AchievementRule[] = dedupeRules([
   ...WORD_THRESHOLDS.slice(0, 24).map((threshold) =>
     thresholdRule({
       id: `retention_${threshold}`,
-      title: `${threshold} stable words`,
+      title: stableTitle(threshold),
       description: `Built a remembered-word base of ${threshold} vocabulary items.`,
-      icon: threshold >= 300 ? "trophy" : "target",
+      icon: threshold >= 300 ? "compass" : "target",
+      tier: tierFor(threshold, [20, 75, 200, 400]),
+      goal: { metric: "distinctCorrect", target: threshold },
       earned: (stats) => stats.distinctCorrect >= threshold && accuracy(stats) >= 0.7,
     }),
   ),
@@ -200,12 +253,101 @@ export function evaluateAchievements(stats: AchievementStats): string[] {
   return RULES.filter((rule) => rule.earned(stats)).map((rule) => rule.id);
 }
 
+export function achievementProgress(
+  achievement: AchievementDefinition,
+  stats: AchievementStats,
+): { value: number; max: number; pct: number; label: string } {
+  if (achievement.goal.metric === "accuracy") {
+    const attempts = Math.min(stats.totalAttempts, achievement.goal.floor);
+    const pctNow = Math.round(accuracy(stats) * 100);
+    const ready = stats.totalAttempts >= achievement.goal.floor;
+    const value = ready ? Math.min(pctNow, achievement.goal.target) : attempts;
+    const max = ready ? achievement.goal.target : achievement.goal.floor;
+    return {
+      value,
+      max,
+      pct: max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0,
+      label: ready
+        ? `${pctNow}% / ${achievement.goal.target}% accuracy`
+        : `${attempts}/${achievement.goal.floor} attempts before accuracy badge`,
+    };
+  }
+  const value = Math.min(Number(stats[achievement.goal.metric] ?? 0), achievement.goal.target);
+  return {
+    value,
+    max: achievement.goal.target,
+    pct:
+      achievement.goal.target > 0
+        ? Math.min(100, Math.round((value / achievement.goal.target) * 100))
+        : 0,
+    label: `${value}/${achievement.goal.target}`,
+  };
+}
+
 function accuracy(stats: AchievementStats): number {
   return stats.totalAttempts > 0 ? stats.totalCorrect / stats.totalAttempts : 0;
 }
 
 function thresholdRule(rule: AchievementRule): AchievementRule {
   return rule;
+}
+
+function tierFor(
+  value: number,
+  cuts: [number, number, number, number],
+): AchievementDefinition["tier"] {
+  if (value >= cuts[3]) return "mythic";
+  if (value >= cuts[2]) return "platinum";
+  if (value >= cuts[1]) return "gold";
+  if (value >= cuts[0]) return "silver";
+  return "bronze";
+}
+
+function correctTitle(n: number): string {
+  if (n >= 5000) return "Answer Constellation";
+  if (n >= 1000) return `${n} Thunder Answers`;
+  if (n >= 100) return `${n} Victory Sparks`;
+  return `${n} Correct Sparks`;
+}
+
+function wordTitle(n: number): string {
+  if (n >= 1000) return "Atlas of 1,000 Words";
+  if (n >= 500) return `${n}-Word Treasure Vault`;
+  if (n >= 100) return `${n}-Word Explorer`;
+  return `${n}-Word Scout`;
+}
+
+function practiceTitle(n: number): string {
+  if (n >= 3000) return "Practice Galaxy Pilot";
+  if (n >= 1000) return `${n} Rep Titan`;
+  if (n >= 100) return `${n} Training Beats`;
+  return `${n} Practice Pops`;
+}
+
+function streakDayTitle(n: number): string {
+  if (n >= 365) return "Yearlong Phoenix";
+  if (n >= 90) return `${n}-Day Legend Trail`;
+  if (n >= 30) return `${n}-Day Quest Chain`;
+  return `${n}-Day Spark Chain`;
+}
+
+function runTitle(n: number): string {
+  if (n >= 60) return "Meteor-No-Miss Run";
+  if (n >= 20) return `${n} Perfect Strikes`;
+  if (n >= 10) return `${n} Dragon Combo`;
+  return `${n} Clean Combo`;
+}
+
+function accuracyTitle(pct: number, floor: number): string {
+  if (pct >= 98) return `${pct}% Diamond Focus`;
+  if (pct >= 95) return `${pct}% Golden Aim`;
+  return `${pct}% Focus Badge · ${floor}+`;
+}
+
+function stableTitle(n: number): string {
+  if (n >= 300) return `${n} Memory Compass Stars`;
+  if (n >= 100) return `${n} Locked-In Words`;
+  return `${n} Sticky Words`;
 }
 
 function dedupeRules(rules: AchievementRule[]): AchievementRule[] {
