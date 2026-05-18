@@ -39,17 +39,9 @@ const config: Config = {
         app: "rgb(var(--color-fg) / <alpha-value>)",
       },
       fontFamily: {
-        sans: [
-          "Atkinson Hyperlegible",
-          "Lexend",
-          "Inter",
-          "ui-sans-serif",
-          "system-ui",
-          "-apple-system",
-          "Segoe UI",
-          "sans-serif",
-        ],
-        mono: ["JetBrains Mono", "ui-monospace", "Menlo", "monospace"],
+        sans: ["var(--font-family-sans)"],
+        display: ["var(--font-family-display)"],
+        mono: ["var(--font-family-mono)"],
       },
       borderRadius: {
         bento: "var(--radius-bento)",

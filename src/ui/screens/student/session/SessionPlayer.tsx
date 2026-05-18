@@ -4,7 +4,6 @@ import { type Answer, type Exercise, type GradeOutcome, gradeExercise } from "@/
 import { type AchievementDefinition, getAchievement } from "@/modules/rewards";
 import { Badge } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
-import { Button } from "@/ui/components/Button";
 import { StreakFlame } from "@/ui/components/LearningIcons";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
 import { AchievementIcon } from "@/ui/components/rewards";
@@ -12,6 +11,8 @@ import {
   CelebrationOverlay,
   type CelebrationToast,
 } from "@/ui/student/components/CelebrationOverlay";
+import { PressButton } from "@/ui/student/components/PressButton";
+import { ProgressBubble } from "@/ui/student/components/ProgressBubble";
 import { AudioRecallCard } from "@/ui/student/exercises/AudioRecallCard";
 import { DefinitionMatchCard } from "@/ui/student/exercises/DefinitionMatchCard";
 import { SentenceRebuildCard } from "@/ui/student/exercises/SentenceRebuildCard";
@@ -383,7 +384,11 @@ function SessionStatus({
   tier: CardTier;
 }) {
   return (
-    <BentoCard as="section" className="grid gap-4 p-4 sm:grid-cols-[1fr_auto_auto] sm:items-center">
+    <BentoCard
+      as="section"
+      className="grid gap-4 border-accent/20 bg-accent/5 p-4 sm:grid-cols-[auto_1fr_auto_auto] sm:items-center"
+    >
+      <ProgressBubble current={current} total={total} label="Session progress" />
       <div className="min-w-0">
         <div className="mb-2 flex items-center justify-between gap-3">
           <span className="text-xs font-semibold uppercase text-muted-2">Session progress</span>
@@ -430,9 +435,9 @@ function PlayerShell({
           </Badge>
           {contextLabel ? <span className="text-sm text-muted">{contextLabel}</span> : null}
         </div>
-        <Button variant="ghost" size="md" onClick={onExit} className="text-muted">
+        <PressButton variant="secondary" size="sm" onClick={onExit} className="text-muted">
           End session
-        </Button>
+        </PressButton>
       </header>
       <div className={cn("flex flex-col gap-5")}>{children}</div>
     </div>

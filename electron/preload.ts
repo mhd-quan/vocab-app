@@ -121,7 +121,7 @@ interface UpdateStudentPatch {
 const api = {
   app: {
     name: "vocab-app",
-    version: "0.10.1",
+    version: "0.11.0",
     platform: process.platform,
   },
 

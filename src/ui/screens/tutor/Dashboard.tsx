@@ -2,9 +2,9 @@ import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryClient";
 import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
-import { BentoCard } from "@/ui/components/BentoCard";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { PageHeader } from "@/ui/components/PageHeader";
+import { TutorDataTable, TutorMetricCard } from "@/ui/tutor/components/Material";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 
@@ -106,9 +106,9 @@ function StudentTable({
   }>;
 }) {
   return (
-    <div className="overflow-hidden rounded-bento border border-border-subtle bg-surface-1 shadow-card dark:shadow-card-dark">
+    <TutorDataTable>
       <table className="w-full text-left text-sm">
-        <thead className="border-b border-border-subtle bg-surface-2 text-xs uppercase text-muted-2">
+        <thead className="border-b border-border-subtle bg-[color:var(--md-sys-color-surface-container)] text-xs uppercase text-muted-2">
           <tr>
             <th className="px-4 py-2 font-medium">Student</th>
             <th className="px-4 py-2 font-medium">Seen</th>
@@ -124,7 +124,7 @@ function StudentTable({
           ))}
         </tbody>
       </table>
-    </div>
+    </TutorDataTable>
   );
 }
 
@@ -148,7 +148,7 @@ function StudentRow({
   const display = row.student.displayName ?? row.student.name;
   const totalAttempts = row.totalSeen > 0 ? Math.round(row.accuracy * 100) : null;
   return (
-    <tr className="border-b border-border-subtle last:border-b-0 transition-colors hover:bg-surface-2">
+    <tr className="border-b border-border-subtle last:border-b-0 transition-colors hover:bg-accent/[var(--state-hover)]">
       <td className="px-4 py-3">
         <Link
           to="/tutor/students/$studentId"
@@ -212,16 +212,13 @@ function Stat({
   to?: string;
 }) {
   const card = (
-    <BentoCard
-      as="div"
-      interactive={Boolean(to)}
-      tone={label === "Sessions" ? "focus" : label === "Students" ? "xp" : "neutral"}
-      className="flex h-full min-h-36 flex-col justify-between"
-    >
-      <span className="text-xs font-semibold uppercase text-muted">{label}</span>
-      <span className="mt-3 font-mono text-4xl text-app">{value}</span>
-      {hint ? <span className="mt-2 text-xs text-muted-2">{hint}</span> : null}
-    </BentoCard>
+    <TutorMetricCard
+      label={label}
+      value={value}
+      hint={hint}
+      tone={label === "Sessions" ? "success" : label === "Students" ? "secondary" : "primary"}
+      className={to ? "hover:-translate-y-1 hover:shadow-lift" : undefined}
+    />
   );
   if (to) {
     return (

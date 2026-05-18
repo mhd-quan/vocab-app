@@ -9,6 +9,7 @@ import { Badge, type BadgeTone } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
+import { MascotIcon } from "@/ui/student/components/MascotIcon";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 
@@ -58,28 +59,36 @@ export function StudentPersonalVocabulary() {
 
       <BentoCard tone={summary.due > 0 ? "focus" : "neutral"} className="p-6">
         <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge tone="focus" uppercase>
-                Personal vocabulary
-              </Badge>
-              {summary.due > 0 ? (
-                <Badge tone="warning" uppercase>
-                  {summary.due} due
+          <div className="flex items-start gap-4">
+            <MascotIcon
+              mood={summary.due > 0 ? "thinking" : "happy"}
+              className="hidden h-24 w-24 shrink-0 sm:block"
+            />
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge tone="focus" uppercase>
+                  Personal vocabulary
                 </Badge>
-              ) : null}
+                {summary.due > 0 ? (
+                  <Badge tone="warning" uppercase>
+                    {summary.due} due
+                  </Badge>
+                ) : null}
+              </div>
+              <h1 className="mt-3 text-3xl font-semibold leading-tight">
+                Dictionary learning track
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
+                Looked-up words stay here until they pass the full recall cycle and later retention
+                checks.
+              </p>
             </div>
-            <h1 className="mt-3 text-3xl font-semibold leading-tight">Dictionary learning track</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-              Looked-up words stay here until they pass the full recall cycle and later retention
-              checks.
-            </p>
           </div>
           <Link
             to="/student/profile/$studentId/personal-vocabulary/session"
             params={{ studentId: String(id) }}
             className={cn(
-              "inline-flex h-12 items-center justify-center rounded-xl bg-accent px-5 text-sm font-semibold text-accent-fg shadow-sm shadow-accent/20 transition hover:-translate-y-0.5 hover:bg-accent/90",
+              "press-bounce inline-flex h-12 items-center justify-center rounded-button bg-accent px-5 text-sm font-semibold uppercase tracking-wide text-accent-fg shadow-press transition hover:translate-y-0 hover:bg-accent/90 active:translate-y-[3px] active:shadow-press-active",
               summary.due === 0 && "pointer-events-none opacity-45",
             )}
           >

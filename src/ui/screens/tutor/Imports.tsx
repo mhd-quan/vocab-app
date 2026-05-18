@@ -4,11 +4,16 @@ import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
 import { Badge, type BadgeTone } from "@/ui/components/Badge";
-import { BentoCard } from "@/ui/components/BentoCard";
 import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { ImportModal } from "@/ui/components/ImportModal";
 import { PageHeader } from "@/ui/components/PageHeader";
+import {
+  TutorPanel,
+  TutorSegmentedControl,
+  TutorTextAreaField,
+  TutorTextField,
+} from "@/ui/tutor/components/Material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -118,48 +123,41 @@ function AuthoringPanel({ onImported }: { onImported: () => Promise<void> }) {
   };
 
   return (
-    <BentoCard className="mb-6 flex flex-col gap-4 p-5" tone="focus">
+    <TutorPanel
+      title="Draft and import YAML in app"
+      description="Use this editor for quick lessons; full syntax remains documented in the templates."
+      className="mb-6"
+      actions={
+        <Badge tone="focus" uppercase>
+          Authoring
+        </Badge>
+      }
+    >
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <Badge tone="focus" uppercase>
-            Authoring
-          </Badge>
-          <h2 className="mt-2 text-lg font-semibold">Draft and import YAML in app</h2>
-          <p className="mt-1 text-sm leading-6 text-muted">
-            Use this editor for quick lessons; full syntax remains documented in the templates.
-          </p>
-        </div>
-        <div className="flex rounded-2xl border border-border-subtle bg-surface-0 p-1">
-          {(["vocabulary", "grammar"] as const).map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => switchKind(option)}
-              className={cn(
-                "rounded-xl px-3 py-2 text-xs font-semibold uppercase transition",
-                kind === option ? "bg-accent text-accent-fg" : "text-muted hover:text-app",
-              )}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
+        <TutorSegmentedControl
+          value={kind}
+          options={[
+            { value: "vocabulary", label: "Vocabulary" },
+            { value: "grammar", label: "Grammar" },
+          ]}
+          onChange={(value) => switchKind(value as AuthoringKind)}
+          className="w-full sm:w-[18rem]"
+        />
       </header>
 
-      <label className="flex flex-col gap-1 text-xs font-semibold uppercase text-muted-2">
-        File name
-        <input
-          value={fileName}
-          onChange={(event) => setFileName(event.target.value)}
-          className="min-h-11 rounded-2xl border border-border-strong bg-surface-0 px-3 font-mono text-sm normal-case text-app outline-none focus:border-accent"
-        />
-      </label>
+      <TutorTextField
+        label="File name"
+        value={fileName}
+        onChange={(event) => setFileName(event.target.value)}
+        className="font-mono"
+      />
 
-      <textarea
+      <TutorTextAreaField
+        label="YAML draft"
         value={content}
         onChange={(event) => setContent(event.target.value)}
         spellCheck={false}
-        className="min-h-[22rem] rounded-2xl border border-border-strong bg-surface-0 p-4 font-mono text-xs leading-6 text-app outline-none focus:border-accent"
+        className="min-h-[22rem] font-mono text-xs leading-6"
       />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -182,7 +180,7 @@ function AuthoringPanel({ onImported }: { onImported: () => Promise<void> }) {
           {importDraft.data.errors.map((err) => err.message).join("\n")}
         </pre>
       ) : null}
-    </BentoCard>
+    </TutorPanel>
   );
 }
 

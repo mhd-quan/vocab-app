@@ -10,6 +10,11 @@
 @layer base {
   [data-app-mode="student"]:root,
   [data-app-mode="student"] {
+    --font-family-sans: "Atkinson Hyperlegible", "Lexend", "Inter", ui-sans-serif, system-ui,
+      -apple-system, "Segoe UI", sans-serif;
+    --font-family-display: "Lexend", "Atkinson Hyperlegible", "Inter", ui-sans-serif, system-ui,
+      -apple-system, "Segoe UI", sans-serif;
+
     /* Duolingo-style accents — friendly green primary, warm yellow */
     --color-accent: 88 204 2; /* #58CC02 */
     --color-accent-fg: 255 255 255;
@@ -34,11 +39,14 @@
     --radius-button: 1.25rem;
     --radius-chip: 1.125rem;
     --radius-bento: 1.75rem;
+    --student-header-height: 4.75rem;
 
     /* 3D press shadow uses the saturated success channel */
     --shadow-press-rgb: 68 168 0;
     --shadow-press: 0 5px 0 0 rgb(var(--shadow-press-rgb) / 0.55);
     --shadow-press-active: 0 1px 0 0 rgb(var(--shadow-press-rgb) / 0.6);
+    --student-card-border: 0 2px 0 rgb(0 0 0 / 0.04);
+    --student-reward-glow: 0 12px 32px rgb(var(--color-warning) / 0.2);
   }
 
   [data-app-mode="student"].dark {

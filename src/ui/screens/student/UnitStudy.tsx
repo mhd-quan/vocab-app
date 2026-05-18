@@ -12,6 +12,7 @@ import { Badge } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { LessonIcon } from "@/ui/components/LearningIcons";
+import { MascotIcon } from "@/ui/student/components/MascotIcon";
 import { PressButton } from "@/ui/student/components/PressButton";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
@@ -121,7 +122,10 @@ export function StudentUnitStudy() {
         Back to units
       </Link>
 
-      <BentoCard tone="focus" className="grid gap-5 p-6 lg:grid-cols-[1.2fr_auto] lg:items-center">
+      <BentoCard
+        tone="focus"
+        className="grid gap-5 p-6 lg:grid-cols-[1.2fr_auto_auto] lg:items-center"
+      >
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="focus" uppercase>
@@ -138,6 +142,7 @@ export function StudentUnitStudy() {
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">{unit.summaryMd}</p>
           ) : null}
         </div>
+        <MascotIcon mood="thinking" className="hidden h-24 w-24 shrink-0 text-focus lg:block" />
         <div className="rounded-bento border border-border-subtle bg-surface-0/70 p-4">
           <p className="text-xs font-semibold uppercase text-muted-2">Selected cards</p>
           <p className="mt-1 font-mono text-3xl text-app">{selectedEntries.length}</p>

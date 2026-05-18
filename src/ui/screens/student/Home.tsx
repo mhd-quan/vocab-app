@@ -16,6 +16,7 @@ import {
 } from "@/ui/components/LearningIcons";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
 import { AchievementIcon } from "@/ui/components/rewards";
+import { MascotIcon } from "@/ui/student/components/MascotIcon";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 
@@ -94,6 +95,7 @@ export function StudentHome() {
             </h1>
             <p className="mt-1 text-sm text-muted">Choose a lesson and keep the run alive.</p>
           </div>
+          <MascotIcon mood="cheering" className="hidden h-24 w-24 shrink-0 text-success sm:block" />
         </BentoCard>
         {summaryQ.data ? (
           <SummaryStats summary={summaryQ.data} streak={streakQ.data?.currentStreak ?? 0} />
@@ -174,7 +176,7 @@ function PersonalVocabularyCard({
             </Badge>
           ) : null}
         </div>
-        <h2 className="mt-3 text-xl font-semibold">Words from dictionary searches</h2>
+        <h2 className="mt-3 font-display text-2xl font-semibold">Words from dictionary searches</h2>
         <p className="mt-1 max-w-2xl text-sm leading-6 text-muted">
           New dictionary lookups become a separate review track with flashcards, choices, cloze, and
           typing before they graduate to long-term memory.
@@ -437,7 +439,7 @@ function AssignedUnitCard({ studentId, unit }: { studentId: number; unit: Unit }
   );
 
   const className =
-    "motion-card group grid min-h-48 gap-4 rounded-bento border border-border-subtle bg-surface-1 px-5 py-5 text-sm shadow-card transition-[background-color,border-color,box-shadow,transform] [--glow-rgb:var(--color-accent)] hover:-translate-y-1 hover:border-accent/40 hover:bg-surface-2 hover:shadow-lift sm:grid-cols-[1fr_auto]";
+    "motion-card group grid min-h-48 gap-4 rounded-bento border border-border-subtle bg-surface-1 px-5 py-5 text-sm shadow-card shadow-press transition-[background-color,border-color,box-shadow,transform] [--glow-rgb:var(--color-accent)] hover:translate-y-0 hover:border-accent/40 hover:bg-surface-2 hover:shadow-lift active:translate-y-[3px] active:shadow-press-active sm:grid-cols-[1fr_auto]";
 
   if (shouldStartVocabDirectly && vocabLesson) {
     return (

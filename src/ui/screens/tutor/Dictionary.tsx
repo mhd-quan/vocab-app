@@ -3,6 +3,7 @@ import { queryKeys } from "@/lib/queryClient";
 import { Button } from "@/ui/components/Button";
 import { PageHeader } from "@/ui/components/PageHeader";
 import { DictionaryLookupPanel } from "@/ui/components/dictionary/DictionaryLookupPanel";
+import { TutorPanel } from "@/ui/tutor/components/Material";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function TutorDictionary() {
@@ -33,9 +34,8 @@ export function TutorDictionary() {
         <DictionaryLookupPanel showYamlAction />
       ) : (
         <section className="px-8 py-6">
-          <div className="rounded-bento border border-border-subtle bg-surface-1 p-6">
-            <h2 className="text-lg font-semibold">No dictionary pack</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
+          <TutorPanel title="No dictionary pack" className="p-6">
+            <p className="max-w-2xl text-sm leading-6 text-muted">
               Select the external folder that contains `oald10.mdxbak` or `oald10_og.mdx` plus
               matching `.mdd` assets. The pack remains outside GitHub and outside packaged app
               artifacts.
@@ -43,7 +43,7 @@ export function TutorDictionary() {
             <Button className="mt-5" onClick={choosePack}>
               Select dictionary pack
             </Button>
-          </div>
+          </TutorPanel>
         </section>
       )}
     </>

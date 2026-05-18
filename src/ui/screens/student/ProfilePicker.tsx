@@ -4,6 +4,7 @@ import { queryKeys } from "@/lib/queryClient";
 import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
+import { MascotIcon } from "@/ui/student/components/MascotIcon";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 
@@ -26,9 +27,12 @@ export function StudentProfilePicker() {
               Pick a profile and jump straight back into the next vocabulary session.
             </p>
           </div>
-          <BentoCard as="div" tone="focus" className="p-4">
-            <p className="text-xs font-semibold uppercase text-focus">Today</p>
-            <p className="mt-1 text-sm text-muted">Fresh run waiting.</p>
+          <BentoCard as="div" tone="focus" className="flex items-center gap-3 p-4">
+            <MascotIcon mood="happy" className="h-16 w-16 shrink-0" />
+            <div>
+              <p className="text-xs font-semibold uppercase text-focus">Today</p>
+              <p className="mt-1 text-sm text-muted">Fresh run waiting.</p>
+            </div>
           </BentoCard>
         </div>
       </header>
@@ -54,7 +58,7 @@ export function StudentProfilePicker() {
                     params={{ studentId: String(student.id) }}
                     className={cn(
                       "group flex min-h-44 flex-col justify-between rounded-bento border border-border-subtle bg-surface-1 p-5 shadow-card transition-[background-color,border-color,box-shadow,transform]",
-                      "hover:-translate-y-0.5 hover:border-accent/40 hover:bg-surface-2 hover:shadow-lift",
+                      "shadow-press hover:translate-y-0 hover:border-accent/40 hover:bg-surface-2 hover:shadow-lift active:translate-y-[3px] active:shadow-press-active",
                     )}
                   >
                     <div className="flex items-center justify-between gap-3">
@@ -84,6 +88,7 @@ export function StudentProfilePicker() {
 
       {!isLoading && (data ?? []).length === 0 ? (
         <div className="rounded-bento border border-dashed border-border-subtle bg-surface-1 px-6 py-8 text-center">
+          <MascotIcon mood="sad" className="mx-auto mb-3 h-20 w-20 text-muted-2" />
           <h2 className="text-base font-semibold">No students yet</h2>
           <p className="mt-1 text-xs text-muted">
             Switch to tutor mode and add a student profile from{" "}

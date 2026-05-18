@@ -8,6 +8,9 @@ import { BentoCard } from "@/ui/components/BentoCard";
 import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
+import { MascotIcon } from "@/ui/student/components/MascotIcon";
+import { PressButton } from "@/ui/student/components/PressButton";
+import { ProgressBubble } from "@/ui/student/components/ProgressBubble";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -222,12 +225,13 @@ function PersonalSessionShell({
           </Badge>
           <span className="text-sm text-muted">Student #{studentId}</span>
         </div>
-        <Button variant="ghost" size="md" onClick={onExit} className="text-muted">
+        <PressButton variant="secondary" size="sm" onClick={onExit} className="text-muted">
           End session
-        </Button>
+        </PressButton>
       </header>
 
-      <BentoCard className="grid gap-4 p-4 sm:grid-cols-[1fr_auto_auto] sm:items-center">
+      <BentoCard className="grid gap-4 border-accent/20 bg-accent/5 p-4 sm:grid-cols-[auto_1fr_auto_auto] sm:items-center">
+        <ProgressBubble current={answered} total={total} label="Personal review progress" />
         <div className="min-w-0">
           <div className="mb-2 flex items-center justify-between gap-3">
             <span className="text-xs font-semibold uppercase text-muted-2">Review progress</span>
@@ -467,6 +471,7 @@ function SessionDone({ results, onExit }: { results: ReviewResult[]; onExit: () 
   const summary = summarizeResults(results);
   return (
     <BentoCard tone="success" className="p-6 text-center">
+      <MascotIcon mood="cheering" className="mx-auto mb-2 h-24 w-24" />
       <Badge tone="success" uppercase>
         Complete
       </Badge>
@@ -477,9 +482,9 @@ function SessionDone({ results, onExit }: { results: ReviewResult[]; onExit: () 
         <SummaryStat label="Promoted" value={summary.promoted} />
         <SummaryStat label="Reset" value={summary.reset} />
       </dl>
-      <Button className="mt-6" onClick={onExit}>
+      <PressButton className="mt-6" onClick={onExit}>
         Back to personal vocabulary
-      </Button>
+      </PressButton>
     </BentoCard>
   );
 }
