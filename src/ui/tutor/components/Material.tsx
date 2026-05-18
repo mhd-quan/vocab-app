@@ -30,7 +30,7 @@ export function TutorNavigationRail({ brand, items, footer, topInset }: TutorNav
   const currentPath = location.pathname;
 
   return (
-    <aside className="flex h-full w-[var(--tutor-nav-width)] shrink-0 flex-col border-r border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)] shadow-[var(--md-sys-elevation-1)]">
+    <aside className="flex h-full w-[var(--tutor-nav-width)] shrink-0 flex-col border-r border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)] shadow-[var(--md-sys-elevation-2)]">
       {topInset ? <div className="h-10 w-full shrink-0 [-webkit-app-region:drag]" /> : null}
       <div className={cn("px-4 pb-5", topInset ? "pt-2" : "pt-5")}>{brand}</div>
       <nav className="flex flex-1 flex-col gap-1.5 px-3" aria-label="Tutor navigation">
@@ -56,12 +56,19 @@ function TutorNavigationItem({ item, active }: { item: TutorNavItem; active: boo
     item.disabled
       ? "cursor-not-allowed text-muted-2"
       : active
-        ? "border-transparent bg-[color:var(--md-sys-color-primary-container)] text-[color:var(--md-sys-color-on-primary-container)] shadow-[var(--md-sys-elevation-1)]"
-        : "border-transparent text-muted hover:border-border-subtle hover:bg-[color:var(--md-sys-color-surface-container)] hover:text-app active:bg-accent/[var(--state-pressed)]",
+        ? "translate-x-1 border-transparent bg-[color:var(--md-sys-color-primary-container)] text-[color:var(--md-sys-color-on-primary-container)] shadow-[var(--md-sys-elevation-1)]"
+        : "border-transparent text-muted hover:translate-x-0.5 hover:border-border-subtle hover:bg-[color:var(--md-sys-color-surface-container)] hover:text-app active:bg-accent/[var(--state-pressed)]",
   );
 
   const content = (
     <>
+      <span
+        aria-hidden
+        className={cn(
+          "absolute inset-y-2 left-0 w-1 rounded-r-full transition-opacity",
+          active ? "bg-[color:var(--md-sys-color-primary)] opacity-100" : "opacity-0",
+        )}
+      />
       <span
         className={cn(
           "grid h-8 w-8 shrink-0 place-items-center rounded-[var(--shape-corner-md)] transition-[background-color,color,transform]",
@@ -127,10 +134,14 @@ export function TutorPanel({
   return (
     <section
       className={cn(
-        "motion-enter rounded-[var(--shape-corner-xl)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)] p-5 shadow-card",
+        "motion-card motion-enter relative overflow-hidden rounded-[var(--shape-corner-xl)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)] p-5 shadow-card transition-[border-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-accent/25 hover:shadow-lift",
         className,
       )}
     >
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-y-5 left-0 w-1 rounded-r-full bg-accent/40"
+      />
       {title || description || actions ? (
         <header className="mb-4 flex items-start justify-between gap-4">
           <div className="min-w-0">
@@ -167,7 +178,7 @@ export function TutorMetricCard({
   return (
     <div
       className={cn(
-        "motion-card motion-enter relative isolate flex min-h-32 flex-col justify-between overflow-hidden rounded-[var(--shape-corner-xl)] border bg-[color:var(--md-sys-color-surface-container-lowest)] p-4 shadow-card",
+        "motion-card motion-enter relative isolate flex min-h-32 flex-col justify-between overflow-hidden rounded-[var(--shape-corner-xl)] border bg-[color:var(--md-sys-color-surface-container-lowest)] p-4 shadow-card transition-[border-color,box-shadow,transform] hover:-translate-y-0.5 hover:shadow-lift",
         metricTone(tone),
         className,
       )}
@@ -215,7 +226,7 @@ export function TutorDataTable({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-[var(--shape-corner-xl)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)] shadow-card",
+        "overflow-hidden rounded-[var(--shape-corner-xl)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)] shadow-card ring-1 ring-white/20 dark:ring-white/5",
         className,
       )}
     >

@@ -108,6 +108,7 @@ export function TutorStudentDetail() {
     }
     return bucketByDay({ eventTimestamps: timestamps, now: new Date(), days: HEATMAP_DAYS });
   }, [activityQ.data]);
+  const cadence = useMemo(() => computeCadence(activityQ.data ?? []), [activityQ.data]);
 
   if (!Number.isFinite(id) || id <= 0) {
     return (
@@ -177,11 +178,14 @@ export function TutorStudentDetail() {
 
         <AssignmentsPanel studentId={id} queryClient={queryClient} />
 
-        <Heatmap
-          cells={heatmapCells}
-          title="Practice activity"
-          caption={`Last ${HEATMAP_DAYS} days`}
-        />
+        <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+          <Heatmap
+            cells={heatmapCells}
+            title="Practice activity"
+            caption={`Last ${HEATMAP_DAYS} days`}
+          />
+          <CadencePanel cadence={cadence} loading={activityQ.isLoading} />
+        </section>
 
         <UnitReportPanel
           studentId={id}
@@ -402,6 +406,108 @@ function Stat({
       className="min-h-28 p-4"
     />
   );
+}
+
+interface CadenceStats {
+  thisWeek: number;
+  previousWeek: number;
+  deltaPct: number | null;
+  weeklyAverage: number;
+  activeDays: number;
+  activeDayAverage: number;
+}
+
+function CadencePanel({ cadence, loading }: { cadence: CadenceStats; loading: boolean }) {
+  return (
+    <TutorPanel
+      title="Pace & cadence"
+      description="Practice volume from the same activity window."
+      className="p-5"
+    >
+      {loading ? (
+        <p className="text-xs text-muted">Loading cadence...</p>
+      ) : (
+        <dl className="grid gap-3">
+          <CadenceMetric
+            label="This week"
+            value={`${cadence.thisWeek} reps`}
+            hint={formatDelta(cadence.deltaPct)}
+            tone={cadence.deltaPct !== null && cadence.deltaPct < 0 ? "warning" : "success"}
+          />
+          <CadenceMetric
+            label="Weekly pace"
+            value={`${cadence.weeklyAverage}/week`}
+            hint={`${cadence.activeDays} active days in view`}
+            tone="accent"
+          />
+          <CadenceMetric
+            label="Active-day average"
+            value={`${cadence.activeDayAverage}/day`}
+            hint="Average review load on days with practice"
+            tone="neutral"
+          />
+        </dl>
+      )}
+    </TutorPanel>
+  );
+}
+
+function CadenceMetric({
+  label,
+  value,
+  hint,
+  tone,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  tone: "neutral" | "accent" | "success" | "warning";
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-[var(--shape-corner-lg)] border bg-[color:var(--md-sys-color-surface-container-low)] px-3 py-3",
+        tone === "success" && "border-success/25",
+        tone === "warning" && "border-warning/30",
+        tone === "accent" && "border-accent/25",
+        tone === "neutral" && "border-border-subtle",
+      )}
+    >
+      <dt className="text-[10px] font-semibold uppercase text-muted-2">{label}</dt>
+      <dd className="mt-1 font-mono text-2xl text-app">{value}</dd>
+      <p className="mt-1 text-xs text-muted">{hint}</p>
+    </div>
+  );
+}
+
+function computeCadence(rows: Array<{ bucketStart: Date; count: number }>): CadenceStats {
+  const sorted = [...rows].sort((a, b) => a.bucketStart.getTime() - b.bucketStart.getTime());
+  const last7 = sorted.slice(-7);
+  const prev7 = sorted.slice(-14, -7);
+  const thisWeek = sumCounts(last7);
+  const previousWeek = sumCounts(prev7);
+  const total = sumCounts(sorted);
+  const weekCount = Math.max(1, Math.ceil(sorted.length / 7));
+  const activeDays = sorted.filter((row) => row.count > 0).length;
+  return {
+    thisWeek,
+    previousWeek,
+    deltaPct:
+      previousWeek > 0 ? Math.round(((thisWeek - previousWeek) / previousWeek) * 100) : null,
+    weeklyAverage: Math.round(total / weekCount),
+    activeDays,
+    activeDayAverage: activeDays > 0 ? Math.round(total / activeDays) : 0,
+  };
+}
+
+function sumCounts(rows: Array<{ count: number }>): number {
+  return rows.reduce((sum, row) => sum + row.count, 0);
+}
+
+function formatDelta(deltaPct: number | null): string {
+  if (deltaPct === null) return "No previous-week baseline yet";
+  if (deltaPct === 0) return "No change vs previous 7 days";
+  return `${deltaPct > 0 ? "+" : ""}${deltaPct}% vs previous 7 days`;
 }
 
 function UnitReportPanel({

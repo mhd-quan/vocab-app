@@ -16,7 +16,7 @@
  *   - Submit enabled once all four slots have a headword.
  */
 import { cn } from "@/lib/cn";
-import type { DefinitionMatchExercise } from "@/modules/exercises";
+import type { DefinitionMatchExercise, GradeOutcome } from "@/modules/exercises";
 import { Badge } from "@/ui/components/Badge";
 import { Button } from "@/ui/components/Button";
 import { useMemo, useState } from "react";
@@ -24,9 +24,10 @@ import { useMemo, useState } from "react";
 export interface DefinitionMatchCardProps {
   exercise: DefinitionMatchExercise;
   onAnswer: (assignments: Array<{ definitionPairId: string; headword: string }>) => void;
+  outcome: GradeOutcome | null;
 }
 
-export function DefinitionMatchCard({ exercise, onAnswer }: DefinitionMatchCardProps) {
+export function DefinitionMatchCard({ exercise, onAnswer, outcome }: DefinitionMatchCardProps) {
   const items = exercise.payload.items;
   const headwords = useMemo(
     () =>
@@ -40,6 +41,11 @@ export function DefinitionMatchCard({ exercise, onAnswer }: DefinitionMatchCardP
   const [assignments, setAssignments] = useState<Record<string, string | null>>(() =>
     Object.fromEntries(items.map((it) => [it.pairId, null])),
   );
+  const locked = outcome !== null;
+  const correctByPair = useMemo(
+    () => new Map(items.map((item) => [item.pairId, item.headword])),
+    [items],
+  );
 
   const assignedHeadwords = useMemo(
     () => new Set(Object.values(assignments).filter((h): h is string => !!h)),
@@ -47,6 +53,7 @@ export function DefinitionMatchCard({ exercise, onAnswer }: DefinitionMatchCardP
   );
 
   function selectHeadword(headword: string) {
+    if (locked) return;
     // Tapping an assigned chip frees it back to the pool.
     if (assignedHeadwords.has(headword)) {
       setAssignments((prev) => {
@@ -63,6 +70,7 @@ export function DefinitionMatchCard({ exercise, onAnswer }: DefinitionMatchCardP
   }
 
   function dropOnSlot(pairId: string) {
+    if (locked) return;
     if (!selectedHeadword) {
       // Tap on an already-assigned slot clears it.
       if (assignments[pairId]) {
@@ -83,6 +91,7 @@ export function DefinitionMatchCard({ exercise, onAnswer }: DefinitionMatchCardP
   }
 
   function submit() {
+    if (locked) return;
     const filled = items
       .map((it) => ({ definitionPairId: it.pairId, headword: assignments[it.pairId] ?? "" }))
       .filter((a) => a.headword.length > 0);
@@ -93,13 +102,17 @@ export function DefinitionMatchCard({ exercise, onAnswer }: DefinitionMatchCardP
   const allFilled = items.every((it) => assignments[it.pairId]);
 
   return (
-    <section className="motion-enter mx-auto flex max-w-2xl flex-col gap-5 rounded-bento border border-border-subtle bg-surface-1 p-6 shadow-card">
+    <section className="motion-enter mx-auto flex max-w-4xl flex-col gap-5 rounded-bento border border-border-subtle bg-surface-1 p-6 shadow-card">
       <header className="flex flex-col items-center gap-3 text-center">
         <Badge tone="accent" uppercase>
           Match definitions
         </Badge>
         <p className="text-sm text-muted">
-          Tap a word, then tap the matching definition. Match all four to submit.
+          {locked
+            ? outcome.correct
+              ? "All matches are correct."
+              : "Review the red cards, then look at the correct word shown underneath."
+            : "Tap a word, then tap the matching definition. Match all four to submit."}
         </p>
       </header>
 
@@ -112,8 +125,9 @@ export function DefinitionMatchCard({ exercise, onAnswer }: DefinitionMatchCardP
               key={headword}
               type="button"
               onClick={() => selectHeadword(headword)}
+              disabled={locked}
               className={cn(
-                "press-bounce rounded-chip px-4 py-2 text-base font-semibold transition",
+                "press-bounce rounded-chip px-4 py-2 text-base font-semibold transition disabled:cursor-default",
                 isSelected
                   ? "border-2 border-accent bg-accent text-accent-fg shadow-press-active"
                   : inUse
@@ -127,38 +141,61 @@ export function DefinitionMatchCard({ exercise, onAnswer }: DefinitionMatchCardP
         })}
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="grid gap-3 md:grid-cols-2">
         {items.map((item) => {
           const assigned = assignments[item.pairId];
+          const correctHeadword = correctByPair.get(item.pairId) ?? item.headword;
+          const isCorrect = locked && assigned?.toLowerCase() === correctHeadword.toLowerCase();
+          const isWrong = locked && assigned !== null && !isCorrect;
           return (
             <button
               key={item.pairId}
               type="button"
               onClick={() => dropOnSlot(item.pairId)}
+              disabled={locked}
               className={cn(
-                "flex w-full flex-col items-start gap-1 rounded-bento border-2 border-dashed bg-surface-2 px-4 py-3 text-left transition",
-                assigned ? "border-accent" : "border-border-strong",
+                "flex min-h-40 w-full flex-col items-start gap-2 rounded-bento border-2 border-dashed bg-surface-2 px-4 py-3 text-left transition disabled:cursor-default",
+                !locked && assigned ? "border-accent" : "border-border-strong",
                 !selectedHeadword && !assigned && "opacity-90",
+                isCorrect && "answer-correct border-success/70 bg-success/10",
+                isWrong && "answer-wrong border-danger/70 bg-danger/10",
               )}
             >
-              <span className="text-xs uppercase tracking-wide text-muted">Definition</span>
+              <span className="flex w-full items-center justify-between gap-2 text-xs uppercase tracking-wide text-muted">
+                <span>Definition</span>
+                {isCorrect ? <span className="text-success">Correct</span> : null}
+                {isWrong ? <span className="text-danger">Review</span> : null}
+              </span>
               <span className="text-sm">{item.definition}</span>
               <span
                 className={cn(
                   "mt-1 text-base font-semibold",
-                  assigned ? "text-accent" : "text-muted-2",
+                  assigned && !locked ? "text-accent" : "text-muted-2",
+                  isCorrect && "text-success",
+                  isWrong && "text-danger line-through",
                 )}
               >
                 {assigned ?? "(tap a word above)"}
               </span>
+              {isWrong ? (
+                <span className="text-sm font-semibold text-success">
+                  Correct: {correctHeadword}
+                </span>
+              ) : null}
             </button>
           );
         })}
       </div>
 
       <div className="flex justify-center">
-        <Button type="button" onClick={submit} disabled={!allFilled} variant="primary" size="lg">
-          Check
+        <Button
+          type="button"
+          onClick={submit}
+          disabled={!allFilled || locked}
+          variant="primary"
+          size="lg"
+        >
+          {locked ? (outcome.correct ? "Correct" : "Reviewing") : "Check"}
         </Button>
       </div>
     </section>

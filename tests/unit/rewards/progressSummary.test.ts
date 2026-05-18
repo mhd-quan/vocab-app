@@ -35,7 +35,7 @@ describe("student progress summary", () => {
       streakDays: 7,
       practicedToday: true,
     });
-    expect(summary.headline).toMatch(/full-week/i);
+    expect(summary.cue).toBe("streak");
     expect(summary.wordsLabel).toBe("30 words");
   });
 });

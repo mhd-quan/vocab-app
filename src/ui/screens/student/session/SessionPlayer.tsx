@@ -406,6 +406,7 @@ function ExerciseCard({
         <DefinitionMatchCard
           key={exercise.id}
           exercise={exercise}
+          outcome={outcome}
           onAnswer={(assignments) => onAnswer({ kind: "definition_match", assignments })}
         />
       );
@@ -414,6 +415,7 @@ function ExerciseCard({
         <SentenceRebuildCard
           key={exercise.id}
           exercise={exercise}
+          outcome={outcome}
           onAnswer={(tokens) => onAnswer({ kind: "sentence_rebuild", tokens })}
         />
       );
