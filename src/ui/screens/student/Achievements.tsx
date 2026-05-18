@@ -4,8 +4,8 @@ import { queryKeys } from "@/lib/queryClient";
 import {
   ACHIEVEMENTS,
   type AchievementDefinition,
-  achievementProgress,
   getAchievement,
+  nextAchievementQuests,
   summarizeStudentProgress,
 } from "@/modules/rewards";
 import { Avatar } from "@/ui/components/Avatar";
@@ -67,10 +67,7 @@ export function StudentAchievements() {
   const unlocked = [...unlockedIds]
     .map((achievementId) => getAchievement(achievementId))
     .filter((a): a is AchievementDefinition => a !== null);
-  const locked = ACHIEVEMENTS.filter((a) => !unlockedIds.has(a.id))
-    .map((a) => ({ achievement: a, progress: achievementProgress(a, stats) }))
-    .sort((a, b) => b.progress.pct - a.progress.pct)
-    .slice(0, 36);
+  const locked = nextAchievementQuests(ACHIEVEMENTS, unlockedIds, stats);
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-7 px-8 py-10">
@@ -142,7 +139,7 @@ export function StudentAchievements() {
           <div className="flex items-end justify-between gap-3">
             <div>
               <h2 className="font-display text-2xl font-semibold">Almost there</h2>
-              <p className="text-sm text-muted">Progress bars make the next quest visible.</p>
+              <p className="text-sm text-muted">Closest unfinished quest per achievement group.</p>
             </div>
             <Badge tone="focus" uppercase>
               Next quests

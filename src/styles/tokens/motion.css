@@ -12,28 +12,14 @@
   .motion-card {
     --glow-rgb: var(--color-accent);
     position: relative;
-    transform: translateZ(0);
   }
 
   .motion-card::after {
-    border-radius: inherit;
-    box-shadow: 0 20px 70px rgb(var(--glow-rgb) / 0.2);
-    content: "";
-    inset: 0;
-    opacity: 0;
-    pointer-events: none;
-    position: absolute;
-    transition: opacity var(--motion-base) ease;
-    z-index: -1;
-  }
-
-  .motion-card:hover::after,
-  .motion-card:focus-within::after {
-    opacity: 1;
+    content: none;
   }
 
   .motion-enter {
-    animation: panel-in var(--motion-slow) var(--motion-spring) both;
+    animation: panel-in var(--motion-base) var(--motion-spring) both;
   }
 
   .progress-shimmer {
@@ -43,8 +29,7 @@
       rgb(255 255 255 / 0.32) 46%,
       rgb(255 255 255 / 0) 72%
     );
-    background-size: 220% 100%;
-    animation: progress-shimmer 1.4s ease-in-out infinite;
+    background-size: 100% 100%;
   }
 
   .answer-correct {
@@ -56,7 +41,7 @@
   }
 
   .streak-glow {
-    animation: streak-pulse 1.9s ease-in-out infinite;
+    filter: drop-shadow(0 0 8px rgb(var(--color-ember) / 0.24));
   }
 
   /* New: 3D press feedback. Used by PressButton (Phase 6) and any
@@ -82,11 +67,9 @@
 @keyframes panel-in {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.985);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
   }
 }
 
@@ -148,5 +131,20 @@
   }
   100% {
     transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-enter,
+  .answer-correct,
+  .answer-wrong,
+  .chip-pop {
+    animation: none !important;
+  }
+
+  .press-bounce,
+  .motion-card,
+  .progress-shimmer {
+    transition: none !important;
   }
 }

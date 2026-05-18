@@ -49,6 +49,39 @@
     --student-reward-glow: 0 12px 32px rgb(var(--color-warning) / 0.2);
   }
 
+  [data-app-mode="student"] [data-student-bg="custom"] {
+    --student-readable-surface-opacity: 0.7;
+  }
+
+  [data-app-mode="student"]
+    [data-student-bg="custom"]
+    :is(
+      .motion-card,
+      .bg-surface-1,
+      .bg-surface-0\/30,
+      .bg-surface-0\/40,
+      .bg-surface-0\/50,
+      .bg-surface-0\/60,
+      .bg-surface-0\/65,
+      .bg-surface-0\/70,
+      .bg-surface-0\/75,
+      .bg-surface-2\/70,
+      .bg-mastery\/10,
+      .bg-focus\/10,
+      .bg-warning\/10,
+      .bg-xp\/10,
+      .bg-sky\/10,
+      .bg-ember\/10,
+      .bg-success\/10,
+      .bg-accent\/10
+    ) {
+    background-color: rgb(var(--color-surface-1) / var(--student-readable-surface-opacity)) !important;
+  }
+
+  [data-app-mode="student"] [data-student-bg="custom"] .border-border-subtle {
+    border-color: rgb(var(--color-border-strong) / 0.7);
+  }
+
   [data-app-mode="student"].dark {
     --color-accent: 134 224 76;
     --color-success: 134 224 76;

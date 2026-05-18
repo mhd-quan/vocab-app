@@ -112,8 +112,8 @@ export function StudentLayout() {
       </header>
       <main
         className={cn(
-          "min-w-0 flex-1 overflow-y-auto backdrop-blur-[1px]",
-          customBackground ? "bg-white/58" : "bg-app/85",
+          "min-w-0 flex-1 overflow-y-auto",
+          customBackground ? "bg-transparent" : "bg-app/85",
         )}
       >
         <Outlet />
