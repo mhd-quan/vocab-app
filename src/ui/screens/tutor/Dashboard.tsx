@@ -27,6 +27,10 @@ export function TutorDashboard() {
     queryKey: queryKeys.progress.tutorOverview(),
     queryFn: () => api.progress.tutorOverview(),
   });
+  const evidenceQ = useQuery({
+    queryKey: queryKeys.evidence.tutorOverview(),
+    queryFn: () => api.evidence.tutorOverview(),
+  });
 
   const books = booksQ.data ?? [];
   const students = studentsQ.data ?? [];
@@ -40,7 +44,7 @@ export function TutorDashboard() {
         subtitle="At-a-glance corpus stats + per-student roll-up. Click a student to drill into their analytics."
       />
 
-      <section className="grid grid-cols-1 gap-4 px-8 py-6 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-1 gap-4 px-8 py-6 md:grid-cols-2 xl:grid-cols-5">
         <Stat
           label="Books"
           value={booksQ.isLoading ? "…" : String(books.length)}
@@ -64,6 +68,11 @@ export function TutorDashboard() {
           value={overviewQ.data ? String(sumPracticed(overviewQ.data)) : "…"}
           hint="have practised"
         />
+        <Stat
+          label="Review flags"
+          value={evidenceQ.data ? String(sumReviewFlags(evidenceQ.data)) : "…"}
+          hint="attention signals"
+        />
       </section>
 
       <section className="px-8 pb-10">
@@ -81,7 +90,7 @@ export function TutorDashboard() {
             body="Create a profile in Students to start tracking practice."
           />
         ) : (
-          <StudentTable rows={overviewQ.data ?? []} />
+          <StudentTable rows={overviewQ.data ?? []} evidenceRows={evidenceQ.data ?? []} />
         )}
       </section>
     </>
@@ -90,6 +99,7 @@ export function TutorDashboard() {
 
 function StudentTable({
   rows,
+  evidenceRows,
 }: {
   rows: Array<{
     student: {
@@ -104,7 +114,13 @@ function StudentTable({
     accuracy: number;
     lastPracticedAt: Date | null;
   }>;
+  evidenceRows: Array<{
+    student: { id: number };
+    avgAttentionScore: number | null;
+    totalReviewFlags: number;
+  }>;
 }) {
+  const evidenceByStudent = new Map(evidenceRows.map((row) => [row.student.id, row]));
   return (
     <TutorDataTable>
       <table className="w-full text-left text-sm">
@@ -114,13 +130,18 @@ function StudentTable({
             <th className="px-4 py-2 font-medium">Seen</th>
             <th className="px-4 py-2 font-medium">Due</th>
             <th className="px-4 py-2 font-medium">Accuracy</th>
+            <th className="px-4 py-2 font-medium">Attention</th>
             <th className="px-4 py-2 font-medium">Last practised</th>
             <th aria-hidden className="px-4 py-2" />
           </tr>
         </thead>
         <tbody>
           {rows.map((row) => (
-            <StudentRow key={row.student.id} row={row} />
+            <StudentRow
+              key={row.student.id}
+              row={row}
+              evidence={evidenceByStudent.get(row.student.id)}
+            />
           ))}
         </tbody>
       </table>
@@ -130,6 +151,7 @@ function StudentTable({
 
 function StudentRow({
   row,
+  evidence,
 }: {
   row: {
     student: {
@@ -143,6 +165,10 @@ function StudentRow({
     totalDue: number;
     accuracy: number;
     lastPracticedAt: Date | null;
+  };
+  evidence?: {
+    avgAttentionScore: number | null;
+    totalReviewFlags: number;
   };
 }) {
   const display = row.student.displayName ?? row.student.name;
@@ -184,6 +210,22 @@ function StudentRow({
           >
             {totalAttempts}%
           </Badge>
+        )}
+      </td>
+      <td className="px-4 py-3">
+        {evidence?.avgAttentionScore === null || evidence?.avgAttentionScore === undefined ? (
+          <span className="font-mono text-xs text-muted-2">—</span>
+        ) : (
+          <span className="inline-flex items-center gap-2">
+            <Badge tone={attentionTone(evidence.avgAttentionScore)} uppercase>
+              {evidence.avgAttentionScore}
+            </Badge>
+            {evidence.totalReviewFlags > 0 ? (
+              <span className="font-mono text-[10px] text-muted-2">
+                {evidence.totalReviewFlags} flags
+              </span>
+            ) : null}
+          </span>
         )}
       </td>
       <td className="px-4 py-3 text-xs text-muted">{relativeTime(row.lastPracticedAt)}</td>
@@ -249,6 +291,16 @@ function useTotalUnitCount(bookIds: number[]): number | null {
 
 function sumPracticed(rows: Array<{ totalSeen: number }>): number {
   return rows.reduce((acc, r) => acc + (r.totalSeen > 0 ? 1 : 0), 0);
+}
+
+function sumReviewFlags(rows: Array<{ totalReviewFlags: number }>): number {
+  return rows.reduce((acc, r) => acc + r.totalReviewFlags, 0);
+}
+
+function attentionTone(score: number): "success" | "accent" | "warning" {
+  if (score >= 85) return "success";
+  if (score >= 65) return "accent";
+  return "warning";
 }
 
 const SECOND = 1000;

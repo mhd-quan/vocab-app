@@ -63,6 +63,7 @@ describe("DB schema migrations", () => {
       "learning_events",
       "lessons",
       "practice_sessions",
+      "session_evidence_events",
       "student_achievements",
       "students",
       "unit_assignments",

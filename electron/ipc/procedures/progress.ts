@@ -30,6 +30,7 @@ const recordAnswerInput = z.object({
   outcome: outcomeSchema,
   /** Caller-tracked: count of consecutive correct answers ending at this answer. */
   currentSessionRun: z.number().int().nonnegative().optional(),
+  responseMs: z.number().int().nonnegative().optional(),
   /** ISO 8601 string. Optional — server clock if omitted. */
   occurredAtIso: z.string().datetime().optional(),
 });
@@ -40,6 +41,7 @@ const recordContentAnswerInput = z.object({
   contentItemId: z.number().int().positive(),
   outcome: outcomeSchema,
   currentSessionRun: z.number().int().nonnegative().optional(),
+  responseMs: z.number().int().nonnegative().optional(),
   occurredAtIso: z.string().datetime().optional(),
 });
 
@@ -115,6 +117,7 @@ export const progressProcedures = [
         entryId: input.entryId,
         outcome,
         currentSessionRun: input.currentSessionRun,
+        responseMs: input.responseMs,
         now,
       });
       return result;
@@ -138,6 +141,7 @@ export const progressProcedures = [
         contentItemId: input.contentItemId,
         outcome,
         currentSessionRun: input.currentSessionRun,
+        responseMs: input.responseMs,
         now,
       });
     },

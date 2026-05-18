@@ -30,6 +30,10 @@ const createMainWindow = (): BrowserWindow => {
     },
   });
 
+  // Best-effort screen-capture guard for sensitive student-session content.
+  // Electron maps this to native content-protection APIs where supported.
+  win.setContentProtection(true);
+
   win.once("ready-to-show", () => win.show());
   win.on("closed", () => {
     if (mainWindow === win) mainWindow = null;

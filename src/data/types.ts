@@ -13,6 +13,7 @@ import type {
   learningEvents,
   lessons,
   practiceSessions,
+  sessionEvidenceEvents,
   studentAchievements,
   students,
   unitAssignments,
@@ -82,3 +83,6 @@ export type NewAppSetting = typeof appSettings.$inferInsert;
 
 export type StudentAchievement = typeof studentAchievements.$inferSelect;
 export type NewStudentAchievement = typeof studentAchievements.$inferInsert;
+
+export type SessionEvidenceEvent = typeof sessionEvidenceEvents.$inferSelect;
+export type NewSessionEvidenceEvent = typeof sessionEvidenceEvents.$inferInsert;

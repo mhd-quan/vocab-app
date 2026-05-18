@@ -4,6 +4,7 @@ import {
   type DictionaryLearningRepository,
   createDictionaryLearningRepository,
 } from "./dictionaryLearning";
+import { type EvidenceRepository, createEvidenceRepository } from "./evidence";
 import { type GrammarRepository, createGrammarRepository } from "./grammar";
 import { type ImportRepository, createImportRepository } from "./import";
 import { type ProgressRepository, createProgressRepository } from "./progress";
@@ -24,6 +25,7 @@ export interface Repositories {
   progress: ProgressRepository;
   rewards: RewardsRepository;
   srs: SrsRepository;
+  evidence: EvidenceRepository;
 }
 
 export function createRepositories(db: AppDatabase): Repositories {
@@ -38,6 +40,7 @@ export function createRepositories(db: AppDatabase): Repositories {
     progress: createProgressRepository(db),
     rewards: createRewardsRepository(db),
     srs: createSrsRepository(db),
+    evidence: createEvidenceRepository(db),
   };
 }
 
@@ -55,6 +58,15 @@ export {
   type RecordReviewInput,
   type RecordSearchInput,
 } from "./dictionaryLearning";
+export {
+  type EvidenceRepository,
+  createEvidenceRepository,
+  type RecordEvidenceEventInput,
+  type SessionEvidenceSummaryRow,
+  type StudentEvidenceOverview,
+  type StudentEvidenceTimeline,
+  type TutorEvidenceOverviewRow,
+} from "./evidence";
 export {
   createGrammarRepository,
   type GrammarTopicForPractice,

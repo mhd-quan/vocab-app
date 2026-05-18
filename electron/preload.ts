@@ -24,6 +24,7 @@ import type {
   LearningEvent,
   Lesson,
   PracticeSession,
+  SessionEvidenceEvent,
   Student,
   StudentAchievement,
   Unit,
@@ -32,6 +33,11 @@ import type {
 } from "../src/data/types";
 import type { SelfGrade } from "../src/modules/exercises/types";
 import type { StreakStats } from "../src/modules/rewards";
+import type {
+  StudentEvidenceOverview,
+  StudentEvidenceTimeline,
+  TutorEvidenceOverviewRow,
+} from "./db/repositories/evidence";
 import type { GrammarTopicForPractice } from "./db/repositories/grammar";
 import type { VocabEntryFull } from "./db/repositories/vocab";
 
@@ -102,6 +108,35 @@ interface TutorOverviewRow {
   lastPracticedAt: Date | null;
 }
 
+interface EvidenceEventPayload {
+  studentId: number;
+  sessionId: number;
+  kind:
+    | "session_notice_shown"
+    | "camera_consent_granted"
+    | "camera_consent_declined"
+    | "camera_unavailable"
+    | "camera_snapshot"
+    | "window_focus_lost"
+    | "window_focus_returned"
+    | "document_hidden"
+    | "document_visible"
+    | "guardrail_overlay_shown"
+    | "guardrail_overlay_dismissed"
+    | "answer_submitted";
+  severity?: "info" | "attention" | "integrity" | "system";
+  durationMs?: number | null;
+  payload?: Record<string, unknown> | null;
+  occurredAtIso?: string;
+}
+
+interface EvidenceExportResult {
+  canceled: boolean;
+  filePath: string | null;
+  encrypted: boolean;
+  sha256: string;
+}
+
 interface CreateStudent {
   name: string;
   displayName?: string;
@@ -121,7 +156,7 @@ interface UpdateStudentPatch {
 const api = {
   app: {
     name: "vocab-app",
-    version: "0.11.2",
+    version: "0.12.0",
     platform: process.platform,
   },
 
@@ -264,6 +299,7 @@ const api = {
       outcome: OutcomePayload;
       currentSessionRun?: number;
       occurredAtIso?: string;
+      responseMs?: number;
     }) =>
       invoke<{
         event: LearningEvent;
@@ -277,6 +313,7 @@ const api = {
       outcome: OutcomePayload;
       currentSessionRun?: number;
       occurredAtIso?: string;
+      responseMs?: number;
     }) =>
       invoke<{
         event: LearningEvent;
@@ -299,6 +336,32 @@ const api = {
       invoke<RecentSessionRow[]>("progress.recentSessions", input),
     tutorOverview: (input?: { nowIso?: string }) =>
       invoke<TutorOverviewRow[]>("progress.tutorOverview", input ?? {}),
+  },
+
+  evidence: {
+    recordEvent: (input: EvidenceEventPayload) =>
+      invoke<SessionEvidenceEvent>("evidence.recordEvent", input),
+    recordEvents: (input: { events: EvidenceEventPayload[] }) =>
+      invoke<SessionEvidenceEvent[]>("evidence.recordEvents", input),
+    recordCameraSnapshot: (input: {
+      studentId: number;
+      sessionId: number;
+      dataUrl: string;
+      capturedAtIso?: string;
+      intervalMs?: number;
+      width?: number;
+      height?: number;
+    }) => invoke<SessionEvidenceEvent>("evidence.recordCameraSnapshot", input),
+    studentOverview: (input: { studentId: number; limit?: number }) =>
+      invoke<StudentEvidenceOverview>("evidence.studentOverview", input),
+    tutorOverview: () => invoke<TutorEvidenceOverviewRow[]>("evidence.tutorOverview", {}),
+    sessionTimeline: (input: { sessionId: number }) =>
+      invoke<StudentEvidenceTimeline | null>("evidence.sessionTimeline", input),
+    exportStudentReport: (input: {
+      studentId: number;
+      includeSnapshots?: boolean;
+      passphrase?: string;
+    }) => invoke<EvidenceExportResult>("evidence.exportStudentReport", input),
   },
 
   rewards: {

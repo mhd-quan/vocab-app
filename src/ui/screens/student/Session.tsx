@@ -23,6 +23,7 @@ import {
   type SessionResult,
   type SessionResultPersistence,
 } from "./session/SessionPlayer";
+import { SessionEvidenceFrame, useSessionEvidence } from "./session/useSessionEvidence";
 
 const SOUND_KEY = "rewards_sound_enabled";
 const SESSION_COUNT_KEY = "session_default_count";
@@ -139,6 +140,11 @@ export function StudentSession() {
   // Using a ref so React 18 strict-mode double-invokes don't double-open.
   const openedFor = useRef<string | null>(null);
   const sessionId = sessionStart.data?.id ?? null;
+  const evidence = useSessionEvidence({
+    studentId: studentIdNum,
+    sessionId,
+    contextLabel: lessonQ.data?.title,
+  });
 
   useEffect(() => {
     if (lessonQ.isLoading || !lessonQ.data) return;
@@ -213,6 +219,7 @@ export function StudentSession() {
           selectedIndex: result.outcome.selectedIndex,
         },
         currentSessionRun: result.currentSessionRun,
+        responseMs: result.responseMs,
       });
       return { unlockedAchievements: response.unlockedAchievements };
     },
@@ -233,6 +240,7 @@ export function StudentSession() {
           selectedIndex: result.outcome.selectedIndex,
         },
         currentSessionRun: result.currentSessionRun,
+        responseMs: result.responseMs,
       });
       return { unlockedAchievements: response.unlockedAchievements };
     },
@@ -297,14 +305,25 @@ export function StudentSession() {
       ? `${lessonQ.data.title} · ${grammarTopicsQ.data?.length ?? 0} topics`
       : undefined;
     return (
-      <GrammarSessionPlayer
-        topics={grammarTopicsQ.data ?? []}
-        deck={grammarDeck}
-        onExit={exit}
-        onResult={handleGrammarResult}
-        contextLabel={contextLabel}
-        soundEnabled={soundQ.data === true}
-      />
+      <SessionEvidenceFrame monitor={evidence}>
+        <GrammarSessionPlayer
+          topics={grammarTopicsQ.data ?? []}
+          deck={grammarDeck}
+          onExit={exit}
+          onResult={handleGrammarResult}
+          onEvidence={(result) =>
+            evidence.recordAnswerEvidence({
+              exerciseId: result.exerciseId,
+              kind: result.kind,
+              responseMs: result.responseMs,
+              correct: result.outcome.correct,
+              currentSessionRun: result.currentSessionRun,
+            })
+          }
+          contextLabel={contextLabel}
+          soundEnabled={soundQ.data === true}
+        />
+      </SessionEvidenceFrame>
     );
   }
 
@@ -314,14 +333,25 @@ export function StudentSession() {
       : undefined;
 
   return (
-    <SessionPlayer
-      deck={deck}
-      onExit={exit}
-      onResult={handleResult}
-      contextLabel={contextLabel}
-      soundEnabled={soundQ.data === true}
-      autoplay={pronunciationAutoplay}
-    />
+    <SessionEvidenceFrame monitor={evidence}>
+      <SessionPlayer
+        deck={deck}
+        onExit={exit}
+        onResult={handleResult}
+        onEvidence={(result) =>
+          evidence.recordAnswerEvidence({
+            exerciseId: result.exerciseId,
+            kind: result.kind,
+            responseMs: result.responseMs,
+            correct: result.outcome.correct,
+            currentSessionRun: result.currentSessionRun,
+          })
+        }
+        contextLabel={contextLabel}
+        soundEnabled={soundQ.data === true}
+        autoplay={pronunciationAutoplay}
+      />
+    </SessionEvidenceFrame>
   );
 }
 

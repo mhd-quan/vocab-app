@@ -3,6 +3,7 @@ import { authProcedures } from "./auth";
 import { curriculumProcedures } from "./curriculum";
 import { dictionaryProcedures } from "./dictionary";
 import { dictionaryLearningProcedures } from "./dictionaryLearning";
+import { evidenceProcedures } from "./evidence";
 import { grammarProcedures } from "./grammar";
 import { importsProcedures } from "./imports";
 import { metaProcedures } from "./meta";
@@ -18,6 +19,7 @@ export const allProcedures: ReadonlyArray<AnyProcedure> = [
   ...curriculumProcedures,
   ...dictionaryProcedures,
   ...dictionaryLearningProcedures,
+  ...evidenceProcedures,
   ...grammarProcedures,
   ...vocabProcedures,
   ...studentsProcedures,
@@ -32,6 +34,7 @@ export {
   curriculumProcedures,
   dictionaryLearningProcedures,
   dictionaryProcedures,
+  evidenceProcedures,
   grammarProcedures,
   importsProcedures,
   metaProcedures,

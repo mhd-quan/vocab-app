@@ -35,6 +35,9 @@ const requiredDrizzleFiles = [
   "0001_colossal_makkari.sql",
   "0002_hard_trauma.sql",
   "0003_fair_hawkeye.sql",
+  "0004_lexicon_v0_10_fsrs.sql",
+  "0005_personal_dict_fsrs.sql",
+  "0006_session_evidence_events.sql",
   path.join("meta", "_journal.json"),
 ];
 

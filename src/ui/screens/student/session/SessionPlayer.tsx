@@ -22,7 +22,7 @@ import { ProgressBubble } from "@/ui/student/components/ProgressBubble";
 import { AudioRecallCard } from "@/ui/student/exercises/AudioRecallCard";
 import { DefinitionMatchCard } from "@/ui/student/exercises/DefinitionMatchCard";
 import { SentenceRebuildCard } from "@/ui/student/exercises/SentenceRebuildCard";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { FlashcardCard } from "./FlashcardCard";
 import { MultipleChoiceCard } from "./MultipleChoiceCard";
 import { SessionSummary, type SessionSummaryStats } from "./SessionSummary";
@@ -35,6 +35,8 @@ export interface SessionResult {
   outcome: GradeOutcome;
   /** In-session correct streak ending at this answer (0 if wrong). */
   currentSessionRun: number;
+  /** Milliseconds from card render to submitted/self-graded answer. */
+  responseMs: number;
 }
 
 /** Persistence result returned by `onResult` so the player can show unlock toasts. */
@@ -61,6 +63,8 @@ export interface SessionPlayerProps {
    * Errors are caught + logged so a flaky write never blocks the deck.
    */
   onResult?: (result: SessionResult) => undefined | Promise<SessionResultPersistence | undefined>;
+  /** Best-effort evidence hook; failures are isolated from academic progress. */
+  onEvidence?: (result: SessionResult) => void;
   /** Whether to play a chime on milestone bursts. Off by default. */
   soundEnabled?: boolean;
   /**
@@ -121,6 +125,7 @@ export function SessionPlayer({
   contextLabel,
   autoAdvanceDelayMs = DEFAULT_AUTO_ADVANCE_MS,
   onResult,
+  onEvidence,
   soundEnabled = false,
   autoplay = true,
 }: SessionPlayerProps) {
@@ -135,6 +140,12 @@ export function SessionPlayer({
   const total = deck.length;
   const current = deck[index] ?? null;
   const done = current === null;
+  const promptShownAt = useRef(nowMs());
+  const promptExerciseId = useRef<string | null>(null);
+  if (promptExerciseId.current !== (current?.id ?? null)) {
+    promptExerciseId.current = current?.id ?? null;
+    promptShownAt.current = nowMs();
+  }
 
   // Audio prefetch: warm the next 3 cards' audio in the React-Query
   // cache so autoplay on advance starts instantly. We collect refs from
@@ -191,6 +202,7 @@ export function SessionPlayer({
     (answer: Answer) => {
       if (!current) return;
       const outcome = gradeExercise(current, answer);
+      const responseMs = Math.max(0, Math.round(nowMs() - promptShownAt.current));
       const newRun = outcome.correct ? correctRun + 1 : 0;
       setCorrectRun(newRun);
 
@@ -207,7 +219,10 @@ export function SessionPlayer({
         kind: current.kind,
         outcome,
         currentSessionRun: newRun,
+        responseMs,
       };
+
+      onEvidence?.(result);
 
       if (onResult) {
         // Fire-and-forget for the deck loop, but capture unlocks asynchronously
@@ -240,7 +255,7 @@ export function SessionPlayer({
         window.setTimeout(() => advance(result), autoAdvanceDelayMs);
       }
     },
-    [current, advance, autoAdvanceDelayMs, onResult, correctRun, enqueueUnlocks],
+    [current, advance, autoAdvanceDelayMs, onResult, onEvidence, correctRun, enqueueUnlocks],
   );
 
   const summary = useMemo<SessionSummaryStats | null>(() => {
@@ -463,4 +478,8 @@ function summarize(results: SessionResult[]): SessionSummaryStats {
     byKind[r.kind] = bucket;
   }
   return { total, correct, byKind };
+}
+
+function nowMs(): number {
+  return typeof performance !== "undefined" ? performance.now() : Date.now();
 }
