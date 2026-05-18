@@ -9,15 +9,21 @@ export interface PageHeaderProps {
 
 export function PageHeader({ eyebrow, title, subtitle, actions }: PageHeaderProps) {
   return (
-    <header className="flex min-h-[var(--tutor-header-height)] items-start justify-between gap-6 border-b border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] px-8 py-7">
-      <div className="flex min-w-0 flex-col gap-1">
+    <header className="relative isolate flex min-h-[var(--tutor-header-height)] items-start justify-between gap-6 overflow-hidden border-b border-border-subtle bg-[color:var(--md-sys-color-surface)] px-8 py-6">
+      <span
+        aria-hidden
+        className="absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-accent/45 via-focus/25 to-transparent"
+      />
+      <div className="flex min-w-0 flex-col gap-1.5">
         {eyebrow ? (
-          <span className="text-xs font-semibold uppercase text-muted-2">{eyebrow}</span>
+          <span className="text-[11px] font-semibold uppercase text-muted-2">{eyebrow}</span>
         ) : null}
-        <h1 className="font-display text-4xl font-semibold leading-tight text-app">{title}</h1>
-        {subtitle ? <p className="max-w-2xl text-sm text-muted">{subtitle}</p> : null}
+        <h1 className="font-display text-3xl font-semibold leading-tight text-app">{title}</h1>
+        {subtitle ? <p className="max-w-3xl text-sm leading-6 text-muted">{subtitle}</p> : null}
       </div>
-      {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
+      {actions ? (
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">{actions}</div>
+      ) : null}
     </header>
   );
 }

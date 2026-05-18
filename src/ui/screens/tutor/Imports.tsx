@@ -126,7 +126,7 @@ function AuthoringPanel({ onImported }: { onImported: () => Promise<void> }) {
     <TutorPanel
       title="Draft and import YAML in app"
       description="Use this editor for quick lessons; full syntax remains documented in the templates."
-      className="mb-6"
+      className="mb-6 flex flex-col gap-4"
       actions={
         <Badge tone="focus" uppercase>
           Authoring
@@ -211,12 +211,12 @@ function RunRow({
       : null;
 
   return (
-    <li className="overflow-hidden rounded-2xl border border-border-subtle bg-surface-1">
+    <li className="overflow-hidden rounded-[var(--shape-corner-xl)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)] shadow-[var(--md-sys-elevation-1)]">
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={expanded}
-        className="flex w-full items-center gap-4 px-4 py-3 text-left hover:bg-surface-2"
+        className="flex w-full items-center gap-4 px-4 py-3 text-left transition-colors hover:bg-[color:var(--md-sys-color-surface-container-low)]"
       >
         <Badge tone={STATUS_TONE[run.status]} uppercase>
           {run.status}
@@ -282,7 +282,7 @@ function RunItems({ runId, errorLog }: { runId: number; errorLog: string | null 
   const items = itemsQ.data ?? [];
 
   return (
-    <div className="border-t border-border-subtle bg-surface-0/40 px-4 py-3">
+    <div className="border-t border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] px-4 py-3">
       {itemsQ.isLoading ? (
         <p className="text-xs text-muted">Loading items…</p>
       ) : items.length === 0 ? (

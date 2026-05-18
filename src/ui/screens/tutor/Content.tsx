@@ -52,7 +52,7 @@ export function TutorContent() {
         subtitle="Books → units → lessons → vocab entries and grammar topics. Read-only — author content via YAML and `npm run import`."
       />
 
-      <div className="grid h-[calc(100vh-9rem)] grid-cols-[15rem_1fr_24rem] border-t border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)]">
+      <div className="grid h-[calc(100vh_-_var(--tutor-header-height))] grid-cols-[16rem_minmax(0,1fr)_minmax(22rem,28rem)] border-t border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)]">
         <BooksPane
           books={booksQ.data ?? []}
           loading={booksQ.isLoading}
@@ -83,7 +83,7 @@ function BooksPane({
   onSelect: (id: number) => void;
 }) {
   return (
-    <aside className="flex h-full flex-col overflow-y-auto border-r border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)]">
+    <aside className="tutor-scrollbar flex h-full flex-col overflow-y-auto border-r border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)]">
       <div className="border-b border-border-subtle bg-[color:var(--md-sys-color-surface-container)] px-4 py-3">
         <h2 className="text-[10px] font-medium uppercase text-muted">Books</h2>
       </div>
@@ -212,10 +212,10 @@ function BookRow({
     <li>
       <div
         className={cn(
-          "group grid grid-cols-[1fr_auto] items-center rounded-[var(--shape-corner-lg)] transition-colors",
+          "group grid grid-cols-[1fr_auto] items-center rounded-[var(--shape-corner-lg)] border transition-colors",
           selected
-            ? "bg-[color:var(--md-sys-color-secondary-container)] text-[color:var(--md-sys-color-on-secondary-container)]"
-            : "text-muted hover:bg-accent/[var(--state-hover)] hover:text-app",
+            ? "border-transparent bg-[color:var(--md-sys-color-secondary-container)] text-[color:var(--md-sys-color-on-secondary-container)]"
+            : "border-transparent text-muted hover:border-border-subtle hover:bg-accent/[var(--state-hover)] hover:text-app",
         )}
       >
         <button
@@ -280,7 +280,7 @@ function LessonsPane({
   }
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto bg-[color:var(--md-sys-color-surface)]">
+    <div className="tutor-scrollbar flex h-full flex-col overflow-y-auto bg-[color:var(--md-sys-color-surface)]">
       <ul className="flex flex-col">
         {units.map((unit) => (
           <UnitGroupRow
@@ -422,10 +422,10 @@ function EntryButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex w-full items-baseline gap-2 rounded-[var(--shape-corner-md)] border px-3 py-2 text-left transition-colors",
+        "flex w-full items-baseline gap-2 rounded-[var(--shape-corner-lg)] border px-3 py-2 text-left transition-[background-color,border-color,box-shadow]",
         selected
-          ? "border-accent bg-accent/10"
-          : "border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)] hover:border-border-strong hover:bg-accent/[var(--state-hover)]",
+          ? "border-accent bg-accent/10 shadow-[var(--md-sys-elevation-1)]"
+          : "border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)] hover:border-accent/40 hover:bg-accent/[var(--state-hover)]",
       )}
     >
       <span className="truncate text-sm font-medium">{entry.headword}</span>
@@ -455,10 +455,10 @@ function TopicButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex w-full items-baseline gap-2 rounded-[var(--shape-corner-md)] border px-3 py-2 text-left transition-colors",
+        "flex w-full items-baseline gap-2 rounded-[var(--shape-corner-lg)] border px-3 py-2 text-left transition-[background-color,border-color,box-shadow]",
         selected
-          ? "border-focus bg-focus/10"
-          : "border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)] hover:border-border-strong hover:bg-focus/[var(--state-hover)]",
+          ? "border-focus bg-focus/10 shadow-[var(--md-sys-elevation-1)]"
+          : "border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)] hover:border-focus/40 hover:bg-focus/[var(--state-hover)]",
       )}
     >
       <span className="truncate text-sm font-medium">{topic.title}</span>
@@ -484,7 +484,7 @@ function DetailPane({ selection }: { selection: ContentSelection }) {
   });
 
   return (
-    <aside className="h-full overflow-y-auto border-l border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)]">
+    <aside className="tutor-scrollbar h-full overflow-y-auto border-l border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)]">
       {selection === null ? (
         <div className="flex h-full items-center justify-center px-6 text-center">
           <p className="text-xs text-muted">Pick a vocab entry or grammar topic to see details.</p>

@@ -296,8 +296,8 @@ function AssignmentsPanel({
                       className={cn(
                         "flex min-h-24 cursor-pointer flex-col gap-2 rounded-2xl border p-3 transition",
                         checked
-                          ? "border-mastery/50 bg-mastery/10 shadow-glow"
-                          : "border-border-subtle bg-surface-0/60 hover:border-border-strong hover:bg-surface-2",
+                          ? "border-mastery/50 bg-mastery/10 shadow-[var(--md-sys-elevation-1)]"
+                          : "border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] hover:border-border-strong hover:bg-[color:var(--md-sys-color-surface-container-high)]",
                       )}
                     >
                       <span className="flex items-center justify-between gap-3">
@@ -410,7 +410,7 @@ function WeakWordsPanel({
               <Link
                 to="/tutor/content"
                 search={{ entry: row.entryId, book: row.bookId }}
-                className="flex items-center justify-between rounded-2xl border border-border-subtle bg-surface-0/70 px-3 py-2.5 text-sm transition-colors hover:border-accent/50 hover:bg-surface-2"
+                className="flex items-center justify-between rounded-2xl border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] px-3 py-2.5 text-sm transition-colors hover:border-accent/50 hover:bg-[color:var(--md-sys-color-surface-container-high)]"
               >
                 <span className="flex items-baseline gap-2">
                   <span className="font-medium text-app">{row.headword}</span>
@@ -466,7 +466,7 @@ function RecentSessionsPanel({
             return (
               <li
                 key={row.sessionId}
-                className="flex items-center justify-between rounded-2xl border border-border-subtle bg-surface-0/70 px-3 py-2.5 text-sm"
+                className="flex items-center justify-between rounded-2xl border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] px-3 py-2.5 text-sm"
               >
                 <span className="flex items-baseline gap-2">
                   <Badge tone="muted" uppercase>

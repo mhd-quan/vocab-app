@@ -44,10 +44,10 @@ export function TutorLayout() {
     : ITEMS;
 
   return (
-    <div className="flex h-screen w-screen bg-[color:var(--md-sys-color-surface)]">
+    <div className="tutor-workspace-shell flex h-screen w-screen overflow-hidden text-app">
       <TutorNavigationRail
         topInset={isMac}
-        brand={<TutorBrand version="v0.11.0" />}
+        brand={<TutorBrand version="v0.11.1" />}
         items={items}
         footer={
           <div className="flex flex-col gap-1.5">
@@ -72,7 +72,7 @@ export function TutorLayout() {
           </div>
         }
       />
-      <main className="flex-1 overflow-y-auto">
+      <main className="tutor-main-surface tutor-scrollbar min-w-0 flex-1 overflow-y-auto">
         <div className="px-6 pt-4">
           <SrsArchiveBanner />
         </div>

@@ -108,7 +108,7 @@ function StudentTable({
   return (
     <TutorDataTable>
       <table className="w-full text-left text-sm">
-        <thead className="border-b border-border-subtle bg-[color:var(--md-sys-color-surface-container)] text-xs uppercase text-muted-2">
+        <thead className="border-b border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] text-xs uppercase text-muted-2">
           <tr>
             <th className="px-4 py-2 font-medium">Student</th>
             <th className="px-4 py-2 font-medium">Seen</th>
