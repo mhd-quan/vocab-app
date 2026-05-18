@@ -5,7 +5,7 @@ import {
   tokenise,
 } from "@/modules/exercises";
 import { describe, expect, it } from "vitest";
-import { makeEntry } from "./fixtures";
+import { makeSource } from "./fixtures";
 
 const ctx: BuildContext = {
   distractorPool: [],
@@ -14,14 +14,14 @@ const ctx: BuildContext = {
 };
 
 function buildExercise() {
-  const ex = sentenceRebuildPlugin.build(makeEntry(), ctx);
+  const ex = sentenceRebuildPlugin.build(makeSource(), ctx);
   if (!ex) throw new Error("Expected sentence rebuild fixture to build an exercise");
   return ex;
 }
 
 describe("sentenceRebuildPlugin.build", () => {
   it("builds when the example has ≥ 4 tokens", () => {
-    const ex = sentenceRebuildPlugin.build(makeEntry(), ctx);
+    const ex = sentenceRebuildPlugin.build(makeSource(), ctx);
     expect(ex).not.toBeNull();
     expect(ex?.kind).toBe("sentence_rebuild");
     expect(ex?.payload.correctOrder).toEqual(["I", "have", "many", "relatives", "in", "Hanoi."]);
@@ -30,13 +30,13 @@ describe("sentenceRebuildPlugin.build", () => {
   });
 
   it("returns null when the entry has no example sentence", () => {
-    const ex = sentenceRebuildPlugin.build(makeEntry({ examples: [] }), ctx);
+    const ex = sentenceRebuildPlugin.build(makeSource({ examples: [] }), ctx);
     expect(ex).toBeNull();
   });
 
   it("skips sentences shorter than 4 tokens", () => {
     const ex = sentenceRebuildPlugin.build(
-      makeEntry({
+      makeSource({
         examples: [
           {
             id: 1,

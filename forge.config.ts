@@ -84,6 +84,10 @@ const config: ForgeConfig = {
     executableName: "vocab-app",
     appBundleId: "dev.mhd-quan.vocab-app",
     icon: undefined,
+    extendInfo: {
+      NSCameraUsageDescription:
+        "Vocab App can take visible, consented camera check-ins during student study sessions.",
+    },
     // SQL migration files live alongside the app bundle so the runtime
     // migrator can read them. Resolved via `process.resourcesPath` in
     // electron/db/paths.ts.

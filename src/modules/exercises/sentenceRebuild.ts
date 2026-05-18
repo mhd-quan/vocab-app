@@ -15,9 +15,14 @@
  *   Strict array equality (case-sensitive, punctuation included). Kids
  *   should reproduce the original ordering exactly.
  */
-import type { VocabEntryFull } from "../../../electron/db/repositories/vocab";
 import { shuffle } from "./random";
-import type { BuildContext, ExercisePlugin, GradeOutcome, SentenceRebuildExercise } from "./types";
+import type {
+  BuildContext,
+  ExercisePlugin,
+  ExerciseSource,
+  GradeOutcome,
+  SentenceRebuildExercise,
+} from "./types";
 
 const MIN_TOKENS = 4;
 const MAX_TOKENS = 14; // keeps the chip strip manageable on small viewports
@@ -31,8 +36,8 @@ export const sentenceRebuildPlugin: ExercisePlugin<
 > = {
   kind: "sentence_rebuild",
 
-  build(entry: VocabEntryFull, ctx: BuildContext): SentenceRebuildExercise | null {
-    const sentence = pickExampleText(entry);
+  build(source: ExerciseSource, ctx: BuildContext): SentenceRebuildExercise | null {
+    const sentence = pickExampleText(source);
     if (!sentence) return null;
     const tokens = tokenise(sentence);
     if (tokens.length < MIN_TOKENS || tokens.length > MAX_TOKENS) return null;
@@ -43,13 +48,14 @@ export const sentenceRebuildPlugin: ExercisePlugin<
     }
 
     return {
-      id: `sentence_rebuild:${entry.id}:${ctx.sessionSeed}`,
+      id: `sentence_rebuild:${source.ref.sourceKey}:${ctx.sessionSeed}`,
       kind: "sentence_rebuild",
-      entryId: entry.id,
+      entryId: source.id,
+      source: source.ref,
       payload: {
         scrambled,
         correctOrder: tokens,
-        headword: entry.headword,
+        headword: source.headword,
       },
     };
   },
@@ -67,8 +73,8 @@ export const sentenceRebuildPlugin: ExercisePlugin<
   },
 };
 
-function pickExampleText(entry: VocabEntryFull): string | null {
-  for (const ex of entry.examples) {
+function pickExampleText(source: ExerciseSource): string | null {
+  for (const ex of source.examples) {
     if (ex.text?.trim()) return ex.text.trim();
   }
   return null;

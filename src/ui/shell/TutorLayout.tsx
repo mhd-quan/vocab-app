@@ -47,7 +47,7 @@ export function TutorLayout() {
     <div className="tutor-workspace-shell flex h-screen w-screen overflow-hidden text-app">
       <TutorNavigationRail
         topInset={isMac}
-        brand={<TutorBrand version="v0.11.1" />}
+        brand={<TutorBrand version="v0.11.2" />}
         items={items}
         footer={
           <div className="flex flex-col gap-1.5">

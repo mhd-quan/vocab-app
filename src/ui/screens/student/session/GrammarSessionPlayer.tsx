@@ -14,7 +14,7 @@ import { Button } from "@/ui/components/Button";
 import { StreakFlame } from "@/ui/components/LearningIcons";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
 import { AchievementIcon, ConfettiBurst, RewardToast, useChime } from "@/ui/components/rewards";
-import { type ReactNode, useCallback, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useMemo, useRef, useState } from "react";
 import type { GrammarTopicForPractice } from "../../../../../electron/db/repositories/grammar";
 import type { SessionResultPersistence } from "./SessionPlayer";
 import { SessionSummary } from "./SessionSummary";
@@ -27,6 +27,7 @@ export interface GrammarSessionPlayerProps {
   onResult?: (
     result: GrammarPracticeResult,
   ) => undefined | Promise<SessionResultPersistence | undefined>;
+  onEvidence?: (result: GrammarPracticeResult) => void;
   soundEnabled?: boolean;
 }
 
@@ -46,6 +47,7 @@ export function GrammarSessionPlayer({
   onExit,
   contextLabel,
   onResult,
+  onEvidence,
   soundEnabled = false,
 }: GrammarSessionPlayerProps) {
   const [started, setStarted] = useState(false);
@@ -59,6 +61,12 @@ export function GrammarSessionPlayer({
   const playChime = useChime(soundEnabled);
   const current = deck[index] ?? null;
   const done = started && current === null;
+  const promptShownAt = useRef(nowMs());
+  const promptExerciseId = useRef<string | null>(null);
+  if (promptExerciseId.current !== (current?.id ?? null)) {
+    promptExerciseId.current = current?.id ?? null;
+    promptShownAt.current = nowMs();
+  }
 
   const dismissToast = useCallback((key: number) => {
     setToasts((prev) => prev.filter((toast) => toast.key !== key));
@@ -90,6 +98,7 @@ export function GrammarSessionPlayer({
     (answer: GrammarAnswer) => {
       if (!current || pendingResult) return;
       const outcome = gradeGrammarExercise(current, answer);
+      const responseMs = Math.max(0, Math.round(nowMs() - promptShownAt.current));
       const newRun = outcome.correct ? correctRun + 1 : 0;
       setCorrectRun(newRun);
 
@@ -105,8 +114,10 @@ export function GrammarSessionPlayer({
         kind: current.kind,
         outcome,
         currentSessionRun: newRun,
+        responseMs,
       };
       setPendingResult(result);
+      onEvidence?.(result);
 
       if (onResult) {
         Promise.resolve(onResult(result))
@@ -120,7 +131,7 @@ export function GrammarSessionPlayer({
           });
       }
     },
-    [current, pendingResult, correctRun, playChime, onResult, enqueueUnlocks],
+    [current, pendingResult, correctRun, playChime, onResult, onEvidence, enqueueUnlocks],
   );
 
   const advance = useCallback(() => {
@@ -674,4 +685,8 @@ function formatExerciseKind(kind: GrammarExercise["kind"]): string {
     case "grammar_error_correction":
       return "Correction";
   }
+}
+
+function nowMs(): number {
+  return typeof performance !== "undefined" ? performance.now() : Date.now();
 }

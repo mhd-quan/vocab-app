@@ -1,11 +1,11 @@
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryClient";
+import { type Exercise, buildDeck, defaultSessionSeed } from "@/modules/exercises";
 import {
-  type Exercise,
-  type ExerciseKind,
-  buildDeck,
-  defaultSessionSeed,
-} from "@/modules/exercises";
+  exerciseKindsForMode,
+  normalizeExerciseSessionMode,
+  practiceModeForExerciseMode,
+} from "@/modules/exercises/sessionModes";
 import {
   type GrammarExercise,
   type GrammarPracticeResult,
@@ -23,6 +23,7 @@ import {
   type SessionResult,
   type SessionResultPersistence,
 } from "./session/SessionPlayer";
+import { SessionEvidenceFrame, useSessionEvidence } from "./session/useSessionEvidence";
 
 const SOUND_KEY = "rewards_sound_enabled";
 const SESSION_COUNT_KEY = "session_default_count";
@@ -118,9 +119,10 @@ export function StudentSession() {
   });
 
   const sessionCount = normalizeSessionCount(sessionCountQ.data);
-  const sessionMode = normalizeSessionMode(sessionModeQ.data);
+  const sessionMode = normalizeExerciseSessionMode(sessionModeQ.data);
   const definitionPriority = normalizeDefinitionPriority(definitionPriorityQ.data);
-  const effectiveSessionMode = lessonQ.data?.kind === "grammar" ? "grammar" : sessionMode;
+  const effectiveSessionMode =
+    lessonQ.data?.kind === "grammar" ? "grammar" : practiceModeForExerciseMode(sessionMode);
   const exerciseKinds = useMemo(() => exerciseKindsForMode(sessionMode), [sessionMode]);
   const shuffleDeck = sessionShuffleQ.data !== false;
   const settingsLoading =
@@ -138,6 +140,11 @@ export function StudentSession() {
   // Using a ref so React 18 strict-mode double-invokes don't double-open.
   const openedFor = useRef<string | null>(null);
   const sessionId = sessionStart.data?.id ?? null;
+  const evidence = useSessionEvidence({
+    studentId: studentIdNum,
+    sessionId,
+    contextLabel: lessonQ.data?.title,
+  });
 
   useEffect(() => {
     if (lessonQ.isLoading || !lessonQ.data) return;
@@ -212,6 +219,7 @@ export function StudentSession() {
           selectedIndex: result.outcome.selectedIndex,
         },
         currentSessionRun: result.currentSessionRun,
+        responseMs: result.responseMs,
       });
       return { unlockedAchievements: response.unlockedAchievements };
     },
@@ -232,6 +240,7 @@ export function StudentSession() {
           selectedIndex: result.outcome.selectedIndex,
         },
         currentSessionRun: result.currentSessionRun,
+        responseMs: result.responseMs,
       });
       return { unlockedAchievements: response.unlockedAchievements };
     },
@@ -296,14 +305,25 @@ export function StudentSession() {
       ? `${lessonQ.data.title} · ${grammarTopicsQ.data?.length ?? 0} topics`
       : undefined;
     return (
-      <GrammarSessionPlayer
-        topics={grammarTopicsQ.data ?? []}
-        deck={grammarDeck}
-        onExit={exit}
-        onResult={handleGrammarResult}
-        contextLabel={contextLabel}
-        soundEnabled={soundQ.data === true}
-      />
+      <SessionEvidenceFrame monitor={evidence}>
+        <GrammarSessionPlayer
+          topics={grammarTopicsQ.data ?? []}
+          deck={grammarDeck}
+          onExit={exit}
+          onResult={handleGrammarResult}
+          onEvidence={(result) =>
+            evidence.recordAnswerEvidence({
+              exerciseId: result.exerciseId,
+              kind: result.kind,
+              responseMs: result.responseMs,
+              correct: result.outcome.correct,
+              currentSessionRun: result.currentSessionRun,
+            })
+          }
+          contextLabel={contextLabel}
+          soundEnabled={soundQ.data === true}
+        />
+      </SessionEvidenceFrame>
     );
   }
 
@@ -313,14 +333,25 @@ export function StudentSession() {
       : undefined;
 
   return (
-    <SessionPlayer
-      deck={deck}
-      onExit={exit}
-      onResult={handleResult}
-      contextLabel={contextLabel}
-      soundEnabled={soundQ.data === true}
-      autoplay={pronunciationAutoplay}
-    />
+    <SessionEvidenceFrame monitor={evidence}>
+      <SessionPlayer
+        deck={deck}
+        onExit={exit}
+        onResult={handleResult}
+        onEvidence={(result) =>
+          evidence.recordAnswerEvidence({
+            exerciseId: result.exerciseId,
+            kind: result.kind,
+            responseMs: result.responseMs,
+            correct: result.outcome.correct,
+            currentSessionRun: result.currentSessionRun,
+          })
+        }
+        contextLabel={contextLabel}
+        soundEnabled={soundQ.data === true}
+        autoplay={pronunciationAutoplay}
+      />
+    </SessionEvidenceFrame>
   );
 }
 
@@ -329,26 +360,6 @@ function normalizeSessionCount(value: unknown): number {
   return Math.min(30, Math.max(5, Math.round(value)));
 }
 
-function normalizeSessionMode(value: unknown): "mixed" | "flashcard" | "multiple_choice" {
-  return value === "flashcard" || value === "multiple_choice" || value === "mixed"
-    ? value
-    : "mixed";
-}
-
 function normalizeDefinitionPriority(value: unknown): "en_first" | "vi_first" {
   return value === "vi_first" ? "vi_first" : "en_first";
-}
-
-/**
- * Map the user's session-mode preference to the plugin kinds we feed the
- * deck builder. In "mixed" mode we pull from every plugin we've registered
- * — kind diversity + intro-gating in `buildDeck` keep the rotation sane.
- * Build-failing plugins for a given entry (e.g. no audio → audio_recall
- * skipped) drop out automatically.
- */
-function exerciseKindsForMode(mode: "mixed" | "flashcard" | "multiple_choice"): ExerciseKind[] {
-  if (mode === "mixed") {
-    return ["flashcard", "multiple_choice", "audio_recall", "sentence_rebuild", "definition_match"];
-  }
-  return [mode];
 }

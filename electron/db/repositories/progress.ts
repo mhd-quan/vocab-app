@@ -79,6 +79,8 @@ export interface RecordAnswerInput {
    * evaluate "N in a row" achievements without re-walking the event log.
    */
   currentSessionRun?: number;
+  /** Time from prompt render to submitted/self-graded answer. */
+  responseMs?: number;
   /** Caller-controlled clock (defaults to `new Date()`). Tests inject a fixed Date. */
   now?: Date;
 }
@@ -90,6 +92,7 @@ export interface RecordContentAnswerInput {
   contentItemId: number;
   outcome: GradeOutcome;
   currentSessionRun?: number;
+  responseMs?: number;
   now?: Date;
 }
 
@@ -203,6 +206,7 @@ export function createProgressRepository(db: AppDatabase) {
             correct: input.outcome.correct,
             selfGrade: input.outcome.selfGrade,
             selectedIndex: input.outcome.selectedIndex,
+            responseMs: input.responseMs,
           },
           occurredAt: now,
         })
@@ -331,6 +335,7 @@ export function createProgressRepository(db: AppDatabase) {
         contentItemId: itemRow.id,
         outcome: input.outcome,
         currentSessionRun: input.currentSessionRun,
+        responseMs: input.responseMs,
         now: input.now,
       });
     },

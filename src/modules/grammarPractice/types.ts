@@ -114,6 +114,7 @@ export interface GrammarPracticeResult {
   kind: GrammarExerciseKind;
   outcome: GradeOutcome;
   currentSessionRun: number;
+  responseMs: number;
 }
 
 export type GrammarTopicMetadata = {

@@ -9,6 +9,7 @@ import {
   curriculumProcedures,
   dictionaryLearningProcedures,
   dictionaryProcedures,
+  evidenceProcedures,
   grammarProcedures,
   importsProcedures,
   metaProcedures,
@@ -65,7 +66,8 @@ describe("IPC procedure registry", () => {
         progressProcedures.length +
         rewardsProcedures.length +
         dictionaryProcedures.length +
-        dictionaryLearningProcedures.length,
+        dictionaryLearningProcedures.length +
+        evidenceProcedures.length,
     );
   });
 
@@ -76,10 +78,8 @@ describe("IPC procedure registry", () => {
 
     it("appInfo returns the expected schema-tables count", async () => {
       const info = await call<{ schemaTablesExpected: number }>("meta.appInfo", undefined, ctx);
-      // 25 = 24 legacy tables + `item_progress_v2` (v0.10 FSRS migration);
-      // `item_progress_v1_archive` keeps its old slot via rename, so the
-      // count grows by exactly one.
-      expect(info.schemaTablesExpected).toBe(25);
+      // 26 = the v0.10 FSRS archive/new table pair plus v0.12 session evidence.
+      expect(info.schemaTablesExpected).toBe(26);
     });
   });
 

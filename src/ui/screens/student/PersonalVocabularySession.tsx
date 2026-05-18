@@ -1,36 +1,34 @@
 import type { DictionaryLearningItemView } from "@/data/dictionaryLearning";
-import type { DictionaryLearningStage } from "@/data/schema";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryClient";
-import { normalizeAnswer } from "@/modules/grammarPractice";
-import { Badge } from "@/ui/components/Badge";
-import { BentoCard } from "@/ui/components/BentoCard";
+import {
+  type Exercise,
+  buildDeck,
+  defaultSessionSeed,
+  fromDictionaryItem,
+} from "@/modules/exercises";
+import {
+  exerciseKindsForMode,
+  normalizeExerciseSessionMode,
+  practiceModeForExerciseMode,
+} from "@/modules/exercises/sessionModes";
+import { useDisplayPreferences } from "@/providers/DisplayPreferencesProvider";
 import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
-import { ProgressMeter } from "@/ui/components/ProgressMeter";
-import { MascotIcon } from "@/ui/student/components/MascotIcon";
-import { PressButton } from "@/ui/student/components/PressButton";
-import { ProgressBubble } from "@/ui/student/components/ProgressBubble";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
-import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  SessionPlayer,
+  type SessionResult,
+  type SessionResultPersistence,
+} from "./session/SessionPlayer";
 
-const MAX_SESSION_ATTEMPTS = 24;
-
-interface ReviewResult {
-  itemId: number;
-  headword: string;
-  stage: DictionaryLearningStage;
-  correct: boolean;
-  promoted: "short_term" | "long_term" | null;
-  reset: boolean;
-}
-
-interface ReviewAnswer {
-  correct: boolean;
-  answer: string | null;
-  expected: string | null;
-}
+const SOUND_KEY = "rewards_sound_enabled";
+const SESSION_COUNT_KEY = "session_default_count";
+const SESSION_MODE_KEY = "session_default_mode";
+const SESSION_SHUFFLE_KEY = "session_shuffle";
+const DEFINITION_PRIORITY_KEY = "definition_priority";
 
 export function StudentPersonalVocabularySession() {
   const { studentId } = useParams({
@@ -39,11 +37,8 @@ export function StudentPersonalVocabularySession() {
   const studentIdNum = Number(studentId);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [queue, setQueue] = useState<DictionaryLearningItemView[]>([]);
-  const [queueSeeded, setQueueSeeded] = useState(false);
-  const [results, setResults] = useState<ReviewResult[]>([]);
-  const [lastResult, setLastResult] = useState<ReviewResult | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [seed] = useState(() => defaultSessionSeed(0));
+  const { pronunciationAutoplay } = useDisplayPreferences();
 
   const queueQ = useQuery({
     queryKey: queryKeys.dictionaryLearning.practiceQueue(studentIdNum, 12),
@@ -57,37 +52,118 @@ export function StudentPersonalVocabularySession() {
     enabled: Number.isFinite(studentIdNum) && studentIdNum > 0,
   });
 
+  const soundQ = useQuery({
+    queryKey: ["settings", "get", SOUND_KEY],
+    queryFn: () => api.settings.get<boolean>({ key: SOUND_KEY }),
+  });
+
+  const sessionCountQ = useQuery({
+    queryKey: ["settings", "get", SESSION_COUNT_KEY],
+    queryFn: () => api.settings.get<number>({ key: SESSION_COUNT_KEY }),
+  });
+
+  const sessionModeQ = useQuery({
+    queryKey: ["settings", "get", SESSION_MODE_KEY],
+    queryFn: () => api.settings.get<string>({ key: SESSION_MODE_KEY }),
+  });
+
+  const sessionShuffleQ = useQuery({
+    queryKey: ["settings", "get", SESSION_SHUFFLE_KEY],
+    queryFn: () => api.settings.get<boolean>({ key: SESSION_SHUFFLE_KEY }),
+  });
+
+  const definitionPriorityQ = useQuery({
+    queryKey: ["settings", "get", DEFINITION_PRIORITY_KEY],
+    queryFn: () => api.settings.get<string>({ key: DEFINITION_PRIORITY_KEY }),
+  });
+
+  const sessionCount = normalizeSessionCount(sessionCountQ.data);
+  const sessionMode = normalizeExerciseSessionMode(sessionModeQ.data);
+  const exerciseKinds = useMemo(() => exerciseKindsForMode(sessionMode), [sessionMode]);
+  const definitionPriority = normalizeDefinitionPriority(definitionPriorityQ.data);
+  const shuffleDeck = sessionShuffleQ.data !== false;
+  const settingsLoading =
+    sessionCountQ.isLoading ||
+    sessionModeQ.isLoading ||
+    sessionShuffleQ.isLoading ||
+    definitionPriorityQ.isLoading;
+
   const sessionStart = useMutation({
     mutationFn: (input: { studentId: number }) =>
-      api.progress.startSession({ studentId: input.studentId, mode: "review" }),
+      api.progress.startSession({
+        studentId: input.studentId,
+        mode: practiceModeForExerciseMode(sessionMode),
+      }),
   });
 
   const openedFor = useRef<string | null>(null);
   const sessionId = sessionStart.data?.id ?? null;
-  const current = queue[0] ?? null;
-  const allItems = itemsQ.data ?? queueQ.data ?? queue;
+  const queue = queueQ.data ?? [];
+  const allItems = itemsQ.data?.length ? itemsQ.data : queue;
+
+  const sourcePool = useMemo(() => allItems.map(fromDictionaryItem), [allItems]);
+  const sourceByItemId = useMemo(() => {
+    const map = new Map<number, DictionaryLearningItemView>();
+    for (const item of allItems) map.set(item.id, item);
+    return map;
+  }, [allItems]);
+  const seenSourceKeys = useMemo(
+    () =>
+      sourcePool
+        .filter((source) => (sourceByItemId.get(source.id)?.reps ?? 0) > 0)
+        .map((s) => s.ref.sourceKey),
+    [sourceByItemId, sourcePool],
+  );
+
+  const deck = useMemo<Exercise[]>(() => {
+    if (settingsLoading || queueQ.isLoading || itemsQ.isLoading) return [];
+    return buildDeck({
+      sources: queue.map(fromDictionaryItem),
+      sourcePool,
+      kinds: exerciseKinds,
+      sessionSeed: seed,
+      maxExercises: sessionCount,
+      definitionPriority,
+      shuffle: shuffleDeck,
+      seenSourceKeys,
+      requireFlashcardForNew: true,
+    }).exercises;
+  }, [
+    definitionPriority,
+    exerciseKinds,
+    itemsQ.isLoading,
+    queue,
+    queueQ.isLoading,
+    seed,
+    seenSourceKeys,
+    sessionCount,
+    settingsLoading,
+    shuffleDeck,
+    sourcePool,
+  ]);
 
   useEffect(() => {
-    if (queueSeeded || !queueQ.data) return;
-    setQueue(queueQ.data);
-    setQueueSeeded(true);
-  }, [queueQ.data, queueSeeded]);
-
-  useEffect(() => {
-    if (!queueSeeded || !Number.isFinite(studentIdNum) || studentIdNum <= 0) return;
-    const key = `${studentIdNum}:personal-vocabulary`;
+    if (queueQ.isLoading || settingsLoading) return;
+    if (queue.length === 0) return;
+    if (!Number.isFinite(studentIdNum) || studentIdNum <= 0) return;
+    const key = `${studentIdNum}:personal-vocabulary:${seed}:${sessionMode}`;
     if (openedFor.current === key) return;
     openedFor.current = key;
     sessionStart.mutate({ studentId: studentIdNum });
-  }, [queueSeeded, sessionStart.mutate, studentIdNum]);
+  }, [
+    queue.length,
+    queueQ.isLoading,
+    seed,
+    sessionMode,
+    sessionStart.mutate,
+    settingsLoading,
+    studentIdNum,
+  ]);
 
   const exit = useCallback(() => {
     if (sessionId !== null) {
       void api.progress
-        .endSession({
-          sessionId,
-          summary: summarizeResults(results),
-        })
+        .endSession({ sessionId })
         .catch((error) => console.error("[PersonalVocabularySession] endSession failed", error))
         .finally(() => {
           queryClient.invalidateQueries({ queryKey: ["dictionaryLearning"] });
@@ -98,51 +174,36 @@ export function StudentPersonalVocabularySession() {
       to: "/student/profile/$studentId/personal-vocabulary",
       params: { studentId: String(studentIdNum) },
     });
-  }, [navigate, queryClient, results, sessionId, studentIdNum]);
+  }, [navigate, queryClient, sessionId, studentIdNum]);
 
-  const submitAnswer = useCallback(
-    async (answer: ReviewAnswer) => {
-      if (!current || busy) return;
-      setBusy(true);
-      try {
-        const response = await api.dictionaryLearning.recordReview({
-          studentId: studentIdNum,
-          itemId: current.id,
-          stage: current.stage,
-          correct: answer.correct,
-          answer: answer.answer,
-          expected: answer.expected,
-          sessionId,
-        });
-        const result: ReviewResult = {
-          itemId: current.id,
-          headword: current.headword,
-          stage: current.stage,
-          correct: answer.correct,
-          promoted: response.promoted,
-          reset: response.reset,
-        };
-        const attemptCount = results.length + 1;
-        setResults((prev) => [...prev, result]);
-        setLastResult(result);
-        setQueue((prev) => {
-          const rest = prev.slice(1);
-          if (shouldRequeue(response.item, attemptCount)) rest.push(response.item);
-          return rest;
-        });
-        queryClient.setQueryData(
-          queryKeys.dictionaryLearning.items(studentIdNum),
-          (old: DictionaryLearningItemView[] | undefined) =>
-            old?.map((item) => (item.id === response.item.id ? response.item : item)),
-        );
-        void queryClient.invalidateQueries({ queryKey: ["dictionaryLearning"] });
-      } catch (error) {
-        console.error("[PersonalVocabularySession] recordReview failed", error);
-      } finally {
-        setBusy(false);
-      }
+  const handleResult = useCallback(
+    async (result: SessionResult): Promise<SessionResultPersistence | undefined> => {
+      if (sessionId === null) return undefined;
+      const itemId = result.source.dictionaryItemId ?? result.entryId;
+      const item = sourceByItemId.get(itemId);
+      if (!item) return undefined;
+
+      const response = await api.dictionaryLearning.recordReview({
+        studentId: studentIdNum,
+        itemId,
+        stage: item.stage,
+        correct: result.outcome.correct,
+        selfGrade: result.outcome.selfGrade,
+        answer: result.kind,
+        expected: item.headword,
+        sessionId,
+      });
+
+      queryClient.setQueryData(
+        queryKeys.dictionaryLearning.items(studentIdNum),
+        (old: DictionaryLearningItemView[] | undefined) =>
+          old?.map((candidate) => (candidate.id === response.item.id ? response.item : candidate)),
+      );
+      void queryClient.invalidateQueries({ queryKey: ["dictionaryLearning"] });
+      void queryClient.invalidateQueries({ queryKey: ["progress"] });
+      return { unlockedAchievements: [] };
     },
-    [busy, current, queryClient, results.length, sessionId, studentIdNum],
+    [queryClient, sessionId, sourceByItemId, studentIdNum],
   );
 
   if (!Number.isFinite(studentIdNum) || studentIdNum <= 0) {
@@ -153,11 +214,11 @@ export function StudentPersonalVocabularySession() {
     );
   }
 
-  if (!queueSeeded || queueQ.isLoading) {
+  if (queueQ.isLoading || itemsQ.isLoading || settingsLoading) {
     return <p className="px-6 py-10 text-sm text-muted">Loading personal review...</p>;
   }
 
-  if (!current && results.length === 0) {
+  if (queue.length === 0) {
     return (
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-5 px-6 py-10">
         <Button variant="ghost" className="self-start text-muted" onClick={exit}>
@@ -171,432 +232,23 @@ export function StudentPersonalVocabularySession() {
     );
   }
 
-  if (!current) {
-    return (
-      <PersonalSessionShell
-        studentId={studentIdNum}
-        results={results}
-        lastResult={lastResult}
-        queueCount={0}
-        onExit={exit}
-      >
-        <SessionDone results={results} onExit={exit} />
-      </PersonalSessionShell>
-    );
-  }
-
   return (
-    <PersonalSessionShell
-      studentId={studentIdNum}
-      results={results}
-      lastResult={lastResult}
-      queueCount={queue.length}
+    <SessionPlayer
+      deck={deck}
       onExit={exit}
-    >
-      <PracticeCard item={current} allItems={allItems} busy={busy} onSubmit={submitAnswer} />
-    </PersonalSessionShell>
+      onResult={handleResult}
+      contextLabel={`Personal vocabulary · ${queue.length}/${allItems.length} due words`}
+      soundEnabled={soundQ.data === true}
+      autoplay={pronunciationAutoplay}
+    />
   );
 }
 
-function PersonalSessionShell({
-  children,
-  studentId,
-  results,
-  lastResult,
-  queueCount,
-  onExit,
-}: {
-  children: React.ReactNode;
-  studentId: number;
-  results: ReviewResult[];
-  lastResult: ReviewResult | null;
-  queueCount: number;
-  onExit: () => void;
-}) {
-  const answered = results.length;
-  const total = Math.max(answered + queueCount, 1);
-  const correct = results.filter((result) => result.correct).length;
-  return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-8">
-      <header className="flex items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <Badge tone="focus" uppercase>
-            Personal review
-          </Badge>
-          <span className="text-sm text-muted">Student #{studentId}</span>
-        </div>
-        <PressButton variant="secondary" size="sm" onClick={onExit} className="text-muted">
-          End session
-        </PressButton>
-      </header>
-
-      <BentoCard className="grid gap-4 border-accent/20 bg-accent/5 p-4 sm:grid-cols-[auto_1fr_auto_auto] sm:items-center">
-        <ProgressBubble current={answered} total={total} label="Personal review progress" />
-        <div className="min-w-0">
-          <div className="mb-2 flex items-center justify-between gap-3">
-            <span className="text-xs font-semibold uppercase text-muted-2">Review progress</span>
-            <span className="font-mono text-xs text-muted">
-              {answered} / {total}
-            </span>
-          </div>
-          <ProgressMeter
-            value={answered}
-            max={total}
-            label="Personal review progress"
-            tone="accent"
-          />
-        </div>
-        <div className="rounded-2xl border border-success/30 bg-success/10 px-3 py-2">
-          <span className="font-mono text-sm text-app">{correct}</span>
-          <span className="ml-2 text-xs text-muted">correct</span>
-        </div>
-        <LastResultBadge result={lastResult} />
-      </BentoCard>
-
-      {children}
-    </div>
-  );
+function normalizeSessionCount(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return 15;
+  return Math.min(30, Math.max(5, Math.round(value)));
 }
 
-function PracticeCard({
-  item,
-  allItems,
-  busy,
-  onSubmit,
-}: {
-  item: DictionaryLearningItemView;
-  allItems: DictionaryLearningItemView[];
-  busy: boolean;
-  onSubmit: (answer: ReviewAnswer) => void | Promise<void>;
-}) {
-  const stage = item.stage;
-  if (stage === "flashcard") {
-    return <FlashcardPractice item={item} busy={busy} onSubmit={onSubmit} />;
-  }
-  if (stage === "meaning_choice" || stage === "reverse_choice") {
-    const mode = stage === "meaning_choice" ? "headword" : "definition";
-    const options = makeChoiceOptions(item, allItems, mode);
-    if (options.length >= 2) {
-      return (
-        <ChoicePractice item={item} mode={mode} options={options} busy={busy} onSubmit={onSubmit} />
-      );
-    }
-  }
-  return <TextPractice item={item} cloze={stage === "cloze"} busy={busy} onSubmit={onSubmit} />;
-}
-
-function FlashcardPractice({
-  item,
-  busy,
-  onSubmit,
-}: {
-  item: DictionaryLearningItemView;
-  busy: boolean;
-  onSubmit: (answer: ReviewAnswer) => void | Promise<void>;
-}) {
-  const [revealed, setRevealed] = useState(false);
-  return (
-    <BentoCard className="p-6">
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge tone="focus" uppercase>
-          Flashcard
-        </Badge>
-        <Badge tone="muted" uppercase>
-          Reps {item.reps}
-        </Badge>
-      </div>
-      <h1 className="mt-5 break-words text-5xl font-semibold leading-tight">{item.headword}</h1>
-      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-sm text-muted">
-        {item.ipa ? <span>{item.ipa}</span> : null}
-        {item.cefrLevel ? <span>{item.cefrLevel}</span> : null}
-      </div>
-      {revealed ? (
-        <div className="mt-6 rounded-bento border border-border-subtle bg-surface-0/65 p-4">
-          <p className="text-sm leading-6 text-app">{item.definitionVi ?? item.definitionEn}</p>
-          {item.definitionVi ? (
-            <p className="mt-2 text-sm leading-6 text-muted">{item.definitionEn}</p>
-          ) : null}
-          {item.exampleText ? (
-            <p className="mt-4 text-sm leading-6 text-muted">{item.exampleText}</p>
-          ) : null}
-        </div>
-      ) : null}
-      <div className="mt-6 flex flex-wrap gap-2">
-        {!revealed ? (
-          <Button size="lg" onClick={() => setRevealed(true)}>
-            Reveal
-          </Button>
-        ) : (
-          <>
-            <Button
-              variant="secondary"
-              disabled={busy}
-              onClick={() => onSubmit({ correct: false, answer: "again", expected: item.headword })}
-            >
-              Again
-            </Button>
-            <Button
-              variant="secondary"
-              disabled={busy}
-              onClick={() => onSubmit({ correct: false, answer: "hard", expected: item.headword })}
-            >
-              Hard
-            </Button>
-            <Button
-              disabled={busy}
-              onClick={() => onSubmit({ correct: true, answer: "good", expected: item.headword })}
-            >
-              Good
-            </Button>
-            <Button
-              disabled={busy}
-              onClick={() => onSubmit({ correct: true, answer: "easy", expected: item.headword })}
-            >
-              Easy
-            </Button>
-          </>
-        )}
-      </div>
-    </BentoCard>
-  );
-}
-
-function ChoicePractice({
-  item,
-  mode,
-  options,
-  busy,
-  onSubmit,
-}: {
-  item: DictionaryLearningItemView;
-  mode: "headword" | "definition";
-  options: ChoiceOption[];
-  busy: boolean;
-  onSubmit: (answer: ReviewAnswer) => void | Promise<void>;
-}) {
-  const prompt = mode === "headword" ? definitionFor(item) : item.headword;
-  const expected = mode === "headword" ? item.headword : definitionFor(item);
-  return (
-    <BentoCard className="p-6">
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge tone="rare" uppercase>
-          Choice
-        </Badge>
-        <Badge tone="muted" uppercase>
-          Reps {item.reps}
-        </Badge>
-      </div>
-      <p className="mt-5 text-xs font-semibold uppercase text-muted-2">
-        {mode === "headword" ? "Choose the word" : "Choose the meaning"}
-      </p>
-      <h1 className="mt-2 text-3xl font-semibold leading-tight">{prompt}</h1>
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        {options.map((option, index) => (
-          <button
-            key={`${option.text}:${index}`}
-            type="button"
-            disabled={busy}
-            onClick={() =>
-              onSubmit({
-                correct: option.correct,
-                answer: option.text,
-                expected,
-              })
-            }
-            className="rounded-bento border border-border-subtle bg-surface-0/75 px-4 py-4 text-left text-sm font-medium transition hover:-translate-y-0.5 hover:border-accent/40 hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {option.text}
-          </button>
-        ))}
-      </div>
-    </BentoCard>
-  );
-}
-
-function TextPractice({
-  item,
-  cloze,
-  busy,
-  onSubmit,
-}: {
-  item: DictionaryLearningItemView;
-  cloze: boolean;
-  busy: boolean;
-  onSubmit: (answer: ReviewAnswer) => void | Promise<void>;
-}) {
-  const [value, setValue] = useState("");
-  const prompt = useMemo(() => (cloze ? clozePrompt(item) : definitionFor(item)), [cloze, item]);
-
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const answer = value.trim();
-    if (!answer) return;
-    onSubmit({
-      correct: normalizeAnswer(answer) === normalizeAnswer(item.headword),
-      answer,
-      expected: item.headword,
-    });
-  }
-
-  return (
-    <BentoCard className="p-6">
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge tone={cloze ? "epic" : "mastery"} uppercase>
-          {cloze ? "Cloze" : "Typing"}
-        </Badge>
-        <Badge tone="muted" uppercase>
-          Reps {item.reps}
-        </Badge>
-      </div>
-      <p className="mt-5 text-xs font-semibold uppercase text-muted-2">
-        {cloze ? "Complete the sentence" : "Write the word"}
-      </p>
-      <h1 className="mt-2 text-3xl font-semibold leading-tight">{prompt}</h1>
-      <form onSubmit={submit} className="mt-6 flex flex-col gap-3 sm:flex-row">
-        <input
-          value={value}
-          onChange={(event) => setValue(event.target.value)}
-          spellCheck={false}
-          className="h-12 min-w-0 flex-1 rounded-xl border border-border-strong bg-surface-1 px-4 text-base text-app outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/25"
-        />
-        <Button type="submit" size="lg" disabled={busy || value.trim().length === 0}>
-          Check
-        </Button>
-      </form>
-    </BentoCard>
-  );
-}
-
-function SessionDone({ results, onExit }: { results: ReviewResult[]; onExit: () => void }) {
-  const summary = summarizeResults(results);
-  return (
-    <BentoCard tone="success" className="p-6 text-center">
-      <MascotIcon mood="cheering" className="mx-auto mb-2 h-24 w-24" />
-      <Badge tone="success" uppercase>
-        Complete
-      </Badge>
-      <h1 className="mt-3 text-3xl font-semibold">Personal review finished</h1>
-      <dl className="mx-auto mt-5 grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-4">
-        <SummaryStat label="Attempts" value={summary.total} />
-        <SummaryStat label="Correct" value={summary.correct} />
-        <SummaryStat label="Promoted" value={summary.promoted} />
-        <SummaryStat label="Reset" value={summary.reset} />
-      </dl>
-      <PressButton className="mt-6" onClick={onExit}>
-        Back to personal vocabulary
-      </PressButton>
-    </BentoCard>
-  );
-}
-
-function SummaryStat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-xl border border-border-subtle bg-surface-0/65 px-3 py-3">
-      <dt className="text-[10px] font-semibold uppercase text-muted-2">{label}</dt>
-      <dd className="mt-1 font-mono text-2xl text-app">{value}</dd>
-    </div>
-  );
-}
-
-function LastResultBadge({ result }: { result: ReviewResult | null }) {
-  if (!result) {
-    return (
-      <Badge tone="muted" uppercase className="h-9 justify-center px-3">
-        Ready
-      </Badge>
-    );
-  }
-  if (result.reset) {
-    return (
-      <Badge tone="danger" uppercase className="h-9 justify-center px-3">
-        Reset
-      </Badge>
-    );
-  }
-  if (result.promoted === "long_term") {
-    return (
-      <Badge tone="success" uppercase className="h-9 justify-center px-3">
-        Long-term
-      </Badge>
-    );
-  }
-  if (result.promoted === "short_term") {
-    return (
-      <Badge tone="xp" uppercase className="h-9 justify-center px-3">
-        Short-term
-      </Badge>
-    );
-  }
-  return (
-    <Badge
-      tone={result.correct ? "success" : "danger"}
-      uppercase
-      className="h-9 justify-center px-3"
-    >
-      {result.correct ? "Correct" : "Wrong"}
-    </Badge>
-  );
-}
-
-interface ChoiceOption {
-  text: string;
-  correct: boolean;
-}
-
-function makeChoiceOptions(
-  item: DictionaryLearningItemView,
-  allItems: DictionaryLearningItemView[],
-  mode: "headword" | "definition",
-): ChoiceOption[] {
-  const target = mode === "headword" ? item.headword : definitionFor(item);
-  const distractors = allItems
-    .filter((candidate) => candidate.id !== item.id)
-    .map((candidate) => (mode === "headword" ? candidate.headword : definitionFor(candidate)))
-    .filter((text) => normalizeAnswer(text) !== normalizeAnswer(target));
-  const unique = [...new Set(distractors)].slice(0, 3);
-  return [
-    { text: target, correct: true },
-    ...unique.map((text) => ({ text, correct: false })),
-  ].sort((a, b) => stableSortKey(`${item.id}:${a.text}`) - stableSortKey(`${item.id}:${b.text}`));
-}
-
-function definitionFor(item: DictionaryLearningItemView): string {
-  return item.definitionVi ?? item.definitionEn;
-}
-
-function clozePrompt(item: DictionaryLearningItemView): string {
-  const source = item.exampleText ?? item.definitionEn;
-  const lower = source.toLocaleLowerCase();
-  const target = item.headword.toLocaleLowerCase();
-  const index = lower.indexOf(target);
-  if (index < 0) return `${source} ___`;
-  return `${source.slice(0, index)}___${source.slice(index + item.headword.length)}`;
-}
-
-function shouldRequeue(item: DictionaryLearningItemView, attemptCount: number): boolean {
-  if (attemptCount >= MAX_SESSION_ATTEMPTS) return false;
-  if (item.status === "long_term") return false;
-  return item.status === "learning" || isDue(item.nextDueAt);
-}
-
-function isDue(value: Date | null): boolean {
-  if (!value) return true;
-  return new Date(value).getTime() <= Date.now();
-}
-
-function summarizeResults(results: ReviewResult[]) {
-  return {
-    total: results.length,
-    correct: results.filter((result) => result.correct).length,
-    promoted: results.filter((result) => result.promoted !== null).length,
-    reset: results.filter((result) => result.reset).length,
-  };
-}
-
-function stableSortKey(value: string): number {
-  let hash = 0;
-  for (let index = 0; index < value.length; index += 1) {
-    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
-  }
-  return hash;
+function normalizeDefinitionPriority(value: unknown): "en_first" | "vi_first" {
+  return value === "vi_first" ? "vi_first" : "en_first";
 }

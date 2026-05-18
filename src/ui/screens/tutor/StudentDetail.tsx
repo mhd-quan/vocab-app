@@ -66,6 +66,12 @@ export function TutorStudentDetail() {
     enabled: Number.isFinite(id) && id > 0,
   });
 
+  const evidenceQ = useQuery({
+    queryKey: queryKeys.evidence.studentOverview(id),
+    queryFn: () => api.evidence.studentOverview({ studentId: id, limit: 8 }),
+    enabled: Number.isFinite(id) && id > 0,
+  });
+
   // Daily-activity is fetched once per (studentId, days) pair. The cells
   // we hand to Heatmap are derived locally so the same IPC payload also
   // feeds any future widget (sparklines, weekly totals).
@@ -168,6 +174,12 @@ export function TutorStudentDetail() {
           cells={heatmapCells}
           title="Practice activity"
           caption={`Last ${HEATMAP_DAYS} days`}
+        />
+
+        <EvidencePanel
+          studentId={id}
+          overview={evidenceQ.data ?? null}
+          loading={evidenceQ.isLoading}
         />
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -379,6 +391,189 @@ function Stat({
   );
 }
 
+function EvidencePanel({
+  studentId,
+  overview,
+  loading,
+}: {
+  studentId: number;
+  overview: {
+    sessionCount: number;
+    avgAttentionScore: number | null;
+    totalReviewFlags: number;
+    focusLossCount: number;
+    cameraSnapshotCount: number;
+    recentSessions: Array<{
+      sessionId: number;
+      mode: string;
+      startedAt: Date;
+      eventCount: number;
+      metrics: {
+        attentionScore: number;
+        answerCount: number;
+        avgResponseMs: number | null;
+        focusLossCount: number;
+        focusLossMs: number;
+        cameraSnapshotCount: number;
+        reviewFlagCount: number;
+      };
+    }>;
+  } | null;
+  loading: boolean;
+}) {
+  const [includeSnapshots, setIncludeSnapshots] = useState(false);
+  const [passphrase, setPassphrase] = useState("");
+
+  const exportReport = useMutation({
+    mutationFn: () =>
+      api.evidence.exportStudentReport({
+        studentId,
+        includeSnapshots,
+        passphrase: passphrase.trim() || undefined,
+      }),
+  });
+
+  return (
+    <Panel
+      title="Session evidence"
+      caption="Timing, focus breaks, consented camera check-ins, and encrypted report export"
+    >
+      {loading ? (
+        <p className="text-xs text-muted">Loading…</p>
+      ) : !overview || overview.sessionCount === 0 ? (
+        <EmptyState
+          title="No evidence logs yet"
+          body="Student sessions will appear here after the learner starts a practice round."
+        />
+      ) : (
+        <div className="flex flex-col gap-5">
+          <dl className="grid gap-3 sm:grid-cols-4">
+            <EvidenceStat
+              label="Attention"
+              value={overview.avgAttentionScore === null ? "—" : overview.avgAttentionScore}
+              tone={
+                overview.avgAttentionScore === null
+                  ? "neutral"
+                  : attentionScoreTone(overview.avgAttentionScore)
+              }
+            />
+            <EvidenceStat label="Flags" value={overview.totalReviewFlags} tone="warning" />
+            <EvidenceStat label="Focus breaks" value={overview.focusLossCount} tone="warning" />
+            <EvidenceStat
+              label="Camera checks"
+              value={overview.cameraSnapshotCount}
+              tone="success"
+            />
+          </dl>
+
+          <ul className="grid gap-2 lg:grid-cols-2">
+            {overview.recentSessions.map((session) => (
+              <li
+                key={session.sessionId}
+                className="rounded-2xl border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-3"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2">
+                    <Badge tone="muted" uppercase>
+                      {session.mode}
+                    </Badge>
+                    <span className="text-xs text-muted">{formatDate(session.startedAt)}</span>
+                  </span>
+                  <Badge tone={attentionScoreTone(session.metrics.attentionScore)} uppercase>
+                    {session.metrics.attentionScore}
+                  </Badge>
+                </div>
+                <dl className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                  <EvidenceMiniStat
+                    label="Avg response"
+                    value={
+                      session.metrics.avgResponseMs === null
+                        ? "—"
+                        : formatMs(session.metrics.avgResponseMs)
+                    }
+                  />
+                  <EvidenceMiniStat
+                    label="Focus"
+                    value={`${session.metrics.focusLossCount} / ${formatMs(
+                      session.metrics.focusLossMs,
+                    )}`}
+                  />
+                  <EvidenceMiniStat label="Camera" value={session.metrics.cameraSnapshotCount} />
+                </dl>
+              </li>
+            ))}
+          </ul>
+
+          <div className="rounded-2xl border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-3">
+            <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
+              <label className="flex flex-col gap-1 text-xs text-muted">
+                <span className="font-semibold uppercase text-muted-2">Report passphrase</span>
+                <input
+                  type="password"
+                  value={passphrase}
+                  onChange={(event) => setPassphrase(event.currentTarget.value)}
+                  placeholder="Optional AES export key"
+                  className="h-10 rounded-xl border border-border-subtle bg-surface-0 px-3 text-sm text-app outline-none focus:border-accent"
+                />
+              </label>
+              <label className="flex min-h-10 items-center gap-2 rounded-xl border border-border-subtle bg-surface-0 px-3 text-xs text-muted">
+                <input
+                  type="checkbox"
+                  checked={includeSnapshots}
+                  onChange={(event) => setIncludeSnapshots(event.currentTarget.checked)}
+                  className="h-4 w-4 accent-[rgb(var(--color-accent))]"
+                />
+                Include camera snapshots
+              </label>
+              <Button onClick={() => exportReport.mutate()} disabled={exportReport.isPending}>
+                {exportReport.isPending ? "Exporting…" : "Export report"}
+              </Button>
+            </div>
+            {exportReport.data && !exportReport.data.canceled ? (
+              <p className="mt-2 text-xs text-success">
+                Report exported{exportReport.data.encrypted ? " encrypted" : ""}.
+              </p>
+            ) : null}
+            {exportReport.isError ? (
+              <p className="mt-2 text-xs text-danger">
+                {exportReport.error instanceof Error
+                  ? exportReport.error.message
+                  : "Could not export report."}
+              </p>
+            ) : null}
+          </div>
+        </div>
+      )}
+    </Panel>
+  );
+}
+
+function EvidenceStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number | string;
+  tone: "neutral" | "success" | "warning" | "accent";
+}) {
+  return (
+    <div className="rounded-2xl border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-3">
+      <p className="text-[10px] font-semibold uppercase text-muted-2">{label}</p>
+      <p className={cn("mt-1 font-mono text-2xl", evidenceToneClass(tone))}>{value}</p>
+    </div>
+  );
+}
+
+function EvidenceMiniStat({ label, value }: { label: string; value: number | string }) {
+  return (
+    <div>
+      <dt className="text-[10px] uppercase text-muted-2">{label}</dt>
+      <dd className="mt-1 font-mono text-xs text-app">{value}</dd>
+    </div>
+  );
+}
+
 function WeakWordsPanel({
   rows,
   loading,
@@ -555,4 +750,32 @@ function formatDate(d: Date): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function attentionScoreTone(score: number): "success" | "accent" | "warning" {
+  if (score >= 85) return "success";
+  if (score >= 65) return "accent";
+  return "warning";
+}
+
+function evidenceToneClass(tone: "neutral" | "success" | "warning" | "accent"): string {
+  switch (tone) {
+    case "success":
+      return "text-success";
+    case "warning":
+      return "text-warning";
+    case "accent":
+      return "text-accent";
+    case "neutral":
+      return "text-muted";
+  }
+}
+
+function formatMs(ms: number): string {
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  const seconds = Math.round(ms / 1000);
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+  return rest === 0 ? `${minutes}m` : `${minutes}m ${rest}s`;
 }

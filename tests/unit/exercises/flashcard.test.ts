@@ -1,6 +1,6 @@
 import { type BuildContext, flashcardPlugin, mulberry32 } from "@/modules/exercises";
 import { describe, expect, it } from "vitest";
-import { makeEntry } from "./fixtures";
+import { makeSource } from "./fixtures";
 
 const ctx: BuildContext = {
   distractorPool: [],
@@ -10,11 +10,11 @@ const ctx: BuildContext = {
 
 describe("flashcardPlugin.build", () => {
   it("returns a flashcard for an entry with sense + IPA + example", () => {
-    const ex = flashcardPlugin.build(makeEntry(), ctx);
+    const ex = flashcardPlugin.build(makeSource(), ctx);
     expect(ex).not.toBeNull();
     expect(ex?.kind).toBe("flashcard");
     expect(ex?.entryId).toBe(1);
-    expect(ex?.id).toBe("flashcard:1:seed-1");
+    expect(ex?.id).toBe("flashcard:curated:1:seed-1");
     expect(ex?.payload.front.headword).toBe("relative");
     expect(ex?.payload.front.ipa).toBe("/ˈrelətɪv/");
     expect(ex?.payload.back.definitionsEn).toEqual(["a member of your family"]);
@@ -24,13 +24,13 @@ describe("flashcardPlugin.build", () => {
   });
 
   it("returns null when the entry has no senses", () => {
-    const ex = flashcardPlugin.build(makeEntry({ senses: [] }), ctx);
+    const ex = flashcardPlugin.build(makeSource({ senses: [] }), ctx);
     expect(ex).toBeNull();
   });
 
   it("returns null when senses have neither EN nor VI definitions", () => {
     const ex = flashcardPlugin.build(
-      makeEntry({
+      makeSource({
         senses: [
           {
             id: 99,
@@ -51,7 +51,7 @@ describe("flashcardPlugin.build", () => {
 
   it("collects all EN definitions in ordinal order", () => {
     const ex = flashcardPlugin.build(
-      makeEntry({
+      makeSource({
         senses: [
           {
             id: 1,
@@ -82,7 +82,7 @@ describe("flashcardPlugin.build", () => {
 
   it("uses the lowest-ordinal example for the back", () => {
     const ex = flashcardPlugin.build(
-      makeEntry({
+      makeSource({
         examples: [
           {
             id: 2,
@@ -117,7 +117,7 @@ describe("flashcardPlugin.build", () => {
 });
 
 describe("flashcardPlugin.grade", () => {
-  const ex = flashcardPlugin.build(makeEntry(), ctx);
+  const ex = flashcardPlugin.build(makeSource(), ctx);
   if (!ex) throw new Error("fixture should produce a flashcard");
 
   it("marks 'good' and 'easy' as correct", () => {

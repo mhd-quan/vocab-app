@@ -14,6 +14,7 @@ import {
   dictionaryLearningReviews,
   dictionarySearchEvents,
 } from "../../../src/data/schema";
+import type { SelfGrade } from "../../../src/modules/exercises";
 import { fsrs } from "../../../src/modules/srs";
 import type { AppDatabase, AppTransaction } from "../client";
 
@@ -51,6 +52,7 @@ export interface RecordReviewInput {
   itemId: number;
   stage: DictionaryLearningStage;
   correct: boolean;
+  selfGrade?: SelfGrade | null;
   answer?: string | null;
   expected?: string | null;
   sessionId?: number | null;
@@ -214,7 +216,12 @@ export function createDictionaryLearningRepository(db: AppDatabase) {
         // FSRS-lite scheduling: thresholds are tutor-tunable, same key set
         // as the curated track so a single Settings panel drives both.
         const thresholds = loadFsrsThresholds(tx);
-        const rating: fsrs.FsrsRating = input.correct ? 3 : 1;
+        const rating = fsrs.ratingFromOutcome({
+          correct: input.correct,
+          feedback: "",
+          selfGrade: input.selfGrade ?? null,
+          selectedIndex: null,
+        });
         const next = fsrs.applyAnswer({
           prev: {
             stability: item.stability,

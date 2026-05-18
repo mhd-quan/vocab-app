@@ -5,6 +5,7 @@ import { flashcardPlugin } from "./flashcard";
 import { createLazyDeck } from "./lazyDeck";
 import { multipleChoicePlugin } from "./multipleChoice";
 import { sentenceRebuildPlugin } from "./sentenceRebuild";
+import { fromVocabEntry, sourceKey } from "./sources";
 import type {
   Answer,
   AnyExercisePlugin,
@@ -12,6 +13,7 @@ import type {
   DefinitionPriority,
   Exercise,
   ExerciseKind,
+  ExerciseSource,
   GradeOutcome,
 } from "./types";
 
@@ -42,8 +44,12 @@ export function getPlugin(kind: ExerciseKind): AnyExercisePlugin {
 }
 
 export interface BuildDeckOptions {
-  /** Source vocab entries — typically the lesson's `listFullByLesson` result. */
-  entries: VocabEntryFull[];
+  /** Source vocab entries — legacy curated caller path. */
+  entries?: VocabEntryFull[];
+  /** Normalized sources — preferred path for unified curated/personal decks. */
+  sources?: ExerciseSource[];
+  /** Optional wider pool for distractors/cross-source exercises. */
+  sourcePool?: ExerciseSource[];
   /** Which kinds to include, in interleave preference order. */
   kinds: ExerciseKind[];
   /**
@@ -60,6 +66,8 @@ export interface BuildDeckOptions {
   shuffle?: boolean;
   /** Entries that already have progress for the active student. */
   seenEntryIds?: Iterable<number>;
+  /** Track-aware source keys that already have progress for the active student. */
+  seenSourceKeys?: Iterable<string>;
   /** New entries must be introduced by flashcard before review kinds. */
   requireFlashcardForNew?: boolean;
 }
@@ -79,14 +87,22 @@ export interface BuildDeckResult {
  * directly and use `peek` / `prefetch`.
  */
 export function buildDeck(opts: BuildDeckOptions): BuildDeckResult {
+  const sources = opts.sources ?? opts.entries?.map(fromVocabEntry) ?? [];
+  const sourcePool = opts.sourcePool ?? opts.entries?.map(fromVocabEntry) ?? sources;
+  const seenSourceKeys = new Set(opts.seenSourceKeys ?? []);
+  for (const entryId of opts.seenEntryIds ?? []) {
+    seenSourceKeys.add(sourceKey("curated", entryId));
+  }
+
   const lazy = createLazyDeck({
-    entries: opts.entries,
+    sources,
+    sourcePool,
     kinds: opts.kinds,
     sessionSeed: opts.sessionSeed,
     getPlugin,
     definitionPriority: opts.definitionPriority,
     shuffle: opts.shuffle,
-    seenEntryIds: opts.seenEntryIds,
+    seenSourceKeys,
     requireFlashcardForNew: opts.requireFlashcardForNew,
     maxExercises: opts.maxExercises,
   });
