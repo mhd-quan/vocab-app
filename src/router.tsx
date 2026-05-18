@@ -1,8 +1,10 @@
+import { StudentAchievements } from "@/ui/screens/student/Achievements";
 import { StudentHome } from "@/ui/screens/student/Home";
 import { StudentPersonalVocabulary } from "@/ui/screens/student/PersonalVocabulary";
 import { StudentPersonalVocabularySession } from "@/ui/screens/student/PersonalVocabularySession";
 import { StudentProfilePicker } from "@/ui/screens/student/ProfilePicker";
 import { StudentSession } from "@/ui/screens/student/Session";
+import { StudentSettings } from "@/ui/screens/student/Settings";
 import { StudentUnitStudy } from "@/ui/screens/student/UnitStudy";
 import { TutorContent } from "@/ui/screens/tutor/Content";
 import { TutorDashboard } from "@/ui/screens/tutor/Dashboard";
@@ -110,6 +112,18 @@ const studentProfileRoute = createRoute({
   component: StudentHome,
 });
 
+const studentAchievementsRoute = createRoute({
+  getParentRoute: () => studentRoute,
+  path: "profile/$studentId/achievements",
+  component: StudentAchievements,
+});
+
+const studentSettingsRoute = createRoute({
+  getParentRoute: () => studentRoute,
+  path: "profile/$studentId/settings",
+  component: StudentSettings,
+});
+
 const studentUnitRoute = createRoute({
   getParentRoute: () => studentRoute,
   path: "profile/$studentId/unit/$unitId",
@@ -157,6 +171,8 @@ const routeTree = rootRoute.addChildren([
   studentRoute.addChildren([
     studentIndexRoute,
     studentProfileRoute,
+    studentAchievementsRoute,
+    studentSettingsRoute,
     studentPersonalVocabularyRoute,
     studentPersonalVocabularySessionRoute,
     studentUnitRoute,

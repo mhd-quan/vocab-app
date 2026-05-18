@@ -95,7 +95,7 @@ describe("getAchievement", () => {
 
   it("returns the definition for a known id", () => {
     const def = getAchievement("first_answer");
-    expect(def?.title).toBe("First steps");
+    expect(def?.title).toBe("Spark Rookie");
   });
 
   it("returns null for an unknown id", () => {

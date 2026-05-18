@@ -2,6 +2,7 @@ export {
   ACHIEVEMENTS,
   type AchievementDefinition,
   type AchievementStats,
+  achievementProgress,
   evaluateAchievements,
   getAchievement,
 } from "./achievements";
