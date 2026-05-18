@@ -34,6 +34,11 @@ export function StudentAchievements() {
     queryFn: () => api.rewards.streak({ studentId: id }),
     enabled: Number.isFinite(id) && id > 0,
   });
+  const statsQ = useQuery({
+    queryKey: queryKeys.rewards.stats(id),
+    queryFn: () => api.rewards.stats({ studentId: id }),
+    enabled: Number.isFinite(id) && id > 0,
+  });
   const unlockedQ = useQuery({
     queryKey: queryKeys.rewards.listUnlocked(id),
     queryFn: () => api.rewards.listUnlocked({ studentId: id }),
@@ -42,13 +47,14 @@ export function StudentAchievements() {
 
   const summary = summaryQ.data;
   const streak = streakQ.data?.currentStreak ?? 0;
-  const stats = {
+  const fallbackStats = {
     totalCorrect: summary?.totalCorrect ?? 0,
     distinctCorrect: summary?.totalSeen ?? 0,
     totalAttempts: (summary?.totalCorrect ?? 0) + (summary?.totalWrong ?? 0),
     currentStreak: streak,
-    bestSessionRun: bestRunFromUnlocked((unlockedQ.data ?? []).map((u) => u.achievementId)),
+    bestSessionRun: 0,
   };
+  const stats = statsQ.data ?? fallbackStats;
   const progress = summarizeStudentProgress({
     totalSeen: summary?.totalSeen ?? 0,
     totalCorrect: summary?.totalCorrect ?? 0,
@@ -152,6 +158,7 @@ export function StudentAchievements() {
                   label={progress.label}
                   tone="accent"
                   className="mt-2"
+                  showValue
                 />
                 <p className="mt-1 text-[11px] text-muted-2">{progress.label}</p>
               </li>
@@ -205,11 +212,4 @@ function tierClass(tier: AchievementDefinition["tier"]): string {
   if (tier === "gold") return "border-warning/45 bg-warning/10 text-warning";
   if (tier === "silver") return "border-accent/35 bg-accent/10 text-accent";
   return "border-success/35 bg-success/10 text-success";
-}
-
-function bestRunFromUnlocked(ids: string[]): number {
-  return ids.reduce((best, id) => {
-    const match = id.match(/^streak_(\d+)$/);
-    return match ? Math.max(best, Number(match[1])) : best;
-  }, 0);
 }

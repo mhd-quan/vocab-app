@@ -41,6 +41,7 @@ export function StudentLayout() {
     queryFn: () => api.progress.studentSummary({ studentId: activeStudentId ?? 0 }),
     enabled: activeStudentId !== null,
   });
+  const customBackground = backgroundQ.data || "";
   const summary = summaryQ.data;
   const xp = summary
     ? computeStudentXp({
@@ -56,8 +57,8 @@ export function StudentLayout() {
   return (
     <div
       className="flex h-screen w-screen flex-col bg-app"
-      data-student-bg={backgroundQ.data ? "custom" : "default"}
-      style={backgroundQ.data ? { background: backgroundQ.data, colorScheme: "light" } : undefined}
+      data-student-bg={customBackground ? "custom" : "default"}
+      style={customBackground ? { background: customBackground, colorScheme: "light" } : undefined}
     >
       <header
         className={cn(
@@ -109,7 +110,12 @@ export function StudentLayout() {
           </Button>
         </div>
       </header>
-      <main className="min-w-0 flex-1 overflow-y-auto bg-app/85 backdrop-blur-[1px]">
+      <main
+        className={cn(
+          "min-w-0 flex-1 overflow-y-auto backdrop-blur-[1px]",
+          customBackground ? "bg-white/58" : "bg-app/85",
+        )}
+      >
         <Outlet />
       </main>
       <StudentDictionaryPopup

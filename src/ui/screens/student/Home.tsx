@@ -103,37 +103,23 @@ export function StudentHome() {
         )}
       </header>
 
-      <Link
-        to="/student/profile/$studentId/achievements"
-        params={{ studentId: String(id) }}
-        className="motion-card grid gap-3 rounded-bento border border-mastery/30 bg-mastery/10 px-5 py-4 shadow-card transition hover:-translate-y-0.5 hover:border-mastery/50 hover:shadow-lift sm:grid-cols-[1fr_auto] sm:items-center"
-      >
-        <div>
-          <Badge tone="mastery" uppercase>
-            Achievement hall
-          </Badge>
-          <h2 className="mt-2 font-display text-2xl font-semibold">Learning summary & trophies</h2>
-          <p className="mt-1 text-sm text-muted">
-            Open the dedicated trophy page to see polished badges, tiers, and next progress bars.
-          </p>
-        </div>
-        <span className="font-semibold text-mastery">View hall →</span>
-      </Link>
-
-      <PersonalVocabularyCard
-        studentId={id}
-        summary={
-          dictionaryLearningQ.data ?? {
-            total: 0,
-            due: 0,
-            learning: 0,
-            shortTerm: 0,
-            longTerm: 0,
-            averageScore: 0,
+      <section className="grid gap-4 lg:grid-cols-2">
+        <AchievementHallCard studentId={id} />
+        <PersonalVocabularyCard
+          studentId={id}
+          summary={
+            dictionaryLearningQ.data ?? {
+              total: 0,
+              due: 0,
+              learning: 0,
+              shortTerm: 0,
+              longTerm: 0,
+              averageScore: 0,
+            }
           }
-        }
-        loading={dictionaryLearningQ.isLoading}
-      />
+          loading={dictionaryLearningQ.isLoading}
+        />
+      </section>
 
       {booksQ.isLoading ? (
         <p className="text-sm text-muted">Loading assigned units…</p>
@@ -146,6 +132,29 @@ export function StudentHome() {
         <BookList studentId={id} books={booksQ.data ?? []} />
       )}
     </div>
+  );
+}
+
+function AchievementHallCard({ studentId }: { studentId: number }) {
+  return (
+    <Link
+      to="/student/profile/$studentId/achievements"
+      params={{ studentId: String(studentId) }}
+      className="motion-card grid min-h-48 gap-3 rounded-bento border border-mastery/30 bg-mastery/10 px-5 py-5 shadow-card transition hover:-translate-y-0.5 hover:border-mastery/50 hover:shadow-lift sm:grid-cols-[1fr_auto] sm:items-center lg:grid-cols-1 lg:items-start xl:grid-cols-[1fr_auto] xl:items-center"
+    >
+      <div>
+        <Badge tone="mastery" uppercase>
+          Achievement hall
+        </Badge>
+        <h2 className="mt-3 font-display text-2xl font-semibold">Learning summary & trophies</h2>
+        <p className="mt-1 text-sm leading-6 text-muted">
+          Open the dedicated trophy page to see polished badges, tiers, and live quest progress.
+        </p>
+      </div>
+      <span className="self-end font-semibold text-mastery sm:self-center lg:self-end xl:self-center">
+        View hall →
+      </span>
+    </Link>
   );
 }
 
@@ -171,7 +180,7 @@ function PersonalVocabularyCard({
       to="/student/profile/$studentId/personal-vocabulary"
       params={{ studentId: String(studentId) }}
       className={cn(
-        "motion-card group grid gap-4 rounded-bento border px-5 py-5 shadow-card transition-[background-color,border-color,box-shadow,transform] hover:-translate-y-1 hover:border-focus/45 hover:shadow-lift md:grid-cols-[1fr_auto]",
+        "motion-card group grid min-h-48 gap-4 rounded-bento border px-5 py-5 shadow-card transition-[background-color,border-color,box-shadow,transform] hover:-translate-y-1 hover:border-focus/45 hover:shadow-lift sm:grid-cols-[1fr_auto] sm:items-center lg:grid-cols-1 lg:items-start xl:grid-cols-[1fr_auto] xl:items-center",
         hasDue ? "border-focus/35 bg-focus/10" : "border-border-subtle bg-surface-1",
       )}
     >
@@ -192,7 +201,7 @@ function PersonalVocabularyCard({
           typing before they graduate to long-term memory.
         </p>
       </div>
-      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:min-w-[27rem]">
+      <dl className="grid grid-cols-2 gap-3 sm:min-w-[14rem] xl:min-w-[17rem]">
         <MiniStat label="Words" value={loading ? "..." : String(summary.total)} />
         <MiniStat label="Learning" value={loading ? "..." : String(summary.learning)} />
         <MiniStat label="Short" value={loading ? "..." : String(summary.shortTerm)} />
