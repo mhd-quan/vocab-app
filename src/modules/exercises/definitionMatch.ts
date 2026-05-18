@@ -2,7 +2,7 @@
  * Definition matching — drag 4 headwords onto 4 definition slots.
  *
  * Build rules:
- *   - Requires `ctx.entryPool` with at least 4 entries (target + 3
+ *   - Requires `ctx.sourcePool` with at least 4 sources (target + 3
  *     distractors) that each have a usable definition.
  *   - Definitions are pulled per `ctx.definitionPriority`. We dedupe by
  *     headword to avoid pairing the same word twice when an entry has
@@ -15,13 +15,13 @@
  *   We count exact matches. Full credit only when all four match — this
  *   keeps the SRS rating crisp (correct ⇒ rating=3, miss ⇒ rating=1).
  */
-import type { VocabEntryFull } from "../../../electron/db/repositories/vocab";
 import { sampleWithoutReplacement, shuffle } from "./random";
 import type {
   BuildContext,
   DefinitionMatchExercise,
   DefinitionMatchItem,
   ExercisePlugin,
+  ExerciseSource,
   GradeOutcome,
 } from "./types";
 
@@ -36,17 +36,17 @@ export const definitionMatchPlugin: ExercisePlugin<
 > = {
   kind: "definition_match",
 
-  build(entry: VocabEntryFull, ctx: BuildContext): DefinitionMatchExercise | null {
-    const pool = ctx.entryPool ?? [];
+  build(source: ExerciseSource, ctx: BuildContext): DefinitionMatchExercise | null {
+    const pool = ctx.sourcePool ?? [];
     const priority = ctx.definitionPriority ?? "en_first";
 
-    const targetDef = pickDefinition(entry, priority);
+    const targetDef = pickDefinition(source, priority);
     if (!targetDef) return null;
 
     // Candidate distractors: every other entry in the pool with a usable
     // definition and a distinct headword.
-    const targetLower = entry.headword.toLowerCase();
-    const candidates: Array<{ entry: VocabEntryFull; def: string }> = [];
+    const targetLower = source.headword.toLowerCase();
+    const candidates: Array<{ source: ExerciseSource; def: string }> = [];
     const seen = new Set<string>([targetLower]);
     for (const candidate of pool) {
       const headLower = candidate.headword.toLowerCase();
@@ -54,28 +54,29 @@ export const definitionMatchPlugin: ExercisePlugin<
       const def = pickDefinition(candidate, priority);
       if (!def) continue;
       seen.add(headLower);
-      candidates.push({ entry: candidate, def });
+      candidates.push({ source: candidate, def });
     }
     if (candidates.length < PAIR_COUNT - 1) return null;
 
     const distractors = sampleWithoutReplacement(candidates, PAIR_COUNT - 1, ctx.rng);
     const pairs: DefinitionMatchItem[] = [
       {
-        pairId: `${entry.id}`,
-        headword: entry.headword,
+        pairId: source.ref.sourceKey,
+        headword: source.headword,
         definition: targetDef,
       },
-      ...distractors.map(({ entry: d, def }) => ({
-        pairId: `${d.id}`,
+      ...distractors.map(({ source: d, def }) => ({
+        pairId: d.ref.sourceKey,
         headword: d.headword,
         definition: def,
       })),
     ];
 
     return {
-      id: `definition_match:${entry.id}:${ctx.sessionSeed}`,
+      id: `definition_match:${source.ref.sourceKey}:${ctx.sessionSeed}`,
       kind: "definition_match",
-      entryId: entry.id,
+      entryId: source.id,
+      source: source.ref,
       payload: { items: shuffle(pairs, ctx.rng) },
     };
   },
@@ -101,8 +102,8 @@ export const definitionMatchPlugin: ExercisePlugin<
   },
 };
 
-function pickDefinition(entry: VocabEntryFull, priority: "en_first" | "vi_first"): string | null {
-  const senses = entry.senses;
+function pickDefinition(source: ExerciseSource, priority: "en_first" | "vi_first"): string | null {
+  const senses = source.senses;
   if (senses.length === 0) return null;
   const primary = senses[0];
   if (!primary) return null;

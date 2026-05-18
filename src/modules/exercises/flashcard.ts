@@ -1,7 +1,7 @@
-import type { VocabEntryFull } from "../../../electron/db/repositories/vocab";
 import type {
   BuildContext,
   ExercisePlugin,
+  ExerciseSource,
   FlashcardExercise,
   GradeOutcome,
   SelfGrade,
@@ -22,32 +22,33 @@ export const flashcardPlugin: ExercisePlugin<
 > = {
   kind: "flashcard",
 
-  build(entry: VocabEntryFull, ctx: BuildContext): FlashcardExercise | null {
-    if (entry.senses.length === 0) return null;
+  build(source: ExerciseSource, ctx: BuildContext): FlashcardExercise | null {
+    if (source.senses.length === 0) return null;
 
-    const senses = entry.senses.slice().sort((a, b) => a.ordinal - b.ordinal);
+    const senses = source.senses.slice().sort((a, b) => a.ordinal - b.ordinal);
     const definitionsEn = senses
       .map((s) => s.definitionEn?.trim())
       .filter((s): s is string => Boolean(s));
     const definitionVi = senses.find((s) => s.definitionVi)?.definitionVi?.trim() ?? null;
     const exampleText =
-      entry.examples.slice().sort((a, b) => a.ordinal - b.ordinal)[0]?.text ?? null;
+      source.examples.slice().sort((a, b) => a.ordinal - b.ordinal)[0]?.text ?? null;
 
     if (definitionsEn.length === 0 && !definitionVi) return null;
 
     return {
-      id: `flashcard:${entry.id}:${ctx.sessionSeed}`,
+      id: `flashcard:${source.ref.sourceKey}:${ctx.sessionSeed}`,
       kind: "flashcard",
-      entryId: entry.id,
+      entryId: source.id,
+      source: source.ref,
       payload: {
         front: {
-          headword: entry.headword,
-          pos: entry.pos,
-          ipa: entry.ipa ?? null,
+          headword: source.headword,
+          pos: source.pos,
+          ipa: source.ipa ?? null,
           // Single audio ref — the front renders <PronunciationControls>
           // when this is non-null and autoplays via the autoPlayKey
           // contract when the tutor setting is on.
-          audioRef: entry.audioRef?.trim() ? entry.audioRef : null,
+          audioRef: source.audioRef?.trim() ? source.audioRef : null,
         },
         back: {
           definitionsEn,

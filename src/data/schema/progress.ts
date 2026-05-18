@@ -6,6 +6,9 @@ import { students } from "./learner";
 export const practiceModes = [
   "flashcard",
   "multiple_choice",
+  "audio_recall",
+  "definition_match",
+  "sentence_rebuild",
   "fill_blank",
   "matching",
   "review",

@@ -1,6 +1,6 @@
 import { type BuildContext, mulberry32, multipleChoicePlugin } from "@/modules/exercises";
 import { describe, expect, it } from "vitest";
-import { makeEntry } from "./fixtures";
+import { makeSource } from "./fixtures";
 
 function makeCtx(distractors: string[] = ["alpha", "beta", "gamma", "delta"]): BuildContext {
   return {
@@ -12,18 +12,18 @@ function makeCtx(distractors: string[] = ["alpha", "beta", "gamma", "delta"]): B
 
 describe("multipleChoicePlugin.build", () => {
   it("returns null when there are no senses with EN definition", () => {
-    const ex = multipleChoicePlugin.build(makeEntry({ senses: [] }), makeCtx());
+    const ex = multipleChoicePlugin.build(makeSource({ senses: [] }), makeCtx());
     expect(ex).toBeNull();
   });
 
   it("returns null when distractor pool is too small", () => {
-    const ex = multipleChoicePlugin.build(makeEntry(), makeCtx(["only-one"]));
+    const ex = multipleChoicePlugin.build(makeSource(), makeCtx(["only-one"]));
     expect(ex).toBeNull();
   });
 
   it("excludes the target headword from distractors (case-insensitive)", () => {
     const ex = multipleChoicePlugin.build(
-      makeEntry(),
+      makeSource(),
       makeCtx(["alpha", "Relative", "RELATIVE", "beta", "gamma"]),
     );
     expect(ex).not.toBeNull();
@@ -33,18 +33,18 @@ describe("multipleChoicePlugin.build", () => {
   });
 
   it("produces exactly 4 options with 1 correct", () => {
-    const ex = multipleChoicePlugin.build(makeEntry(), makeCtx());
+    const ex = multipleChoicePlugin.build(makeSource(), makeCtx());
     expect(ex?.payload.options).toHaveLength(4);
     expect(ex?.payload.options.filter((o) => o.correct)).toHaveLength(1);
   });
 
   it("uses the EN definition as the prompt", () => {
-    const ex = multipleChoicePlugin.build(makeEntry(), makeCtx());
+    const ex = multipleChoicePlugin.build(makeSource(), makeCtx());
     expect(ex?.payload.prompt).toBe("a member of your family");
   });
 
   it("uses the VI definition as the prompt when definition priority is vi_first", () => {
-    const ex = multipleChoicePlugin.build(makeEntry(), {
+    const ex = multipleChoicePlugin.build(makeSource(), {
       ...makeCtx(),
       definitionPriority: "vi_first",
     });
@@ -52,14 +52,14 @@ describe("multipleChoicePlugin.build", () => {
   });
 
   it("is deterministic for a fixed RNG seed", () => {
-    const a = multipleChoicePlugin.build(makeEntry(), makeCtx());
-    const b = multipleChoicePlugin.build(makeEntry(), makeCtx());
+    const a = multipleChoicePlugin.build(makeSource(), makeCtx());
+    const b = multipleChoicePlugin.build(makeSource(), makeCtx());
     expect(a?.payload.options.map((o) => o.text)).toEqual(b?.payload.options.map((o) => o.text));
   });
 });
 
 describe("multipleChoicePlugin.grade", () => {
-  const ex = multipleChoicePlugin.build(makeEntry(), makeCtx());
+  const ex = multipleChoicePlugin.build(makeSource(), makeCtx());
   if (!ex) throw new Error("fixture should produce a multiple-choice exercise");
   const correctIndex = ex.payload.options.findIndex((o) => o.correct);
   const wrongIndex = ex.payload.options.findIndex((o) => !o.correct);

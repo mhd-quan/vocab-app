@@ -1,6 +1,12 @@
 import { useAudioPrefetch } from "@/lib/audioPrefetch";
 import { cn } from "@/lib/cn";
-import { type Answer, type Exercise, type GradeOutcome, gradeExercise } from "@/modules/exercises";
+import {
+  type Answer,
+  type Exercise,
+  type ExerciseSourceRef,
+  type GradeOutcome,
+  gradeExercise,
+} from "@/modules/exercises";
 import { type AchievementDefinition, getAchievement } from "@/modules/rewards";
 import { Badge } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
@@ -24,6 +30,7 @@ import { SessionSummary, type SessionSummaryStats } from "./SessionSummary";
 export interface SessionResult {
   exerciseId: string;
   entryId: number;
+  source: ExerciseSourceRef;
   kind: Exercise["kind"];
   outcome: GradeOutcome;
   /** In-session correct streak ending at this answer (0 if wrong). */
@@ -196,6 +203,7 @@ export function SessionPlayer({
       const result: SessionResult = {
         exerciseId: current.id,
         entryId: current.entryId,
+        source: current.source,
         kind: current.kind,
         outcome,
         currentSessionRun: newRun,

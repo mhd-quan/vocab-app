@@ -3,6 +3,7 @@ export { multipleChoicePlugin } from "./multipleChoice";
 export { audioRecallPlugin, normaliseSpelling } from "./audioRecall";
 export { definitionMatchPlugin } from "./definitionMatch";
 export { sentenceRebuildPlugin, tokenise } from "./sentenceRebuild";
+export { fromDictionaryItem, fromVocabEntry, sourceKey } from "./sources";
 export {
   type BuildDeckOptions,
   type BuildDeckResult,
@@ -34,6 +35,11 @@ export type {
   ExerciseBase,
   ExerciseKind,
   ExercisePlugin,
+  ExerciseSource,
+  ExerciseSourceExample,
+  ExerciseSourceRef,
+  ExerciseSourceSense,
+  ExerciseTrack,
   FlashcardExercise,
   FlashcardPayload,
   GradeOutcome,

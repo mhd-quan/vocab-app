@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { dictionaryLearningStages } from "../../../src/data/schema";
+import { selfGrades } from "../../../src/modules/exercises";
 import { DICTIONARY_PACK_PATH_KEY, dictionaryLookup } from "../../dictionary";
 import { defineProcedure } from "../procedure";
 
@@ -23,6 +24,7 @@ const reviewInput = studentInput.extend({
   itemId: z.number().int().positive(),
   stage: z.enum(dictionaryLearningStages),
   correct: z.boolean(),
+  selfGrade: z.enum(selfGrades).nullable().optional(),
   answer: z.string().optional().nullable(),
   expected: z.string().optional().nullable(),
   sessionId: z.number().int().positive().optional().nullable(),

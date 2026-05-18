@@ -399,4 +399,5 @@ See `docs/roadmap.md` (added with PR #2). Current plan:
 | v0.6.2  | Include native SQLite runtime deps in packaged Windows/macOS apps |
 | v0.11.0 | Dual tutor/student UI overhaul with role-scoped design tokens |
 | v0.11.1 | Tutor Material Expressive workspace and dark-mode contrast repair |
+| v0.11.2 | Unified curated and personal vocabulary practice pipeline |
 | v1.0.0  | Beta packaging (signed installers, auto-update)           |
