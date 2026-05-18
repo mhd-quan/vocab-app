@@ -1,6 +1,6 @@
 import { type BuildContext, mulberry32, multipleChoicePlugin } from "@/modules/exercises";
 import { describe, expect, it } from "vitest";
-import { makeSource } from "./fixtures";
+import { makeSource, makeSources } from "./fixtures";
 
 function makeCtx(distractors: string[] = ["alpha", "beta", "gamma", "delta"]): BuildContext {
   return {
@@ -55,6 +55,25 @@ describe("multipleChoicePlugin.build", () => {
     const a = multipleChoicePlugin.build(makeSource(), makeCtx());
     const b = multipleChoicePlugin.build(makeSource(), makeCtx());
     expect(a?.payload.options.map((o) => o.text)).toEqual(b?.payload.options.map((o) => o.text));
+  });
+
+  it("keeps audio refs on source-backed options", () => {
+    const [target, ...distractors] = makeSources(5);
+    if (!target) throw new Error("fixture should include a target");
+    const ex = multipleChoicePlugin.build(
+      { ...target, audioRef: "oald://target__gb_1.mp3" },
+      {
+        ...makeCtx(),
+        sourcePool: distractors.map((source, index) => ({
+          ...source,
+          audioRef: `oald://distractor_${index}__us_1.mp3`,
+        })),
+      },
+    );
+    const correct = ex?.payload.options.find((option) => option.correct);
+    expect(correct?.audioRefs).toEqual([
+      { ref: "oald://target__gb_1.mp3", label: "Audio", accent: "other" },
+    ]);
   });
 });
 

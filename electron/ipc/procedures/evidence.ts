@@ -38,6 +38,7 @@ const studentInput = z.object({
 
 const sessionTimelineInput = z.object({
   sessionId: z.number().int().positive(),
+  includeSnapshots: z.boolean().optional(),
 });
 
 const exportReportInput = z.object({
@@ -124,7 +125,11 @@ export const evidenceProcedures = [
   defineProcedure({
     name: "evidence.sessionTimeline",
     input: sessionTimelineInput,
-    handler: ({ sessionId }, ctx) => ctx.repos.evidence.sessionTimeline({ sessionId }),
+    handler: ({ sessionId, includeSnapshots }, ctx) => {
+      const timeline = ctx.repos.evidence.sessionTimeline({ sessionId });
+      if (!timeline) return null;
+      return includeSnapshots ? serializeTimeline(timeline, true) : timeline;
+    },
   }),
 
   defineProcedure({
@@ -135,32 +140,37 @@ export const evidenceProcedures = [
       if (!student) throw new Error(`Student ${studentId} not found`);
 
       const generatedAt = new Date();
-      const evidence = ctx.repos.evidence.studentOverview({ studentId, limit: 25 });
+      const evidence = ctx.repos.evidence.studentOverview({ studentId, limit: 100 });
       const timelines = evidence.recentSessions
         .map((session) => ctx.repos.evidence.sessionTimeline({ sessionId: session.sessionId }))
         .filter((timeline): timeline is NonNullable<typeof timeline> => timeline !== null)
         .map((timeline) => serializeTimeline(timeline, includeSnapshots === true));
+      const sessionReports = evidence.recentSessions
+        .map((session) => ctx.repos.progress.sessionReport({ sessionId: session.sessionId }))
+        .filter((session): session is NonNullable<typeof session> => session !== null);
       const progressSummary = ctx.repos.progress.studentSummary({
         studentId,
         now: generatedAt,
       });
 
       const payload = {
-        schemaVersion: "vocab.session-report.v1",
+        schemaVersion: "vocab.session-report.v2",
         generatedAt: generatedAt.toISOString(),
         app: { name: "vocab-app" },
         student,
         progress: {
           summary: progressSummary,
+          units: ctx.repos.progress.unitReport({ studentId }),
           weakItems: ctx.repos.progress.weakItems({ studentId, minAttempts: 3, limit: 25 }),
-          recentSessions: ctx.repos.progress.recentSessions({ studentId, limit: 25 }),
+          recentSessions: ctx.repos.progress.recentSessions({ studentId, limit: 100 }),
+          sessions: sessionReports,
         },
         evidence: {
           overview: evidence,
           sessions: timelines,
           safeguards: {
             cameraSnapshotsIncluded: includeSnapshots === true,
-            cameraMode: "explicit per-session consent with visible indicator",
+            cameraMode: "tutor-enabled consent ledger with visible check-in indicator",
             verdictPolicy: "review signals only; no hidden surveillance or biometric inference",
           },
         },
@@ -168,19 +178,31 @@ export const evidenceProcedures = [
 
       const payloadJson = JSON.stringify(payload, jsonDateReplacer, 2);
       const sha256 = crypto.createHash("sha256").update(payloadJson).digest("hex");
-      const body = passphrase
-        ? JSON.stringify(encryptReport(payloadJson, passphrase, sha256), null, 2)
-        : JSON.stringify({ ...payload, integrity: { sha256 } }, jsonDateReplacer, 2);
+      const bundle = {
+        schemaVersion: "vocab.report-bundle.v1",
+        generatedAt: generatedAt.toISOString(),
+        manifest: {
+          reportSha256: sha256,
+          encrypted: Boolean(passphrase),
+          cameraSnapshotsIncluded: includeSnapshots === true,
+          sessionCount: timelines.length,
+          snapshotCount: timelines.reduce((sum, timeline) => sum + timeline.snapshots.length, 0),
+        },
+        report: passphrase
+          ? encryptReport(payloadJson, passphrase, sha256)
+          : { ...payload, integrity: { sha256 } },
+      };
+      const body = JSON.stringify(bundle, jsonDateReplacer, 2);
 
       const defaultPath = `${safeFilename(student.displayName ?? student.name)}-session-report-${formatStamp(
         generatedAt,
-      )}${passphrase ? ".vocab-report.enc.json" : ".vocab-report.json"}`;
+      )}${passphrase ? ".vocab-report-bundle.enc.json" : ".vocab-report-bundle.json"}`;
       const dialogOptions = {
         title: "Export student session report",
         defaultPath,
         filters: [
           {
-            name: passphrase ? "Encrypted Vocab Report" : "Vocab Report",
+            name: passphrase ? "Encrypted Vocab Report Bundle" : "Vocab Report Bundle",
             extensions: passphrase ? ["enc.json"] : ["json"],
           },
         ],
@@ -241,6 +263,15 @@ function safeEvidencePath(relativePath: string): string {
 }
 
 function serializeTimeline(timeline: StudentEvidenceTimeline, includeSnapshots: boolean) {
+  const snapshots = timeline.snapshots.map((snapshot) => {
+    const snapshotDataUrl =
+      includeSnapshots && snapshot.fileName ? readSnapshotDataUrl(snapshot.fileName) : null;
+    return {
+      ...snapshot,
+      included: Boolean(snapshotDataUrl),
+      snapshotDataUrl,
+    };
+  });
   return {
     session: timeline.session,
     metrics: timeline.metrics,
@@ -252,6 +283,7 @@ function serializeTimeline(timeline: StudentEvidenceTimeline, includeSnapshots: 
       }
       return { ...event, payload };
     }),
+    snapshots,
   };
 }
 

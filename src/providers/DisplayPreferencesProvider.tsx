@@ -10,6 +10,7 @@ import {
 } from "react";
 
 export type DisplayFontSize = "small" | "medium" | "large";
+export type PronunciationAccentPreference = "uk" | "us" | "any";
 
 interface DisplayPreferencesContextValue {
   fontSize: DisplayFontSize;
@@ -21,17 +22,22 @@ interface DisplayPreferencesContextValue {
    */
   pronunciationAutoplay: boolean;
   setPronunciationAutoplay: (value: boolean) => void;
+  pronunciationAccent: PronunciationAccentPreference;
+  setPronunciationAccent: (value: PronunciationAccentPreference) => void;
 }
 
 const FONT_SIZE_KEY = "display_font_size";
 const PRONUNCIATION_AUTOPLAY_KEY = "pronunciation_autoplay";
+const PRONUNCIATION_ACCENT_KEY = "pronunciation_default_accent";
 const FONT_SIZE_VALUES = new Set<DisplayFontSize>(["small", "medium", "large"]);
+const PRONUNCIATION_ACCENT_VALUES = new Set<PronunciationAccentPreference>(["uk", "us", "any"]);
 const ROOT_FONT_SIZE: Record<DisplayFontSize, string> = {
   small: "15px",
   medium: "16px",
   large: "17px",
 };
 const PRONUNCIATION_AUTOPLAY_DEFAULT = true;
+const PRONUNCIATION_ACCENT_DEFAULT: PronunciationAccentPreference = "uk";
 
 const DisplayPreferencesContext = createContext<DisplayPreferencesContextValue | null>(null);
 
@@ -40,17 +46,21 @@ export function DisplayPreferencesProvider({ children }: { children: ReactNode }
   const [pronunciationAutoplay, setPronunciationAutoplayState] = useState<boolean>(
     PRONUNCIATION_AUTOPLAY_DEFAULT,
   );
+  const [pronunciationAccent, setPronunciationAccentState] =
+    useState<PronunciationAccentPreference>(PRONUNCIATION_ACCENT_DEFAULT);
 
   useEffect(() => {
     let cancelled = false;
     void Promise.all([
       api.settings.get<unknown>({ key: FONT_SIZE_KEY }),
       api.settings.get<unknown>({ key: PRONUNCIATION_AUTOPLAY_KEY }),
+      api.settings.get<unknown>({ key: PRONUNCIATION_ACCENT_KEY }),
     ])
-      .then(([fontStored, autoplayStored]) => {
+      .then(([fontStored, autoplayStored, accentStored]) => {
         if (cancelled) return;
         setFontSizeState(normalizeFontSize(fontStored));
         setPronunciationAutoplayState(normalizeAutoplay(autoplayStored));
+        setPronunciationAccentState(normalizePronunciationAccent(accentStored));
       })
       .catch((err) => {
         console.error("[DisplayPreferencesProvider] failed to read display settings", err);
@@ -79,9 +89,30 @@ export function DisplayPreferencesProvider({ children }: { children: ReactNode }
     });
   }, []);
 
+  const setPronunciationAccent = useCallback((next: PronunciationAccentPreference) => {
+    setPronunciationAccentState(next);
+    api.settings.set({ key: PRONUNCIATION_ACCENT_KEY, value: next }).catch((err) => {
+      console.error("[DisplayPreferencesProvider] failed to persist accent setting", err);
+    });
+  }, []);
+
   const value = useMemo(
-    () => ({ fontSize, setFontSize, pronunciationAutoplay, setPronunciationAutoplay }),
-    [fontSize, setFontSize, pronunciationAutoplay, setPronunciationAutoplay],
+    () => ({
+      fontSize,
+      setFontSize,
+      pronunciationAutoplay,
+      setPronunciationAutoplay,
+      pronunciationAccent,
+      setPronunciationAccent,
+    }),
+    [
+      fontSize,
+      setFontSize,
+      pronunciationAutoplay,
+      setPronunciationAutoplay,
+      pronunciationAccent,
+      setPronunciationAccent,
+    ],
   );
 
   return (
@@ -111,4 +142,11 @@ function normalizeAutoplay(value: unknown): boolean {
   if (value === false) return false;
   if (value === "false") return false;
   return PRONUNCIATION_AUTOPLAY_DEFAULT;
+}
+
+function normalizePronunciationAccent(value: unknown): PronunciationAccentPreference {
+  return typeof value === "string" &&
+    PRONUNCIATION_ACCENT_VALUES.has(value as PronunciationAccentPreference)
+    ? (value as PronunciationAccentPreference)
+    : PRONUNCIATION_ACCENT_DEFAULT;
 }

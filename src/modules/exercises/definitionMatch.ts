@@ -72,12 +72,18 @@ export const definitionMatchPlugin: ExercisePlugin<
       })),
     ];
 
+    const definitionItems = shuffle(pairs, ctx.rng);
+    const headwordItems = shuffledHeadwords(pairs, definitionItems, ctx.rng);
+
     return {
       id: `definition_match:${source.ref.sourceKey}:${ctx.sessionSeed}`,
       kind: "definition_match",
       entryId: source.id,
       source: source.ref,
-      payload: { items: shuffle(pairs, ctx.rng) },
+      payload: {
+        items: definitionItems,
+        headwords: headwordItems.map((item) => item.headword),
+      },
     };
   },
 
@@ -101,6 +107,26 @@ export const definitionMatchPlugin: ExercisePlugin<
     };
   },
 };
+
+function shuffledHeadwords(
+  pairs: DefinitionMatchItem[],
+  definitionItems: DefinitionMatchItem[],
+  rng: () => number,
+): DefinitionMatchItem[] {
+  const shuffled = shuffle(pairs, rng);
+  if (!samePairOrder(shuffled, definitionItems)) return shuffled;
+  const rotated: DefinitionMatchItem[] = [];
+  for (let index = 0; index < definitionItems.length; index += 1) {
+    const item = definitionItems[(index + 1) % definitionItems.length];
+    if (item) rotated.push(item);
+  }
+  return rotated;
+}
+
+function samePairOrder(a: DefinitionMatchItem[], b: DefinitionMatchItem[]): boolean {
+  if (a.length !== b.length) return false;
+  return a.every((item, index) => item.pairId === b[index]?.pairId);
+}
 
 function pickDefinition(source: ExerciseSource, priority: "en_first" | "vi_first"): string | null {
   const senses = source.senses;

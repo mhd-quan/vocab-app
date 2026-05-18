@@ -44,7 +44,7 @@ export const audioRecallPlugin: ExercisePlugin<
       source: source.ref,
       payload: {
         audioRef,
-        audioLabel: "🔊 Listen",
+        audioLabel: "Listen",
         expectedSpelling: normaliseSpelling(source.headword),
         displayHeadword: source.headword,
         hint: gloss

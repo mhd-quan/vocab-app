@@ -45,10 +45,12 @@ export const flashcardPlugin: ExercisePlugin<
           headword: source.headword,
           pos: source.pos,
           ipa: source.ipa ?? null,
-          // Single audio ref — the front renders <PronunciationControls>
-          // when this is non-null and autoplays via the autoPlayKey
-          // contract when the tutor setting is on.
-          audioRef: source.audioRef?.trim() ? source.audioRef : null,
+          audioRefs:
+            source.audioRefs && source.audioRefs.length > 0
+              ? source.audioRefs
+              : source.audioRef?.trim()
+                ? [{ ref: source.audioRef, label: "Audio", accent: "other" }]
+                : [],
         },
         back: {
           definitionsEn,

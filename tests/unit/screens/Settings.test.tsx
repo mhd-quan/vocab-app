@@ -31,9 +31,11 @@ describe("TutorSettings", () => {
       if (key === "theme") return "system";
       if (key === "display_font_size") return "medium";
       if (key === "pronunciation_autoplay") return true;
+      if (key === "pronunciation_default_accent") return "uk";
       if (key === "session_default_count") return 15;
       if (key === "session_default_mode") return "mixed";
       if (key === "session_shuffle") return true;
+      if (key === "session_camera_checkins_enabled") return true;
       if (key === "fsrs_short_term_days") return 1;
       if (key === "fsrs_long_term_days") return 21;
       return null;
@@ -48,6 +50,10 @@ describe("TutorSettings", () => {
     expect(screen.getByLabelText("Short-term (days)")).toHaveAttribute("type", "number");
     expect(screen.getByLabelText("Long-term (days)")).toHaveAttribute("type", "number");
     expect(screen.getByRole("switch", { name: /autoplay headword audio/i })).toBeChecked();
+    expect(screen.getByLabelText("Default accent")).toHaveValue("uk");
+    await waitFor(() =>
+      expect(screen.getByRole("switch", { name: /camera check-ins/i })).toBeChecked(),
+    );
 
     expect(document.querySelector("md-outlined-select")).toBeNull();
     expect(document.querySelector("md-outlined-text-field")).toBeNull();

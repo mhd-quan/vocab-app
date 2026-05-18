@@ -1,4 +1,4 @@
-import { useAudioPrefetch } from "@/lib/audioPrefetch";
+import { useAudioPrefetch, usePronunciationLookupPrefetch } from "@/lib/audioPrefetch";
 import {
   type Answer,
   type Exercise,
@@ -72,6 +72,7 @@ export interface SessionPlayerProps {
    * Defaults to true so tests + tutor "demo" paths still autoplay.
    */
   autoplay?: boolean;
+  preferredAccent?: "uk" | "us" | "any";
 }
 
 const DEFAULT_AUTO_ADVANCE_MS = 1_200;
@@ -127,6 +128,7 @@ export function SessionPlayer({
   onEvidence,
   soundEnabled = false,
   autoplay = true,
+  preferredAccent = "uk",
 }: SessionPlayerProps) {
   const [index, setIndex] = useState(0);
   const [results, setResults] = useState<SessionResult[]>([]);
@@ -146,24 +148,43 @@ export function SessionPlayer({
     promptShownAt.current = nowMs();
   }
 
-  // Audio prefetch: warm the next 3 cards' audio in the React-Query
-  // cache so autoplay on advance starts instantly. We collect refs from
-  // whichever payload field actually carries audio for each kind, then
-  // hand the flat ref list to the prefetch hook. Refs that aren't audio
-  // bearers (flashcard / multiple_choice without an `audioRef`) are
-  // skipped via the `string` type filter.
+  // Audio prefetch: warm the next 3 cards' dictionary lookups and audio
+  // blobs so autoplay on advance starts instantly.
   const upcomingAudioRefs = useMemo(() => {
     const out: string[] = [];
     for (let i = index; i < Math.min(deck.length, index + 4); i++) {
       const ex = deck[i];
       if (!ex) continue;
+      if (ex.kind === "flashcard") {
+        out.push(...ex.payload.front.audioRefs.map((audio) => audio.ref));
+      }
+      if (ex.kind === "multiple_choice") {
+        for (const option of ex.payload.options) {
+          if (option.correct) out.push(...(option.audioRefs ?? []).map((audio) => audio.ref));
+        }
+      }
       if (ex.kind === "audio_recall") {
         out.push(ex.payload.audioRef);
       }
     }
     return out;
   }, [deck, index]);
+  const upcomingPronunciationTerms = useMemo(() => {
+    const out: string[] = [];
+    for (let i = index; i < Math.min(deck.length, index + 4); i++) {
+      const ex = deck[i];
+      if (!ex) continue;
+      if (ex.kind === "flashcard") out.push(ex.payload.front.headword);
+      if (ex.kind === "multiple_choice") {
+        const correct = ex.payload.options.find((option) => option.correct);
+        if (correct) out.push(correct.text);
+      }
+      if (ex.kind === "audio_recall") out.push(ex.payload.displayHeadword);
+    }
+    return out;
+  }, [deck, index]);
   useAudioPrefetch(upcomingAudioRefs);
+  usePronunciationLookupPrefetch(upcomingPronunciationTerms, preferredAccent);
 
   const advance = useCallback((result: SessionResult) => {
     setResults((prev) => [...prev, result]);
@@ -319,6 +340,7 @@ export function SessionPlayer({
           onAnswer={handleAnswer}
           outcome={pendingOutcome}
           autoplay={autoplay}
+          preferredAccent={preferredAccent}
         />
       </div>
     </PlayerShell>
@@ -336,11 +358,13 @@ function ExerciseCard({
   onAnswer,
   outcome,
   autoplay,
+  preferredAccent,
 }: {
   exercise: Exercise;
   onAnswer: (answer: Answer) => void;
   outcome: GradeOutcome | null;
   autoplay: boolean;
+  preferredAccent: "uk" | "us" | "any";
 }) {
   // `key={exercise.id}` re-mounts the per-kind component on each new
   // exercise so internal state (revealed flag, picked option) resets
@@ -352,6 +376,7 @@ function ExerciseCard({
           key={exercise.id}
           exercise={exercise}
           autoplay={autoplay}
+          preferredAccent={preferredAccent}
           onAnswer={(grade) => onAnswer({ kind: "flashcard", grade })}
         />
       );
@@ -361,6 +386,8 @@ function ExerciseCard({
           key={exercise.id}
           exercise={exercise}
           outcome={outcome}
+          autoplay={autoplay}
+          preferredAccent={preferredAccent}
           onAnswer={(selectedIndex) => onAnswer({ kind: "multiple_choice", selectedIndex })}
         />
       );
@@ -370,6 +397,7 @@ function ExerciseCard({
           key={exercise.id}
           exercise={exercise}
           autoplay={autoplay}
+          preferredAccent={preferredAccent}
           onAnswer={(spelling) => onAnswer({ kind: "audio_recall", spelling })}
         />
       );

@@ -260,6 +260,9 @@ Object.defineProperty(window, "api", {
       weakItems: async () => [],
       dailyActivity: async () => [],
       recentSessions: async () => [],
+      unitReport: async () => [],
+      unitSessions: async () => [],
+      sessionReport: async () => null,
       tutorOverview: async () => [],
     },
     evidence: {

@@ -80,6 +80,16 @@ const recentSessionsInput = z.object({
   limit: z.number().int().positive().max(100).optional(),
 });
 
+const sessionReportInput = z.object({
+  sessionId: z.number().int().positive(),
+});
+
+const unitSessionsInput = z.object({
+  studentId: z.number().int().positive(),
+  unitId: z.number().int().positive(),
+  limit: z.number().int().positive().max(100).optional(),
+});
+
 const tutorOverviewInput = z.object({
   nowIso: z.string().datetime().optional(),
 });
@@ -201,6 +211,25 @@ export const progressProcedures = [
     name: "progress.recentSessions",
     input: recentSessionsInput,
     handler: ({ studentId, limit }, ctx) => ctx.repos.progress.recentSessions({ studentId, limit }),
+  }),
+
+  defineProcedure({
+    name: "progress.unitReport",
+    input: studentIdInput,
+    handler: ({ studentId }, ctx) => ctx.repos.progress.unitReport({ studentId }),
+  }),
+
+  defineProcedure({
+    name: "progress.unitSessions",
+    input: unitSessionsInput,
+    handler: ({ studentId, unitId, limit }, ctx) =>
+      ctx.repos.progress.unitSessions({ studentId, unitId, limit }),
+  }),
+
+  defineProcedure({
+    name: "progress.sessionReport",
+    input: sessionReportInput,
+    handler: ({ sessionId }, ctx) => ctx.repos.progress.sessionReport({ sessionId }),
   }),
 
   defineProcedure({

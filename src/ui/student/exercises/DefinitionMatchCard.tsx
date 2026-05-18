@@ -28,7 +28,13 @@ export interface DefinitionMatchCardProps {
 
 export function DefinitionMatchCard({ exercise, onAnswer }: DefinitionMatchCardProps) {
   const items = exercise.payload.items;
-  const headwords = useMemo(() => items.map((it) => it.headword), [items]);
+  const headwords = useMemo(
+    () =>
+      exercise.payload.headwords?.length
+        ? exercise.payload.headwords
+        : items.map((it) => it.headword),
+    [exercise.payload.headwords, items],
+  );
   const [selectedHeadword, setSelectedHeadword] = useState<string | null>(null);
   /** pairId → assigned headword (or null/missing if empty). */
   const [assignments, setAssignments] = useState<Record<string, string | null>>(() =>

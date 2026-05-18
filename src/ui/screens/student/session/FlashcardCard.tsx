@@ -3,7 +3,7 @@ import { type FlashcardExercise, type SelfGrade, selfGrades } from "@/modules/ex
 import { Badge } from "@/ui/components/Badge";
 import { Button } from "@/ui/components/Button";
 import { ClozeText } from "@/ui/components/ClozeText";
-import { PronunciationControls } from "@/ui/components/PronunciationControls";
+import { VocabularyPronunciation } from "@/ui/components/VocabularyPronunciation";
 import { PressButton } from "@/ui/student/components/PressButton";
 import { useEffect, useState } from "react";
 
@@ -29,6 +29,7 @@ export interface FlashcardCardProps {
   onAnswer: (grade: SelfGrade) => void;
   /** Auto-play the headword pronunciation on mount. Defaults to true. */
   autoplay?: boolean;
+  preferredAccent?: "uk" | "us" | "any";
 }
 
 /**
@@ -37,7 +38,12 @@ export interface FlashcardCardProps {
  * `key={exercise.id}`). That keeps the component stateful and side-effect
  * free at the same time.
  */
-export function FlashcardCard({ exercise, onAnswer, autoplay = true }: FlashcardCardProps) {
+export function FlashcardCard({
+  exercise,
+  onAnswer,
+  autoplay = true,
+  preferredAccent = "uk",
+}: FlashcardCardProps) {
   const [revealed, setRevealed] = useState(false);
 
   // Keyboard: Space/Enter to flip; 1-4 to grade once revealed.
@@ -89,17 +95,17 @@ export function FlashcardCard({ exercise, onAnswer, autoplay = true }: Flashcard
           <span className="font-mono text-base">{front.pos}</span>
           {front.ipa ? <span className="font-mono text-base">{front.ipa}</span> : null}
         </div>
-        {front.audioRef ? (
-          <PronunciationControls
-            audioRefs={[{ ref: front.audioRef, label: "🔊 Listen", accent: "other" }]}
-            // autoPlayKey gates autoplay: the same exercise.id only fires
-            // once, and we suppress entirely when the tutor turned the
-            // pronunciation_autoplay setting off.
-            autoPlayKey={autoplay ? exercise.id : null}
-            size="sm"
-            className="justify-center"
-          />
-        ) : null}
+        <VocabularyPronunciation
+          headword={front.headword}
+          fallbackRefs={front.audioRefs}
+          // autoPlayKey gates autoplay: the same exercise.id only fires
+          // once, and we suppress entirely when the tutor turned the
+          // pronunciation_autoplay setting off.
+          autoPlayKey={autoplay ? exercise.id : null}
+          preferredAccent={preferredAccent}
+          size="sm"
+          className="justify-center"
+        />
       </div>
 
       {!revealed ? (

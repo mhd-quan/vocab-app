@@ -15,6 +15,8 @@ export interface SessionEvidenceMetrics {
   rapidResponseCount: number;
   focusLossCount: number;
   focusLossMs: number;
+  documentHiddenCount: number;
+  documentHiddenMs: number;
   guardrailCount: number;
   cameraSnapshotCount: number;
   cameraUnavailableCount: number;
@@ -37,6 +39,8 @@ export function summarizeSessionEvidence(
   let rapidResponseCount = 0;
   let focusLossCount = 0;
   let focusLossMs = 0;
+  let documentHiddenCount = 0;
+  let documentHiddenMs = 0;
   let guardrailCount = 0;
   let cameraSnapshotCount = 0;
   let cameraUnavailableCount = 0;
@@ -55,6 +59,9 @@ export function summarizeSessionEvidence(
     } else if (event.kind === "window_focus_returned") {
       focusLossCount += 1;
       focusLossMs += Math.max(0, event.durationMs ?? 0);
+    } else if (event.kind === "document_visible") {
+      documentHiddenCount += 1;
+      documentHiddenMs += Math.max(0, event.durationMs ?? 0);
     } else if (event.kind === "guardrail_overlay_shown") {
       guardrailCount += 1;
     } else if (event.kind === "camera_snapshot") {
@@ -70,8 +77,10 @@ export function summarizeSessionEvidence(
 
   const avgResponseMs = answerCount === 0 ? null : Math.round(responseTotalMs / answerCount);
   const focusMinutes = focusLossMs / 60_000;
+  const hiddenMinutes = documentHiddenMs / 60_000;
   const reviewFlagCount =
     focusLossCount +
+    documentHiddenCount +
     guardrailCount +
     slowResponseCount +
     rapidResponseCount +
@@ -79,6 +88,8 @@ export function summarizeSessionEvidence(
   const penalty =
     Math.min(35, focusLossCount * 8) +
     Math.min(25, focusMinutes * 5) +
+    Math.min(18, documentHiddenCount * 5) +
+    Math.min(12, hiddenMinutes * 4) +
     Math.min(18, slowResponseCount * 3) +
     Math.min(12, rapidResponseCount * 2) +
     Math.min(10, guardrailCount * 4) +
@@ -92,6 +103,8 @@ export function summarizeSessionEvidence(
     rapidResponseCount,
     focusLossCount,
     focusLossMs: Math.round(focusLossMs),
+    documentHiddenCount,
+    documentHiddenMs: Math.round(documentHiddenMs),
     guardrailCount,
     cameraSnapshotCount,
     cameraUnavailableCount,

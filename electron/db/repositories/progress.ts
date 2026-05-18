@@ -3,6 +3,7 @@ import {
   type LearningEventKind,
   type PracticeMode,
   appSettings,
+  books,
   contentItems,
   itemProgress,
   learningEvents,
@@ -157,6 +158,76 @@ export interface TutorOverviewRow {
   lastPracticedAt: Date | null;
 }
 
+export interface UnitReportRow {
+  bookId: number;
+  bookTitle: string;
+  unitId: number;
+  unitCode: string;
+  unitTitle: string;
+  sessionCount: number;
+  totalAnswered: number;
+  totalCorrect: number;
+  totalWrong: number;
+  accuracy: number;
+  avgResponseMs: number | null;
+  lastPracticedAt: Date | null;
+}
+
+export interface UnitSessionReportRow {
+  sessionId: number;
+  mode: PracticeMode;
+  startedAt: Date;
+  endedAt: Date | null;
+  totalAnswered: number;
+  totalCorrect: number;
+  accuracy: number | null;
+  avgResponseMs: number | null;
+}
+
+export interface SessionReportAnswerRow {
+  eventId: number;
+  occurredAt: Date;
+  contentItemId: number;
+  lessonId: number;
+  lessonTitle: string;
+  lessonKind: string;
+  unitId: number;
+  unitCode: string;
+  unitTitle: string;
+  bookId: number;
+  bookTitle: string;
+  itemLabel: string;
+  correct: boolean;
+  responseMs: number | null;
+}
+
+export interface SessionReportUnitRow {
+  unitId: number;
+  unitCode: string;
+  unitTitle: string;
+  bookTitle: string;
+  totalAnswered: number;
+  totalCorrect: number;
+  accuracy: number;
+}
+
+export interface SessionLearningReport {
+  session: {
+    id: number;
+    studentId: number;
+    mode: PracticeMode;
+    startedAt: Date;
+    endedAt: Date | null;
+  };
+  totalAnswered: number;
+  totalCorrect: number;
+  totalWrong: number;
+  accuracy: number | null;
+  avgResponseMs: number | null;
+  units: SessionReportUnitRow[];
+  answers: SessionReportAnswerRow[];
+}
+
 /**
  * All practice-time writes live here. Reads stay narrow on purpose: the
  * tutor analytics screen will sit on top of this in a later PR, so we
@@ -179,6 +250,54 @@ export function createProgressRepository(db: AppDatabase) {
       .where(and(eq(contentItems.refTable, "grammar_topics"), eq(contentItems.refId, topicId)))
       .get();
     return row ?? null;
+  };
+
+  const answerRows = ({
+    studentId,
+    sessionId,
+    unitId,
+  }: {
+    studentId: number;
+    sessionId?: number;
+    unitId?: number;
+  }) => {
+    const filters = [
+      eq(learningEvents.studentId, studentId),
+      inArray(learningEvents.kind, ["answered_correct", "answered_wrong"]),
+    ];
+    if (sessionId !== undefined) filters.push(eq(learningEvents.sessionId, sessionId));
+    if (unitId !== undefined) filters.push(eq(units.id, unitId));
+
+    return db
+      .select({
+        eventId: learningEvents.id,
+        sessionId: learningEvents.sessionId,
+        kind: learningEvents.kind,
+        payload: learningEvents.payload,
+        occurredAt: learningEvents.occurredAt,
+        contentItemId: contentItems.id,
+        lessonId: lessons.id,
+        lessonTitle: lessons.title,
+        lessonKind: lessons.kind,
+        unitId: units.id,
+        unitCode: units.code,
+        unitTitle: units.title,
+        bookId: books.id,
+        bookTitle: books.title,
+        vocabHeadword: vocabEntries.headword,
+      })
+      .from(learningEvents)
+      .innerJoin(contentItems, eq(learningEvents.contentItemId, contentItems.id))
+      .innerJoin(lessons, eq(contentItems.lessonId, lessons.id))
+      .innerJoin(units, eq(lessons.unitId, units.id))
+      .innerJoin(books, eq(units.bookId, books.id))
+      .leftJoin(
+        vocabEntries,
+        and(eq(contentItems.refTable, "vocab_entries"), eq(contentItems.refId, vocabEntries.id)),
+      )
+      .where(and(...filters))
+      .orderBy(asc(learningEvents.occurredAt), asc(learningEvents.id))
+      .all();
   };
 
   const recordResolvedAnswer = (input: RecordContentAnswerInput): RecordAnswerResult => {
@@ -629,6 +748,224 @@ export function createProgressRepository(db: AppDatabase) {
       });
     },
 
+    unitReport({ studentId }: { studentId: number }): UnitReportRow[] {
+      const rows = answerRows({ studentId });
+      const byUnit = new Map<
+        number,
+        {
+          bookId: number;
+          bookTitle: string;
+          unitId: number;
+          unitCode: string;
+          unitTitle: string;
+          sessionIds: Set<number>;
+          totalAnswered: number;
+          totalCorrect: number;
+          responseTotalMs: number;
+          responseCount: number;
+          lastPracticedAt: Date | null;
+        }
+      >();
+      for (const row of rows) {
+        const cur = byUnit.get(row.unitId) ?? {
+          bookId: row.bookId,
+          bookTitle: row.bookTitle,
+          unitId: row.unitId,
+          unitCode: row.unitCode,
+          unitTitle: row.unitTitle,
+          sessionIds: new Set<number>(),
+          totalAnswered: 0,
+          totalCorrect: 0,
+          responseTotalMs: 0,
+          responseCount: 0,
+          lastPracticedAt: null,
+        };
+        if (row.sessionId !== null) cur.sessionIds.add(row.sessionId);
+        cur.totalAnswered += 1;
+        if (row.kind === "answered_correct") cur.totalCorrect += 1;
+        const responseMs = payloadNumber(row.payload, "responseMs");
+        if (responseMs !== null) {
+          cur.responseTotalMs += responseMs;
+          cur.responseCount += 1;
+        }
+        if (!cur.lastPracticedAt || row.occurredAt.getTime() > cur.lastPracticedAt.getTime()) {
+          cur.lastPracticedAt = row.occurredAt;
+        }
+        byUnit.set(row.unitId, cur);
+      }
+
+      return [...byUnit.values()]
+        .map((row) => ({
+          bookId: row.bookId,
+          bookTitle: row.bookTitle,
+          unitId: row.unitId,
+          unitCode: row.unitCode,
+          unitTitle: row.unitTitle,
+          sessionCount: row.sessionIds.size,
+          totalAnswered: row.totalAnswered,
+          totalCorrect: row.totalCorrect,
+          totalWrong: row.totalAnswered - row.totalCorrect,
+          accuracy: row.totalAnswered === 0 ? 0 : row.totalCorrect / row.totalAnswered,
+          avgResponseMs:
+            row.responseCount === 0 ? null : Math.round(row.responseTotalMs / row.responseCount),
+          lastPracticedAt: row.lastPracticedAt,
+        }))
+        .sort(
+          (a, b) =>
+            (b.lastPracticedAt?.getTime() ?? 0) - (a.lastPracticedAt?.getTime() ?? 0) ||
+            a.bookTitle.localeCompare(b.bookTitle) ||
+            a.unitCode.localeCompare(b.unitCode),
+        );
+    },
+
+    unitSessions({
+      studentId,
+      unitId,
+      limit = 20,
+    }: {
+      studentId: number;
+      unitId: number;
+      limit?: number;
+    }): UnitSessionReportRow[] {
+      const rows = answerRows({ studentId, unitId });
+      const bySession = new Map<
+        number,
+        {
+          sessionId: number;
+          totalAnswered: number;
+          totalCorrect: number;
+          responseTotalMs: number;
+          responseCount: number;
+        }
+      >();
+      for (const row of rows) {
+        if (row.sessionId === null) continue;
+        const cur = bySession.get(row.sessionId) ?? {
+          sessionId: row.sessionId,
+          totalAnswered: 0,
+          totalCorrect: 0,
+          responseTotalMs: 0,
+          responseCount: 0,
+        };
+        cur.totalAnswered += 1;
+        if (row.kind === "answered_correct") cur.totalCorrect += 1;
+        const responseMs = payloadNumber(row.payload, "responseMs");
+        if (responseMs !== null) {
+          cur.responseTotalMs += responseMs;
+          cur.responseCount += 1;
+        }
+        bySession.set(row.sessionId, cur);
+      }
+      if (bySession.size === 0) return [];
+      const sessions = db
+        .select({
+          id: practiceSessions.id,
+          mode: practiceSessions.mode,
+          startedAt: practiceSessions.startedAt,
+          endedAt: practiceSessions.endedAt,
+        })
+        .from(practiceSessions)
+        .where(inArray(practiceSessions.id, [...bySession.keys()]))
+        .orderBy(desc(practiceSessions.startedAt), desc(practiceSessions.id))
+        .limit(limit)
+        .all();
+      return sessions.map((session) => {
+        const stats = bySession.get(session.id) ?? {
+          sessionId: session.id,
+          totalAnswered: 0,
+          totalCorrect: 0,
+          responseTotalMs: 0,
+          responseCount: 0,
+        };
+        return {
+          sessionId: session.id,
+          mode: session.mode,
+          startedAt: session.startedAt,
+          endedAt: session.endedAt,
+          totalAnswered: stats.totalAnswered,
+          totalCorrect: stats.totalCorrect,
+          accuracy: stats.totalAnswered === 0 ? null : stats.totalCorrect / stats.totalAnswered,
+          avgResponseMs:
+            stats.responseCount === 0
+              ? null
+              : Math.round(stats.responseTotalMs / stats.responseCount),
+        };
+      });
+    },
+
+    sessionReport({ sessionId }: { sessionId: number }): SessionLearningReport | null {
+      const session = db
+        .select({
+          id: practiceSessions.id,
+          studentId: practiceSessions.studentId,
+          mode: practiceSessions.mode,
+          startedAt: practiceSessions.startedAt,
+          endedAt: practiceSessions.endedAt,
+        })
+        .from(practiceSessions)
+        .where(eq(practiceSessions.id, sessionId))
+        .get();
+      if (!session) return null;
+
+      const rows = answerRows({ studentId: session.studentId, sessionId });
+      const answers: SessionReportAnswerRow[] = rows.map((row) => ({
+        eventId: row.eventId,
+        occurredAt: row.occurredAt,
+        contentItemId: row.contentItemId,
+        lessonId: row.lessonId,
+        lessonTitle: row.lessonTitle,
+        lessonKind: row.lessonKind,
+        unitId: row.unitId,
+        unitCode: row.unitCode,
+        unitTitle: row.unitTitle,
+        bookId: row.bookId,
+        bookTitle: row.bookTitle,
+        itemLabel: row.vocabHeadword ?? row.lessonTitle,
+        correct: row.kind === "answered_correct",
+        responseMs: payloadNumber(row.payload, "responseMs"),
+      }));
+
+      const byUnit = new Map<number, SessionReportUnitRow>();
+      for (const answer of answers) {
+        const cur =
+          byUnit.get(answer.unitId) ??
+          ({
+            unitId: answer.unitId,
+            unitCode: answer.unitCode,
+            unitTitle: answer.unitTitle,
+            bookTitle: answer.bookTitle,
+            totalAnswered: 0,
+            totalCorrect: 0,
+            accuracy: 0,
+          } satisfies SessionReportUnitRow);
+        cur.totalAnswered += 1;
+        if (answer.correct) cur.totalCorrect += 1;
+        cur.accuracy = cur.totalCorrect / cur.totalAnswered;
+        byUnit.set(answer.unitId, cur);
+      }
+
+      const totalAnswered = answers.length;
+      const totalCorrect = answers.filter((answer) => answer.correct).length;
+      const responseMsValues = answers
+        .map((answer) => answer.responseMs)
+        .filter((value): value is number => value !== null);
+      return {
+        session,
+        totalAnswered,
+        totalCorrect,
+        totalWrong: totalAnswered - totalCorrect,
+        accuracy: totalAnswered === 0 ? null : totalCorrect / totalAnswered,
+        avgResponseMs:
+          responseMsValues.length === 0
+            ? null
+            : Math.round(
+                responseMsValues.reduce((sum, value) => sum + value, 0) / responseMsValues.length,
+              ),
+        units: [...byUnit.values()].sort((a, b) => a.unitCode.localeCompare(b.unitCode)),
+        answers,
+      };
+    },
+
     /**
      * Tutor-side fan-out: one row per active student with the same
      * fields the dashboard table renders. Active = `archivedAt IS NULL`.
@@ -733,3 +1070,8 @@ export function createProgressRepository(db: AppDatabase) {
 }
 
 export type ProgressRepository = ReturnType<typeof createProgressRepository>;
+
+function payloadNumber(payload: Record<string, unknown> | null, key: string): number | null {
+  const value = payload?.[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}

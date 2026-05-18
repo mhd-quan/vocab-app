@@ -21,6 +21,13 @@ export type ExerciseKind =
   | "sentence_rebuild";
 export type DefinitionPriority = "en_first" | "vi_first";
 export type ExerciseTrack = "curated" | "personal";
+export type PronunciationAccent = "uk" | "us" | "other";
+
+export interface ExerciseAudioRef {
+  ref: string;
+  label: string;
+  accent: PronunciationAccent;
+}
 
 export interface ExerciseSourceRef {
   track: ExerciseTrack;
@@ -55,6 +62,7 @@ export interface ExerciseSource {
   ipa: string | null;
   cefrLevel: string | null;
   audioRef: string | null;
+  audioRefs?: ExerciseAudioRef[];
   senses: ExerciseSourceSense[];
   examples: ExerciseSourceExample[];
 }
@@ -87,11 +95,10 @@ export interface FlashcardPayload {
     pos: string;
     ipa: string | null;
     /**
-     * Audio ref the front can autoplay. Populated by the plugin from
-     * `entry.audioRef` (single ref, "other" accent); when null the
-     * front skips the pronunciation control entirely.
+     * Audio refs the front can autoplay. Populated from imported YAML
+     * refs and, on dictionary-backed personal items, OALD refs.
      */
-    audioRef: string | null;
+    audioRefs: ExerciseAudioRef[];
   };
   back: {
     /** Primary EN definition; secondary defs render below in a list. */
@@ -116,6 +123,7 @@ export interface MultipleChoiceOption {
   /** Headword shown to the student. */
   text: string;
   correct: boolean;
+  audioRefs?: ExerciseAudioRef[];
 }
 
 export interface MultipleChoicePayload {
@@ -167,7 +175,10 @@ export interface DefinitionMatchItem {
 }
 
 export interface DefinitionMatchPayload {
+  /** Definition slots. */
   items: DefinitionMatchItem[];
+  /** Headword chip order, shuffled independently from `items`. */
+  headwords: string[];
 }
 
 export interface DefinitionMatchExercise extends ExerciseBase {

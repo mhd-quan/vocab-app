@@ -38,7 +38,7 @@ export function StudentPersonalVocabularySession() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [seed] = useState(() => defaultSessionSeed(0));
-  const { pronunciationAutoplay } = useDisplayPreferences();
+  const { pronunciationAutoplay, pronunciationAccent } = useDisplayPreferences();
 
   const queueQ = useQuery({
     queryKey: queryKeys.dictionaryLearning.practiceQueue(studentIdNum, 12),
@@ -240,6 +240,7 @@ export function StudentPersonalVocabularySession() {
       contextLabel={`Personal vocabulary · ${queue.length}/${allItems.length} due words`}
       soundEnabled={soundQ.data === true}
       autoplay={pronunciationAutoplay}
+      preferredAccent={pronunciationAccent}
     />
   );
 }
