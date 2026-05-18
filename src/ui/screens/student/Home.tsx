@@ -103,7 +103,7 @@ export function StudentHome() {
         )}
       </header>
 
-      <section className="grid gap-4 lg:grid-cols-2">
+      <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,3fr)]">
         <AchievementHallCard studentId={id} />
         <PersonalVocabularyCard
           studentId={id}
@@ -140,7 +140,7 @@ function AchievementHallCard({ studentId }: { studentId: number }) {
     <Link
       to="/student/profile/$studentId/achievements"
       params={{ studentId: String(studentId) }}
-      className="motion-card grid min-h-48 gap-3 rounded-bento border border-mastery/30 bg-mastery/10 px-5 py-5 shadow-card transition hover:-translate-y-0.5 hover:border-mastery/50 hover:shadow-lift sm:grid-cols-[1fr_auto] sm:items-center lg:grid-cols-1 lg:items-start xl:grid-cols-[1fr_auto] xl:items-center"
+      className="motion-card flex min-h-48 flex-col justify-between gap-4 rounded-bento border border-mastery/30 bg-mastery/10 px-5 py-5 shadow-card transition hover:-translate-y-0.5 hover:border-mastery/50 hover:shadow-lift"
     >
       <div>
         <Badge tone="mastery" uppercase>
@@ -151,9 +151,7 @@ function AchievementHallCard({ studentId }: { studentId: number }) {
           Open the dedicated trophy page to see polished badges, tiers, and live quest progress.
         </p>
       </div>
-      <span className="self-end font-semibold text-mastery sm:self-center lg:self-end xl:self-center">
-        View hall →
-      </span>
+      <span className="font-semibold text-mastery">View hall →</span>
     </Link>
   );
 }

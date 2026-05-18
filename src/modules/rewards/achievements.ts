@@ -33,7 +33,8 @@ export interface AchievementDefinition {
   group: AchievementGroup;
   goal:
     | { metric: keyof AchievementStats; target: number }
-    | { metric: "accuracy"; target: number; floor: number };
+    | { metric: "accuracy"; target: number; floor: number }
+    | { metric: "retention"; target: number; minAccuracy: number };
 }
 
 export interface AchievementStats {
@@ -251,7 +252,7 @@ const RULES: AchievementRule[] = dedupeRules([
       description: `Built a remembered-word base of ${threshold} vocabulary items.`,
       icon: threshold >= 300 ? "compass" : "target",
       tier: tierFor(threshold, [20, 75, 200, 400]),
-      goal: { metric: "distinctCorrect", target: threshold },
+      goal: { metric: "retention", target: threshold, minAccuracy: 70 },
       earned: (stats) => stats.distinctCorrect >= threshold && accuracy(stats) >= 0.7,
     }),
   ),
@@ -299,6 +300,7 @@ export function nextAchievementQuests(
   for (const achievement of achievements) {
     if (unlockedIds.has(achievement.id)) continue;
     const progress = achievementProgress(achievement, stats);
+    if (progress.remaining === 0) continue;
     const current = byGroup.get(achievement.group);
     if (
       !current ||
@@ -336,31 +338,58 @@ export function achievementProgress(
     const ready = stats.totalAttempts >= achievement.goal.floor;
     const value = ready ? Math.min(pctNow, achievement.goal.target) : attempts;
     const max = ready ? achievement.goal.target : achievement.goal.floor;
+    const remaining = Math.max(max - value, 0);
     return {
       value,
       max,
-      pct: max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0,
-      remaining: Math.max(max - value, 0),
+      pct: progressPercent(value, max, remaining === 0),
+      remaining,
       label: ready
         ? `${pctNow}% / ${achievement.goal.target}% accuracy`
         : `${attempts}/${achievement.goal.floor} attempts before accuracy badge`,
     };
   }
-  const value = Math.min(Number(stats[achievement.goal.metric] ?? 0), achievement.goal.target);
+  if (achievement.goal.metric === "retention") {
+    const distinctCorrect = Number(stats.distinctCorrect ?? 0);
+    const words = Math.min(distinctCorrect, achievement.goal.target);
+    const accuracyPct = Math.round(accuracy(stats) * 100);
+    const wordRemaining = Math.max(achievement.goal.target - distinctCorrect, 0);
+    const accuracyRemaining = Math.max(achievement.goal.minAccuracy - accuracyPct, 0);
+    const complete = wordRemaining === 0 && accuracyRemaining === 0;
+    const wordProgress = achievement.goal.target > 0 ? words / achievement.goal.target : 1;
+    const accuracyProgress =
+      achievement.goal.minAccuracy > 0
+        ? Math.min(accuracyPct, achievement.goal.minAccuracy) / achievement.goal.minAccuracy
+        : 1;
+    const pct = progressPercent(Math.min(wordProgress, accuracyProgress) * 100, 100, complete);
+    return {
+      value: pct,
+      max: 100,
+      pct,
+      remaining: wordRemaining + accuracyRemaining,
+      label: `${words}/${achievement.goal.target} words + ${accuracyPct}%/${achievement.goal.minAccuracy}% accuracy`,
+    };
+  }
+  const current = Number(stats[achievement.goal.metric] ?? 0);
+  const value = Math.min(current, achievement.goal.target);
+  const remaining = Math.max(achievement.goal.target - current, 0);
   return {
     value,
     max: achievement.goal.target,
-    pct:
-      achievement.goal.target > 0
-        ? Math.min(100, Math.round((value / achievement.goal.target) * 100))
-        : 0,
-    remaining: Math.max(achievement.goal.target - value, 0),
+    pct: progressPercent(value, achievement.goal.target, remaining === 0),
+    remaining,
     label: `${value}/${achievement.goal.target}`,
   };
 }
 
 function accuracy(stats: AchievementStats): number {
   return stats.totalAttempts > 0 ? stats.totalCorrect / stats.totalAttempts : 0;
+}
+
+function progressPercent(value: number, max: number, complete: boolean): number {
+  if (max <= 0) return complete ? 100 : 0;
+  const pct = Math.max(0, Math.round((value / max) * 100));
+  return complete ? 100 : Math.min(99, pct);
 }
 
 function thresholdRule(rule: AchievementRule): AchievementRule {

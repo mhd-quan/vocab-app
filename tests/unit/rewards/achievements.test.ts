@@ -1,8 +1,10 @@
 import {
   ACHIEVEMENTS,
   type AchievementStats,
+  achievementProgress,
   evaluateAchievements,
   getAchievement,
+  nextAchievementQuests,
 } from "@/modules/rewards";
 import { describe, expect, it } from "vitest";
 
@@ -106,5 +108,52 @@ describe("getAchievement", () => {
     for (const a of ACHIEVEMENTS) {
       expect(getAchievement(a.id)).not.toBeNull();
     }
+  });
+});
+
+describe("achievementProgress", () => {
+  it("does not round unfinished progress up to 100%", () => {
+    const achievement = getAchievement("answers_100");
+    if (!achievement) throw new Error("missing answers_100");
+
+    const progress = achievementProgress(achievement, {
+      ...baseStats,
+      totalCorrect: 99,
+      totalAttempts: 99,
+    });
+
+    expect(progress.pct).toBe(99);
+    expect(progress.remaining).toBe(1);
+  });
+
+  it("keeps retention progress incomplete until accuracy also meets the goal", () => {
+    const achievement = getAchievement("retention_5");
+    if (!achievement) throw new Error("missing retention_5");
+
+    const progress = achievementProgress(achievement, {
+      ...baseStats,
+      totalCorrect: 5,
+      distinctCorrect: 5,
+      totalAttempts: 10,
+    });
+
+    expect(progress.pct).toBeLessThan(100);
+    expect(progress.remaining).toBeGreaterThan(0);
+    expect(progress.label).toContain("50%/70% accuracy");
+  });
+});
+
+describe("nextAchievementQuests", () => {
+  it("does not surface completed achievements when the unlocked cache is stale", () => {
+    const quests = nextAchievementQuests(ACHIEVEMENTS, new Set(), {
+      ...baseStats,
+      totalCorrect: 5,
+      distinctCorrect: 5,
+      totalAttempts: 5,
+    });
+
+    expect(quests.every(({ progress }) => progress.remaining > 0)).toBe(true);
+    expect(quests.some(({ achievement }) => achievement.id === "first_answer")).toBe(false);
+    expect(quests.some(({ achievement }) => achievement.id === "answers_5")).toBe(false);
   });
 });

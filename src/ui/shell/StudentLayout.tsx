@@ -9,8 +9,10 @@ import { StreakBanner } from "@/ui/student/components/StreakBanner";
 import { XPBadge } from "@/ui/student/components/XPBadge";
 import { useQuery } from "@tanstack/react-query";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LockIcon } from "./icons";
+
+const loadedStudyBackgrounds = new Set<string>();
 
 export function StudentLayout() {
   const { lock } = useAppMode();
@@ -19,10 +21,12 @@ export function StudentLayout() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const activeStudentId = studentIdFromPath(pathname);
   const backgroundQ = useQuery({
-    queryKey: ["studentPrefs", activeStudentId ?? 0, "studyBackground"],
+    queryKey: queryKeys.studentPrefs.studyBackground(activeStudentId ?? 0),
     queryFn: () =>
       api.settings.get<string>({ key: `student_profile:${activeStudentId}:study_background` }),
     enabled: activeStudentId !== null,
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: Number.POSITIVE_INFINITY,
   });
   const dictionaryQ = useQuery({
     queryKey: queryKeys.dictionary.status(),
@@ -41,7 +45,9 @@ export function StudentLayout() {
     queryFn: () => api.progress.studentSummary({ studentId: activeStudentId ?? 0 }),
     enabled: activeStudentId !== null,
   });
-  const customBackground = backgroundQ.data || "";
+  const savedBackground = normalizeStudyBackground(backgroundQ.data || "");
+  const customBackground = useLoadedStudyBackground(savedBackground);
+  const hasCustomBackground = savedBackground.length > 0;
   const summary = summaryQ.data;
   const xp = summary
     ? computeStudentXp({
@@ -57,8 +63,16 @@ export function StudentLayout() {
   return (
     <div
       className="flex h-screen w-screen flex-col bg-app"
-      data-student-bg={customBackground ? "custom" : "default"}
-      style={customBackground ? { background: customBackground, colorScheme: "light" } : undefined}
+      data-student-bg={hasCustomBackground ? "custom" : "default"}
+      style={
+        hasCustomBackground
+          ? {
+              background: customBackground || "rgb(var(--color-surface-0))",
+              backgroundAttachment: "scroll",
+              colorScheme: "light",
+            }
+          : undefined
+      }
     >
       <header
         className={cn(
@@ -113,7 +127,7 @@ export function StudentLayout() {
       <main
         className={cn(
           "min-w-0 flex-1 overflow-y-auto",
-          customBackground ? "bg-transparent" : "bg-app/85",
+          hasCustomBackground ? "bg-transparent" : "bg-app/85",
         )}
       >
         <Outlet />
@@ -132,4 +146,61 @@ function studentIdFromPath(pathname: string): number | null {
   if (!match) return null;
   const id = Number(match[1]);
   return Number.isFinite(id) && id > 0 ? id : null;
+}
+
+function useLoadedStudyBackground(savedBackground: string): string {
+  const normalized = normalizeStudyBackground(savedBackground);
+  const [loadedBackground, setLoadedBackground] = useState(() =>
+    extractBackgroundImageUrl(normalized) && !loadedStudyBackgrounds.has(normalized)
+      ? ""
+      : normalized,
+  );
+
+  useEffect(() => {
+    const nextBackground = normalizeStudyBackground(savedBackground);
+    if (!nextBackground) {
+      setLoadedBackground("");
+      return;
+    }
+
+    const imageUrl = extractBackgroundImageUrl(nextBackground);
+    if (!imageUrl || loadedStudyBackgrounds.has(nextBackground)) {
+      setLoadedBackground(nextBackground);
+      return;
+    }
+
+    setLoadedBackground("");
+    let cancelled = false;
+    let settled = false;
+    const image = new Image();
+    image.decoding = "async";
+    const finish = () => {
+      if (cancelled || settled) return;
+      settled = true;
+      loadedStudyBackgrounds.add(nextBackground);
+      setLoadedBackground(nextBackground);
+    };
+
+    image.onload = finish;
+    image.onerror = finish;
+    image.src = imageUrl;
+    if (image.complete) finish();
+    const decodePromise = image.decode?.();
+    if (decodePromise) void decodePromise.then(finish, finish);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [savedBackground]);
+
+  return loadedBackground;
+}
+
+function normalizeStudyBackground(background: string): string {
+  return background.trim().replace(/\s+fixed\s*$/i, " no-repeat");
+}
+
+function extractBackgroundImageUrl(background: string): string | null {
+  const match = background.match(/url\((['"]?)(.*?)\1\)/i);
+  return match?.[2] ?? null;
 }

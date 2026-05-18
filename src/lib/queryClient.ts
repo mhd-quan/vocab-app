@@ -75,6 +75,9 @@ export const queryKeys = {
     assignedUnitIds: (studentId: number, bookId?: number) =>
       ["students", "assignedUnitIds", studentId, bookId ?? "all"] as const,
   },
+  studentPrefs: {
+    studyBackground: (studentId: number) => ["studentPrefs", studentId, "studyBackground"] as const,
+  },
   imports: {
     listRuns: (limit?: number) => ["imports", "listRuns", limit ?? "default"] as const,
     listItems: (runId: number) => ["imports", "listItems", runId] as const,
