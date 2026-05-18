@@ -1,5 +1,6 @@
 import { cn } from "@/lib/cn";
 import type { HeatmapCell } from "@/modules/analytics";
+import { useState } from "react";
 
 export interface HeatmapProps {
   cells: HeatmapCell[];
@@ -29,6 +30,7 @@ const INTENSITY_BG: Record<HeatmapCell["intensity"], string> = {
  * grid, matching what tutors expect from GitHub / Lingvist.
  */
 export function Heatmap({ cells, title, caption, className }: HeatmapProps) {
+  const [activeCell, setActiveCell] = useState<HeatmapCell | null>(null);
   if (cells.length === 0) {
     return (
       <div
@@ -50,14 +52,25 @@ export function Heatmap({ cells, title, caption, className }: HeatmapProps) {
       {title || caption ? (
         <header className="mb-3 flex items-baseline justify-between gap-2">
           {title ? <h3 className="text-sm font-semibold">{title}</h3> : <span />}
-          {caption ? <span className="text-[10px] text-muted-2">{caption}</span> : null}
+          <span className="text-[10px] text-muted-2">
+            {activeCell
+              ? `${activeCell.date} · ${activeCell.count} ${
+                  activeCell.count === 1 ? "practice rep" : "practice reps"
+                }`
+              : caption}
+          </span>
         </header>
       ) : null}
       <div className="flex gap-1 overflow-x-auto">
         {columns.map((col, ci) => (
           <div key={col.weekKey ?? `pad-${ci}`} className="flex flex-col gap-1">
             {col.cells.map((cell, ri) => (
-              <Cell key={cell ? cell.date : `${ci}-${ri}`} cell={cell} />
+              <Cell
+                key={cell ? cell.date : `${ci}-${ri}`}
+                cell={cell}
+                onActivate={setActiveCell}
+                onClear={() => setActiveCell(null)}
+              />
             ))}
           </div>
         ))}
@@ -66,14 +79,31 @@ export function Heatmap({ cells, title, caption, className }: HeatmapProps) {
   );
 }
 
-function Cell({ cell }: { cell: HeatmapCell | null }) {
+function Cell({
+  cell,
+  onActivate,
+  onClear,
+}: {
+  cell: HeatmapCell | null;
+  onActivate: (cell: HeatmapCell) => void;
+  onClear: () => void;
+}) {
   if (!cell) {
     return <div aria-hidden className="h-3 w-3" />;
   }
   return (
-    <div
+    <button
+      type="button"
       title={`${cell.date} — ${cell.count} ${cell.count === 1 ? "event" : "events"}`}
-      className={cn("h-3 w-3 rounded-[3px]", INTENSITY_BG[cell.intensity])}
+      aria-label={`${cell.date}: ${cell.count} practice reps`}
+      onMouseEnter={() => onActivate(cell)}
+      onFocus={() => onActivate(cell)}
+      onMouseLeave={onClear}
+      onBlur={onClear}
+      className={cn(
+        "h-3 w-3 rounded-[3px] transition-transform hover:scale-125 focus-visible:scale-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus/40",
+        INTENSITY_BG[cell.intensity],
+      )}
     />
   );
 }

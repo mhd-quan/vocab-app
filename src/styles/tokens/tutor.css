@@ -12,9 +12,9 @@
 @layer base {
   [data-app-mode="tutor"]:root,
   [data-app-mode="tutor"] {
-    --font-family-sans: "Inter", "Aptos", "Atkinson Hyperlegible", ui-sans-serif, system-ui,
+    --font-family-sans: "Aptos", "Inter", "Atkinson Hyperlegible", ui-sans-serif, system-ui,
       -apple-system, "Segoe UI", sans-serif;
-    --font-family-display: "Inter", "Aptos Display", "Atkinson Hyperlegible", ui-sans-serif,
+    --font-family-display: "Aptos Display", "Inter", "Atkinson Hyperlegible", ui-sans-serif,
       system-ui, -apple-system, "Segoe UI", sans-serif;
 
     /* Tutor mode is productivity-first: softer than raw tables, denser than student mode. */
@@ -29,26 +29,26 @@
     --shape-corner-full: 9999px;
 
     /* MD3 sys-color roles, tuned for an English-tutor productivity surface. */
-    --md-sys-color-primary: rgb(38 83 177);
+    --md-sys-color-primary: rgb(25 91 111);
     --md-sys-color-on-primary: rgb(255 255 255);
-    --md-sys-color-primary-container: rgb(223 232 255);
-    --md-sys-color-on-primary-container: rgb(21 50 118);
-    --md-sys-color-secondary: rgb(70 92 84);
+    --md-sys-color-primary-container: rgb(207 238 246);
+    --md-sys-color-on-primary-container: rgb(10 65 82);
+    --md-sys-color-secondary: rgb(85 90 102);
     --md-sys-color-on-secondary: rgb(255 255 255);
-    --md-sys-color-secondary-container: rgb(216 234 226);
-    --md-sys-color-on-secondary-container: rgb(24 51 41);
-    --md-sys-color-tertiary: rgb(129 79 54);
+    --md-sys-color-secondary-container: rgb(225 229 239);
+    --md-sys-color-on-secondary-container: rgb(45 51 64);
+    --md-sys-color-tertiary: rgb(150 91 20);
     --md-sys-color-on-tertiary: rgb(255 255 255);
-    --md-sys-color-tertiary-container: rgb(255 226 207);
-    --md-sys-color-on-tertiary-container: rgb(83 49 31);
-    --md-sys-color-surface: rgb(247 249 251);
-    --md-sys-color-surface-dim: rgb(221 228 234);
+    --md-sys-color-tertiary-container: rgb(255 232 194);
+    --md-sys-color-on-tertiary-container: rgb(86 53 13);
+    --md-sys-color-surface: rgb(246 248 248);
+    --md-sys-color-surface-dim: rgb(219 226 226);
     --md-sys-color-surface-bright: rgb(255 255 255);
     --md-sys-color-surface-container-lowest: rgb(255 255 255);
-    --md-sys-color-surface-container-low: rgb(243 247 250);
-    --md-sys-color-surface-container: rgb(236 242 246);
-    --md-sys-color-surface-container-high: rgb(228 236 241);
-    --md-sys-color-surface-container-highest: rgb(218 229 236);
+    --md-sys-color-surface-container-low: rgb(241 246 246);
+    --md-sys-color-surface-container: rgb(233 241 241);
+    --md-sys-color-surface-container-high: rgb(224 235 235);
+    --md-sys-color-surface-container-highest: rgb(214 226 227);
     --md-sys-color-on-surface: rgb(var(--color-fg));
     --md-sys-color-on-surface-variant: rgb(var(--color-muted));
     --md-sys-color-outline: rgb(111 124 134);
@@ -56,20 +56,20 @@
     --md-sys-color-error: rgb(186 26 26);
     --md-sys-color-on-error: rgb(255 255 255);
 
-    --color-fg: 24 31 39;
-    --color-muted: 74 88 101;
-    --color-muted-2: 108 122 135;
-    --color-surface-0: 247 249 251;
+    --color-fg: 22 30 35;
+    --color-muted: 72 87 93;
+    --color-muted-2: 109 123 128;
+    --color-surface-0: 246 248 248;
     --color-surface-1: 255 255 255;
-    --color-surface-2: 238 244 247;
-    --color-surface-3: 222 232 237;
-    --color-border-subtle: 204 216 224;
-    --color-border-strong: 111 124 134;
-    --color-accent: 38 83 177;
+    --color-surface-2: 233 241 241;
+    --color-surface-3: 214 226 227;
+    --color-border-subtle: 199 214 216;
+    --color-border-strong: 103 121 126;
+    --color-accent: 25 91 111;
     --color-accent-fg: 255 255 255;
-    --color-focus: 0 128 118;
-    --color-success: 24 132 90;
-    --color-warning: 171 105 20;
+    --color-focus: 0 121 112;
+    --color-success: 18 129 91;
+    --color-warning: 173 107 24;
     --color-danger: 186 26 26;
     --color-xp: 0 132 158;
     --color-rare: 86 102 210;
@@ -94,17 +94,17 @@
     --tutor-state-layer: rgb(var(--color-accent) / var(--state-hover));
     --tutor-workspace-bg: linear-gradient(
       135deg,
-      rgb(247 249 251) 0%,
-      rgb(240 247 246) 48%,
-      rgb(246 248 252) 100%
+      rgb(246 248 248) 0%,
+      rgb(237 246 244) 48%,
+      rgb(248 247 242) 100%
     );
   }
 
   [data-app-mode="tutor"].dark {
-    --md-sys-color-primary: rgb(176 199 255);
-    --md-sys-color-on-primary: rgb(18 45 105);
-    --md-sys-color-primary-container: rgb(39 65 136);
-    --md-sys-color-on-primary-container: rgb(221 230 255);
+    --md-sys-color-primary: rgb(132 216 232);
+    --md-sys-color-on-primary: rgb(0 54 68);
+    --md-sys-color-primary-container: rgb(20 78 94);
+    --md-sys-color-on-primary-container: rgb(207 238 246);
     --md-sys-color-secondary: rgb(184 205 196);
     --md-sys-color-on-secondary: rgb(27 50 43);
     --md-sys-color-secondary-container: rgb(50 72 64);
@@ -136,8 +136,8 @@
     --color-surface-3: 41 50 58;
     --color-border-subtle: 57 70 80;
     --color-border-strong: 137 151 161;
-    --color-accent: 184 196 255;
-    --color-accent-fg: 34 58 150;
+    --color-accent: 132 216 232;
+    --color-accent-fg: 0 54 68;
     --color-focus: 112 221 207;
     --color-success: 129 216 175;
     --color-warning: 255 198 118;
@@ -174,7 +174,10 @@
         180deg,
         rgb(var(--color-surface-1) / 0.66) 0%,
         rgb(var(--color-surface-0) / 0) 18rem
-      ), rgb(var(--color-surface-0));
+      ), linear-gradient(rgb(var(--color-border-subtle) / 0.18) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--color-border-subtle) / 0.14) 1px, transparent 1px),
+      rgb(var(--color-surface-0));
+    background-size: auto, 32px 32px, 32px 32px, auto;
   }
 
   [data-app-mode="tutor"].dark .tutor-main-surface {
@@ -182,7 +185,10 @@
         180deg,
         rgb(var(--color-surface-2) / 0.38) 0%,
         rgb(var(--color-surface-0) / 0) 18rem
-      ), rgb(var(--color-surface-0));
+      ), linear-gradient(rgb(var(--color-border-subtle) / 0.16) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--color-border-subtle) / 0.12) 1px, transparent 1px),
+      rgb(var(--color-surface-0));
+    background-size: auto, 32px 32px, 32px 32px, auto;
   }
 
   [data-app-mode="tutor"] .tutor-scrollbar {

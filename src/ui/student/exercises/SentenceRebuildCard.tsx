@@ -16,7 +16,7 @@
  *     the full token count.
  */
 import { cn } from "@/lib/cn";
-import type { SentenceRebuildExercise } from "@/modules/exercises";
+import type { GradeOutcome, SentenceRebuildExercise } from "@/modules/exercises";
 import { Badge } from "@/ui/components/Badge";
 import { Button } from "@/ui/components/Button";
 import { useMemo, useState } from "react";
@@ -24,6 +24,7 @@ import { useMemo, useState } from "react";
 export interface SentenceRebuildCardProps {
   exercise: SentenceRebuildExercise;
   onAnswer: (tokens: string[]) => void;
+  outcome: GradeOutcome | null;
 }
 
 interface Chip {
@@ -31,7 +32,7 @@ interface Chip {
   originIndex: number;
 }
 
-export function SentenceRebuildCard({ exercise, onAnswer }: SentenceRebuildCardProps) {
+export function SentenceRebuildCard({ exercise, onAnswer, outcome }: SentenceRebuildCardProps) {
   const initialTray = useMemo<Chip[]>(
     () => exercise.payload.scrambled.map((token, originIndex) => ({ token, originIndex })),
     [exercise.payload.scrambled],
@@ -41,20 +42,33 @@ export function SentenceRebuildCard({ exercise, onAnswer }: SentenceRebuildCardP
 
   const targetLength = exercise.payload.correctOrder.length;
   const submitDisabled = answer.length !== targetLength;
+  const locked = outcome !== null;
+  const answerTokens = answer.map((chip) => chip.token);
+  const correctOrder = exercise.payload.correctOrder;
+  const correctTokenChips = useMemo(() => {
+    const seen = new Map<string, number>();
+    return correctOrder.map((token) => {
+      const count = (seen.get(token) ?? 0) + 1;
+      seen.set(token, count);
+      return { token, key: `${token}-${count}` };
+    });
+  }, [correctOrder]);
 
   function placeChip(chip: Chip) {
+    if (locked) return;
     setTray((prev) => prev.filter((c) => c.originIndex !== chip.originIndex));
     setAnswer((prev) => [...prev, chip]);
   }
 
   function unplaceChip(chip: Chip) {
+    if (locked) return;
     setAnswer((prev) => prev.filter((c) => c.originIndex !== chip.originIndex));
     setTray((prev) => [...prev, chip].sort((a, b) => a.originIndex - b.originIndex));
   }
 
   function submit() {
-    if (submitDisabled) return;
-    onAnswer(answer.map((c) => c.token));
+    if (submitDisabled || locked) return;
+    onAnswer(answerTokens);
   }
 
   return (
@@ -64,15 +78,23 @@ export function SentenceRebuildCard({ exercise, onAnswer }: SentenceRebuildCardP
           Build the sentence
         </Badge>
         <p className="text-sm text-muted">
-          Tap the words in the right order. Headword:{" "}
-          <span className="font-semibold text-app">{exercise.payload.headword}</span>
+          {locked
+            ? outcome.correct
+              ? "That sentence is in the right order."
+              : "Compare your sentence with the correct order below."
+            : "Tap the words in the right order. Headword: "}
+          {!locked ? (
+            <span className="font-semibold text-app">{exercise.payload.headword}</span>
+          ) : null}
         </p>
       </header>
 
       <div
         className={cn(
-          "min-h-16 rounded-bento border-2 border-dashed border-border-strong bg-surface-2 p-3",
-          answer.length === targetLength && "border-accent",
+          "min-h-16 rounded-bento border-2 border-dashed border-border-strong bg-surface-2 p-3 transition",
+          !locked && answer.length === targetLength && "border-accent",
+          locked && outcome.correct && "answer-correct border-success/70 bg-success/10",
+          locked && !outcome.correct && "answer-wrong border-danger/70 bg-danger/10",
         )}
         aria-label="Your sentence"
       >
@@ -85,7 +107,15 @@ export function SentenceRebuildCard({ exercise, onAnswer }: SentenceRebuildCardP
                 key={chip.originIndex}
                 type="button"
                 onClick={() => unplaceChip(chip)}
-                className="rounded-chip border border-accent bg-accent px-3 py-1.5 text-sm font-medium text-accent-fg shadow-press-active"
+                disabled={locked}
+                className={cn(
+                  "rounded-chip border px-3 py-1.5 text-sm font-medium shadow-press-active disabled:cursor-default",
+                  locked && outcome.correct
+                    ? "border-success bg-success/15 text-success"
+                    : locked
+                      ? "border-danger bg-danger/15 text-danger"
+                      : "border-accent bg-accent text-accent-fg",
+                )}
               >
                 {chip.token}
               </button>
@@ -100,7 +130,8 @@ export function SentenceRebuildCard({ exercise, onAnswer }: SentenceRebuildCardP
             key={chip.originIndex}
             type="button"
             onClick={() => placeChip(chip)}
-            className="press-bounce rounded-chip border border-border-strong bg-surface-1 px-3 py-1.5 text-sm font-medium hover:border-accent"
+            disabled={locked}
+            className="press-bounce rounded-chip border border-border-strong bg-surface-1 px-3 py-1.5 text-sm font-medium hover:border-accent disabled:cursor-default disabled:opacity-50"
           >
             {chip.token}
           </button>
@@ -110,15 +141,36 @@ export function SentenceRebuildCard({ exercise, onAnswer }: SentenceRebuildCardP
         )}
       </div>
 
+      {locked && !outcome.correct ? (
+        <div className="rounded-bento border border-success/35 bg-success/10 p-4">
+          <p className="text-xs font-semibold uppercase text-success">Correct sentence</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {correctTokenChips.map(({ token, key }, index) => (
+              <span
+                key={key}
+                className={cn(
+                  "rounded-chip border px-3 py-1.5 text-sm font-semibold",
+                  answerTokens[index] === token
+                    ? "border-success/45 bg-success/10 text-success"
+                    : "border-border-subtle bg-surface-1 text-app",
+                )}
+              >
+                {token}
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <div className="flex justify-center">
         <Button
           type="button"
           onClick={submit}
-          disabled={submitDisabled}
+          disabled={submitDisabled || locked}
           variant="primary"
           size="lg"
         >
-          Check
+          {locked ? (outcome.correct ? "Correct" : "Reviewing") : "Check"}
         </Button>
       </div>
     </section>

@@ -88,6 +88,11 @@ describe("evaluateAchievements — idempotency", () => {
 });
 
 describe("getAchievement", () => {
+  it("ships a broad achievement catalogue for the student trophy shelf", () => {
+    expect(ACHIEVEMENTS.length).toBeGreaterThanOrEqual(200);
+    expect(ACHIEVEMENTS.length).toBeLessThanOrEqual(300);
+  });
+
   it("returns the definition for a known id", () => {
     const def = getAchievement("first_answer");
     expect(def?.title).toBe("First steps");

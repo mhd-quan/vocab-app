@@ -2,7 +2,7 @@ import type { Book, Lesson, Unit } from "@/data/types";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
-import { getAchievement, summarizeStudentProgress } from "@/modules/rewards";
+import { ACHIEVEMENTS, getAchievement, summarizeStudentProgress } from "@/modules/rewards";
 import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
@@ -110,9 +110,7 @@ export function StudentHome() {
         )}
       </header>
 
-      {unlockedQ.data && unlockedQ.data.length > 0 ? (
-        <AchievementsStrip ids={unlockedQ.data.map((u) => u.achievementId)} />
-      ) : null}
+      <AchievementsGallery ids={(unlockedQ.data ?? []).map((u) => u.achievementId)} />
 
       <PersonalVocabularyCard
         studentId={id}
@@ -293,32 +291,72 @@ function SummaryStats({
   );
 }
 
-function AchievementsStrip({ ids }: { ids: string[] }) {
+function AchievementsGallery({ ids }: { ids: string[] }) {
+  const unlocked = new Set(ids);
+  const unlockedDefs = ids
+    .map((id) => getAchievement(id))
+    .filter((def): def is NonNullable<ReturnType<typeof getAchievement>> => def !== null);
+  const preview = [
+    ...unlockedDefs.slice(0, 18),
+    ...ACHIEVEMENTS.filter((def) => !unlocked.has(def.id)).slice(
+      0,
+      Math.max(0, 30 - unlockedDefs.length),
+    ),
+  ];
+
   return (
     <BentoCard tone="mastery" className="px-5 py-4">
-      <header className="mb-3 flex items-baseline justify-between">
-        <h2 className="text-base font-semibold">Achievements</h2>
-        <span className="text-xs font-semibold uppercase text-muted-2">{ids.length} unlocked</span>
+      <header className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="text-base font-semibold">Achievements</h2>
+          <p className="text-xs text-muted">
+            {ids.length} unlocked out of {ACHIEVEMENTS.length}. Keep practicing to reveal more.
+          </p>
+        </div>
+        <Badge tone="mastery" uppercase>
+          Trophy shelf
+        </Badge>
       </header>
-      <ul className="flex flex-wrap gap-2">
-        {ids.map((id) => (
-          <AchievementChip key={id} achievementId={id} />
+      <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {preview.map((def) => (
+          <AchievementChip key={def.id} achievement={def} unlocked={unlocked.has(def.id)} />
         ))}
       </ul>
     </BentoCard>
   );
 }
 
-function AchievementChip({ achievementId }: { achievementId: string }) {
-  const def = getAchievement(achievementId);
-  if (!def) return null;
+function AchievementChip({
+  achievement,
+  unlocked,
+}: {
+  achievement: NonNullable<ReturnType<typeof getAchievement>>;
+  unlocked: boolean;
+}) {
   return (
     <li
-      className="flex items-center gap-2 rounded-full border border-mastery/40 bg-mastery/10 px-3 py-1.5 text-xs text-mastery"
-      title={def.description}
+      className={cn(
+        "flex min-h-14 items-center gap-3 rounded-xl border px-3 py-2 text-xs transition",
+        unlocked
+          ? "border-mastery/40 bg-mastery/10 text-mastery"
+          : "border-border-subtle bg-surface-0/55 text-muted grayscale",
+      )}
+      title={achievement.description}
     >
-      <AchievementIcon icon={def.icon} className="h-4 w-4" />
-      <span className="font-medium text-app">{def.title}</span>
+      <span
+        className={cn(
+          "grid h-8 w-8 shrink-0 place-items-center rounded-full border",
+          unlocked ? "border-mastery/40 bg-mastery/15" : "border-border-subtle bg-surface-1",
+        )}
+      >
+        <AchievementIcon icon={achievement.icon} className="h-4 w-4" />
+      </span>
+      <span className="min-w-0">
+        <span className={cn("block font-semibold", unlocked ? "text-app" : "text-muted")}>
+          {achievement.title}
+        </span>
+        <span className="block truncate text-muted-2">{achievement.description}</span>
+      </span>
     </li>
   );
 }
