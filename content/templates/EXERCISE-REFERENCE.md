@@ -25,7 +25,7 @@ entries:
       - definition_en: a member of your family
 ```
 
-- Grading: student chooses Again, Hard, Good, or Easy; the answer is mapped to SM-2 quality.
+- Grading: student chooses Again, Hard, Good, or Easy; the answer is mapped to the FSRS-lite rating scale.
 
 ### multiple_choice
 

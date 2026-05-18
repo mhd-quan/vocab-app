@@ -38,7 +38,7 @@ const DEFINITION_PRIORITY_KEY = "definition_priority";
  *   - On mount, opens a practice_sessions row.
  *   - Vocab answers call progress.recordAnswer; grammar answers call
  *     progress.recordContentAnswer against grammar topic content_items.
- *     Both write learning_events + upsert item_progress via SM-2.
+ *     Both write learning_events + upsert item_progress via FSRS-lite.
  *   - On exit, finalises the session row with stats.
  *
  * The deck is built once per (lesson, seed) pair so re-renders don't

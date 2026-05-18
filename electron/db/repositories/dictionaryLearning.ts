@@ -21,8 +21,8 @@ import type { AppDatabase, AppTransaction } from "../client";
 /**
  * Kind rotation for the UI dispatcher. Each correct review advances the
  * stage hint one entry forward; a wrong review resets to "flashcard"
- * (the gentlest re-introduction). Mirrors the legacy SM-2-flavored
- * cycle so the UI never has to know we swapped schedulers underneath.
+ * (the gentlest re-introduction). Keeps the UI exercise cycle independent
+ * from the FSRS-lite scheduling state underneath.
  */
 const STAGE_ROTATION: DictionaryLearningStage[] = [
   "flashcard",

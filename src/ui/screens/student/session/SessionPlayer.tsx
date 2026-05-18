@@ -1,5 +1,4 @@
 import { useAudioPrefetch } from "@/lib/audioPrefetch";
-import { cn } from "@/lib/cn";
 import {
   type Answer,
   type Exercise,
@@ -451,18 +450,20 @@ function PlayerShell({
 }) {
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-8">
-      <header className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+      <header className="flex min-w-0 flex-wrap items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-3">
           <Badge tone="accent" uppercase>
             Practice
           </Badge>
-          {contextLabel ? <span className="text-sm text-muted">{contextLabel}</span> : null}
+          {contextLabel ? (
+            <span className="truncate text-sm text-muted">{contextLabel}</span>
+          ) : null}
         </div>
         <PressButton variant="secondary" size="sm" onClick={onExit} className="text-muted">
           End session
         </PressButton>
       </header>
-      <div className={cn("flex flex-col gap-5")}>{children}</div>
+      <div className="flex min-w-0 flex-col gap-5">{children}</div>
     </div>
   );
 }

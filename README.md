@@ -4,9 +4,9 @@ Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
 student practice) running as a desktop app on Windows and macOS.
 
-> **Status:** v0.6.2 — tutor assignments, vocabulary/grammar student flows,
-> SRS progress, rewards, in-app YAML import, settings, and authoring templates
-> remain backed by the same local SQLite schema.
+> **Status:** v0.12.0 — local-first tutor workspace, student practice,
+> FSRS-lite review, personal dictionary learning, rewards, imports, and
+> session-evidence reporting are all backed by the bundled SQLite schema.
 
 ## Stack
 
@@ -34,7 +34,7 @@ vocab-app/
 │   ├── main.ts
 │   ├── preload.ts        # contextBridge → window.api (typed)
 │   ├── db/               # SQLite client, paths, migration runner
-│   │   └── repositories/ # curriculum, vocab, students, settings, imports
+│   │   └── repositories/ # domain data access, analytics, evidence
 │   └── ipc/              # defineProcedure + Zod-validated handlers
 │       └── procedures/   # meta, curriculum, vocab, students, settings
 ├── src/
@@ -43,6 +43,9 @@ vocab-app/
 │   │   └── types.ts      # Inferred row types re-exports
 │   ├── application/
 │   │   └── import/       # YAML schema, parser, hash, ImportVocabUseCase
+│   ├── modules/          # pure domain engines: exercises, SRS, rewards, analytics
+│   ├── ui/               # role shells, screens, shared components
+│   ├── providers/        # app mode, theme, display preferences
 │   ├── App.tsx
 │   ├── main.tsx
 │   ├── styles/
@@ -68,9 +71,10 @@ vocab-app/
 └── tsconfig.json
 ```
 
-The full target architecture (domain / data / application / modules / ui
-layers) is described in `docs/architecture.md` and rolled out PR by PR — we
-deliberately do not create empty folders before they have content.
+The runtime spine is intentionally narrow: Electron owns the database,
+migrations, native dialogs, file IO, and typed IPC; `src/application` parses
+and imports content; `src/modules` contains pure engines; `src/ui` renders
+tutor and student routes through the typed `window.api` bridge.
 
 ## Scripts
 
@@ -117,19 +121,22 @@ resolved at runtime through `electron/db/paths.ts`.
 
 ### Schema overview
 
-20 tables, organized by domain:
+26 tables, organized by domain:
 
 - **Curriculum**: `books`, `units`, `lessons`
-- **Vocabulary** (PR #2 focus): `vocab_entries`, `vocab_senses`,
-  `vocab_examples`, `vocab_forms`, `vocab_collocations`, `vocab_relations`
+- **Vocabulary**: `vocab_entries`, `vocab_senses`, `vocab_examples`,
+  `vocab_forms`, `vocab_collocations`, `vocab_relations`
 - **Grammar**: `grammar_topics` with authoring metadata for patterns, examples, mistakes, and checks
 - **Polymorphic content**: `content_items` (kind + ref_table + ref_id)
-- **Learner**: `students`, `enrollments`
+- **Learner**: `students`, `enrollments`, `unit_assignments`
 - **Progress** (event-sourced): `practice_sessions`, `learning_events`,
-  `item_progress`
+  `item_progress_v2`, plus read-only `item_progress_v1_archive`
+- **Personal dictionary**: `dictionary_search_events`,
+  `dictionary_learning_items`, `dictionary_learning_reviews`
 - **Rewards**: `student_achievements` (cache; recomputable from the event log)
 - **Import**: `import_runs`, `import_items`
 - **Settings**: `app_settings`
+- **Evidence**: `session_evidence_events`
 
 Adding a new content kind later (custom exercise type, listening clip, …) is
 a single migration that adds the concrete table plus a row in `content_items`
@@ -191,7 +198,7 @@ Highlights:
 
 ## App shell & modes
 
-The app boots into one of four visible modes:
+The app boots into these visible modes:
 
 | Mode      | Trigger                                       | What renders                          |
 | --------- | --------------------------------------------- | ------------------------------------- |
@@ -217,10 +224,10 @@ const { mode, hasPin, pinReady,
 
 Routes live in `src/router.tsx` (memory history — no URL bar). Adding a new
 tutor screen = drop a component under `src/ui/screens/tutor/`, register a
-`createRoute` entry, add the sidebar item in `TutorLayout`. No other
+`createRoute` entry, add the navigation item in `TutorLayout`. No other
 plumbing required.
 
-## v0.2.0 UX + settings
+## UX + settings
 
 - Theme preference is stored in `app_settings.theme` as `light`, `dark`, or
   `system`. System mode follows `prefers-color-scheme` while the app is open.
@@ -271,7 +278,7 @@ recognition/review exercise can be generated for that word.
 Currently shipping kinds:
 
 - **flashcard** — flip card, self-graded (Again / Hard / Good / Easy);
-  the grade flows through to SRS in PR #8.
+  the grade flows through FSRS-lite.
 - **multiple_choice** — definition prompt + 4 headword options, one
   correct; auto-graded.
 - **grammar activities** — grammar lessons can supply `fill_blank`,
@@ -291,10 +298,9 @@ answered exercise. The `StudentSession` route plugs that into
 2. Appends a `learning_events` row (`answered_correct` / `answered_wrong`
    plus payload).
 3. Loads or seeds the matching `item_progress` row.
-4. Runs SM-2 over the previous schedule + the answer's quality (mapped
-   from self-grade or auto-graded correctness; see
-   `qualityFromOutcome` in `src/modules/srs/sm2.ts`).
-5. Upserts the new `(ease, intervalDays, streak, nextDueAt)` quadruple.
+4. Maps the answer to the FSRS-lite 1..4 rating scale and applies the
+   scheduler in `src/modules/srs/fsrsLite.ts`.
+5. Upserts the new `(stability, difficulty, state, reps, lapses, dueAt)` state.
 
 Everything happens in a single `db.transaction(...)` so the event log
 and the materialised schedule never disagree — if a write fails, both
@@ -308,17 +314,16 @@ The student home then queries:
 
 Two design choices worth knowing:
 
-- **Ease is stored as `int × 100`** so the SQLite integer column doesn't
-  lose precision. SM-2 still operates on the float value internally;
-  the conversion happens at the IO boundary.
+- **FSRS thresholds are settings-backed.** `fsrs_short_term_days` and
+  `fsrs_long_term_days` control when stability graduates a card to
+  short-term or long-term memory.
 - **`learning_events` is append-only.** Item progress is just a fast
   cache built on top — wiping `item_progress` and replaying the event
-  log would yield the same state. That makes alternate schedulers
-  (FSRS, Leitner) a tractable swap later.
+  log would yield the same state.
 
 ## Rewards
 
-The reward layer (PR #9) sits on top of `learning_events` + the in-session
+The reward layer sits on top of `learning_events` + the in-session
 state inside `SessionPlayer`. Three pieces:
 
 1. **In-session streak feedback.** Hitting 5 or 10 correct answers in a
@@ -384,20 +389,7 @@ the analytics view with it.
 
 ## Roadmap
 
-See `docs/roadmap.md` (added with PR #2). Current plan:
-
 | Version | Scope                                                     |
 | ------- | --------------------------------------------------------- |
-| v0.2.0  | Shell polish + theme system + in-app import + settings/templates |
-| v0.3.0  | Engagement-focused student/tutor UI redesign               |
-| v0.3.2  | Larger filled glyphs + grammar import samples/reference    |
-| v0.4.0  | Interactive grammar learning flow + lesson-card home      |
-| v0.5.0  | Tutor unit assignments + section-based study + authoring GUI |
-| v0.5.1  | Assignment/runtime polish + settings cleanup + focused authoring templates |
-| v0.6.0  | Vocabulary direct launch + grammar-only study layer + flashcard-first new words |
-| v0.6.1  | Remove vocab study-page flash + retire vocab study-page starter |
-| v0.6.2  | Include native SQLite runtime deps in packaged Windows/macOS apps |
-| v0.11.0 | Dual tutor/student UI overhaul with role-scoped design tokens |
-| v0.11.1 | Tutor Material Expressive workspace and dark-mode contrast repair |
-| v0.11.2 | Unified curated and personal vocabulary practice pipeline |
+| v0.12.0 | Session evidence, focus/camera check-ins, tutor reports |
 | v1.0.0  | Beta packaging (signed installers, auto-update)           |

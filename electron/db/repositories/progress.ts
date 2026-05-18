@@ -320,7 +320,7 @@ export function createProgressRepository(db: AppDatabase) {
 
     /**
      * Persist an answered exercise: append a `learning_events` row and
-     * upsert the matching `item_progress` row using the SM-2 scheduler.
+     * upsert the matching `item_progress` row using the FSRS-lite scheduler.
      * The whole thing runs in a transaction so the event log and the
      * materialised progress stay consistent.
      */

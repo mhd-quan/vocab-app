@@ -654,18 +654,20 @@ function GrammarShell({
 }) {
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8">
-      <header className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+      <header className="flex min-w-0 flex-wrap items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-3">
           <Badge tone="focus" uppercase>
             Grammar
           </Badge>
-          {contextLabel ? <span className="text-sm text-muted">{contextLabel}</span> : null}
+          {contextLabel ? (
+            <span className="truncate text-sm text-muted">{contextLabel}</span>
+          ) : null}
         </div>
         <Button variant="ghost" size="md" onClick={onExit} className="text-muted">
           End session
         </Button>
       </header>
-      <div className="flex flex-col gap-5">{children}</div>
+      <div className="flex min-w-0 flex-col gap-5">{children}</div>
     </div>
   );
 }

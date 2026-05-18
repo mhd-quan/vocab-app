@@ -84,7 +84,7 @@ export function StudentLayout() {
           </Button>
         </div>
       </header>
-      <main className="flex flex-1 overflow-y-auto">
+      <main className="min-w-0 flex-1 overflow-y-auto">
         <Outlet />
       </main>
       <StudentDictionaryPopup

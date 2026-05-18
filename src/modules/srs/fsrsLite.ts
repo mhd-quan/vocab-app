@@ -2,9 +2,8 @@
  * FSRS-lite spaced-repetition scheduler.
  *
  * Pure functions — no DB, no clocks beyond what the caller passes.
- * Designed as a drop-in replacement for `sm2.ts`: same shape contract,
- * same call signature (`applyAnswer({ prev, rating, now, thresholds })`),
- * so the repository layer swaps a single import.
+ * The repository layer calls the scheduler through this module boundary so
+ * storage, settings, and UI code do not depend on scheduling internals.
  *
  * Why FSRS-lite (and not full FSRS):
  *   Full FSRS-5 needs offline-trained weights to be optimal. For a
