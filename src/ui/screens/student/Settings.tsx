@@ -41,6 +41,9 @@ const BG_PRESETS = [
   },
   { id: "peach", label: "Peach pop", value: "linear-gradient(160deg,#ffedd5,#fce7f3 55%,#e0f2fe)" },
 ];
+const BACKGROUND_MAX_EDGE = 1920;
+const BACKGROUND_INLINE_LIMIT_BYTES = 1_500_000;
+const BACKGROUND_JPEG_QUALITY = 0.82;
 
 export function StudentSettings() {
   const { studentId } = useParams({ from: "/student/profile/$studentId/settings" });
@@ -51,9 +54,11 @@ export function StudentSettings() {
     enabled: Number.isFinite(id) && id > 0,
   });
   const bgQ = useQuery({
-    queryKey: ["studentPrefs", id, "studyBackground"],
+    queryKey: queryKeys.studentPrefs.studyBackground(id),
     queryFn: () => api.settings.get<string>({ key: bgKey(id) }),
     enabled: Number.isFinite(id) && id > 0,
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: Number.POSITIVE_INFINITY,
   });
   const [nickname, setNickname] = useState("");
   const [emojiSearch, setEmojiSearch] = useState("");
@@ -69,8 +74,8 @@ export function StudentSettings() {
   });
   const saveBg = useMutation({
     mutationFn: (value: string) => api.settings.set({ key: bgKey(id), value }),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["studentPrefs", id, "studyBackground"] }),
+    onSuccess: (_result, value) =>
+      queryClient.setQueryData(queryKeys.studentPrefs.studyBackground(id), value),
   });
 
   return (
@@ -204,8 +209,8 @@ export function StudentSettings() {
               accept="image/*"
               className="sr-only"
               onChange={(e) =>
-                readImage(e.currentTarget.files?.[0], (src) =>
-                  saveBg.mutate(`url(${src}) center / cover fixed`),
+                readBackgroundImage(e.currentTarget.files?.[0], (src) =>
+                  saveBg.mutate(`url(${src}) center / cover no-repeat`),
                 )
               }
             />
@@ -232,4 +237,76 @@ function readImage(file: File | undefined, done: (src: string) => void) {
     if (typeof reader.result === "string") done(reader.result);
   };
   reader.readAsDataURL(file);
+}
+
+function readBackgroundImage(file: File | undefined, done: (src: string) => void) {
+  if (!file) return;
+  const objectUrl = URL.createObjectURL(file);
+  const image = new Image();
+  image.decoding = "async";
+  let settled = false;
+
+  const fallback = () => {
+    if (settled) return;
+    settled = true;
+    URL.revokeObjectURL(objectUrl);
+    readImage(file, done);
+  };
+
+  const finish = () => {
+    if (settled) return;
+    settled = true;
+    try {
+      const { width, height } = scaledBackgroundSize(image.naturalWidth, image.naturalHeight);
+      if (width <= 0 || height <= 0) {
+        URL.revokeObjectURL(objectUrl);
+        readImage(file, done);
+        return;
+      }
+      if (
+        file.size <= BACKGROUND_INLINE_LIMIT_BYTES &&
+        width === image.naturalWidth &&
+        height === image.naturalHeight
+      ) {
+        URL.revokeObjectURL(objectUrl);
+        readImage(file, done);
+        return;
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        URL.revokeObjectURL(objectUrl);
+        readImage(file, done);
+        return;
+      }
+      ctx.fillStyle = "#f8fafc";
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(image, 0, 0, width, height);
+      done(canvas.toDataURL("image/jpeg", BACKGROUND_JPEG_QUALITY));
+    } catch {
+      readImage(file, done);
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
+  };
+
+  image.onload = finish;
+  image.onerror = fallback;
+  image.src = objectUrl;
+  const decodePromise = image.decode?.();
+  if (decodePromise) void decodePromise.then(finish, fallback);
+}
+
+function scaledBackgroundSize(width: number, height: number): { width: number; height: number } {
+  const edge = Math.max(width, height);
+  if (!Number.isFinite(edge) || edge <= 0) return { width: 0, height: 0 };
+  if (edge <= BACKGROUND_MAX_EDGE) return { width, height };
+  const scale = BACKGROUND_MAX_EDGE / edge;
+  return {
+    width: Math.max(1, Math.round(width * scale)),
+    height: Math.max(1, Math.round(height * scale)),
+  };
 }

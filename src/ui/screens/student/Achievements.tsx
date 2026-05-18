@@ -4,6 +4,7 @@ import { queryKeys } from "@/lib/queryClient";
 import {
   ACHIEVEMENTS,
   type AchievementDefinition,
+  evaluateAchievements,
   getAchievement,
   nextAchievementQuests,
   summarizeStudentProgress,
@@ -64,10 +65,11 @@ export function StudentAchievements() {
     practicedToday: streakQ.data?.practicedToday ?? false,
   });
   const unlockedIds = new Set((unlockedQ.data ?? []).map((u) => u.achievementId));
-  const unlocked = [...unlockedIds]
+  const achievedIds = new Set([...unlockedIds, ...evaluateAchievements(stats)]);
+  const unlocked = [...achievedIds]
     .map((achievementId) => getAchievement(achievementId))
     .filter((a): a is AchievementDefinition => a !== null);
-  const locked = nextAchievementQuests(ACHIEVEMENTS, unlockedIds, stats);
+  const locked = nextAchievementQuests(ACHIEVEMENTS, achievedIds, stats);
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-7 px-8 py-10">
