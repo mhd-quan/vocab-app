@@ -121,7 +121,7 @@ interface UpdateStudentPatch {
 const api = {
   app: {
     name: "vocab-app",
-    version: "0.11.1",
+    version: "0.11.2",
     platform: process.platform,
   },
 
@@ -201,6 +201,7 @@ const api = {
       itemId: number;
       stage: DictionaryLearningStage;
       correct: boolean;
+      selfGrade?: SelfGrade | null;
       answer?: string | null;
       expected?: string | null;
       sessionId?: number | null;

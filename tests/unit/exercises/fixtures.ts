@@ -1,4 +1,5 @@
 import type { VocabEntryFull } from "../../../electron/db/repositories/vocab";
+import { fromVocabEntry } from "../../../src/modules/exercises/sources";
 
 const epoch = new Date(0);
 
@@ -76,4 +77,12 @@ export function makeEntries(count: number, baseId = 1): VocabEntryFull[] {
       examples: [],
     }),
   );
+}
+
+export function makeSource(overrides: Partial<VocabEntryFull> = {}) {
+  return fromVocabEntry(makeEntry(overrides));
+}
+
+export function makeSources(count: number, baseId = 1) {
+  return makeEntries(count, baseId).map(fromVocabEntry);
 }

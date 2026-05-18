@@ -1,6 +1,9 @@
-import type { PracticeMode } from "@/data/schema";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryClient";
+import {
+  type ExerciseSessionMode,
+  exerciseSessionModeOptions,
+} from "@/modules/exercises/sessionModes";
 import { useAppMode } from "@/providers/AppModeProvider";
 import {
   type DisplayFontSize,
@@ -158,7 +161,7 @@ function PreferencesCard() {
 
 function SessionDefaultsCard() {
   const count = useSetting<number>(SETTINGS.sessionCount, 15);
-  const mode = useSetting<PracticeMode>(SETTINGS.sessionMode, "mixed");
+  const mode = useSetting<ExerciseSessionMode>(SETTINGS.sessionMode, "mixed");
   const shuffle = useSetting<boolean>(SETTINGS.sessionShuffle, true);
 
   return (
@@ -181,12 +184,8 @@ function SessionDefaultsCard() {
           label="Mode"
           value={mode.value}
           disabled={mode.loading || mode.saving}
-          options={[
-            ["mixed", "Mixed"],
-            ["flashcard", "Flashcard"],
-            ["multiple_choice", "Multiple choice"],
-          ]}
-          onChange={(value) => mode.setValue(value as PracticeMode)}
+          options={exerciseSessionModeOptions.map((option) => [option.value, option.label])}
+          onChange={(value) => mode.setValue(value as ExerciseSessionMode)}
         />
         <SettingToggle
           label="Shuffle"

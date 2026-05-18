@@ -1,23 +1,23 @@
 import { type BuildContext, definitionMatchPlugin, mulberry32 } from "@/modules/exercises";
 import { describe, expect, it } from "vitest";
-import { makeEntries, makeEntry } from "./fixtures";
+import { makeSource, makeSources } from "./fixtures";
 
-function buildCtx(pool: ReturnType<typeof makeEntries>): BuildContext {
+function buildCtx(pool: ReturnType<typeof makeSources>): BuildContext {
   return {
     distractorPool: pool.map((e) => e.headword),
-    entryPool: pool,
+    sourcePool: pool,
     rng: mulberry32(3),
     sessionSeed: "seed-3",
   };
 }
 
-function firstEntry(pool: ReturnType<typeof makeEntries>) {
+function firstEntry(pool: ReturnType<typeof makeSources>) {
   const entry = pool[0];
   if (!entry) throw new Error("Expected fixture pool to contain at least one entry");
   return entry;
 }
 
-function buildExercise(pool: ReturnType<typeof makeEntries>) {
+function buildExercise(pool: ReturnType<typeof makeSources>) {
   const target = firstEntry(pool);
   const ex = definitionMatchPlugin.build(target, buildCtx(pool));
   if (!ex) throw new Error("Expected definition match fixture to build an exercise");
@@ -26,32 +26,32 @@ function buildExercise(pool: ReturnType<typeof makeEntries>) {
 
 describe("definitionMatchPlugin.build", () => {
   it("returns null when the pool has fewer than 4 distinct definitions", () => {
-    const pool = makeEntries(2);
+    const pool = makeSources(2);
     const target = firstEntry(pool);
     const ex = definitionMatchPlugin.build(target, buildCtx(pool));
     expect(ex).toBeNull();
   });
 
   it("builds a 4-item exercise with the target included", () => {
-    const pool = makeEntries(8);
+    const pool = makeSources(8);
     const target = firstEntry(pool);
     const ex = definitionMatchPlugin.build(target, buildCtx(pool));
     expect(ex).not.toBeNull();
     expect(ex?.payload.items).toHaveLength(4);
     if (!ex) throw new Error("Expected definition match exercise to build");
     const pairIds = ex.payload.items.map((i) => i.pairId);
-    expect(pairIds).toContain(`${target.id}`);
+    expect(pairIds).toContain(target.ref.sourceKey);
     // All 4 unique
     expect(new Set(pairIds).size).toBe(4);
   });
 
   it("dedupes by headword — two pool entries with the same headword count once", () => {
-    const base = makeEntries(5);
+    const base = makeSources(5);
     // Force entries[1] to share the target's headword so the builder
     // should drop it as a duplicate and either build with 4 distinct
     // remaining headwords or return null if the pool falls short.
     const target = firstEntry(base);
-    const colliding = makeEntry({
+    const colliding = makeSource({
       id: 999,
       headword: target.headword,
       senses: [
@@ -79,7 +79,7 @@ describe("definitionMatchPlugin.build", () => {
 
 describe("definitionMatchPlugin.grade", () => {
   it("returns correct=true only when all four assignments match", () => {
-    const pool = makeEntries(8);
+    const pool = makeSources(8);
     const ex = buildExercise(pool);
     const allCorrect = ex.payload.items.map((item) => ({
       definitionPairId: item.pairId,
@@ -92,7 +92,7 @@ describe("definitionMatchPlugin.grade", () => {
   });
 
   it("returns correct=false when any assignment is swapped", () => {
-    const pool = makeEntries(8);
+    const pool = makeSources(8);
     const ex = buildExercise(pool);
     const items = ex.payload.items;
     const swapped = items.map((item, i) => {

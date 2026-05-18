@@ -15,8 +15,13 @@
  *   treated as spaces so "ice-cream" ≈ "ice cream" (curricular YAML is
  *   inconsistent on this).
  */
-import type { VocabEntryFull } from "../../../electron/db/repositories/vocab";
-import type { AudioRecallExercise, BuildContext, ExercisePlugin, GradeOutcome } from "./types";
+import type {
+  AudioRecallExercise,
+  BuildContext,
+  ExercisePlugin,
+  ExerciseSource,
+  GradeOutcome,
+} from "./types";
 
 export const audioRecallPlugin: ExercisePlugin<
   AudioRecallExercise,
@@ -24,29 +29,30 @@ export const audioRecallPlugin: ExercisePlugin<
 > = {
   kind: "audio_recall",
 
-  build(entry: VocabEntryFull, ctx: BuildContext): AudioRecallExercise | null {
-    const audioRef = pickAudioRef(entry);
+  build(source: ExerciseSource, ctx: BuildContext): AudioRecallExercise | null {
+    const audioRef = pickAudioRef(source);
     if (!audioRef) return null;
-    if (!entry.headword.trim()) return null;
+    if (!source.headword.trim()) return null;
 
-    const firstSense = entry.senses[0];
+    const firstSense = source.senses[0];
     const gloss = firstSense?.definitionVi?.trim() || firstSense?.definitionEn?.trim() || null;
 
     return {
-      id: `audio_recall:${entry.id}:${ctx.sessionSeed}`,
+      id: `audio_recall:${source.ref.sourceKey}:${ctx.sessionSeed}`,
       kind: "audio_recall",
-      entryId: entry.id,
+      entryId: source.id,
+      source: source.ref,
       payload: {
         audioRef,
         audioLabel: "🔊 Listen",
-        expectedSpelling: normaliseSpelling(entry.headword),
-        displayHeadword: entry.headword,
+        expectedSpelling: normaliseSpelling(source.headword),
+        displayHeadword: source.headword,
         hint: gloss
           ? {
-              pos: entry.pos,
+              pos: source.pos,
               gloss,
             }
-          : { pos: entry.pos, gloss: null },
+          : { pos: source.pos, gloss: null },
       },
     };
   },
@@ -66,9 +72,9 @@ export const audioRecallPlugin: ExercisePlugin<
   },
 };
 
-function pickAudioRef(entry: VocabEntryFull): string | null {
-  if (entry.audioRef?.trim()) return entry.audioRef;
-  for (const ex of entry.examples) {
+function pickAudioRef(source: ExerciseSource): string | null {
+  if (source.audioRef?.trim()) return source.audioRef;
+  for (const ex of source.examples) {
     if (ex.audioRef?.trim()) return ex.audioRef;
   }
   return null;

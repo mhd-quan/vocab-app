@@ -5,7 +5,7 @@ import {
   normaliseSpelling,
 } from "@/modules/exercises";
 import { describe, expect, it } from "vitest";
-import { makeEntry } from "./fixtures";
+import { makeSource } from "./fixtures";
 
 const ctx: BuildContext = {
   distractorPool: [],
@@ -15,12 +15,12 @@ const ctx: BuildContext = {
 
 describe("audioRecallPlugin.build", () => {
   it("returns null when entry has no audio anywhere", () => {
-    const ex = audioRecallPlugin.build(makeEntry({ audioRef: null, examples: [] }), ctx);
+    const ex = audioRecallPlugin.build(makeSource({ audioRef: null, examples: [] }), ctx);
     expect(ex).toBeNull();
   });
 
   it("uses entry.audioRef when present", () => {
-    const ex = audioRecallPlugin.build(makeEntry({ audioRef: "sound://relative_uk_1" }), ctx);
+    const ex = audioRecallPlugin.build(makeSource({ audioRef: "sound://relative_uk_1" }), ctx);
     expect(ex).not.toBeNull();
     expect(ex?.payload.audioRef).toBe("sound://relative_uk_1");
     expect(ex?.payload.expectedSpelling).toBe("relative");
@@ -29,7 +29,7 @@ describe("audioRecallPlugin.build", () => {
 
   it("falls back to first example.audioRef when entry has no audioRef", () => {
     const ex = audioRecallPlugin.build(
-      makeEntry({
+      makeSource({
         audioRef: null,
         examples: [
           {
@@ -52,7 +52,7 @@ describe("audioRecallPlugin.build", () => {
   });
 
   it("emits a Vietnamese hint when available", () => {
-    const ex = audioRecallPlugin.build(makeEntry({ audioRef: "x" }), ctx);
+    const ex = audioRecallPlugin.build(makeSource({ audioRef: "x" }), ctx);
     expect(ex?.payload.hint?.gloss).toBe("người thân");
     expect(ex?.payload.hint?.pos).toBe("noun");
   });
@@ -61,7 +61,7 @@ describe("audioRecallPlugin.build", () => {
 describe("audioRecallPlugin.grade", () => {
   function buildExercise() {
     const ex = audioRecallPlugin.build(
-      makeEntry({ audioRef: "sound://relative", headword: "Ice-cream" }),
+      makeSource({ audioRef: "sound://relative", headword: "Ice-cream" }),
       ctx,
     );
     if (!ex) throw new Error("Expected audio recall fixture to build an exercise");

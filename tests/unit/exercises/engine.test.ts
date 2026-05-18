@@ -2,6 +2,7 @@ import {
   type Exercise,
   buildDeck,
   defaultSessionSeed,
+  fromDictionaryItem,
   getPlugin,
   gradeExercise,
 } from "@/modules/exercises";
@@ -29,7 +30,7 @@ describe("buildDeck", () => {
     // 2 entries → 1 viable distractor each; multiple-choice is skipped.
     const kinds = result.exercises.map((e) => e.kind).sort();
     expect(kinds).toEqual(["flashcard", "flashcard"]);
-    expect(result.skipped).toEqual([
+    expect([...result.skipped].sort((a, b) => a.entryId - b.entryId)).toEqual([
       { entryId: 1, kind: "multiple_choice", reason: "build_returned_null" },
       { entryId: 2, kind: "multiple_choice", reason: "build_returned_null" },
     ]);
@@ -113,22 +114,21 @@ describe("buildDeck", () => {
     });
 
     expect(result.exercises.map((e) => `${e.entryId}:${e.kind}`)).toEqual([
-      "3:flashcard",
-      "4:flashcard",
-      "5:flashcard",
       "1:flashcard",
       "1:multiple_choice",
       "2:flashcard",
       "2:multiple_choice",
+      "3:flashcard",
+      "3:multiple_choice",
+      "4:flashcard",
+      "4:multiple_choice",
+      "5:flashcard",
+      "5:multiple_choice",
     ]);
-    expect(result.skipped).toEqual([
-      { entryId: 3, kind: "multiple_choice", reason: "requires_flashcard_first" },
-      { entryId: 4, kind: "multiple_choice", reason: "requires_flashcard_first" },
-      { entryId: 5, kind: "multiple_choice", reason: "requires_flashcard_first" },
-    ]);
+    expect(result.skipped).toEqual([]);
   });
 
-  it("forces flashcards for unseen entries even when the selected mode is multiple-choice", () => {
+  it("adds an intro flashcard before the selected review kind for unseen entries", () => {
     const result = buildDeck({
       entries: makeEntries(4),
       kinds: ["multiple_choice"],
@@ -140,15 +140,45 @@ describe("buildDeck", () => {
 
     expect(result.exercises.map((e) => e.kind)).toEqual([
       "flashcard",
+      "multiple_choice",
       "flashcard",
+      "multiple_choice",
       "flashcard",
+      "multiple_choice",
       "flashcard",
+      "multiple_choice",
     ]);
-    expect(result.skipped).toEqual([
-      { entryId: 1, kind: "multiple_choice", reason: "requires_flashcard_first" },
-      { entryId: 2, kind: "multiple_choice", reason: "requires_flashcard_first" },
-      { entryId: 3, kind: "multiple_choice", reason: "requires_flashcard_first" },
-      { entryId: 4, kind: "multiple_choice", reason: "requires_flashcard_first" },
+    expect(result.skipped).toEqual([]);
+  });
+
+  it("builds the same plugins from personal dictionary sources", () => {
+    const items = Array.from({ length: 4 }, (_, index) => dictionaryItem(index + 1));
+    const result = buildDeck({
+      sources: items.map(fromDictionaryItem),
+      kinds: ["flashcard", "multiple_choice"],
+      sessionSeed: "seed-personal",
+      shuffle: false,
+    });
+
+    expect(result.exercises.map((exercise) => exercise.source.track)).toEqual([
+      "personal",
+      "personal",
+      "personal",
+      "personal",
+      "personal",
+      "personal",
+      "personal",
+      "personal",
+    ]);
+    expect(result.exercises.map((exercise) => exercise.kind)).toEqual([
+      "flashcard",
+      "multiple_choice",
+      "flashcard",
+      "multiple_choice",
+      "flashcard",
+      "multiple_choice",
+      "flashcard",
+      "multiple_choice",
     ]);
   });
 });
@@ -159,6 +189,34 @@ describe("getPlugin", () => {
     expect(getPlugin("multiple_choice").kind).toBe("multiple_choice");
   });
 });
+
+function dictionaryItem(id: number) {
+  return {
+    id,
+    studentId: 1,
+    dictionaryKey: `word-${id}`,
+    headword: `word${id}`,
+    pos: "noun" as const,
+    ipa: null,
+    cefrLevel: null,
+    definitionEn: `definition for word${id}`,
+    definitionVi: null,
+    exampleText: `I use word${id} today.`,
+    exampleTranslation: null,
+    audioRef: null,
+    status: "learning" as const,
+    stage: "flashcard" as const,
+    stability: 0,
+    difficulty: 5,
+    reps: 0,
+    lapses: 0,
+    totalCorrect: 0,
+    totalWrong: 0,
+    lastReviewedAt: null,
+    nextDueAt: null,
+    updatedAt: new Date(0),
+  };
+}
 
 describe("gradeExercise dispatcher", () => {
   it("routes flashcard answers to the flashcard plugin", () => {

@@ -18,7 +18,6 @@
  * over a lazy deck. Callers that opt into the lazy API import this
  * module directly.
  */
-import type { VocabEntryFull } from "../../../electron/db/repositories/vocab";
 import { rngFromSeed, shuffle } from "./random";
 import type {
   AnyExercisePlugin,
@@ -27,10 +26,13 @@ import type {
   DefinitionPriority,
   Exercise,
   ExerciseKind,
+  ExerciseSource,
 } from "./types";
 
 export interface LazyBuildOptions {
-  entries: VocabEntryFull[];
+  sources: ExerciseSource[];
+  /** Optional wider pool for distractors and cross-source exercises. */
+  sourcePool?: ExerciseSource[];
   kinds: ExerciseKind[];
   sessionSeed: string;
   /**
@@ -41,7 +43,7 @@ export interface LazyBuildOptions {
   getPlugin: (kind: ExerciseKind) => AnyExercisePlugin;
   definitionPriority?: DefinitionPriority;
   shuffle?: boolean;
-  seenEntryIds?: Iterable<number>;
+  seenSourceKeys?: Iterable<string>;
   requireFlashcardForNew?: boolean;
   /** Soft cap. Defaults to all planned slots. */
   maxExercises?: number;
@@ -53,7 +55,7 @@ export interface LazyBuildOptions {
 }
 
 interface PlannedSlot {
-  entry: VocabEntryFull;
+  source: ExerciseSource;
   kind: ExerciseKind;
   /** Slot order in the final deck. */
   index: number;
@@ -84,35 +86,36 @@ const DEFAULT_MAX_RUN = 3;
 
 export function createLazyDeck(opts: LazyBuildOptions): LazyDeck {
   const rng = rngFromSeed(opts.sessionSeed);
-  const seen = new Set(opts.seenEntryIds ?? []);
+  const seen = new Set(opts.seenSourceKeys ?? []);
   const shouldGateNew = opts.requireFlashcardForNew === true;
   const maxRun = Math.max(1, opts.maxConsecutiveSameKind ?? DEFAULT_MAX_RUN);
-  const distractorPool = opts.entries.map((e) => e.headword);
+  const sourcePool = opts.sourcePool ?? opts.sources;
+  const distractorPool = sourcePool.map((source) => source.headword);
 
-  const introPlan: Array<{ entry: VocabEntryFull; kind: ExerciseKind }> = [];
-  const reviewPlan: Array<{ entry: VocabEntryFull; kind: ExerciseKind }> = [];
+  const groups: Array<Array<{ source: ExerciseSource; kind: ExerciseKind }>> = [];
   const skippedUpfront: SkipRecord[] = [];
 
-  for (const entry of opts.entries) {
-    const isNew = shouldGateNew && !seen.has(entry.id);
+  for (const source of opts.sources) {
+    const isNew = shouldGateNew && !seen.has(source.ref.sourceKey);
+    const group: Array<{ source: ExerciseSource; kind: ExerciseKind }> = [];
     if (isNew) {
-      introPlan.push({ entry, kind: "flashcard" });
+      group.push({ source, kind: "flashcard" });
       for (const kind of opts.kinds) {
         if (kind !== "flashcard") {
-          skippedUpfront.push({ entryId: entry.id, kind, reason: "requires_flashcard_first" });
+          group.push({ source, kind });
         }
       }
     } else {
       for (const kind of opts.kinds) {
-        reviewPlan.push({ entry, kind });
+        group.push({ source, kind });
       }
     }
+    if (group.length > 0) groups.push(group);
   }
 
-  const ordered =
-    opts.shuffle === false
-      ? [...introPlan, ...reviewPlan]
-      : [...shuffle(introPlan, rng), ...applyKindDiversity(shuffle(reviewPlan, rng), maxRun)];
+  const grouped = opts.shuffle === false ? groups : shuffle(groups, rng);
+  const flatPlan = grouped.flat();
+  const ordered = opts.shuffle === false ? flatPlan : applyKindDiversity(flatPlan, maxRun);
 
   const limited =
     typeof opts.maxExercises === "number" && opts.maxExercises >= 0
@@ -120,7 +123,7 @@ export function createLazyDeck(opts: LazyBuildOptions): LazyDeck {
       : ordered;
 
   const slots: PlannedSlot[] = limited.map((slot, index) => ({
-    entry: slot.entry,
+    source: slot.source,
     kind: slot.kind,
     index,
     built: null,
@@ -135,18 +138,18 @@ export function createLazyDeck(opts: LazyBuildOptions): LazyDeck {
     const plugin = opts.getPlugin(slot.kind);
     const ctx: BuildContext = {
       distractorPool,
-      entryPool: opts.entries,
+      sourcePool,
       definitionPriority: opts.definitionPriority ?? "en_first",
       rng,
       sessionSeed: opts.sessionSeed,
     };
-    const built = plugin.build(slot.entry, ctx);
+    const built = plugin.build(slot.source, ctx);
     if (built) {
       slot.built = built;
       return built;
     }
     slot.skipped = "build_returned_null";
-    lateSkipped.push({ entryId: slot.entry.id, kind: slot.kind, reason: "build_returned_null" });
+    lateSkipped.push({ entryId: slot.source.id, kind: slot.kind, reason: "build_returned_null" });
     return null;
   }
 

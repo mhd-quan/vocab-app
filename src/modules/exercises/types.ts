@@ -2,7 +2,7 @@
  * Domain types for the exercise engine.
  *
  * The plugin model splits responsibilities cleanly:
- *   - `build` turns a `VocabEntryFull` (plus options + RNG) into an
+ *   - `build` turns an `ExerciseSource` (plus options + RNG) into an
  *     `Exercise` payload, or returns null when the entry can't satisfy
  *     the kind's requirements (e.g. multiple-choice needs distractors).
  *   - `grade` takes that exercise + the student's answer and returns a
@@ -13,8 +13,6 @@
  * intentionally out of scope here — the engine stays a pure-function
  * island and the player records via repos.
  */
-import type { VocabEntryFull } from "../../../electron/db/repositories/vocab";
-
 export type ExerciseKind =
   | "flashcard"
   | "multiple_choice"
@@ -22,6 +20,44 @@ export type ExerciseKind =
   | "definition_match"
   | "sentence_rebuild";
 export type DefinitionPriority = "en_first" | "vi_first";
+export type ExerciseTrack = "curated" | "personal";
+
+export interface ExerciseSourceRef {
+  track: ExerciseTrack;
+  sourceKey: string;
+  entryId?: number;
+  dictionaryItemId?: number;
+  dictionaryKey?: string;
+}
+
+export interface ExerciseSourceSense {
+  ordinal: number;
+  definitionEn: string | null;
+  definitionVi: string | null;
+}
+
+export interface ExerciseSourceExample {
+  ordinal: number;
+  text: string | null;
+  translation: string | null;
+  audioRef: string | null;
+}
+
+/**
+ * Normalized exercise input. Curated YAML entries and personal dictionary
+ * items both flow through this shape so plugins stay pure and track-agnostic.
+ */
+export interface ExerciseSource {
+  id: number;
+  ref: ExerciseSourceRef;
+  headword: string;
+  pos: string;
+  ipa: string | null;
+  cefrLevel: string | null;
+  audioRef: string | null;
+  senses: ExerciseSourceSense[];
+  examples: ExerciseSourceExample[];
+}
 
 /** Self-grade scale used by flashcards (matches FSRS / Anki conventions). */
 export const selfGrades = ["again", "hard", "good", "easy"] as const;
@@ -31,8 +67,14 @@ export interface ExerciseBase {
   /** Stable per-session id. Includes the seed so the same deck is reproducible. */
   id: string;
   kind: ExerciseKind;
-  /** The vocab entry id we built this from. PR #8 maps this → content_items.id. */
+  /**
+   * Legacy id used by existing screens/tests. For curated sources this is
+   * `vocab_entries.id`; for personal sources this is `dictionary_learning_items.id`.
+   * New persistence code should prefer `source`.
+   */
   entryId: number;
+  /** Track-aware source pointer for unified persistence. */
+  source: ExerciseSourceRef;
 }
 
 /* ---------------------------------------------------------------------- *
@@ -112,7 +154,7 @@ export interface AudioRecallExercise extends ExerciseBase {
 
 /* ---------------------------------------------------------------------- *
  *  Definition matching — drag-drop 4 headwords onto 4 definition slots.
- *  Needs `ctx.entryPool` with ≥ 4 entries that each carry a definition.
+ *  Needs `ctx.sourcePool` with ≥ 4 sources that each carry a definition.
  * ---------------------------------------------------------------------- */
 
 export interface DefinitionMatchItem {
@@ -184,11 +226,11 @@ export interface BuildContext {
   /** Pool of headwords usable as distractors (excludes the target). */
   distractorPool: string[];
   /**
-   * Pool of full entries for cross-entry exercises (definition_match).
+   * Pool of normalized sources for cross-entry exercises (definition_match).
    * Optional — most plugins only need the target entry. Adapters that
    * call `buildDeck` should pass the entire lesson set here.
    */
-  entryPool?: ReadonlyArray<VocabEntryFull>;
+  sourcePool?: ReadonlyArray<ExerciseSource>;
   /** Learner-facing definition order preference. */
   definitionPriority?: DefinitionPriority;
   /** Seeded RNG (mulberry32) — pass-through to plugins for deterministic tests. */
@@ -199,8 +241,8 @@ export interface BuildContext {
 
 export interface ExercisePlugin<TExercise extends Exercise, TAnswer> {
   kind: TExercise["kind"];
-  /** Returns null when the entry can't produce this kind of exercise. */
-  build(entry: VocabEntryFull, ctx: BuildContext): TExercise | null;
+  /** Returns null when the source can't produce this kind of exercise. */
+  build(source: ExerciseSource, ctx: BuildContext): TExercise | null;
   grade(exercise: TExercise, answer: TAnswer): GradeOutcome;
 }
 

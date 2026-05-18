@@ -1,8 +1,9 @@
-import type { VocabEntryFull } from "../../../electron/db/repositories/vocab";
 import { sampleWithoutReplacement, shuffle } from "./random";
 import type {
   BuildContext,
   ExercisePlugin,
+  ExerciseSource,
+  ExerciseSourceSense,
   GradeOutcome,
   MultipleChoiceExercise,
   MultipleChoiceOption,
@@ -25,25 +26,29 @@ export const multipleChoicePlugin: ExercisePlugin<
 > = {
   kind: "multiple_choice",
 
-  build(entry: VocabEntryFull, ctx: BuildContext): MultipleChoiceExercise | null {
-    const senses = entry.senses.slice().sort((a, b) => a.ordinal - b.ordinal);
+  build(source: ExerciseSource, ctx: BuildContext): MultipleChoiceExercise | null {
+    const senses = source.senses.slice().sort((a, b) => a.ordinal - b.ordinal);
     const prompt = selectPrompt(senses, ctx.definitionPriority ?? "en_first");
     if (!prompt) return null;
 
-    const targetLower = entry.headword.toLowerCase();
+    const targetLower = source.headword.toLowerCase();
     const distractors = ctx.distractorPool.filter((h) => h.toLowerCase() !== targetLower);
     if (distractors.length < REQUIRED_DISTRACTORS) return null;
 
     const picks = sampleWithoutReplacement(distractors, REQUIRED_DISTRACTORS, ctx.rng);
     const options: MultipleChoiceOption[] = shuffle(
-      [{ text: entry.headword, correct: true }, ...picks.map((text) => ({ text, correct: false }))],
+      [
+        { text: source.headword, correct: true },
+        ...picks.map((text) => ({ text, correct: false })),
+      ],
       ctx.rng,
     );
 
     return {
-      id: `multiple_choice:${entry.id}:${ctx.sessionSeed}`,
+      id: `multiple_choice:${source.ref.sourceKey}:${ctx.sessionSeed}`,
       kind: "multiple_choice",
-      entryId: entry.id,
+      entryId: source.id,
+      source: source.ref,
       payload: { prompt, options },
     };
   },
@@ -65,7 +70,7 @@ export const multipleChoicePlugin: ExercisePlugin<
 };
 
 function selectPrompt(
-  senses: VocabEntryFull["senses"],
+  senses: ExerciseSourceSense[],
   priority: "en_first" | "vi_first",
 ): string | null {
   const preferred =

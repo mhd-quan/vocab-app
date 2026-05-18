@@ -1,11 +1,11 @@
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryClient";
+import { type Exercise, buildDeck, defaultSessionSeed } from "@/modules/exercises";
 import {
-  type Exercise,
-  type ExerciseKind,
-  buildDeck,
-  defaultSessionSeed,
-} from "@/modules/exercises";
+  exerciseKindsForMode,
+  normalizeExerciseSessionMode,
+  practiceModeForExerciseMode,
+} from "@/modules/exercises/sessionModes";
 import {
   type GrammarExercise,
   type GrammarPracticeResult,
@@ -118,9 +118,10 @@ export function StudentSession() {
   });
 
   const sessionCount = normalizeSessionCount(sessionCountQ.data);
-  const sessionMode = normalizeSessionMode(sessionModeQ.data);
+  const sessionMode = normalizeExerciseSessionMode(sessionModeQ.data);
   const definitionPriority = normalizeDefinitionPriority(definitionPriorityQ.data);
-  const effectiveSessionMode = lessonQ.data?.kind === "grammar" ? "grammar" : sessionMode;
+  const effectiveSessionMode =
+    lessonQ.data?.kind === "grammar" ? "grammar" : practiceModeForExerciseMode(sessionMode);
   const exerciseKinds = useMemo(() => exerciseKindsForMode(sessionMode), [sessionMode]);
   const shuffleDeck = sessionShuffleQ.data !== false;
   const settingsLoading =
@@ -329,26 +330,6 @@ function normalizeSessionCount(value: unknown): number {
   return Math.min(30, Math.max(5, Math.round(value)));
 }
 
-function normalizeSessionMode(value: unknown): "mixed" | "flashcard" | "multiple_choice" {
-  return value === "flashcard" || value === "multiple_choice" || value === "mixed"
-    ? value
-    : "mixed";
-}
-
 function normalizeDefinitionPriority(value: unknown): "en_first" | "vi_first" {
   return value === "vi_first" ? "vi_first" : "en_first";
-}
-
-/**
- * Map the user's session-mode preference to the plugin kinds we feed the
- * deck builder. In "mixed" mode we pull from every plugin we've registered
- * — kind diversity + intro-gating in `buildDeck` keep the rotation sane.
- * Build-failing plugins for a given entry (e.g. no audio → audio_recall
- * skipped) drop out automatically.
- */
-function exerciseKindsForMode(mode: "mixed" | "flashcard" | "multiple_choice"): ExerciseKind[] {
-  if (mode === "mixed") {
-    return ["flashcard", "multiple_choice", "audio_recall", "sentence_rebuild", "definition_match"];
-  }
-  return [mode];
 }
