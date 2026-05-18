@@ -286,7 +286,7 @@ export function SessionEvidenceFrame({
   children: ReactNode;
 }) {
   return (
-    <div className="relative min-h-full">
+    <div className="relative min-h-full w-full min-w-0">
       {monitor.active ? <EvidenceBanner monitor={monitor} /> : null}
       {children}
       {monitor.focusGuard ? (
