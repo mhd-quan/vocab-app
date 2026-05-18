@@ -1,10 +1,12 @@
 import { api } from "@/lib/api";
+import { cn } from "@/lib/cn";
 import { queryClient, queryKeys } from "@/lib/queryClient";
 import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
 import { Button } from "@/ui/components/Button";
 import { Field, TextInput } from "@/ui/components/Field";
+import { STUDENT_PETS, StudentPetIcon, parsePetSeed } from "@/ui/student/pets";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import { useState } from "react";
@@ -40,10 +42,46 @@ const BG_PRESETS = [
     value: "radial-gradient(#cbd5e1 1px,transparent 1px),#f8fafc",
   },
   { id: "peach", label: "Peach pop", value: "linear-gradient(160deg,#ffedd5,#fce7f3 55%,#e0f2fe)" },
+  {
+    id: "ocean",
+    label: "Ocean glass",
+    value:
+      "radial-gradient(circle at 18% 18%,#bae6fd,transparent 33%),radial-gradient(circle at 82% 28%,#99f6e4,transparent 30%),linear-gradient(135deg,#f8fafc,#dbeafe 48%,#cffafe)",
+  },
+  {
+    id: "cosmic",
+    label: "Cosmic study",
+    value:
+      "radial-gradient(circle at 20% 22%,#c4b5fd 0 9%,transparent 10%),radial-gradient(circle at 78% 18%,#f0abfc 0 7%,transparent 8%),linear-gradient(135deg,#f8fafc,#e0e7ff 45%,#fdf2f8)",
+  },
+  {
+    id: "notebook",
+    label: "Notebook grid",
+    value:
+      "repeating-linear-gradient(0deg,#dbeafe 0 1px,transparent 1px 28px),repeating-linear-gradient(90deg,#dbeafe 0 1px,transparent 1px 28px),#f8fafc",
+  },
+  {
+    id: "forest",
+    label: "Forest calm",
+    value:
+      "radial-gradient(circle at 18% 20%,#bbf7d0,transparent 34%),linear-gradient(145deg,#f7fee7,#dcfce7 48%,#e0f2fe)",
+  },
+  {
+    id: "arcade",
+    label: "Arcade lights",
+    value:
+      "radial-gradient(circle at 18% 22%,#fef08a 0 9%,transparent 10%),radial-gradient(circle at 78% 24%,#f9a8d4 0 8%,transparent 9%),linear-gradient(135deg,#eef2ff,#cffafe 55%,#fae8ff)",
+  },
 ];
 const BACKGROUND_MAX_EDGE = 1920;
 const BACKGROUND_INLINE_LIMIT_BYTES = 1_500_000;
 const BACKGROUND_JPEG_QUALITY = 0.82;
+const BACKGROUND_SIZE_OPTIONS = [
+  { id: "cover", label: "Fill screen", value: "cover" },
+  { id: "contain", label: "Fit image", value: "contain" },
+  { id: "auto", label: "Tile original", value: "auto" },
+] as const;
+type BackgroundSizeMode = (typeof BACKGROUND_SIZE_OPTIONS)[number]["value"];
 
 export function StudentSettings() {
   const { studentId } = useParams({ from: "/student/profile/$studentId/settings" });
@@ -62,15 +100,20 @@ export function StudentSettings() {
   });
   const [nickname, setNickname] = useState("");
   const [emojiSearch, setEmojiSearch] = useState("");
+  const [backgroundSize, setBackgroundSize] = useState<BackgroundSizeMode>("cover");
   const student = studentQ.data;
   const display = nickname || student?.displayName || student?.name || "";
+  const selectedPet = parsePetSeed(student?.avatarSeed);
   const saveStudent = useMutation({
     mutationFn: (patch: {
       displayName?: string | null;
       avatarSeed?: string | null;
       color?: string | null;
     }) => api.students.update({ id, patch }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.students.byId(id) }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(queryKeys.students.byId(id), updated);
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+    },
   });
   const saveBg = useMutation({
     mutationFn: (value: string) => api.settings.set({ key: bgKey(id), value }),
@@ -144,6 +187,37 @@ export function StudentSettings() {
         </BentoCard>
 
         <BentoCard className="p-5 lg:col-span-2">
+          <h2 className="font-display text-2xl font-semibold">Study pet</h2>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {STUDENT_PETS.map((pet) => {
+              const selected = selectedPet === pet.id;
+              return (
+                <button
+                  key={pet.id}
+                  type="button"
+                  aria-pressed={selected}
+                  className={cn(
+                    "group flex min-h-36 flex-col items-center justify-between rounded-bento border p-4 text-center shadow-card transition-[background-color,border-color,box-shadow,transform]",
+                    selected
+                      ? "border-accent/60 bg-accent/10 shadow-glow"
+                      : "border-border-subtle bg-surface-1 hover:-translate-y-1 hover:border-accent/40 hover:bg-surface-2",
+                  )}
+                  onClick={() => saveStudent.mutate({ avatarSeed: `pet:${pet.id}` })}
+                >
+                  <StudentPetIcon
+                    pet={pet.id}
+                    mood={selected ? "cheering" : "happy"}
+                    className="h-20 w-20"
+                  />
+                  <span className="mt-2 text-base font-semibold">{pet.name}</span>
+                  <span className="text-xs text-muted">{pet.tagline}</span>
+                </button>
+              );
+            })}
+          </div>
+        </BentoCard>
+
+        <BentoCard className="p-5 lg:col-span-2">
           <h2 className="font-display text-2xl font-semibold">Emoji avatar picker</h2>
           <Field label="Search or paste any Unicode emoji">
             <TextInput
@@ -194,11 +268,29 @@ export function StudentSettings() {
               <button
                 key={preset.id}
                 type="button"
-                className="h-24 rounded-2xl border border-border-subtle p-3 text-left text-sm font-semibold shadow-card"
+                className="h-24 rounded-2xl border border-border-subtle bg-surface-1 p-3 text-left text-sm font-semibold shadow-card transition hover:-translate-y-0.5 hover:border-accent/40"
                 style={{ background: preset.value || "#f8fafc" }}
                 onClick={() => saveBg.mutate(preset.value)}
               >
                 {preset.label}
+              </button>
+            ))}
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {BACKGROUND_SIZE_OPTIONS.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                aria-pressed={backgroundSize === option.value}
+                className={cn(
+                  "rounded-full border px-4 py-2 text-xs font-semibold transition-[background-color,border-color,color]",
+                  backgroundSize === option.value
+                    ? "border-accent bg-accent/10 text-app"
+                    : "border-border-subtle bg-surface-1 text-muted hover:border-accent/40 hover:text-app",
+                )}
+                onClick={() => setBackgroundSize(option.value)}
+              >
+                {option.label}
               </button>
             ))}
           </div>
@@ -210,7 +302,7 @@ export function StudentSettings() {
               className="sr-only"
               onChange={(e) =>
                 readBackgroundImage(e.currentTarget.files?.[0], (src) =>
-                  saveBg.mutate(`url(${src}) center / cover no-repeat`),
+                  saveBg.mutate(backgroundCss(src, backgroundSize)),
                 )
               }
             />
@@ -228,6 +320,11 @@ export function StudentSettings() {
 
 function bgKey(studentId: number): string {
   return `student_profile:${studentId}:study_background`;
+}
+
+function backgroundCss(src: string, size: BackgroundSizeMode): string {
+  const repeat = size === "auto" ? "repeat" : "no-repeat";
+  return `url(${src}) center / ${size} ${repeat}`;
 }
 
 function readImage(file: File | undefined, done: (src: string) => void) {

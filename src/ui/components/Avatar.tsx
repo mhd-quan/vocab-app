@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { StudentPetIcon, parsePetSeed } from "@/ui/student/pets";
 
 export interface AvatarProps {
   name: string;
@@ -18,6 +19,7 @@ export function Avatar({ name, avatarSeed, color, size = "md", className }: Avat
   const initials = computeInitials(name);
   const imageSrc = parseAvatarImage(avatarSeed);
   const emoji = parseAvatarEmoji(avatarSeed);
+  const pet = parsePetSeed(avatarSeed);
   const bg = color || undefined;
   // When the tutor picks a color, derive a readable foreground; otherwise
   // fall back to the surface-2 token so themed surfaces still match.
@@ -28,15 +30,17 @@ export function Avatar({ name, avatarSeed, color, size = "md", className }: Avat
       className={cn(
         "inline-flex select-none items-center justify-center overflow-hidden rounded-full font-semibold uppercase",
         "ring-2 ring-surface-1 shadow-sm",
-        bg && !imageSrc ? "" : "bg-surface-2 text-app",
+        bg && !imageSrc && !pet ? "" : "bg-surface-2 text-app",
         SIZES[size],
         emoji && "text-[1.35em] leading-none",
         className,
       )}
-      style={bg && !imageSrc ? { backgroundColor: bg, color: fg } : undefined}
+      style={bg && !imageSrc && !pet ? { backgroundColor: bg, color: fg } : undefined}
     >
       {imageSrc ? (
         <img src={imageSrc} alt="" className="h-full w-full object-cover" draggable={false} />
+      ) : pet ? (
+        <StudentPetIcon pet={pet} className="h-[122%] w-[122%]" label={`${pet} avatar`} />
       ) : (
         (emoji ?? initials)
       )}

@@ -104,9 +104,9 @@ export const LockIcon = ({ className }: GlyphProps) => (
 
 export const StudentModeIcon = ({ className }: GlyphProps) => (
   <StrokeGlyph className={className}>
-    <path d="m3.2 7.3 8.8-3.5 8.8 3.5-8.8 3.5-8.8-3.5Z" />
-    <path d="M6.5 9.2v4.1c0 2.1 2.5 3.8 5.5 3.8s5.5-1.7 5.5-3.8V9.2" />
-    <path d="M20.8 7.3v6" />
+    <path d="M4.8 5.7c0-1.2 1-2.1 2.2-2.1h8.1c2 0 3.6 1.6 3.6 3.6v11.1c-1.8-.9-4-1.4-6.8-1.4H7.4a2.6 2.6 0 0 0-2.6 2.6V5.7Z" />
+    <path d="M8.2 8h6.4M8.2 11.2h5.1M8.2 14.4h3.3" />
+    <path d="m18.4 3.7 1 2.3 2.4.3-1.8 1.6.5 2.4-2.1-1.2-2.1 1.2.5-2.4L15 6.3l2.4-.3 1-2.3Z" />
   </StrokeGlyph>
 );
 

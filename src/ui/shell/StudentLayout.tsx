@@ -7,6 +7,7 @@ import { Button } from "@/ui/components/Button";
 import { StudentDictionaryPopup } from "@/ui/components/dictionary/StudentDictionaryPopup";
 import { StreakBanner } from "@/ui/student/components/StreakBanner";
 import { XPBadge } from "@/ui/student/components/XPBadge";
+import { StudentLogoMark } from "@/ui/student/pets";
 import { useQuery } from "@tanstack/react-query";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -81,10 +82,13 @@ export function StudentLayout() {
         )}
       >
         <Link to="/student" className="flex items-center gap-3 [-webkit-app-region:no-drag]">
-          <span className="rounded-full border border-success/25 bg-success/10 px-2.5 py-1 text-xs font-semibold uppercase text-success">
-            Student
+          <StudentLogoMark className="h-10 w-10" />
+          <span className="flex flex-col leading-none">
+            <span className="font-display text-base font-semibold">Vocab App</span>
+            <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-success">
+              Student
+            </span>
           </span>
-          <span className="font-display text-base font-semibold">Vocab App</span>
         </Link>
         <div className="flex min-w-0 flex-1 items-center justify-end gap-2 [-webkit-app-region:no-drag]">
           {activeStudentId !== null ? (

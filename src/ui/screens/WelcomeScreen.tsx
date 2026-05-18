@@ -2,7 +2,8 @@ import { cn } from "@/lib/cn";
 import { useAppMode } from "@/providers/AppModeProvider";
 import { Badge } from "@/ui/components/Badge";
 import { Button } from "@/ui/components/Button";
-import { StudentModeIcon, TutorModeIcon } from "@/ui/shell/icons";
+import { TutorModeIcon } from "@/ui/shell/icons";
+import { StudentLogoMark } from "@/ui/student/pets";
 
 export function WelcomeScreen() {
   const { selectTutor, selectStudent } = useAppMode();
@@ -27,8 +28,8 @@ export function WelcomeScreen() {
           className="h-24 flex-col items-start px-6 text-lg"
         >
           <span className="flex items-center gap-3">
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-surface-2 text-app shadow-card">
-              <StudentModeIcon className="h-7 w-7" />
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-surface-2 shadow-card">
+              <StudentLogoMark className="h-10 w-10" />
             </span>
             <span>Student</span>
           </span>

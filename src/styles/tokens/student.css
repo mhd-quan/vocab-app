@@ -51,8 +51,6 @@
 
   [data-app-mode="student"] [data-student-bg="custom"] {
     --student-readable-surface-opacity: 0.75;
-    --student-readable-backdrop-blur-intensity: 0.25;
-    --student-readable-backdrop-blur: calc(24px * var(--student-readable-backdrop-blur-intensity));
   }
 
   [data-app-mode="student"]
@@ -87,8 +85,6 @@
       .bg-accent\/10
     ) {
     background-color: rgb(var(--color-surface-1) / var(--student-readable-surface-opacity)) !important;
-    -webkit-backdrop-filter: blur(var(--student-readable-backdrop-blur)) saturate(1.08);
-    backdrop-filter: blur(var(--student-readable-backdrop-blur)) saturate(1.08);
   }
 
   [data-app-mode="student"] [data-student-bg="custom"] .border-border-subtle {

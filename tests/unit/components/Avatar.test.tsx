@@ -53,4 +53,14 @@ describe("Avatar", () => {
     expect(img).toHaveAttribute("src", dataUrl);
     expect(img?.parentElement).not.toHaveStyle({ backgroundColor: "#1a2b3c" });
   });
+
+  it("renders pet avatar seeds without applying an inline background color", () => {
+    const { container } = render(
+      <Avatar name="Alice Cooper" avatarSeed="pet:nova" color="#1a2b3c" />,
+    );
+
+    expect(container.querySelector("svg")).toBeInTheDocument();
+    expect(screen.queryByText("AC")).toBeNull();
+    expect(container.querySelector("span")).not.toHaveStyle({ backgroundColor: "#1a2b3c" });
+  });
 });

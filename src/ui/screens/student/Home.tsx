@@ -88,7 +88,12 @@ export function StudentHome() {
             </h1>
             <p className="mt-1 text-sm text-muted">Choose a lesson and keep the run alive.</p>
           </div>
-          <MascotIcon mood="cheering" className="hidden h-24 w-24 shrink-0 text-success sm:block" />
+          <MascotIcon
+            mood="cheering"
+            avatarSeed={studentQ.data?.avatarSeed ?? null}
+            studentId={id}
+            className="hidden h-24 w-24 shrink-0 text-success sm:block"
+          />
         </BentoCard>
         {summaryQ.data ? (
           <SummaryStats
