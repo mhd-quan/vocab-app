@@ -7,6 +7,7 @@ import {
 import { useAppMode } from "@/providers/AppModeProvider";
 import {
   type DisplayFontSize,
+  type PronunciationAccentPreference,
   useDisplayPreferences,
 } from "@/providers/DisplayPreferencesProvider";
 import { type ThemePreference, useTheme } from "@/providers/ThemeProvider";
@@ -33,6 +34,8 @@ const SETTINGS = {
   sessionMode: "session_default_mode",
   sessionShuffle: "session_shuffle",
   definitionPriority: "definition_priority",
+  cameraCheckinsEnabled: "session_camera_checkins_enabled",
+  pronunciationAccent: "pronunciation_default_accent",
   idleTimeout: "idle_timeout_minutes",
   lockOnClose: "lock_on_close",
   fsrsShortTermDays: "fsrs_short_term_days",
@@ -78,8 +81,14 @@ function PreferencesCard() {
   // Display preferences provider owns autoplay state — using the provider
   // (instead of the generic useSetting) keeps a single source of truth so
   // any in-session card reads the same boolean a re-render later.
-  const { fontSize, setFontSize, pronunciationAutoplay, setPronunciationAutoplay } =
-    useDisplayPreferences();
+  const {
+    fontSize,
+    setFontSize,
+    pronunciationAutoplay,
+    setPronunciationAutoplay,
+    pronunciationAccent,
+    setPronunciationAccent,
+  } = useDisplayPreferences();
   const sound = useSetting<boolean>(SOUND_KEY, false);
   const priority = useSetting<string>(SETTINGS.definitionPriority, "en_first");
   const soundEnabled = sound.value === true;
@@ -130,16 +139,28 @@ function PreferencesCard() {
         </PreferenceRow>
 
         <PreferenceRow title="Pronunciation">
-          <SettingToggle
-            label="Autoplay headword audio"
-            description={
-              pronunciationAutoplay
-                ? "Cards play pronunciation when they appear."
-                : "Students tap the audio button manually."
-            }
-            checked={pronunciationAutoplay}
-            onChange={setPronunciationAutoplay}
-          />
+          <div className="grid gap-3 lg:grid-cols-[1fr_12rem]">
+            <SettingToggle
+              label="Autoplay headword audio"
+              description={
+                pronunciationAutoplay
+                  ? "Cards play pronunciation when they appear."
+                  : "Students tap the audio button manually."
+              }
+              checked={pronunciationAutoplay}
+              onChange={setPronunciationAutoplay}
+            />
+            <SettingSelect
+              label="Default accent"
+              value={pronunciationAccent}
+              options={[
+                ["uk", "UK"],
+                ["us", "US"],
+                ["any", "Any available"],
+              ]}
+              onChange={(value) => setPronunciationAccent(value as PronunciationAccentPreference)}
+            />
+          </div>
         </PreferenceRow>
 
         <PreferenceRow title="Definition order">
@@ -163,6 +184,7 @@ function SessionDefaultsCard() {
   const count = useSetting<number>(SETTINGS.sessionCount, 15);
   const mode = useSetting<ExerciseSessionMode>(SETTINGS.sessionMode, "mixed");
   const shuffle = useSetting<boolean>(SETTINGS.sessionShuffle, true);
+  const cameraCheckins = useSetting<boolean>(SETTINGS.cameraCheckinsEnabled, false);
 
   return (
     <SettingsCard title="Session defaults" description="Starting values for student sessions.">
@@ -195,6 +217,17 @@ function SessionDefaultsCard() {
           onChange={shuffle.setValue}
         />
       </div>
+      <SettingToggle
+        label="Camera check-ins"
+        checked={cameraCheckins.value === true}
+        disabled={cameraCheckins.loading || cameraCheckins.saving}
+        description={
+          cameraCheckins.value === true
+            ? "Student sessions start camera check-ins automatically after OS permission is available."
+            : "Student sessions track timing and focus only."
+        }
+        onChange={cameraCheckins.setValue}
+      />
     </SettingsCard>
   );
 }

@@ -3,13 +3,16 @@ import { Badge } from "@/ui/components/Badge";
 import { Button } from "@/ui/components/Button";
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
-const CAMERA_INTERVAL_MS = 5 * 60 * 1000;
+const CAMERA_INTERVAL_MS = 2 * 60 * 1000;
 
 type CameraState = "idle" | "enabled" | "declined" | "unavailable";
 
 interface FocusGuard {
   durationMs: number;
 }
+
+type EvidenceEventInput = Parameters<typeof api.evidence.recordEvent>[0];
+type QueuedEvidenceEvent = EvidenceEventInput;
 
 export interface EvidenceAnswerInput {
   exerciseId: string;
@@ -23,10 +26,12 @@ export function useSessionEvidence({
   studentId,
   sessionId,
   contextLabel,
+  cameraCheckinsEnabled = false,
 }: {
   studentId: number;
   sessionId: number | null;
   contextLabel?: string;
+  cameraCheckinsEnabled?: boolean;
 }) {
   const active = sessionId !== null;
   const [cameraState, setCameraState] = useState<CameraState>("idle");
@@ -34,35 +39,60 @@ export function useSessionEvidence({
   const [focusGuard, setFocusGuard] = useState<FocusGuard | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const intervalRef = useRef<number | null>(null);
   const focusLostAt = useRef<number | null>(null);
   const visibilityLostAt = useRef<number | null>(null);
   const noticeSessionRef = useRef<number | null>(null);
+  const pendingEventsRef = useRef<QueuedEvidenceEvent[]>([]);
+  const flushTimerRef = useRef<number | null>(null);
   const sessionKey = sessionId ?? -1;
 
+  const flushEvents = useCallback(() => {
+    if (flushTimerRef.current !== null) {
+      window.clearTimeout(flushTimerRef.current);
+      flushTimerRef.current = null;
+    }
+    const batch = pendingEventsRef.current.splice(0);
+    if (batch.length === 0) return;
+    for (let i = 0; i < batch.length; i += 40) {
+      const events = batch.slice(i, i + 40);
+      void api.evidence.recordEvents({ events }).catch((err) => {
+        console.error("[SessionEvidence] recordEvents failed", err);
+        pendingEventsRef.current.unshift(...events);
+      });
+    }
+  }, []);
+
+  const scheduleFlush = useCallback(() => {
+    if (flushTimerRef.current !== null) return;
+    flushTimerRef.current = window.setTimeout(flushEvents, 1_200);
+  }, [flushEvents]);
+
   const recordEvent = useCallback(
-    async (input: {
-      kind: Parameters<typeof api.evidence.recordEvent>[0]["kind"];
-      severity?: Parameters<typeof api.evidence.recordEvent>[0]["severity"];
+    (input: {
+      kind: EvidenceEventInput["kind"];
+      severity?: EvidenceEventInput["severity"];
       durationMs?: number | null;
       payload?: Record<string, unknown> | null;
     }) => {
       if (!active || sessionId === null) return;
-      try {
-        await api.evidence.recordEvent({
-          studentId,
-          sessionId,
-          kind: input.kind,
-          severity: input.severity,
-          durationMs: input.durationMs,
-          payload: input.payload,
-          occurredAtIso: new Date().toISOString(),
-        });
-      } catch (err) {
-        console.error("[SessionEvidence] recordEvent failed", err);
+      pendingEventsRef.current.push({
+        studentId,
+        sessionId,
+        kind: input.kind,
+        severity: input.severity,
+        durationMs: input.durationMs,
+        payload: input.payload,
+        occurredAtIso: new Date().toISOString(),
+      });
+      if (pendingEventsRef.current.length >= 20) {
+        flushEvents();
+      } else {
+        scheduleFlush();
       }
     },
-    [active, sessionId, studentId],
+    [active, flushEvents, scheduleFlush, sessionId, studentId],
   );
 
   useEffect(() => {
@@ -77,9 +107,10 @@ export function useSessionEvidence({
         platform: api.app.platform,
         cameraIntervalMs: CAMERA_INTERVAL_MS,
         contentProtection: true,
+        tutorCameraCheckinsEnabled: cameraCheckinsEnabled,
       },
     });
-  }, [active, contextLabel, recordEvent, sessionId]);
+  }, [active, cameraCheckinsEnabled, contextLabel, recordEvent, sessionId]);
 
   useEffect(() => {
     if (!active) return;
@@ -134,13 +165,14 @@ export function useSessionEvidence({
     const video = videoRef.current;
     if (!video || video.videoWidth === 0 || video.videoHeight === 0) return;
 
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.min(640, video.videoWidth);
+    const canvas = canvasRef.current ?? document.createElement("canvas");
+    canvasRef.current = canvas;
+    canvas.width = Math.min(512, video.videoWidth);
     canvas.height = Math.round((canvas.width / video.videoWidth) * video.videoHeight);
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.72);
+    const dataUrl = await canvasToDataUrl(canvas, "image/jpeg", 0.64);
 
     try {
       await api.evidence.recordCameraSnapshot({
@@ -174,6 +206,10 @@ export function useSessionEvidence({
     }
     streamRef.current = null;
     videoRef.current = null;
+    if (canvasRef.current) {
+      canvasRef.current.width = 0;
+      canvasRef.current.height = 0;
+    }
   }, []);
 
   const enableCamera = useCallback(async () => {
@@ -227,6 +263,12 @@ export function useSessionEvidence({
     void recordEvent({ kind: "camera_consent_declined", severity: "system" });
   }, [active, recordEvent]);
 
+  useEffect(() => {
+    if (!active || !cameraCheckinsEnabled) return;
+    if (cameraState !== "idle") return;
+    void enableCamera();
+  }, [active, cameraCheckinsEnabled, cameraState, enableCamera]);
+
   const dismissFocusGuard = useCallback(() => {
     const durationMs = focusGuard?.durationMs ?? null;
     setFocusGuard(null);
@@ -256,8 +298,19 @@ export function useSessionEvidence({
   );
 
   useEffect(() => stopCamera, [stopCamera]);
+  useEffect(
+    () => () => {
+      flushEvents();
+      if (flushTimerRef.current !== null) {
+        window.clearTimeout(flushTimerRef.current);
+        flushTimerRef.current = null;
+      }
+    },
+    [flushEvents],
+  );
   // biome-ignore lint/correctness/useExhaustiveDependencies: evidence state must reset when the practice session row changes.
   useEffect(() => {
+    flushEvents();
     setCameraState("idle");
     setCameraSnapshotCount(0);
     setFocusGuard(null);
@@ -267,6 +320,7 @@ export function useSessionEvidence({
   return {
     active,
     cameraState,
+    cameraCheckinsEnabled,
     cameraSnapshotCount,
     focusGuard,
     enableCamera,
@@ -337,16 +391,9 @@ function CameraStatus({ monitor }: { monitor: SessionEvidenceMonitor }) {
     return <span className="text-warning">Camera unavailable</span>;
   }
 
-  return (
-    <span className="flex items-center gap-2">
-      <Button size="sm" variant="secondary" onClick={monitor.enableCamera}>
-        Enable camera
-      </Button>
-      <Button size="sm" variant="ghost" onClick={monitor.declineCamera}>
-        Skip
-      </Button>
-    </span>
-  );
+  if (monitor.cameraCheckinsEnabled) return <span className="text-muted">Camera starting</span>;
+
+  return <span className="text-muted-2">Camera off</span>;
 }
 
 function formatDuration(ms: number): string {
@@ -356,4 +403,27 @@ function formatDuration(ms: number): string {
   const minutes = Math.floor(seconds / 60);
   const rest = seconds % 60;
   return rest === 0 ? `${minutes}m` : `${minutes}m ${rest}s`;
+}
+
+function canvasToDataUrl(
+  canvas: HTMLCanvasElement,
+  mimeType: "image/jpeg",
+  quality: number,
+): Promise<string> {
+  if (!canvas.toBlob) return Promise.resolve(canvas.toDataURL(mimeType, quality));
+  return new Promise((resolve) => {
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          resolve(canvas.toDataURL(mimeType, quality));
+          return;
+        }
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(String(reader.result ?? ""));
+        reader.readAsDataURL(blob);
+      },
+      mimeType,
+      quality,
+    );
+  });
 }

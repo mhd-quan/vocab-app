@@ -25,9 +25,15 @@ export interface AudioRecallCardProps {
   onAnswer: (spelling: string) => void;
   /** Disable input + autoplay (used by tests). */
   autoplay?: boolean;
+  preferredAccent?: "uk" | "us" | "any";
 }
 
-export function AudioRecallCard({ exercise, onAnswer, autoplay = true }: AudioRecallCardProps) {
+export function AudioRecallCard({
+  exercise,
+  onAnswer,
+  autoplay = true,
+  preferredAccent = "uk",
+}: AudioRecallCardProps) {
   const [spelling, setSpelling] = useState("");
   const [hintRevealed, setHintRevealed] = useState(false);
 
@@ -56,6 +62,7 @@ export function AudioRecallCard({ exercise, onAnswer, autoplay = true }: AudioRe
         <PronunciationControls
           audioRefs={audioRefs}
           autoPlayKey={autoplay ? exercise.id : null}
+          preferredAccent={preferredAccent}
           size="md"
           className="justify-center"
         />

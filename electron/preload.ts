@@ -39,6 +39,11 @@ import type {
   TutorEvidenceOverviewRow,
 } from "./db/repositories/evidence";
 import type { GrammarTopicForPractice } from "./db/repositories/grammar";
+import type {
+  SessionLearningReport,
+  UnitReportRow,
+  UnitSessionReportRow,
+} from "./db/repositories/progress";
 import type { VocabEntryFull } from "./db/repositories/vocab";
 
 const invoke = <T>(channel: string, payload?: unknown): Promise<T> =>
@@ -334,6 +339,12 @@ const api = {
       invoke<DailyActivityCell[]>("progress.dailyActivity", input),
     recentSessions: (input: { studentId: number; limit?: number }) =>
       invoke<RecentSessionRow[]>("progress.recentSessions", input),
+    unitReport: (input: { studentId: number }) =>
+      invoke<UnitReportRow[]>("progress.unitReport", input),
+    unitSessions: (input: { studentId: number; unitId: number; limit?: number }) =>
+      invoke<UnitSessionReportRow[]>("progress.unitSessions", input),
+    sessionReport: (input: { sessionId: number }) =>
+      invoke<SessionLearningReport | null>("progress.sessionReport", input),
     tutorOverview: (input?: { nowIso?: string }) =>
       invoke<TutorOverviewRow[]>("progress.tutorOverview", input ?? {}),
   },
@@ -355,7 +366,7 @@ const api = {
     studentOverview: (input: { studentId: number; limit?: number }) =>
       invoke<StudentEvidenceOverview>("evidence.studentOverview", input),
     tutorOverview: () => invoke<TutorEvidenceOverviewRow[]>("evidence.tutorOverview", {}),
-    sessionTimeline: (input: { sessionId: number }) =>
+    sessionTimeline: (input: { sessionId: number; includeSnapshots?: boolean }) =>
       invoke<StudentEvidenceTimeline | null>("evidence.sessionTimeline", input),
     exportStudentReport: (input: {
       studentId: number;

@@ -90,12 +90,17 @@ export const queryKeys = {
     dailyActivity: (studentId: number, days: number) =>
       ["progress", "dailyActivity", studentId, days] as const,
     recentSessions: (studentId: number) => ["progress", "recentSessions", studentId] as const,
+    unitReport: (studentId: number) => ["progress", "unitReport", studentId] as const,
+    unitSessions: (studentId: number, unitId: number) =>
+      ["progress", "unitSessions", studentId, unitId] as const,
+    sessionReport: (sessionId: number) => ["progress", "sessionReport", sessionId] as const,
     tutorOverview: () => ["progress", "tutorOverview"] as const,
   },
   evidence: {
     tutorOverview: () => ["evidence", "tutorOverview"] as const,
     studentOverview: (studentId: number) => ["evidence", "studentOverview", studentId] as const,
-    sessionTimeline: (sessionId: number) => ["evidence", "sessionTimeline", sessionId] as const,
+    sessionTimeline: (sessionId: number, includeSnapshots = false) =>
+      ["evidence", "sessionTimeline", sessionId, includeSnapshots] as const,
   },
   rewards: {
     listUnlocked: (studentId: number) => ["rewards", "listUnlocked", studentId] as const,

@@ -1,6 +1,7 @@
 import { sampleWithoutReplacement, shuffle } from "./random";
 import type {
   BuildContext,
+  ExerciseAudioRef,
   ExercisePlugin,
   ExerciseSource,
   ExerciseSourceSense,
@@ -32,15 +33,21 @@ export const multipleChoicePlugin: ExercisePlugin<
     if (!prompt) return null;
 
     const targetLower = source.headword.toLowerCase();
-    const distractors = ctx.distractorPool.filter((h) => h.toLowerCase() !== targetLower);
-    if (distractors.length < REQUIRED_DISTRACTORS) return null;
+    const sourceCandidates = distinctOptionSources(ctx.sourcePool ?? [], targetLower);
 
-    const picks = sampleWithoutReplacement(distractors, REQUIRED_DISTRACTORS, ctx.rng);
+    const picks =
+      sourceCandidates.length >= REQUIRED_DISTRACTORS
+        ? sampleWithoutReplacement(sourceCandidates, REQUIRED_DISTRACTORS, ctx.rng).map((source) =>
+            optionFromSource(source),
+          )
+        : sampleWithoutReplacement(
+            ctx.distractorPool.filter((h) => h.toLowerCase() !== targetLower),
+            REQUIRED_DISTRACTORS,
+            ctx.rng,
+          ).map((text) => ({ text, correct: false }));
+    if (picks.length < REQUIRED_DISTRACTORS) return null;
     const options: MultipleChoiceOption[] = shuffle(
-      [
-        { text: source.headword, correct: true },
-        ...picks.map((text) => ({ text, correct: false })),
-      ],
+      [optionFromSource(source, true), ...picks],
       ctx.rng,
     );
 
@@ -68,6 +75,38 @@ export const multipleChoicePlugin: ExercisePlugin<
     };
   },
 };
+
+function distinctOptionSources(
+  pool: ReadonlyArray<ExerciseSource>,
+  targetLower: string,
+): ExerciseSource[] {
+  const seen = new Set<string>([targetLower]);
+  const out: ExerciseSource[] = [];
+  for (const source of pool) {
+    const key = source.headword.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(source);
+  }
+  return out;
+}
+
+function optionFromSource(source: ExerciseSource, correct = false): MultipleChoiceOption {
+  const refs = normalizedRefs(source);
+  return {
+    text: source.headword,
+    correct,
+    ...(refs.length > 0 ? { audioRefs: refs } : {}),
+  };
+}
+
+function normalizedRefs(source: ExerciseSource): ExerciseAudioRef[] {
+  if (source.audioRefs && source.audioRefs.length > 0) return source.audioRefs;
+  if (source.audioRef?.trim()) {
+    return [{ ref: source.audioRef, label: "Audio", accent: "other" }];
+  }
+  return [];
+}
 
 function selectPrompt(
   senses: ExerciseSourceSense[],

@@ -30,6 +30,7 @@ const SESSION_COUNT_KEY = "session_default_count";
 const SESSION_MODE_KEY = "session_default_mode";
 const SESSION_SHUFFLE_KEY = "session_shuffle";
 const DEFINITION_PRIORITY_KEY = "definition_priority";
+const CAMERA_CHECKINS_KEY = "session_camera_checkins_enabled";
 
 /**
  * Route screen: glues lesson data → the matching practice engine/player →
@@ -61,7 +62,7 @@ export function StudentSession() {
   const [seed] = useState(() => defaultSessionSeed(lessonIdNum));
   // Pronunciation autoplay is global to the tutor's preferences; the
   // provider already hydrates from app_settings, so reads here are sync.
-  const { pronunciationAutoplay } = useDisplayPreferences();
+  const { pronunciationAutoplay, pronunciationAccent } = useDisplayPreferences();
 
   const lessonQ = useQuery({
     queryKey: queryKeys.curriculum.lessonById(lessonIdNum),
@@ -118,6 +119,11 @@ export function StudentSession() {
     queryFn: () => api.settings.get<string>({ key: DEFINITION_PRIORITY_KEY }),
   });
 
+  const cameraCheckinsQ = useQuery({
+    queryKey: ["settings", "get", CAMERA_CHECKINS_KEY],
+    queryFn: () => api.settings.get<boolean>({ key: CAMERA_CHECKINS_KEY }),
+  });
+
   const sessionCount = normalizeSessionCount(sessionCountQ.data);
   const sessionMode = normalizeExerciseSessionMode(sessionModeQ.data);
   const definitionPriority = normalizeDefinitionPriority(definitionPriorityQ.data);
@@ -129,7 +135,8 @@ export function StudentSession() {
     sessionCountQ.isLoading ||
     sessionModeQ.isLoading ||
     sessionShuffleQ.isLoading ||
-    definitionPriorityQ.isLoading;
+    definitionPriorityQ.isLoading ||
+    cameraCheckinsQ.isLoading;
 
   const sessionStart = useMutation({
     mutationFn: (input: { studentId: number }) =>
@@ -144,6 +151,7 @@ export function StudentSession() {
     studentId: studentIdNum,
     sessionId,
     contextLabel: lessonQ.data?.title,
+    cameraCheckinsEnabled: cameraCheckinsQ.data === true,
   });
 
   useEffect(() => {
@@ -350,6 +358,7 @@ export function StudentSession() {
         contextLabel={contextLabel}
         soundEnabled={soundQ.data === true}
         autoplay={pronunciationAutoplay}
+        preferredAccent={pronunciationAccent}
       />
     </SessionEvidenceFrame>
   );

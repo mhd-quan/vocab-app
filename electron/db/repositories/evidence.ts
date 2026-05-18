@@ -35,6 +35,19 @@ export interface SessionEvidenceSummaryRow {
   metrics: SessionEvidenceMetrics;
 }
 
+export interface SessionEvidenceSnapshotRow {
+  id: number;
+  occurredAt: Date;
+  fileName: string | null;
+  mimeType: string | null;
+  bytes: number | null;
+  sha256: string | null;
+  width: number | null;
+  height: number | null;
+  included?: boolean;
+  snapshotDataUrl?: string | null;
+}
+
 export interface TutorEvidenceOverviewRow {
   student: Student;
   latestSessionAt: Date | null;
@@ -66,6 +79,7 @@ export interface StudentEvidenceTimeline {
   };
   events: SessionEvidenceEvent[];
   metrics: SessionEvidenceMetrics;
+  snapshots: SessionEvidenceSnapshotRow[];
 }
 
 export function createEvidenceRepository(db: AppDatabase) {
@@ -118,6 +132,23 @@ export function createEvidenceRepository(db: AppDatabase) {
       .orderBy(asc(sessionEvidenceEvents.occurredAt), asc(sessionEvidenceEvents.id))
       .all();
   };
+
+  const snapshotRows = (events: SessionEvidenceEvent[]): SessionEvidenceSnapshotRow[] =>
+    events
+      .filter((event) => event.kind === "camera_snapshot")
+      .map((event) => {
+        const payload = event.payload ?? {};
+        return {
+          id: event.id,
+          occurredAt: event.occurredAt,
+          fileName: stringPayload(payload, "fileName"),
+          mimeType: stringPayload(payload, "mimeType"),
+          bytes: numberPayload(payload, "bytes"),
+          sha256: stringPayload(payload, "sha256"),
+          width: numberPayload(payload, "width"),
+          height: numberPayload(payload, "height"),
+        };
+      });
 
   const recentSessionSummaries = ({
     studentId,
@@ -209,6 +240,7 @@ export function createEvidenceRepository(db: AppDatabase) {
         session,
         events,
         metrics: summarizeSessionEvidence(events),
+        snapshots: snapshotRows(events),
       };
     },
 
@@ -221,7 +253,7 @@ export function createEvidenceRepository(db: AppDatabase) {
       studentId: number;
       limit?: number;
     }): StudentEvidenceOverview {
-      const sessions = recentSessionSummaries({ studentId, limit: 500 });
+      const sessions = recentSessionSummaries({ studentId, limit: Math.max(limit, 500) });
       const scored = sessions.filter((s) => s.eventCount > 0);
       const avgAttentionScore =
         scored.length === 0
@@ -302,3 +334,13 @@ export function createEvidenceRepository(db: AppDatabase) {
 }
 
 export type EvidenceRepository = ReturnType<typeof createEvidenceRepository>;
+
+function stringPayload(payload: Record<string, unknown>, key: string): string | null {
+  const value = payload[key];
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+function numberPayload(payload: Record<string, unknown>, key: string): number | null {
+  const value = payload[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}

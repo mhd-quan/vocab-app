@@ -1,6 +1,6 @@
 import type { DictionaryLearningItemView } from "@/data/dictionaryLearning";
 import type { VocabEntryFull } from "../../../electron/db/repositories/vocab";
-import type { ExerciseSource } from "./types";
+import type { ExerciseAudioRef, ExerciseSource } from "./types";
 
 export function fromVocabEntry(entry: VocabEntryFull): ExerciseSource {
   return {
@@ -15,6 +15,7 @@ export function fromVocabEntry(entry: VocabEntryFull): ExerciseSource {
     ipa: entry.ipa ?? null,
     cefrLevel: entry.cefrLevel ?? null,
     audioRef: entry.audioRef ?? null,
+    audioRefs: normalizeAudioRefs(entry.audioRef ? [entry.audioRef] : []),
     senses: entry.senses.map((sense) => ({
       ordinal: sense.ordinal,
       definitionEn: sense.definitionEn ?? null,
@@ -43,6 +44,7 @@ export function fromDictionaryItem(item: DictionaryLearningItemView): ExerciseSo
     ipa: item.ipa,
     cefrLevel: item.cefrLevel,
     audioRef: item.audioRef,
+    audioRefs: normalizeAudioRefs(item.audioRef ? [item.audioRef] : []),
     senses: [
       {
         ordinal: 0,
@@ -65,4 +67,20 @@ export function fromDictionaryItem(item: DictionaryLearningItemView): ExerciseSo
 
 export function sourceKey(track: ExerciseSource["ref"]["track"], id: number): string {
   return `${track}:${id}`;
+}
+
+function normalizeAudioRefs(refs: ReadonlyArray<string>): ExerciseAudioRef[] {
+  const seen = new Set<string>();
+  const out: ExerciseAudioRef[] = [];
+  for (const ref of refs) {
+    const trimmed = ref.trim();
+    if (!trimmed || seen.has(trimmed)) continue;
+    seen.add(trimmed);
+    out.push({
+      ref: trimmed,
+      label: "Audio",
+      accent: "other",
+    });
+  }
+  return out;
 }

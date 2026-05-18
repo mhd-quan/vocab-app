@@ -1,6 +1,7 @@
 import { cn } from "@/lib/cn";
 import type { GradeOutcome, MultipleChoiceExercise } from "@/modules/exercises";
 import { Badge } from "@/ui/components/Badge";
+import { VocabularyPronunciation } from "@/ui/components/VocabularyPronunciation";
 import { useEffect, useState } from "react";
 
 export interface MultipleChoiceCardProps {
@@ -8,6 +9,8 @@ export interface MultipleChoiceCardProps {
   onAnswer: (selectedIndex: number) => void;
   /** When provided, options render their post-grade state. */
   outcome: GradeOutcome | null;
+  autoplay?: boolean;
+  preferredAccent?: "uk" | "us" | "any";
 }
 
 const KEY_DIGIT = /^[1-9]$/;
@@ -16,7 +19,13 @@ const KEY_DIGIT = /^[1-9]$/;
  * Reset semantics: callers re-mount via React `key` to clear the picked
  * state between exercises (see SessionPlayer).
  */
-export function MultipleChoiceCard({ exercise, onAnswer, outcome }: MultipleChoiceCardProps) {
+export function MultipleChoiceCard({
+  exercise,
+  onAnswer,
+  outcome,
+  autoplay = true,
+  preferredAccent = "uk",
+}: MultipleChoiceCardProps) {
   const [picked, setPicked] = useState<number | null>(null);
 
   // 1-9 keyboard shortcut for picking options. Disabled once an answer is locked.
@@ -40,6 +49,7 @@ export function MultipleChoiceCard({ exercise, onAnswer, outcome }: MultipleChoi
   }, [picked, exercise.payload.options.length, onAnswer]);
 
   const locked = outcome !== null;
+  const correctOption = exercise.payload.options.find((option) => option.correct) ?? null;
 
   return (
     <article
@@ -58,6 +68,16 @@ export function MultipleChoiceCard({ exercise, onAnswer, outcome }: MultipleChoi
       <p className="text-balance text-2xl font-semibold leading-relaxed text-app">
         {exercise.payload.prompt}
       </p>
+      {correctOption ? (
+        <VocabularyPronunciation
+          headword={correctOption.text}
+          fallbackRefs={correctOption.audioRefs ?? []}
+          autoPlayKey={autoplay ? exercise.id : null}
+          preferredAccent={preferredAccent}
+          size="sm"
+          className="-mt-4 justify-start"
+        />
+      ) : null}
 
       <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {exercise.payload.options.map((option, idx) => {

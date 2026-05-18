@@ -401,4 +401,107 @@ describe("ProgressRepository", () => {
       expect(summary.accuracy).toBeCloseTo(2 / 3, 3);
     });
   });
+
+  describe("learning reports", () => {
+    it("aggregates unit rows and drills into unit sessions", () => {
+      const { lesson: unitOneLesson } = seedCurriculum(db);
+      const { lesson: unitTwoLesson } = seedCurriculum(db, { bookCode: "destination-b2" });
+      const [alpha, beta] = seedEntries(repos, unitOneLesson.id, ["alpha", "beta"]);
+      const [gamma] = seedEntries(repos, unitTwoLesson.id, ["gamma"]);
+      if (!alpha || !beta || !gamma) throw new Error("seed mismatch");
+      const student = repos.students.create({ name: "Alice" });
+      const firstSession = repos.progress.startSession({ studentId: student.id, mode: "mixed" });
+      const secondSession = repos.progress.startSession({ studentId: student.id, mode: "review" });
+
+      repos.progress.recordAnswer({
+        studentId: student.id,
+        sessionId: firstSession.id,
+        entryId: alpha.entryId,
+        outcome: correct(),
+        responseMs: 1_000,
+        now: T0,
+      });
+      repos.progress.recordAnswer({
+        studentId: student.id,
+        sessionId: firstSession.id,
+        entryId: beta.entryId,
+        outcome: wrong(),
+        responseMs: 3_000,
+        now: new Date(T0.getTime() + 1_000),
+      });
+      repos.progress.recordAnswer({
+        studentId: student.id,
+        sessionId: secondSession.id,
+        entryId: gamma.entryId,
+        outcome: correct(),
+        responseMs: 5_000,
+        now: new Date(T0.getTime() + 2_000),
+      });
+
+      const units = repos.progress.unitReport({ studentId: student.id });
+      expect(units).toHaveLength(2);
+      const unitOne = units.find((row) => row.unitId === unitOneLesson.unitId);
+      expect(unitOne).toMatchObject({
+        sessionCount: 1,
+        totalAnswered: 2,
+        totalCorrect: 1,
+        totalWrong: 1,
+        avgResponseMs: 2_000,
+      });
+      expect(unitOne?.accuracy).toBeCloseTo(0.5, 3);
+
+      const sessions = repos.progress.unitSessions({
+        studentId: student.id,
+        unitId: unitOne?.unitId ?? -1,
+      });
+      expect(sessions).toHaveLength(1);
+      expect(sessions[0]).toMatchObject({
+        sessionId: firstSession.id,
+        totalAnswered: 2,
+        totalCorrect: 1,
+        avgResponseMs: 2_000,
+      });
+    });
+
+    it("builds a session report with timeframe, unit breakdown, answers, and response time", () => {
+      const { lesson } = seedCurriculum(db);
+      const [alpha, beta] = seedEntries(repos, lesson.id, ["alpha", "beta"]);
+      if (!alpha || !beta) throw new Error("seed mismatch");
+      const student = repos.students.create({ name: "Alice" });
+      const session = repos.progress.startSession({ studentId: student.id, mode: "mixed" });
+
+      repos.progress.recordAnswer({
+        studentId: student.id,
+        sessionId: session.id,
+        entryId: alpha.entryId,
+        outcome: correct(),
+        responseMs: 1_200,
+        now: T0,
+      });
+      repos.progress.recordAnswer({
+        studentId: student.id,
+        sessionId: session.id,
+        entryId: beta.entryId,
+        outcome: wrong(),
+        responseMs: 2_400,
+        now: new Date(T0.getTime() + 5_000),
+      });
+      repos.progress.endSession({ sessionId: session.id, summary: { totalAnswered: 2 } });
+
+      const report = repos.progress.sessionReport({ sessionId: session.id });
+      expect(report).not.toBeNull();
+      expect(report?.totalAnswered).toBe(2);
+      expect(report?.totalCorrect).toBe(1);
+      expect(report?.accuracy).toBeCloseTo(0.5, 3);
+      expect(report?.avgResponseMs).toBe(1_800);
+      expect(report?.units).toHaveLength(1);
+      expect(report?.units[0]?.totalAnswered).toBe(2);
+      expect(report?.answers.map((answer) => [answer.itemLabel, answer.correct])).toEqual([
+        ["alpha", true],
+        ["beta", false],
+      ]);
+      expect(report?.session.startedAt).toBeInstanceOf(Date);
+      expect(report?.session.endedAt).toBeInstanceOf(Date);
+    });
+  });
 });

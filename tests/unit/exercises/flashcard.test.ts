@@ -23,6 +23,13 @@ describe("flashcardPlugin.build", () => {
     expect(ex?.payload.back.exampleText).toContain("{{relatives}}");
   });
 
+  it("carries entry audio refs on the front for autoplay and manual replay", () => {
+    const ex = flashcardPlugin.build(makeSource({ audioRef: "oald://relative__gb_1.mp3" }), ctx);
+    expect(ex?.payload.front.audioRefs).toEqual([
+      { ref: "oald://relative__gb_1.mp3", label: "Audio", accent: "other" },
+    ]);
+  });
+
   it("returns null when the entry has no senses", () => {
     const ex = flashcardPlugin.build(makeSource({ senses: [] }), ctx);
     expect(ex).toBeNull();

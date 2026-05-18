@@ -40,9 +40,17 @@ describe("definitionMatchPlugin.build", () => {
     expect(ex?.payload.items).toHaveLength(4);
     if (!ex) throw new Error("Expected definition match exercise to build");
     const pairIds = ex.payload.items.map((i) => i.pairId);
+    expect(ex.payload.headwords).toHaveLength(4);
+    expect(new Set(ex.payload.headwords)).toEqual(new Set(ex.payload.items.map((i) => i.headword)));
     expect(pairIds).toContain(target.ref.sourceKey);
     // All 4 unique
     expect(new Set(pairIds).size).toBe(4);
+  });
+
+  it("shuffles headword chips independently from definition rows", () => {
+    const pool = makeSources(8);
+    const ex = buildExercise(pool);
+    expect(ex.payload.headwords).not.toEqual(ex.payload.items.map((i) => i.headword));
   });
 
   it("dedupes by headword — two pool entries with the same headword count once", () => {
