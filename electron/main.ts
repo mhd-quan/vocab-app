@@ -58,7 +58,7 @@ app.whenReady().then(() => {
   console.log("[db] opened, applied migrations through latest");
 
   const repos = createRepositories(db);
-  registerIpcProcedures(allProcedures, { repos, getMainWindow: () => mainWindow });
+  registerIpcProcedures(allProcedures, { db, repos, getMainWindow: () => mainWindow });
   console.log(`[ipc] registered ${allProcedures.length} procedures`);
 
   mainWindow = createMainWindow();

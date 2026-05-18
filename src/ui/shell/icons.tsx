@@ -19,92 +19,110 @@ function Glyph({ className, children }: GlyphProps & { children: ReactNode }) {
   );
 }
 
+function StrokeGlyph({ className, children }: GlyphProps & { children: ReactNode }) {
+  return (
+    <Glyph className={className}>
+      <g
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.9"
+      >
+        {children}
+      </g>
+    </Glyph>
+  );
+}
+
 export const DashboardIcon = ({ className }: GlyphProps) => (
-  <Glyph className={className}>
-    <path
-      fill="currentColor"
-      d="M4.2 3.6h6.2c.9 0 1.5.6 1.5 1.5v6.2c0 .9-.6 1.5-1.5 1.5H4.2c-.9 0-1.5-.6-1.5-1.5V5.1c0-.9.6-1.5 1.5-1.5Zm10.1 0h5.5c.9 0 1.5.6 1.5 1.5v3.6c0 .9-.6 1.5-1.5 1.5h-5.5c-.9 0-1.5-.6-1.5-1.5V5.1c0-.9.6-1.5 1.5-1.5ZM4.2 14h5.5c.9 0 1.5.6 1.5 1.5v3.4c0 .9-.6 1.5-1.5 1.5H4.2c-.9 0-1.5-.6-1.5-1.5v-3.4c0-.9.6-1.5 1.5-1.5Zm10.1-2.6h5.5c.9 0 1.5.6 1.5 1.5v6c0 .9-.6 1.5-1.5 1.5h-5.5c-.9 0-1.5-.6-1.5-1.5v-6c0-.9.6-1.5 1.5-1.5Z"
-    />
-  </Glyph>
+  <StrokeGlyph className={className}>
+    <rect x="3.7" y="4" width="6.7" height="7" rx="1.6" />
+    <rect x="13.6" y="4" width="6.7" height="4.8" rx="1.6" />
+    <rect x="3.7" y="14.1" width="6.7" height="5.9" rx="1.6" />
+    <rect x="13.6" y="11.8" width="6.7" height="8.2" rx="1.6" />
+  </StrokeGlyph>
 );
 
 export const StudentsIcon = ({ className }: GlyphProps) => (
-  <Glyph className={className}>
-    <path
-      fill="currentColor"
-      d="M9.4 11.2a4.1 4.1 0 1 0 0-8.2 4.1 4.1 0 0 0 0 8.2Zm8.1-.6a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4ZM9.4 12.9c-4 0-7 2.3-7 5.3 0 1.5 1 2.4 2.6 2.4h8.8c1.6 0 2.6-.9 2.6-2.4 0-3-3-5.3-7-5.3Zm8.2.4c-.9 0-1.7.2-2.5.5 1.7 1.1 2.8 2.7 2.8 4.6 0 .7-.2 1.4-.5 1.9h2.1c1.3 0 2.1-.8 2.1-2 0-2.8-2-5-4-5Z"
-    />
-  </Glyph>
+  <StrokeGlyph className={className}>
+    <path d="M9.4 11.2a3.8 3.8 0 1 0 0-7.6 3.8 3.8 0 0 0 0 7.6Z" />
+    <path d="M3.2 19.8c.5-3.6 2.7-5.6 6.2-5.6s5.7 2 6.2 5.6" />
+    <path d="M16.8 11a3 3 0 1 0 0-6" />
+    <path d="M17.4 14.1c1.9.7 3 2.5 3.4 5" />
+  </StrokeGlyph>
 );
 
 export const ContentIcon = ({ className }: GlyphProps) => (
-  <Glyph className={className}>
-    <path
-      fill="currentColor"
-      d="M5.4 2.8h8.1c.5 0 .9.2 1.3.5l3.5 3.5c.3.3.5.8.5 1.3v11.1c0 1.2-.8 2-2 2H5.4c-1.2 0-2-.8-2-2V4.8c0-1.2.8-2 2-2Zm8.3 1.7v2.9c0 .7.4 1.1 1.1 1.1h2.9l-4-4Zm-6 6.3c-.5 0-.9.4-.9.9s.4.9.9.9h8.4c.5 0 .9-.4.9-.9s-.4-.9-.9-.9H7.7Zm0 3.6c-.5 0-.9.4-.9.9s.4.9.9.9h8.4c.5 0 .9-.4.9-.9s-.4-.9-.9-.9H7.7Zm0 3.6c-.5 0-.9.4-.9.9s.4.9.9.9h5.8c.5 0 .9-.4.9-.9s-.4-.9-.9-.9H7.7Z"
-    />
-  </Glyph>
+  <StrokeGlyph className={className}>
+    <path d="M6 3.7h7.7l4.3 4.4v12.2H6a2 2 0 0 1-2-2V5.7a2 2 0 0 1 2-2Z" />
+    <path d="M13.4 3.9v4.5h4.4" />
+    <path d="M7.8 11.6h7.8" />
+    <path d="M7.8 15.1h7.8" />
+    <path d="M7.8 18.5h4.8" />
+  </StrokeGlyph>
 );
 
 export const DictionaryIcon = ({ className }: GlyphProps) => (
-  <Glyph className={className}>
-    <path
-      fill="currentColor"
-      d="M5.1 3.1h11.7c1.2 0 2 .8 2 2v13.8c0 .7-.4 1.1-1.1 1.1H6.3c-1.8 0-3.1-1.2-3.1-3V5c0-1.1.8-1.9 1.9-1.9Zm1.2 2c-.6 0-1 .4-1 1v9.2c.3-.1.6-.1 1-.1h10.5V5.6c0-.3-.2-.5-.5-.5h-10Zm0 12.1c-.6 0-1 .3-1 .8s.4.8 1 .8h10.4v-1.6H6.3Zm1.4-8.7c0-.5.4-.9.9-.9h5.7a.9.9 0 1 1 0 1.8H8.6c-.5 0-.9-.4-.9-.9Zm0 3.4c0-.5.4-.9.9-.9h4.3a.9.9 0 1 1 0 1.8H8.6c-.5 0-.9-.4-.9-.9Z"
-    />
-  </Glyph>
+  <StrokeGlyph className={className}>
+    <path d="M5.4 4.2h11.3a2 2 0 0 1 2 2v13.6H6.4a2.7 2.7 0 0 1-2.7-2.7V5.9c0-1 .7-1.7 1.7-1.7Z" />
+    <path d="M6.4 16.2h12.3" />
+    <path d="M7.4 8.7h6.2" />
+    <path d="M7.4 12h4.7" />
+  </StrokeGlyph>
 );
 
 export const ImportsIcon = ({ className }: GlyphProps) => (
-  <Glyph className={className}>
-    <path
-      fill="currentColor"
-      d="M11.1 3.2c0-.6.4-1 1-1s1 .4 1 1v8.2l2.5-2.5c.4-.4 1-.4 1.4 0 .4.4.4 1 0 1.4l-4.2 4.2c-.4.4-1 .4-1.4 0l-4.2-4.2a1 1 0 0 1 1.4-1.4l2.5 2.5V3.2Zm-5.5 11c.6 0 1 .4 1 1v2.6c0 .5.3.8.8.8h9.4c.5 0 .8-.3.8-.8v-2.6c0-.6.4-1 1-1s1 .4 1 1v2.7c0 1.7-1.1 2.8-2.8 2.8H7.4c-1.7 0-2.8-1.1-2.8-2.8v-2.7c0-.6.4-1 1-1Z"
-    />
-  </Glyph>
+  <StrokeGlyph className={className}>
+    <path d="M12 3.4v10.4" />
+    <path d="m7.9 9.9 4.1 4.1 4.1-4.1" />
+    <path d="M5.2 14.8v3.1a2.1 2.1 0 0 0 2.1 2.1h9.4a2.1 2.1 0 0 0 2.1-2.1v-3.1" />
+  </StrokeGlyph>
 );
 
 export const SettingsIcon = ({ className }: GlyphProps) => (
-  <Glyph className={className}>
-    <path
-      fill="currentColor"
-      d="M5.4 6.8h6.8a2.7 2.7 0 0 0 5.1 0h1.3a1 1 0 1 0 0-2h-1.3a2.7 2.7 0 0 0-5.1 0H5.4a1 1 0 0 0 0 2Zm9.3-.3a1.1 1.1 0 1 1 0-2.2 1.1 1.1 0 0 1 0 2.2ZM5.4 13h1.3a2.7 2.7 0 0 0 5.1 0h6.8a1 1 0 1 0 0-2h-6.8a2.7 2.7 0 0 0-5.1 0H5.4a1 1 0 1 0 0 2Zm3.8-.3a1.1 1.1 0 1 1 0-2.2 1.1 1.1 0 0 1 0 2.2Zm-3.8 6.1h6.8a2.7 2.7 0 0 0 5.1 0h1.3a1 1 0 1 0 0-2h-1.3a2.7 2.7 0 0 0-5.1 0H5.4a1 1 0 1 0 0 2Zm9.3-.3a1.1 1.1 0 1 1 0-2.2 1.1 1.1 0 0 1 0 2.2Z"
-    />
-  </Glyph>
+  <StrokeGlyph className={className}>
+    <path d="M4.6 6.5h6" />
+    <path d="M14.7 6.5h4.7" />
+    <circle cx="12.6" cy="6.5" r="2" />
+    <path d="M4.6 12h3.8" />
+    <path d="M12.5 12h6.9" />
+    <circle cx="10.5" cy="12" r="2" />
+    <path d="M4.6 17.5h7.1" />
+    <path d="M15.8 17.5h3.6" />
+    <circle cx="13.8" cy="17.5" r="2" />
+  </StrokeGlyph>
 );
 
 export const LockIcon = ({ className }: GlyphProps) => (
-  <Glyph className={className}>
-    <path
-      fill="currentColor"
-      d="M7 9.4V7.2a5 5 0 0 1 10 0v2.2h.4c1.4 0 2.3.9 2.3 2.3v6.7c0 1.4-.9 2.3-2.3 2.3H6.6c-1.4 0-2.3-.9-2.3-2.3v-6.7c0-1.4.9-2.3 2.3-2.3H7Zm2.1 0h5.8V7.2a2.9 2.9 0 0 0-5.8 0v2.2Zm2.9 7.1c.7 0 1.2-.5 1.2-1.2S12.7 14 12 14s-1.2.5-1.2 1.3.5 1.2 1.2 1.2Z"
-    />
-  </Glyph>
+  <StrokeGlyph className={className}>
+    <rect x="4.5" y="10" width="15" height="10" rx="2.2" />
+    <path d="M8 10V7.5a4 4 0 0 1 8 0V10" />
+    <path d="M12 14.4v2.2" />
+  </StrokeGlyph>
 );
 
 export const StudentModeIcon = ({ className }: GlyphProps) => (
-  <Glyph className={className}>
-    <path
-      fill="currentColor"
-      d="M12 3.1 2.9 6.6c-.8.3-.8 1.5 0 1.8l9.1 3.5 7-2.7v4.1c-.6.3-1 .9-1 1.6 0 .6.3 1.2.8 1.5l-.8 2.7c-.1.5.2.9.7.9h2c.5 0 .8-.5.7-.9l-.8-2.7c.5-.3.8-.9.8-1.5 0-.7-.4-1.3-1-1.6V8.6l.7-.2c.8-.3.8-1.5 0-1.8L12 3.1Zm-5.7 7.5v2.1c0 2.2 2.5 4 5.7 4s5.7-1.8 5.7-4v-2.1L12 12.8l-5.7-2.2Z"
-    />
-  </Glyph>
+  <StrokeGlyph className={className}>
+    <path d="m3.2 7.3 8.8-3.5 8.8 3.5-8.8 3.5-8.8-3.5Z" />
+    <path d="M6.5 9.2v4.1c0 2.1 2.5 3.8 5.5 3.8s5.5-1.7 5.5-3.8V9.2" />
+    <path d="M20.8 7.3v6" />
+  </StrokeGlyph>
 );
 
 export const TutorModeIcon = ({ className }: GlyphProps) => (
-  <Glyph className={className}>
-    <path
-      fill="currentColor"
-      d="M4.4 4h15.2c1.1 0 1.9.8 1.9 1.9v9.2c0 1.1-.8 1.9-1.9 1.9h-5.8v1.8h2.7a1 1 0 1 1 0 2h-9a1 1 0 1 1 0-2h2.7V17H4.4c-1.1 0-1.9-.8-1.9-1.9V5.9C2.5 4.8 3.3 4 4.4 4Zm3.1 4.2a1 1 0 1 0 0 2h9a1 1 0 1 0 0-2h-9Zm0 3.6a1 1 0 1 0 0 2h5.9a1 1 0 1 0 0-2H7.5Z"
-    />
-  </Glyph>
+  <StrokeGlyph className={className}>
+    <rect x="3.4" y="4.4" width="17.2" height="12.3" rx="2" />
+    <path d="M9.2 20h5.6" />
+    <path d="M12 16.7V20" />
+    <path d="M7.3 8.5h9.4" />
+    <path d="M7.3 12.2h5.7" />
+  </StrokeGlyph>
 );
 
 export const EditIcon = ({ className }: GlyphProps) => (
-  <Glyph className={className}>
-    <path
-      fill="currentColor"
-      d="M15.7 3.8c1-1 2.6-1 3.6 0l.9.9c1 1 1 2.6 0 3.6L9.3 19.2c-.3.3-.6.5-1 .6l-4.1 1.1c-.7.2-1.3-.4-1.1-1.1l1.1-4.1c.1-.4.3-.7.6-1L15.7 3.8Zm-9.5 12-.6 2.6 2.6-.6 8.5-8.5-2-2-8.5 8.5Z"
-    />
-  </Glyph>
+  <StrokeGlyph className={className}>
+    <path d="M4.6 16.2 15.7 5.1a2.3 2.3 0 0 1 3.2 0 2.3 2.3 0 0 1 0 3.2L7.8 19.4l-4.1.9.9-4.1Z" />
+    <path d="m14.2 6.6 3.2 3.2" />
+  </StrokeGlyph>
 );

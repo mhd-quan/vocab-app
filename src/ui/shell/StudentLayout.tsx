@@ -1,10 +1,10 @@
 import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
+import { computeStudentXp } from "@/modules/rewards";
 import { useAppMode } from "@/providers/AppModeProvider";
 import { Button } from "@/ui/components/Button";
 import { StudentDictionaryPopup } from "@/ui/components/dictionary/StudentDictionaryPopup";
-import { HeartsBar } from "@/ui/student/components/HeartsBar";
 import { StreakBanner } from "@/ui/student/components/StreakBanner";
 import { XPBadge } from "@/ui/student/components/XPBadge";
 import { useQuery } from "@tanstack/react-query";
@@ -36,9 +36,16 @@ export function StudentLayout() {
     enabled: activeStudentId !== null,
   });
   const summary = summaryQ.data;
-  const hearts =
-    summary && summary.totalSeen > 0 ? Math.max(1, Math.round(summary.accuracy * 5)) : 5;
-  const xp = summary ? summary.totalSeen * 10 + Math.round(summary.accuracy * 100) : 0;
+  const xp = summary
+    ? computeStudentXp({
+        totalSeen: summary.totalSeen,
+        totalCorrect: summary.totalCorrect,
+        totalWrong: summary.totalWrong,
+        accuracy: summary.accuracy,
+        streakDays: streakQ.data?.currentStreak ?? 0,
+        practicedToday: streakQ.data?.practicedToday ?? false,
+      })
+    : 0;
 
   return (
     <div className="flex h-screen w-screen flex-col bg-app">
@@ -57,7 +64,6 @@ export function StudentLayout() {
         <div className="flex min-w-0 flex-1 items-center justify-end gap-2 [-webkit-app-region:no-drag]">
           {activeStudentId !== null ? (
             <div className="hidden items-center gap-2 md:flex">
-              <HeartsBar remaining={hearts} />
               <XPBadge xp={xp} />
               <StreakBanner stats={streakQ.data} />
             </div>

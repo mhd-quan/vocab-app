@@ -142,6 +142,27 @@ interface EvidenceExportResult {
   sha256: string;
 }
 
+interface EvidenceImportResult {
+  canceled: boolean;
+  imported: boolean;
+  studentId: number | null;
+  stats: {
+    studentId: number;
+    sessionsInserted: number;
+    sessionsUpdated: number;
+    learningEventsInserted: number;
+    learningEventsSkipped: number;
+    evidenceEventsInserted: number;
+    evidenceEventsSkipped: number;
+    progressUpserted: number;
+    achievementsUpserted: number;
+    dictionaryItemsUpserted: number;
+    dictionarySearchesInserted: number;
+    dictionarySearchesSkipped: number;
+    assignmentsUpserted: number;
+  } | null;
+}
+
 interface CreateStudent {
   name: string;
   displayName?: string;
@@ -373,6 +394,8 @@ const api = {
       includeSnapshots?: boolean;
       passphrase?: string;
     }) => invoke<EvidenceExportResult>("evidence.exportStudentReport", input),
+    importStudentData: (input?: { passphrase?: string }) =>
+      invoke<EvidenceImportResult>("evidence.importStudentData", input ?? {}),
   },
 
   rewards: {

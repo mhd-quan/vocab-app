@@ -27,7 +27,7 @@ function SparkIcon({ className }: { className?: string }) {
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" className={className}>
       <path
         fill="currentColor"
-        d="M13.1 2.8 4.5 13.1c-.5.6-.1 1.5.7 1.5h5l-1.3 6.1c-.2.9.9 1.4 1.5.7l8.9-10.8c.5-.6.1-1.5-.7-1.5h-5.2l1.1-5.8c.2-.8-.8-1.3-1.4-.5Z"
+        d="M12 2.8 14.2 8l5.6.5-4.2 3.7 1.3 5.5-4.9-2.9-4.9 2.9 1.3-5.5-4.2-3.7L9.8 8 12 2.8Z"
       />
     </svg>
   );

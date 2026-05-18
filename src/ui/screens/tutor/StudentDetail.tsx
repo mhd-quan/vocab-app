@@ -8,6 +8,7 @@ import { Badge } from "@/ui/components/Badge";
 import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { Heatmap } from "@/ui/components/Heatmap";
+import { Modal } from "@/ui/components/Modal";
 import { PageHeader } from "@/ui/components/PageHeader";
 import { AchievementIcon } from "@/ui/components/rewards";
 import { TutorMetricCard, TutorPanel, TutorSelectField } from "@/ui/tutor/components/Material";
@@ -318,7 +319,7 @@ function AssignmentsPanel({
                   <li key={unit.id}>
                     <label
                       className={cn(
-                        "flex min-h-24 cursor-pointer flex-col gap-2 rounded-2xl border p-3 transition",
+                        "flex min-h-24 cursor-pointer flex-col gap-2 rounded-[var(--shape-corner-lg)] border p-3 transition",
                         checked
                           ? "border-mastery/50 bg-mastery/10 shadow-[var(--md-sys-elevation-1)]"
                           : "border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] hover:border-border-strong hover:bg-[color:var(--md-sys-color-surface-container-high)]",
@@ -354,7 +355,7 @@ function AssignmentsPanel({
           {saveAssignments.isError ? (
             <p
               role="alert"
-              className="rounded-2xl border border-danger/30 bg-danger/10 px-3 py-2 text-xs leading-5 text-danger"
+              className="rounded-[var(--shape-corner-lg)] border border-danger/30 bg-danger/10 px-3 py-2 text-xs leading-5 text-danger"
             >
               {formatAssignmentSaveError(saveAssignments.error)}
             </p>
@@ -451,7 +452,7 @@ function UnitReportPanel({
         />
       ) : (
         <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-          <div className="overflow-hidden rounded-2xl border border-border-subtle">
+          <div className="overflow-hidden rounded-[var(--shape-corner-lg)] border border-border-subtle">
             <table className="w-full text-left text-xs">
               <thead className="bg-[color:var(--md-sys-color-surface-container-low)] uppercase text-muted-2">
                 <tr>
@@ -503,7 +504,7 @@ function UnitReportPanel({
             </table>
           </div>
 
-          <div className="rounded-2xl border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-4">
+          <div className="rounded-[var(--shape-corner-lg)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-4">
             {selectedUnit ? (
               <>
                 <div className="flex flex-wrap items-center gap-2">
@@ -540,7 +541,7 @@ function UnitReportPanel({
                       {(unitSessionsQ.data ?? []).map((session) => (
                         <li
                           key={session.sessionId}
-                          className="flex items-center justify-between gap-3 rounded-xl border border-border-subtle bg-surface-0 px-3 py-2 text-xs"
+                          className="flex items-center justify-between gap-3 rounded-[var(--shape-corner-md)] border border-border-subtle bg-surface-0 px-3 py-2 text-xs"
                         >
                           <span className="flex items-center gap-2">
                             <Badge tone="muted" uppercase>
@@ -598,6 +599,7 @@ function EvidencePanel({
   const [includeSnapshots, setIncludeSnapshots] = useState(true);
   const [passphrase, setPassphrase] = useState("");
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (selectedSessionId !== null) return;
@@ -612,6 +614,20 @@ function EvidencePanel({
         includeSnapshots,
         passphrase: passphrase.trim() || undefined,
       }),
+  });
+  const importReport = useMutation({
+    mutationFn: () =>
+      api.evidence.importStudentData({ passphrase: passphrase.trim() || undefined }),
+    onSuccess: async (result) => {
+      if (!result.imported || !result.studentId) return;
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["progress"] }),
+        queryClient.invalidateQueries({ queryKey: ["evidence"] }),
+        queryClient.invalidateQueries({ queryKey: ["students"] }),
+        queryClient.invalidateQueries({ queryKey: ["dictionaryLearning"] }),
+        queryClient.invalidateQueries({ queryKey: ["rewards"] }),
+      ]);
+    },
   });
 
   return (
@@ -654,7 +670,7 @@ function EvidencePanel({
                   type="button"
                   onClick={() => setSelectedSessionId(session.sessionId)}
                   className={cn(
-                    "w-full rounded-2xl border p-3 text-left transition-colors",
+                    "w-full rounded-[var(--shape-corner-lg)] border p-3 text-left transition-colors",
                     selectedSessionId === session.sessionId
                       ? "border-accent/50 bg-accent/10"
                       : "border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] hover:border-border-strong",
@@ -695,8 +711,8 @@ function EvidencePanel({
 
           {selectedSessionId !== null ? <SessionDetailPanel sessionId={selectedSessionId} /> : null}
 
-          <div className="rounded-2xl border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-3">
-            <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
+          <div className="rounded-[var(--shape-corner-lg)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-3">
+            <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto_auto] md:items-end">
               <label className="flex flex-col gap-1 text-xs text-muted">
                 <span className="font-semibold uppercase text-muted-2">Report passphrase</span>
                 <input
@@ -704,10 +720,10 @@ function EvidencePanel({
                   value={passphrase}
                   onChange={(event) => setPassphrase(event.currentTarget.value)}
                   placeholder="Optional AES export key"
-                  className="h-10 rounded-xl border border-border-subtle bg-surface-0 px-3 text-sm text-app outline-none focus:border-accent"
+                  className="h-10 rounded-[var(--shape-corner-md)] border border-border-subtle bg-surface-0 px-3 text-sm text-app outline-none focus:border-accent"
                 />
               </label>
-              <label className="flex min-h-10 items-center gap-2 rounded-xl border border-border-subtle bg-surface-0 px-3 text-xs text-muted">
+              <label className="flex min-h-10 items-center gap-2 rounded-[var(--shape-corner-md)] border border-border-subtle bg-surface-0 px-3 text-xs text-muted">
                 <input
                   type="checkbox"
                   checked={includeSnapshots}
@@ -719,10 +735,24 @@ function EvidencePanel({
               <Button onClick={() => exportReport.mutate()} disabled={exportReport.isPending}>
                 {exportReport.isPending ? "Exporting…" : "Export report"}
               </Button>
+              <Button
+                variant="secondary"
+                onClick={() => importReport.mutate()}
+                disabled={importReport.isPending}
+              >
+                {importReport.isPending ? "Importing…" : "Import data"}
+              </Button>
             </div>
             {exportReport.data && !exportReport.data.canceled ? (
               <p className="mt-2 text-xs text-success">
-                Report exported{exportReport.data.encrypted ? " encrypted" : ""}.
+                Full student data exported{exportReport.data.encrypted ? " encrypted" : ""}.
+              </p>
+            ) : null}
+            {importReport.data?.imported && importReport.data.stats ? (
+              <p className="mt-2 text-xs text-success">
+                Data imported: {importReport.data.stats.sessionsInserted} new sessions,{" "}
+                {importReport.data.stats.sessionsUpdated} updated,{" "}
+                {importReport.data.stats.learningEventsInserted} learning events.
               </p>
             ) : null}
             {exportReport.isError ? (
@@ -730,6 +760,13 @@ function EvidencePanel({
                 {exportReport.error instanceof Error
                   ? exportReport.error.message
                   : "Could not export report."}
+              </p>
+            ) : null}
+            {importReport.isError ? (
+              <p className="mt-2 text-xs text-danger">
+                {importReport.error instanceof Error
+                  ? importReport.error.message
+                  : "Could not import data."}
               </p>
             ) : null}
           </div>
@@ -749,7 +786,7 @@ function EvidenceStat({
   tone: "neutral" | "success" | "warning" | "accent";
 }) {
   return (
-    <div className="rounded-2xl border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-3">
+    <div className="rounded-[var(--shape-corner-lg)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-3">
       <p className="text-[10px] font-semibold uppercase text-muted-2">{label}</p>
       <p className={cn("mt-1 font-mono text-2xl", evidenceToneClass(tone))}>{value}</p>
     </div>
@@ -785,7 +822,7 @@ function SessionDetailPanel({ sessionId }: { sessionId: number }) {
 
   if (!timeline && !report) {
     return (
-      <div className="rounded-2xl border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-4 text-xs text-muted">
+      <div className="rounded-[var(--shape-corner-lg)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-4 text-xs text-muted">
         Session detail is unavailable.
       </div>
     );
@@ -797,7 +834,7 @@ function SessionDetailPanel({ sessionId }: { sessionId: number }) {
   const accuracy = report?.accuracy ?? null;
 
   return (
-    <section className="rounded-2xl border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-4">
+    <section className="rounded-[var(--shape-corner-lg)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-4">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex flex-wrap gap-2">
@@ -885,48 +922,79 @@ function SnapshotTable({
     snapshotDataUrl?: string | null;
   }>;
 }) {
+  const [zoomed, setZoomed] = useState<(typeof snapshots)[number] | null>(null);
+
   if (snapshots.length === 0) {
     return <p className="mt-4 text-xs text-muted-2">No camera snapshots for this session.</p>;
   }
 
   return (
-    <div className="mt-5 overflow-hidden rounded-2xl border border-border-subtle">
-      <table className="w-full text-left text-xs">
-        <thead className="bg-[color:var(--md-sys-color-surface-container)] uppercase text-muted-2">
-          <tr>
-            <th className="px-3 py-2 font-medium">Image</th>
-            <th className="px-3 py-2 font-medium">Captured</th>
-            <th className="px-3 py-2 font-medium">Size</th>
-            <th className="px-3 py-2 font-medium">Hash</th>
-          </tr>
-        </thead>
-        <tbody>
-          {snapshots.map((snapshot) => (
-            <tr key={snapshot.id} className="border-t border-border-subtle">
-              <td className="px-3 py-2">
-                {snapshot.snapshotDataUrl ? (
-                  <img
-                    src={snapshot.snapshotDataUrl}
-                    alt=""
-                    className="h-16 w-24 rounded-lg border border-border-subtle object-cover"
-                  />
-                ) : (
-                  <span className="text-muted-2">{snapshot.fileName ?? "stored"}</span>
-                )}
-              </td>
-              <td className="px-3 py-2 text-muted">{formatDate(snapshot.occurredAt)}</td>
-              <td className="px-3 py-2 font-mono text-muted">
-                {snapshot.width && snapshot.height ? `${snapshot.width}x${snapshot.height}` : "—"}
-                {snapshot.bytes ? ` / ${formatBytes(snapshot.bytes)}` : ""}
-              </td>
-              <td className="px-3 py-2 font-mono text-[10px] text-muted-2">
-                {snapshot.sha256 ? snapshot.sha256.slice(0, 12) : "—"}
-              </td>
+    <>
+      <div className="mt-5 overflow-hidden rounded-[var(--shape-corner-lg)] border border-border-subtle">
+        <table className="w-full text-left text-xs">
+          <thead className="bg-[color:var(--md-sys-color-surface-container)] uppercase text-muted-2">
+            <tr>
+              <th className="px-3 py-2 font-medium">Image</th>
+              <th className="px-3 py-2 font-medium">Captured</th>
+              <th className="px-3 py-2 font-medium">Size</th>
+              <th className="px-3 py-2 font-medium">Hash</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {snapshots.map((snapshot) => (
+              <tr key={snapshot.id} className="border-t border-border-subtle">
+                <td className="px-3 py-2">
+                  {snapshot.snapshotDataUrl ? (
+                    <button
+                      type="button"
+                      onClick={() => setZoomed(snapshot)}
+                      className="group relative block rounded-[var(--shape-corner-md)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                    >
+                      <img
+                        src={snapshot.snapshotDataUrl}
+                        alt=""
+                        className="h-16 w-24 rounded-[var(--shape-corner-md)] border border-border-subtle object-cover"
+                      />
+                      <span className="pointer-events-none absolute inset-0 grid place-items-center rounded-[var(--shape-corner-md)] bg-slate-950/0 text-[10px] font-semibold uppercase text-white opacity-0 transition group-hover:bg-slate-950/45 group-hover:opacity-100">
+                        Zoom
+                      </span>
+                    </button>
+                  ) : (
+                    <span className="text-muted-2">{snapshot.fileName ?? "stored"}</span>
+                  )}
+                </td>
+                <td className="px-3 py-2 text-muted">{formatDate(snapshot.occurredAt)}</td>
+                <td className="px-3 py-2 font-mono text-muted">
+                  {snapshot.width && snapshot.height ? `${snapshot.width}x${snapshot.height}` : "—"}
+                  {snapshot.bytes ? ` / ${formatBytes(snapshot.bytes)}` : ""}
+                </td>
+                <td className="px-3 py-2 font-mono text-[10px] text-muted-2">
+                  {snapshot.sha256 ? snapshot.sha256.slice(0, 12) : "—"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <Modal
+        open={zoomed !== null}
+        onClose={() => setZoomed(null)}
+        title="Camera snapshot"
+        description={
+          zoomed
+            ? `${formatDate(zoomed.occurredAt)} · ${zoomed.width ?? "?"}x${zoomed.height ?? "?"}`
+            : undefined
+        }
+      >
+        {zoomed?.snapshotDataUrl ? (
+          <img
+            src={zoomed.snapshotDataUrl}
+            alt=""
+            className="max-h-[70vh] w-full rounded-[var(--shape-corner-lg)] border border-border-subtle object-contain"
+          />
+        ) : null}
+      </Modal>
+    </>
   );
 }
 

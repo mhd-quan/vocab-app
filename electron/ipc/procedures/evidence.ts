@@ -1,11 +1,32 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { and, eq } from "drizzle-orm";
 import { app, dialog } from "electron";
 import { z } from "zod";
-import { sessionEvidenceEventKinds, sessionEvidenceSeverities } from "../../../src/data/schema";
+import {
+  books,
+  contentItems,
+  dictionaryLearningItems,
+  dictionaryLearningReviews,
+  dictionarySearchEvents,
+  enrollments,
+  grammarTopics,
+  itemProgress,
+  learningEvents,
+  lessons,
+  practiceSessions,
+  sessionEvidenceEventKinds,
+  sessionEvidenceEvents,
+  sessionEvidenceSeverities,
+  studentAchievements,
+  unitAssignments,
+  units,
+  vocabEntries,
+} from "../../../src/data/schema";
+import type { AppDatabase } from "../../db";
 import type { StudentEvidenceTimeline } from "../../db/repositories/evidence";
-import { defineProcedure } from "../procedure";
+import { type ProcedureContext, defineProcedure } from "../procedure";
 
 const evidenceEventInput = z.object({
   studentId: z.number().int().positive(),
@@ -44,6 +65,10 @@ const sessionTimelineInput = z.object({
 const exportReportInput = z.object({
   studentId: z.number().int().positive(),
   includeSnapshots: z.boolean().optional(),
+  passphrase: z.string().min(8).max(256).optional(),
+});
+
+const importStudentDataInput = z.object({
   passphrase: z.string().min(8).max(256).optional(),
 });
 
@@ -158,6 +183,7 @@ export const evidenceProcedures = [
         generatedAt: generatedAt.toISOString(),
         app: { name: "vocab-app" },
         student,
+        data: buildStudentDataExport(ctx, studentId, includeSnapshots === true),
         progress: {
           summary: progressSummary,
           units: ctx.repos.progress.unitReport({ studentId }),
@@ -224,7 +250,708 @@ export const evidenceProcedures = [
       } as const;
     },
   }),
+
+  defineProcedure({
+    name: "evidence.importStudentData",
+    input: importStudentDataInput,
+    handler: async ({ passphrase }, ctx) => {
+      const parent = ctx.getMainWindow?.() ?? null;
+      const result = parent
+        ? await dialog.showOpenDialog(parent, {
+            title: "Import student data bundle",
+            properties: ["openFile"],
+            filters: [{ name: "Vocab Report Bundle", extensions: ["json", "enc.json"] }],
+          })
+        : await dialog.showOpenDialog({
+            title: "Import student data bundle",
+            properties: ["openFile"],
+            filters: [{ name: "Vocab Report Bundle", extensions: ["json", "enc.json"] }],
+          });
+      if (result.canceled || !result.filePaths[0]) {
+        return { canceled: true, imported: false, studentId: null, stats: null } as const;
+      }
+      const body = fs.readFileSync(result.filePaths[0], "utf8");
+      const bundle = parseReportBundle(body, passphrase);
+      const stats = importStudentDataBundle(ctx, bundle);
+      return {
+        canceled: false,
+        imported: true,
+        studentId: stats.studentId,
+        stats,
+      } as const;
+    },
+  }),
 ];
+
+interface StudentDataExport {
+  schemaVersion: "vocab.student-data.v1";
+  sourceFingerprint: string;
+  sourceStudentId: number;
+  exportedAt: string;
+  student: Record<string, unknown>;
+  assignments: Array<Record<string, unknown>>;
+  sessions: Array<Record<string, unknown>>;
+  learningEvents: Array<Record<string, unknown> & { contentRef: ContentRef | null }>;
+  itemProgress: Array<Record<string, unknown> & { contentRef: ContentRef | null }>;
+  achievements: Array<Record<string, unknown>>;
+  evidenceEvents: Array<Record<string, unknown>>;
+  dictionary: {
+    searches: Array<Record<string, unknown>>;
+    items: Array<Record<string, unknown>>;
+    reviews: Array<Record<string, unknown>>;
+  };
+}
+
+interface ContentRef {
+  refTable: string;
+  refId: number;
+  kind: string;
+  bookCode: string | null;
+  unitCode: string | null;
+  lessonSlug: string | null;
+  lessonKind: string | null;
+  sourceId: string | null;
+  slug: string | null;
+  headword: string | null;
+}
+
+function buildStudentDataExport(
+  ctx: ProcedureContext,
+  studentId: number,
+  includeSnapshots: boolean,
+): StudentDataExport {
+  const db = requireDb(ctx);
+  const student = ctx.repos.students.getById(studentId);
+  if (!student) throw new Error(`Student ${studentId} not found`);
+  const sourceFingerprint = studentSourceFingerprint(student);
+  const sessions = db
+    .select()
+    .from(practiceSessions)
+    .where(eq(practiceSessions.studentId, studentId))
+    .all();
+  const sessionIds = new Set(sessions.map((session) => session.id));
+  const learningRows = db
+    .select()
+    .from(learningEvents)
+    .where(eq(learningEvents.studentId, studentId))
+    .all();
+  const evidenceRows = db
+    .select()
+    .from(sessionEvidenceEvents)
+    .where(eq(sessionEvidenceEvents.studentId, studentId))
+    .all()
+    .filter((event) => sessionIds.has(event.sessionId));
+
+  return {
+    schemaVersion: "vocab.student-data.v1",
+    sourceFingerprint,
+    sourceStudentId: studentId,
+    exportedAt: new Date().toISOString(),
+    student,
+    assignments: exportAssignments(db, studentId),
+    sessions,
+    learningEvents: learningRows.map((event) => ({
+      ...event,
+      contentRef: contentRefForItem(db, event.contentItemId),
+    })),
+    itemProgress: db
+      .select()
+      .from(itemProgress)
+      .where(eq(itemProgress.studentId, studentId))
+      .all()
+      .map((row) => ({ ...row, contentRef: contentRefForItem(db, row.contentItemId) })),
+    achievements: db
+      .select()
+      .from(studentAchievements)
+      .where(eq(studentAchievements.studentId, studentId))
+      .all(),
+    evidenceEvents: evidenceRows.map((event) =>
+      includeSnapshots && event.kind === "camera_snapshot" && event.payload?.fileName
+        ? {
+            ...event,
+            payload: {
+              ...event.payload,
+              snapshotDataUrl: readSnapshotDataUrl(String(event.payload.fileName)),
+            },
+          }
+        : event,
+    ),
+    dictionary: {
+      searches: db
+        .select()
+        .from(dictionarySearchEvents)
+        .where(eq(dictionarySearchEvents.studentId, studentId))
+        .all(),
+      items: db
+        .select()
+        .from(dictionaryLearningItems)
+        .where(eq(dictionaryLearningItems.studentId, studentId))
+        .all(),
+      reviews: db
+        .select()
+        .from(dictionaryLearningReviews)
+        .where(eq(dictionaryLearningReviews.studentId, studentId))
+        .all(),
+    },
+  };
+}
+
+function importStudentDataBundle(ctx: ProcedureContext, report: Record<string, unknown>) {
+  const db = requireDb(ctx);
+  const data = report.data as StudentDataExport | undefined;
+  if (!data || data.schemaVersion !== "vocab.student-data.v1") {
+    throw new Error("This report does not contain an importable student data bundle.");
+  }
+
+  const studentId = upsertImportedStudent(ctx, data);
+  return db.transaction((tx) => {
+    const txDb = tx as unknown as AppDatabase;
+    const sessionMap = upsertImportedSessions(txDb, studentId, data);
+    const dictionaryStats = upsertDictionaryData(txDb, studentId, data, sessionMap.map);
+    const stats = {
+      studentId,
+      sessionsInserted: 0,
+      sessionsUpdated: 0,
+      learningEventsInserted: 0,
+      learningEventsSkipped: 0,
+      evidenceEventsInserted: 0,
+      evidenceEventsSkipped: 0,
+      progressUpserted: 0,
+      achievementsUpserted: 0,
+      dictionaryItemsUpserted: dictionaryStats.itemMap.size,
+      dictionarySearchesInserted: dictionaryStats.searchesInserted,
+      dictionarySearchesSkipped: dictionaryStats.searchesSkipped,
+      assignmentsUpserted: 0,
+    };
+    stats.sessionsInserted = sessionMap.inserted;
+    stats.sessionsUpdated = sessionMap.updated;
+    stats.assignmentsUpserted = upsertAssignments(txDb, studentId, data);
+    stats.progressUpserted = upsertImportedProgress(txDb, studentId, data);
+    const learningStats = importLearningEvents(txDb, studentId, data, sessionMap.map);
+    stats.learningEventsInserted = learningStats.inserted;
+    stats.learningEventsSkipped = learningStats.skipped;
+    const evidenceStats = importEvidenceEvents(txDb, studentId, data, sessionMap.map);
+    stats.evidenceEventsInserted = evidenceStats.inserted;
+    stats.evidenceEventsSkipped = evidenceStats.skipped;
+    stats.achievementsUpserted = upsertAchievements(txDb, studentId, data);
+    return stats;
+  });
+}
+
+function upsertImportedStudent(ctx: ProcedureContext, data: StudentDataExport): number {
+  const mapped = ctx.repos.settings.get<number>(importMapKey(data.sourceFingerprint));
+  const mappedStudent = typeof mapped === "number" ? ctx.repos.students.getById(mapped) : null;
+  if (typeof mapped === "number" && mappedStudent) {
+    if (mappedStudent.archivedAt) ctx.repos.students.restore(mapped);
+    const student = data.student;
+    ctx.repos.students.update(mapped, {
+      name: stringValue(student.name, "Imported student"),
+      displayName: nullableString(student.displayName),
+      avatarSeed: nullableString(student.avatarSeed),
+      color: nullableString(student.color),
+      notes: nullableString(student.notes),
+    });
+    return mapped;
+  }
+  const created = ctx.repos.students.create({
+    name: stringValue(data.student.name, "Imported student"),
+    displayName: nullableString(data.student.displayName) ?? undefined,
+    avatarSeed: nullableString(data.student.avatarSeed) ?? undefined,
+    color: nullableString(data.student.color) ?? undefined,
+    notes: nullableString(data.student.notes) ?? undefined,
+  });
+  ctx.repos.settings.set(importMapKey(data.sourceFingerprint), created.id);
+  return created.id;
+}
+
+function upsertImportedSessions(db: AppDatabase, studentId: number, data: StudentDataExport) {
+  const map = new Map<number, number>();
+  let inserted = 0;
+  let updated = 0;
+  const existing = db
+    .select()
+    .from(practiceSessions)
+    .where(eq(practiceSessions.studentId, studentId))
+    .all();
+  const bySource = new Map<number, (typeof existing)[number]>();
+  for (const session of existing) {
+    const marker = importSource(session.summary);
+    if (marker?.fingerprint === data.sourceFingerprint && marker.sessionId !== undefined) {
+      bySource.set(marker.sessionId, session);
+    }
+  }
+  for (const raw of data.sessions) {
+    const sourceSessionId = numberValue(raw.id);
+    if (sourceSessionId === null) continue;
+    const summary = {
+      ...(isRecord(raw.summary) ? raw.summary : {}),
+      __importSource: { fingerprint: data.sourceFingerprint, sessionId: sourceSessionId },
+    };
+    const found = bySource.get(sourceSessionId);
+    if (found) {
+      db.update(practiceSessions)
+        .set({
+          mode: stringValue(raw.mode, found.mode) as typeof found.mode,
+          startedAt: dateValue(raw.startedAt) ?? found.startedAt,
+          endedAt: dateValue(raw.endedAt),
+          summary,
+        })
+        .where(eq(practiceSessions.id, found.id))
+        .run();
+      map.set(sourceSessionId, found.id);
+      updated += 1;
+      continue;
+    }
+    const row = db
+      .insert(practiceSessions)
+      .values({
+        studentId,
+        mode: stringValue(raw.mode, "mixed") as typeof practiceSessions.$inferInsert.mode,
+        startedAt: dateValue(raw.startedAt) ?? new Date(),
+        endedAt: dateValue(raw.endedAt),
+        summary,
+      })
+      .returning()
+      .get();
+    if (row) {
+      map.set(sourceSessionId, row.id);
+      inserted += 1;
+    }
+  }
+  return { map, inserted, updated };
+}
+
+function importLearningEvents(
+  db: AppDatabase,
+  studentId: number,
+  data: StudentDataExport,
+  sessionMap: Map<number, number>,
+) {
+  const existing = db
+    .select({ payload: learningEvents.payload })
+    .from(learningEvents)
+    .where(eq(learningEvents.studentId, studentId))
+    .all();
+  const seen = new Set(
+    existing
+      .map((row) => importSource(row.payload))
+      .filter((marker): marker is ImportSource => marker?.fingerprint === data.sourceFingerprint)
+      .map((marker) => marker.eventId)
+      .filter((id): id is number => id !== undefined),
+  );
+  let inserted = 0;
+  let skipped = 0;
+  for (const raw of data.learningEvents) {
+    const sourceEventId = numberValue(raw.id);
+    if (sourceEventId === null || seen.has(sourceEventId)) {
+      skipped += 1;
+      continue;
+    }
+    const contentItemId = resolveContentItemId(db, raw.contentRef);
+    if (contentItemId === null) {
+      skipped += 1;
+      continue;
+    }
+    const sourceSessionId = numberValue(raw.sessionId);
+    const payload = {
+      ...(isRecord(raw.payload) ? raw.payload : {}),
+      __importSource: { fingerprint: data.sourceFingerprint, eventId: sourceEventId },
+    };
+    db.insert(learningEvents)
+      .values({
+        studentId,
+        contentItemId,
+        sessionId: sourceSessionId === null ? null : (sessionMap.get(sourceSessionId) ?? null),
+        kind: stringValue(raw.kind, "viewed") as typeof learningEvents.$inferInsert.kind,
+        payload,
+        occurredAt: dateValue(raw.occurredAt) ?? new Date(),
+      })
+      .run();
+    inserted += 1;
+  }
+  return { inserted, skipped };
+}
+
+function importEvidenceEvents(
+  db: AppDatabase,
+  studentId: number,
+  data: StudentDataExport,
+  sessionMap: Map<number, number>,
+) {
+  const existing = db
+    .select({ payload: sessionEvidenceEvents.payload })
+    .from(sessionEvidenceEvents)
+    .where(eq(sessionEvidenceEvents.studentId, studentId))
+    .all();
+  const seen = new Set(
+    existing
+      .map((row) => importSource(row.payload))
+      .filter((marker): marker is ImportSource => marker?.fingerprint === data.sourceFingerprint)
+      .map((marker) => marker.evidenceEventId)
+      .filter((id): id is number => id !== undefined),
+  );
+  let inserted = 0;
+  let skipped = 0;
+  for (const raw of data.evidenceEvents) {
+    const sourceEventId = numberValue(raw.id);
+    const sourceSessionId = numberValue(raw.sessionId);
+    const targetSessionId = sourceSessionId === null ? null : sessionMap.get(sourceSessionId);
+    if (sourceEventId === null || !targetSessionId || seen.has(sourceEventId)) {
+      skipped += 1;
+      continue;
+    }
+    const occurredAt = dateValue(raw.occurredAt) ?? new Date();
+    let payload = { ...(isRecord(raw.payload) ? raw.payload : {}) };
+    if (typeof payload.snapshotDataUrl === "string") {
+      const parsed = parseSnapshotDataUrl(payload.snapshotDataUrl);
+      const { snapshotDataUrl: _snapshotDataUrl, ...payloadWithoutSnapshot } = payload;
+      payload = {
+        ...payloadWithoutSnapshot,
+        fileName: writeSnapshotFile(targetSessionId, occurredAt, parsed),
+        mimeType: parsed.mimeType,
+        bytes: parsed.buffer.byteLength,
+        sha256: crypto.createHash("sha256").update(parsed.buffer).digest("hex"),
+      };
+    }
+    payload.__importSource = {
+      fingerprint: data.sourceFingerprint,
+      evidenceEventId: sourceEventId,
+    };
+    db.insert(sessionEvidenceEvents)
+      .values({
+        studentId,
+        sessionId: targetSessionId,
+        kind: stringValue(
+          raw.kind,
+          "answer_submitted",
+        ) as typeof sessionEvidenceEvents.$inferInsert.kind,
+        severity: stringValue(
+          raw.severity,
+          "info",
+        ) as typeof sessionEvidenceEvents.$inferInsert.severity,
+        durationMs: numberValue(raw.durationMs),
+        payload,
+        occurredAt,
+      })
+      .run();
+    inserted += 1;
+  }
+  return { inserted, skipped };
+}
+
+function upsertImportedProgress(
+  db: AppDatabase,
+  studentId: number,
+  data: StudentDataExport,
+): number {
+  let count = 0;
+  for (const raw of data.itemProgress) {
+    const contentItemId = resolveContentItemId(db, raw.contentRef);
+    if (contentItemId === null) continue;
+    db.insert(itemProgress)
+      .values({
+        studentId,
+        contentItemId,
+        track: stringValue(raw.track, "curated") as typeof itemProgress.$inferInsert.track,
+        stability: numberValue(raw.stability) ?? 0,
+        difficulty: numberValue(raw.difficulty) ?? 5,
+        state: stringValue(raw.state, "new") as typeof itemProgress.$inferInsert.state,
+        reps: numberValue(raw.reps) ?? 0,
+        lapses: numberValue(raw.lapses) ?? 0,
+        lastSeenAt: dateValue(raw.lastSeenAt),
+        nextDueAt: dateValue(raw.nextDueAt),
+        totalCorrect: numberValue(raw.totalCorrect) ?? 0,
+        totalWrong: numberValue(raw.totalWrong) ?? 0,
+        currentStageKind: nullableString(raw.currentStageKind),
+        updatedAt: dateValue(raw.updatedAt) ?? new Date(),
+      })
+      .onConflictDoUpdate({
+        target: [itemProgress.studentId, itemProgress.contentItemId],
+        set: {
+          track: stringValue(raw.track, "curated") as typeof itemProgress.$inferInsert.track,
+          stability: numberValue(raw.stability) ?? 0,
+          difficulty: numberValue(raw.difficulty) ?? 5,
+          state: stringValue(raw.state, "new") as typeof itemProgress.$inferInsert.state,
+          reps: numberValue(raw.reps) ?? 0,
+          lapses: numberValue(raw.lapses) ?? 0,
+          lastSeenAt: dateValue(raw.lastSeenAt),
+          nextDueAt: dateValue(raw.nextDueAt),
+          totalCorrect: numberValue(raw.totalCorrect) ?? 0,
+          totalWrong: numberValue(raw.totalWrong) ?? 0,
+          currentStageKind: nullableString(raw.currentStageKind),
+          updatedAt: dateValue(raw.updatedAt) ?? new Date(),
+        },
+      })
+      .run();
+    count += 1;
+  }
+  return count;
+}
+
+function upsertAchievements(db: AppDatabase, studentId: number, data: StudentDataExport): number {
+  let count = 0;
+  for (const raw of data.achievements) {
+    const achievementId = nullableString(raw.achievementId);
+    if (!achievementId) continue;
+    db.insert(studentAchievements)
+      .values({
+        studentId,
+        achievementId,
+        unlockedAt: dateValue(raw.unlockedAt) ?? new Date(),
+      })
+      .onConflictDoNothing()
+      .run();
+    count += 1;
+  }
+  return count;
+}
+
+function upsertDictionaryData(
+  db: AppDatabase,
+  studentId: number,
+  data: StudentDataExport,
+  sessionMap: Map<number, number>,
+): { itemMap: Map<number, number>; searchesInserted: number; searchesSkipped: number } {
+  const existingSearches = new Set(
+    db
+      .select({
+        query: dictionarySearchEvents.query,
+        dictionaryKey: dictionarySearchEvents.dictionaryKey,
+        createdAt: dictionarySearchEvents.createdAt,
+      })
+      .from(dictionarySearchEvents)
+      .where(eq(dictionarySearchEvents.studentId, studentId))
+      .all()
+      .map((row) => dictionarySearchKey(row.query, row.dictionaryKey, row.createdAt)),
+  );
+  let searchesInserted = 0;
+  let searchesSkipped = 0;
+  for (const raw of data.dictionary.searches) {
+    const createdAt = dateValue(raw.createdAt) ?? new Date();
+    const query = stringValue(raw.query, "");
+    const dictionaryKey = nullableString(raw.dictionaryKey);
+    const key = dictionarySearchKey(query, dictionaryKey, createdAt);
+    if (existingSearches.has(key)) {
+      searchesSkipped += 1;
+      continue;
+    }
+    db.insert(dictionarySearchEvents)
+      .values({
+        studentId,
+        query,
+        dictionaryKey,
+        headword: nullableString(raw.headword),
+        createdAt,
+      })
+      .run();
+    existingSearches.add(key);
+    searchesInserted += 1;
+  }
+
+  const itemMap = new Map<number, number>();
+  for (const raw of data.dictionary.items) {
+    const dictionaryKey = nullableString(raw.dictionaryKey);
+    const sourceItemId = numberValue(raw.id);
+    if (!dictionaryKey || sourceItemId === null) continue;
+    db.insert(dictionaryLearningItems)
+      .values({
+        studentId,
+        dictionaryKey,
+        headword: stringValue(raw.headword, dictionaryKey),
+        pos: stringValue(raw.pos, "noun") as typeof dictionaryLearningItems.$inferInsert.pos,
+        ipa: nullableString(raw.ipa),
+        cefrLevel: nullableString(
+          raw.cefrLevel,
+        ) as typeof dictionaryLearningItems.$inferInsert.cefrLevel,
+        definitionEn: stringValue(raw.definitionEn, ""),
+        definitionVi: nullableString(raw.definitionVi),
+        exampleText: nullableString(raw.exampleText),
+        exampleTranslation: nullableString(raw.exampleTranslation),
+        audioRef: nullableString(raw.audioRef),
+        status: stringValue(
+          raw.status,
+          "learning",
+        ) as typeof dictionaryLearningItems.$inferInsert.status,
+        stage: stringValue(
+          raw.stage,
+          "flashcard",
+        ) as typeof dictionaryLearningItems.$inferInsert.stage,
+        stability: numberValue(raw.stability) ?? 0,
+        difficulty: numberValue(raw.difficulty) ?? 5,
+        state: stringValue(raw.state, "new") as typeof dictionaryLearningItems.$inferInsert.state,
+        reps: numberValue(raw.reps) ?? 0,
+        lapses: numberValue(raw.lapses) ?? 0,
+        totalCorrect: numberValue(raw.totalCorrect) ?? 0,
+        totalWrong: numberValue(raw.totalWrong) ?? 0,
+        lastReviewedAt: dateValue(raw.lastReviewedAt),
+        nextDueAt: dateValue(raw.nextDueAt),
+        createdAt: dateValue(raw.createdAt) ?? new Date(),
+        updatedAt: dateValue(raw.updatedAt) ?? new Date(),
+      })
+      .onConflictDoUpdate({
+        target: [dictionaryLearningItems.studentId, dictionaryLearningItems.dictionaryKey],
+        set: {
+          headword: stringValue(raw.headword, dictionaryKey),
+          pos: stringValue(raw.pos, "noun") as typeof dictionaryLearningItems.$inferInsert.pos,
+          ipa: nullableString(raw.ipa),
+          cefrLevel: nullableString(
+            raw.cefrLevel,
+          ) as typeof dictionaryLearningItems.$inferInsert.cefrLevel,
+          definitionEn: stringValue(raw.definitionEn, ""),
+          definitionVi: nullableString(raw.definitionVi),
+          exampleText: nullableString(raw.exampleText),
+          exampleTranslation: nullableString(raw.exampleTranslation),
+          audioRef: nullableString(raw.audioRef),
+          status: stringValue(
+            raw.status,
+            "learning",
+          ) as typeof dictionaryLearningItems.$inferInsert.status,
+          stage: stringValue(
+            raw.stage,
+            "flashcard",
+          ) as typeof dictionaryLearningItems.$inferInsert.stage,
+          stability: numberValue(raw.stability) ?? 0,
+          difficulty: numberValue(raw.difficulty) ?? 5,
+          state: stringValue(raw.state, "new") as typeof dictionaryLearningItems.$inferInsert.state,
+          reps: numberValue(raw.reps) ?? 0,
+          lapses: numberValue(raw.lapses) ?? 0,
+          totalCorrect: numberValue(raw.totalCorrect) ?? 0,
+          totalWrong: numberValue(raw.totalWrong) ?? 0,
+          lastReviewedAt: dateValue(raw.lastReviewedAt),
+          nextDueAt: dateValue(raw.nextDueAt),
+          updatedAt: dateValue(raw.updatedAt) ?? new Date(),
+        },
+      })
+      .run();
+    const target = db
+      .select({ id: dictionaryLearningItems.id })
+      .from(dictionaryLearningItems)
+      .where(
+        and(
+          eq(dictionaryLearningItems.studentId, studentId),
+          eq(dictionaryLearningItems.dictionaryKey, dictionaryKey),
+        ),
+      )
+      .get();
+    if (target) itemMap.set(sourceItemId, target.id);
+  }
+
+  const existingReviews = new Set(
+    db
+      .select({
+        answer: dictionaryLearningReviews.answer,
+        createdAt: dictionaryLearningReviews.createdAt,
+      })
+      .from(dictionaryLearningReviews)
+      .where(eq(dictionaryLearningReviews.studentId, studentId))
+      .all()
+      .map((row) => `${row.answer ?? ""}:${row.createdAt.getTime()}`),
+  );
+  for (const raw of data.dictionary.reviews) {
+    const sourceItemId = numberValue(raw.itemId);
+    const itemId = sourceItemId === null ? null : itemMap.get(sourceItemId);
+    if (!itemId) continue;
+    const createdAt = dateValue(raw.createdAt) ?? new Date();
+    const key = `${nullableString(raw.answer) ?? ""}:${createdAt.getTime()}`;
+    if (existingReviews.has(key)) continue;
+    db.insert(dictionaryLearningReviews)
+      .values({
+        itemId,
+        studentId,
+        sessionId:
+          numberValue(raw.sessionId) === null
+            ? null
+            : (sessionMap.get(numberValue(raw.sessionId) ?? -1) ?? null),
+        stageBefore: stringValue(
+          raw.stageBefore,
+          "flashcard",
+        ) as typeof dictionaryLearningReviews.$inferInsert.stageBefore,
+        stageAfter: stringValue(
+          raw.stageAfter,
+          "flashcard",
+        ) as typeof dictionaryLearningReviews.$inferInsert.stageAfter,
+        statusAfter: stringValue(
+          raw.statusAfter,
+          "learning",
+        ) as typeof dictionaryLearningReviews.$inferInsert.statusAfter,
+        correct: Boolean(raw.correct),
+        answer: nullableString(raw.answer),
+        expected: nullableString(raw.expected),
+        createdAt,
+      })
+      .run();
+  }
+  return { itemMap, searchesInserted, searchesSkipped };
+}
+
+function dictionarySearchKey(query: string, dictionaryKey: string | null, createdAt: Date): string {
+  return `${query.trim().toLowerCase()}:${dictionaryKey ?? ""}:${createdAt.getTime()}`;
+}
+
+function exportAssignments(db: AppDatabase, studentId: number) {
+  return db
+    .select({
+      status: unitAssignments.status,
+      assignedAt: unitAssignments.assignedAt,
+      completedAt: unitAssignments.completedAt,
+      metadata: unitAssignments.metadata,
+      bookCode: books.code,
+      unitCode: units.code,
+    })
+    .from(unitAssignments)
+    .innerJoin(units, eq(units.id, unitAssignments.unitId))
+    .innerJoin(books, eq(books.id, units.bookId))
+    .where(eq(unitAssignments.studentId, studentId))
+    .all();
+}
+
+function upsertAssignments(db: AppDatabase, studentId: number, data: StudentDataExport): number {
+  let count = 0;
+  for (const raw of data.assignments) {
+    const bookCode = nullableString(raw.bookCode);
+    const unitCode = nullableString(raw.unitCode);
+    if (!bookCode || !unitCode) continue;
+    const unit = db
+      .select({ unitId: units.id, bookId: books.id })
+      .from(units)
+      .innerJoin(books, eq(books.id, units.bookId))
+      .where(and(eq(books.code, bookCode), eq(units.code, unitCode)))
+      .get();
+    if (!unit) continue;
+    db.insert(enrollments)
+      .values({
+        studentId,
+        bookId: unit.bookId,
+        currentUnitId: unit.unitId,
+        status: "active",
+      })
+      .onConflictDoUpdate({
+        target: [enrollments.studentId, enrollments.bookId],
+        set: { currentUnitId: unit.unitId, status: "active" },
+      })
+      .run();
+    db.insert(unitAssignments)
+      .values({
+        studentId,
+        unitId: unit.unitId,
+        status: stringValue(raw.status, "assigned") as typeof unitAssignments.$inferInsert.status,
+        assignedAt: dateValue(raw.assignedAt) ?? new Date(),
+        completedAt: dateValue(raw.completedAt),
+        metadata: isRecord(raw.metadata) ? raw.metadata : null,
+      })
+      .onConflictDoUpdate({
+        target: [unitAssignments.studentId, unitAssignments.unitId],
+        set: {
+          status: stringValue(raw.status, "assigned") as typeof unitAssignments.$inferInsert.status,
+          completedAt: dateValue(raw.completedAt),
+          metadata: isRecord(raw.metadata) ? raw.metadata : null,
+        },
+      })
+      .run();
+    count += 1;
+  }
+  return count;
+}
 
 function parseSnapshotDataUrl(dataUrl: string): { mimeType: string; buffer: Buffer } {
   const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl);
@@ -336,4 +1063,187 @@ function safeFilename(value: string): string {
 
 function formatStamp(date: Date): string {
   return date.toISOString().replace(/[:.]/g, "-");
+}
+
+function requireDb(ctx: ProcedureContext): AppDatabase {
+  if (!ctx.db) throw new Error("Database handle is unavailable for this procedure.");
+  return ctx.db;
+}
+
+function studentSourceFingerprint(student: { id: number; createdAt: Date; name: string }): string {
+  return crypto
+    .createHash("sha256")
+    .update(`vocab-app:${student.id}:${student.createdAt.toISOString()}:${student.name}`)
+    .digest("hex")
+    .slice(0, 24);
+}
+
+function importMapKey(fingerprint: string): string {
+  return `student_import_map:${fingerprint}`;
+}
+
+export const __studentDataImportTest = {
+  buildStudentDataExport,
+  importStudentDataBundle,
+};
+
+function contentRefForItem(db: AppDatabase, contentItemId: number): ContentRef | null {
+  const row = db
+    .select({
+      id: contentItems.id,
+      kind: contentItems.kind,
+      refTable: contentItems.refTable,
+      refId: contentItems.refId,
+      bookCode: books.code,
+      unitCode: units.code,
+      lessonSlug: lessons.slug,
+      lessonKind: lessons.kind,
+      vocabSourceId: vocabEntries.sourceId,
+      vocabHeadword: vocabEntries.headword,
+      grammarSourceId: grammarTopics.sourceId,
+      grammarSlug: grammarTopics.slug,
+    })
+    .from(contentItems)
+    .innerJoin(lessons, eq(lessons.id, contentItems.lessonId))
+    .innerJoin(units, eq(units.id, lessons.unitId))
+    .innerJoin(books, eq(books.id, units.bookId))
+    .leftJoin(
+      vocabEntries,
+      and(eq(contentItems.refTable, "vocab_entries"), eq(contentItems.refId, vocabEntries.id)),
+    )
+    .leftJoin(
+      grammarTopics,
+      and(eq(contentItems.refTable, "grammar_topics"), eq(contentItems.refId, grammarTopics.id)),
+    )
+    .where(eq(contentItems.id, contentItemId))
+    .get();
+  if (!row) return null;
+  return {
+    refTable: row.refTable,
+    refId: row.refId,
+    kind: row.kind,
+    bookCode: row.bookCode,
+    unitCode: row.unitCode,
+    lessonSlug: row.lessonSlug,
+    lessonKind: row.lessonKind,
+    sourceId: row.vocabSourceId ?? row.grammarSourceId ?? null,
+    slug: row.grammarSlug ?? null,
+    headword: row.vocabHeadword ?? null,
+  };
+}
+
+function resolveContentItemId(db: AppDatabase, ref: ContentRef | null | undefined): number | null {
+  if (!ref) return null;
+  const base = db
+    .select({ id: contentItems.id })
+    .from(contentItems)
+    .innerJoin(lessons, eq(lessons.id, contentItems.lessonId))
+    .innerJoin(units, eq(units.id, lessons.unitId))
+    .innerJoin(books, eq(books.id, units.bookId));
+  if (ref.refTable === "vocab_entries") {
+    const row = base
+      .innerJoin(vocabEntries, eq(vocabEntries.id, contentItems.refId))
+      .where(
+        and(
+          eq(contentItems.refTable, "vocab_entries"),
+          eq(books.code, ref.bookCode ?? ""),
+          eq(units.code, ref.unitCode ?? ""),
+          eq(lessons.slug, ref.lessonSlug ?? ""),
+          ref.sourceId
+            ? eq(vocabEntries.sourceId, ref.sourceId)
+            : eq(vocabEntries.headword, ref.headword ?? ""),
+        ),
+      )
+      .get();
+    return row?.id ?? null;
+  }
+  if (ref.refTable === "grammar_topics") {
+    const row = base
+      .innerJoin(grammarTopics, eq(grammarTopics.id, contentItems.refId))
+      .where(
+        and(
+          eq(contentItems.refTable, "grammar_topics"),
+          eq(books.code, ref.bookCode ?? ""),
+          eq(units.code, ref.unitCode ?? ""),
+          eq(lessons.slug, ref.lessonSlug ?? ""),
+          eq(grammarTopics.slug, ref.slug ?? ""),
+        ),
+      )
+      .get();
+    return row?.id ?? null;
+  }
+  return null;
+}
+
+function parseReportBundle(body: string, passphrase: string | undefined): Record<string, unknown> {
+  const parsed = JSON.parse(body) as Record<string, unknown>;
+  if (parsed.schemaVersion !== "vocab.report-bundle.v1") {
+    throw new Error("Unsupported report bundle format.");
+  }
+  const report = parsed.report;
+  if (!isRecord(report)) throw new Error("Report bundle is missing its report payload.");
+  if (report.schemaVersion === "vocab.encrypted-report.v1") {
+    if (!passphrase)
+      throw new Error("This bundle is encrypted. Enter its passphrase and try again.");
+    return JSON.parse(decryptReport(report, passphrase)) as Record<string, unknown>;
+  }
+  return report;
+}
+
+function decryptReport(report: Record<string, unknown>, passphrase: string): string {
+  const encryption = report.encryption;
+  if (!isRecord(encryption)) throw new Error("Encrypted report metadata is invalid.");
+  const key = crypto.pbkdf2Sync(
+    passphrase,
+    Buffer.from(stringValue(encryption.salt, ""), "base64"),
+    numberValue(encryption.iterations) ?? 210_000,
+    32,
+    "sha256",
+  );
+  const decipher = crypto.createDecipheriv(
+    "aes-256-gcm",
+    key,
+    Buffer.from(stringValue(encryption.iv, ""), "base64"),
+  );
+  decipher.setAuthTag(Buffer.from(stringValue(encryption.authTag, ""), "base64"));
+  return Buffer.concat([
+    decipher.update(Buffer.from(stringValue(report.ciphertext, ""), "base64")),
+    decipher.final(),
+  ]).toString("utf8");
+}
+
+interface ImportSource {
+  fingerprint?: string;
+  sessionId?: number;
+  eventId?: number;
+  evidenceEventId?: number;
+}
+
+function importSource(value: unknown): ImportSource | null {
+  if (!isRecord(value)) return null;
+  const marker = value.__importSource;
+  return isRecord(marker) ? (marker as ImportSource) : null;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function stringValue(value: unknown, fallback: string): string {
+  return typeof value === "string" && value.length > 0 ? value : fallback;
+}
+
+function nullableString(value: unknown): string | null {
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+function numberValue(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function dateValue(value: unknown): Date | null {
+  if (value instanceof Date) return value;
+  if (typeof value !== "string" && typeof value !== "number") return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
 }
