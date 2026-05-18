@@ -103,6 +103,7 @@ export const queryKeys = {
       ["evidence", "sessionTimeline", sessionId, includeSnapshots] as const,
   },
   rewards: {
+    stats: (studentId: number) => ["rewards", "stats", studentId] as const,
     listUnlocked: (studentId: number) => ["rewards", "listUnlocked", studentId] as const,
     streak: (studentId: number) => ["rewards", "streak", studentId] as const,
   },

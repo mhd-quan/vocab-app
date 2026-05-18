@@ -32,7 +32,7 @@ import type {
   VocabEntry,
 } from "../src/data/types";
 import type { SelfGrade } from "../src/modules/exercises/types";
-import type { StreakStats } from "../src/modules/rewards";
+import type { AchievementStats, StreakStats } from "../src/modules/rewards";
 import type {
   StudentEvidenceOverview,
   StudentEvidenceTimeline,
@@ -399,6 +399,8 @@ const api = {
   },
 
   rewards: {
+    stats: (input: { studentId: number; nowIso?: string }) =>
+      invoke<AchievementStats>("rewards.stats", input),
     listUnlocked: (input: { studentId: number }) =>
       invoke<StudentAchievement[]>("rewards.listUnlocked", input),
     streak: (input: { studentId: number; nowIso?: string }) =>

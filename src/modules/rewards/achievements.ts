@@ -4,6 +4,15 @@
  * achievement is a code-only change with no migration.
  */
 
+export type AchievementGroup =
+  | "answers"
+  | "words"
+  | "practice"
+  | "daily"
+  | "session_run"
+  | "accuracy"
+  | "retention";
+
 export interface AchievementDefinition {
   id: string;
   title: string;
@@ -21,6 +30,7 @@ export interface AchievementDefinition {
     | "gem"
     | "crown";
   tier: "bronze" | "silver" | "gold" | "platinum" | "mythic";
+  group: AchievementGroup;
   goal:
     | { metric: keyof AchievementStats; target: number }
     | { metric: "accuracy"; target: number; floor: number };
@@ -46,6 +56,7 @@ interface AchievementRule extends AchievementDefinition {
 const LEGACY_RULES: AchievementRule[] = [
   {
     id: "first_answer",
+    group: "answers",
     title: "Spark Rookie",
     description: "Answered your very first question correctly.",
     icon: "spark",
@@ -55,6 +66,7 @@ const LEGACY_RULES: AchievementRule[] = [
   },
   {
     id: "streak_5",
+    group: "session_run",
     title: "Flame Runner",
     description: "Got 5 in a row right inside one session.",
     icon: "flame",
@@ -64,6 +76,7 @@ const LEGACY_RULES: AchievementRule[] = [
   },
   {
     id: "streak_10",
+    group: "session_run",
     title: "Dragon Mode",
     description: "Got 10 in a row right inside one session.",
     icon: "flame",
@@ -73,6 +86,7 @@ const LEGACY_RULES: AchievementRule[] = [
   },
   {
     id: "daily_3",
+    group: "daily",
     title: "Calendar Scout",
     description: "Practised three days in a row.",
     icon: "calendar",
@@ -82,6 +96,7 @@ const LEGACY_RULES: AchievementRule[] = [
   },
   {
     id: "daily_7",
+    group: "daily",
     title: "Seven-Day Sentinel",
     description: "Practised every day for a week straight.",
     icon: "calendar",
@@ -91,6 +106,7 @@ const LEGACY_RULES: AchievementRule[] = [
   },
   {
     id: "learned_25",
+    group: "words",
     title: "Word Ranger",
     description: "Answered 25 different words correctly.",
     icon: "target",
@@ -100,6 +116,7 @@ const LEGACY_RULES: AchievementRule[] = [
   },
   {
     id: "learned_100",
+    group: "words",
     title: "Lexicon Vault Keeper",
     description: "Answered 100 different words correctly.",
     icon: "trophy",
@@ -109,6 +126,7 @@ const LEGACY_RULES: AchievementRule[] = [
   },
   {
     id: "accuracy_master",
+    group: "accuracy",
     title: "Crystal Aim",
     description: "Hit 90% accuracy with at least 50 answers.",
     icon: "star",
@@ -145,6 +163,7 @@ const RULES: AchievementRule[] = dedupeRules([
   ...ANSWER_THRESHOLDS.map((threshold) =>
     thresholdRule({
       id: `answers_${threshold}`,
+      group: "answers",
       title: correctTitle(threshold),
       description: `Answered ${threshold} questions correctly.`,
       icon: threshold >= 2000 ? "crown" : threshold >= 500 ? "trophy" : "spark",
@@ -156,6 +175,7 @@ const RULES: AchievementRule[] = dedupeRules([
   ...WORD_THRESHOLDS.map((threshold) =>
     thresholdRule({
       id: `words_${threshold}`,
+      group: "words",
       title: wordTitle(threshold),
       description: `Answered ${threshold} different vocabulary words correctly.`,
       icon: threshold >= 1000 ? "gem" : threshold >= 500 ? "trophy" : "target",
@@ -167,6 +187,7 @@ const RULES: AchievementRule[] = dedupeRules([
   ...ATTEMPT_THRESHOLDS.map((threshold) =>
     thresholdRule({
       id: `practice_${threshold}`,
+      group: "practice",
       title: practiceTitle(threshold),
       description: `Completed ${threshold} total practice attempts.`,
       icon: threshold >= 3000 ? "crown" : threshold >= 1000 ? "trophy" : "star",
@@ -178,6 +199,7 @@ const RULES: AchievementRule[] = dedupeRules([
   ...DAILY_THRESHOLDS.map((threshold) =>
     thresholdRule({
       id: `daily_${threshold}`,
+      group: "daily",
       title: streakDayTitle(threshold),
       description: `Kept a learning streak for ${threshold} days.`,
       icon: threshold >= 180 ? "phoenix" : threshold >= 30 ? "trophy" : "calendar",
@@ -189,6 +211,7 @@ const RULES: AchievementRule[] = dedupeRules([
   ...SESSION_RUN_THRESHOLDS.map((threshold) =>
     thresholdRule({
       id: `streak_${threshold}`,
+      group: "session_run",
       title: runTitle(threshold),
       description: `Got ${threshold} answers correct in one session without a miss.`,
       icon: threshold >= 60 ? "phoenix" : threshold >= 20 ? "trophy" : "flame",
@@ -201,6 +224,7 @@ const RULES: AchievementRule[] = dedupeRules([
     ACCURACY_THRESHOLDS.map((pct) =>
       thresholdRule({
         id: `accuracy_${pct}_after_${floor}`,
+        group: "accuracy",
         title: accuracyTitle(pct, floor),
         description: `Held at least ${pct}% accuracy after ${floor} practice attempts.`,
         icon: pct >= 98 ? "gem" : pct >= 95 ? "trophy" : "star",
@@ -222,6 +246,7 @@ const RULES: AchievementRule[] = dedupeRules([
   ...WORD_THRESHOLDS.slice(0, 24).map((threshold) =>
     thresholdRule({
       id: `retention_${threshold}`,
+      group: "retention",
       title: stableTitle(threshold),
       description: `Built a remembered-word base of ${threshold} vocabulary items.`,
       icon: threshold >= 300 ? "compass" : "target",
@@ -253,10 +278,58 @@ export function evaluateAchievements(stats: AchievementStats): string[] {
   return RULES.filter((rule) => rule.earned(stats)).map((rule) => rule.id);
 }
 
+export interface AchievementProgress {
+  value: number;
+  max: number;
+  pct: number;
+  remaining: number;
+  label: string;
+}
+
+export function nextAchievementQuests(
+  achievements: readonly AchievementDefinition[],
+  unlockedIds: ReadonlySet<string>,
+  stats: AchievementStats,
+): Array<{ achievement: AchievementDefinition; progress: AchievementProgress }> {
+  const byGroup = new Map<
+    AchievementGroup,
+    { achievement: AchievementDefinition; progress: AchievementProgress }
+  >();
+
+  for (const achievement of achievements) {
+    if (unlockedIds.has(achievement.id)) continue;
+    const progress = achievementProgress(achievement, stats);
+    const current = byGroup.get(achievement.group);
+    if (
+      !current ||
+      questRank(progress, achievement) > questRank(current.progress, current.achievement)
+    ) {
+      byGroup.set(achievement.group, { achievement, progress });
+    }
+  }
+
+  return [...byGroup.values()].sort((a, b) => {
+    const delta = b.progress.pct - a.progress.pct;
+    return delta !== 0 ? delta : a.progress.remaining - b.progress.remaining;
+  });
+}
+
+function questRank(progress: AchievementProgress, achievement: AchievementDefinition): number {
+  return progress.pct * 10_000 - progress.remaining - tierWeight(achievement.tier);
+}
+
+function tierWeight(tier: AchievementDefinition["tier"]): number {
+  if (tier === "mythic") return 5;
+  if (tier === "platinum") return 4;
+  if (tier === "gold") return 3;
+  if (tier === "silver") return 2;
+  return 1;
+}
+
 export function achievementProgress(
   achievement: AchievementDefinition,
   stats: AchievementStats,
-): { value: number; max: number; pct: number; label: string } {
+): AchievementProgress {
   if (achievement.goal.metric === "accuracy") {
     const attempts = Math.min(stats.totalAttempts, achievement.goal.floor);
     const pctNow = Math.round(accuracy(stats) * 100);
@@ -267,6 +340,7 @@ export function achievementProgress(
       value,
       max,
       pct: max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0,
+      remaining: Math.max(max - value, 0),
       label: ready
         ? `${pctNow}% / ${achievement.goal.target}% accuracy`
         : `${attempts}/${achievement.goal.floor} attempts before accuracy badge`,
@@ -280,6 +354,7 @@ export function achievementProgress(
       achievement.goal.target > 0
         ? Math.min(100, Math.round((value / achievement.goal.target) * 100))
         : 0,
+    remaining: Math.max(achievement.goal.target - value, 0),
     label: `${value}/${achievement.goal.target}`,
   };
 }

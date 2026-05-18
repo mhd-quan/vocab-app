@@ -11,6 +11,15 @@ const streakInput = z.object({
 
 export const rewardsProcedures = [
   defineProcedure({
+    name: "rewards.stats",
+    input: streakInput,
+    handler: ({ studentId, nowIso }, ctx) => {
+      const now = nowIso ? new Date(nowIso) : new Date();
+      return ctx.repos.rewards.stats({ studentId, now });
+    },
+  }),
+
+  defineProcedure({
     name: "rewards.listUnlocked",
     input: studentIdInput,
     handler: ({ studentId }, ctx) => ctx.repos.rewards.listUnlocked(studentId),

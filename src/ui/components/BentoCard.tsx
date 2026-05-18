@@ -56,9 +56,9 @@ export function BentoCard({
   return (
     <Component
       className={cn(
-        "motion-card motion-enter isolate rounded-bento border p-5 shadow-card transition-[background-color,border-color,box-shadow,transform]",
+        "motion-card motion-enter isolate rounded-bento border p-5 shadow-card transition-[background-color,border-color,box-shadow]",
         "dark:shadow-card-dark",
-        interactive && "hover:-translate-y-1 hover:border-border-strong hover:shadow-lift",
+        interactive && "hover:border-border-strong hover:shadow-lift",
         TONES[tone],
         className,
       )}

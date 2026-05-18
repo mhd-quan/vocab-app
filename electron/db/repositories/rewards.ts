@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { itemProgress, learningEvents, studentAchievements } from "../../../src/data/schema";
 import type { StudentAchievement } from "../../../src/data/types";
 import {
@@ -45,9 +45,15 @@ function buildStats(reader: Reader, input: BuildStatsInput): AchievementStats {
   }
 
   const eventRows = reader
-    .select({ occurredAt: learningEvents.occurredAt })
+    .select({
+      sessionId: learningEvents.sessionId,
+      kind: learningEvents.kind,
+      occurredAt: learningEvents.occurredAt,
+      eventId: learningEvents.id,
+    })
     .from(learningEvents)
     .where(eq(learningEvents.studentId, input.studentId))
+    .orderBy(asc(learningEvents.occurredAt), asc(learningEvents.id))
     .all();
   const streak = computeStreak({
     eventTimestamps: eventRows.map((r) => r.occurredAt),
@@ -59,8 +65,33 @@ function buildStats(reader: Reader, input: BuildStatsInput): AchievementStats {
     distinctCorrect,
     totalAttempts: totalCorrect + totalWrong,
     currentStreak: streak.currentStreak,
-    bestSessionRun: input.currentSessionRun ?? 0,
+    bestSessionRun: Math.max(input.currentSessionRun ?? 0, bestSessionRun(eventRows)),
   };
+}
+
+function bestSessionRun(
+  rows: Array<{ sessionId: number | null; kind: string; occurredAt: Date; eventId: number }>,
+): number {
+  let best = 0;
+  let currentSession: number | null = null;
+  let currentRun = 0;
+
+  for (const row of rows) {
+    if (row.sessionId === null) {
+      currentSession = null;
+      currentRun = 0;
+      continue;
+    }
+    if (row.sessionId !== currentSession) {
+      currentSession = row.sessionId;
+      currentRun = 0;
+    }
+    if (row.kind !== "answered_correct" && row.kind !== "answered_wrong") continue;
+    currentRun = row.kind === "answered_correct" ? currentRun + 1 : 0;
+    if (currentRun > best) best = currentRun;
+  }
+
+  return best;
 }
 
 /**

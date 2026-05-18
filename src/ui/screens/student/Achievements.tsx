@@ -4,8 +4,8 @@ import { queryKeys } from "@/lib/queryClient";
 import {
   ACHIEVEMENTS,
   type AchievementDefinition,
-  achievementProgress,
   getAchievement,
+  nextAchievementQuests,
   summarizeStudentProgress,
 } from "@/modules/rewards";
 import { Avatar } from "@/ui/components/Avatar";
@@ -34,6 +34,11 @@ export function StudentAchievements() {
     queryFn: () => api.rewards.streak({ studentId: id }),
     enabled: Number.isFinite(id) && id > 0,
   });
+  const statsQ = useQuery({
+    queryKey: queryKeys.rewards.stats(id),
+    queryFn: () => api.rewards.stats({ studentId: id }),
+    enabled: Number.isFinite(id) && id > 0,
+  });
   const unlockedQ = useQuery({
     queryKey: queryKeys.rewards.listUnlocked(id),
     queryFn: () => api.rewards.listUnlocked({ studentId: id }),
@@ -42,13 +47,14 @@ export function StudentAchievements() {
 
   const summary = summaryQ.data;
   const streak = streakQ.data?.currentStreak ?? 0;
-  const stats = {
+  const fallbackStats = {
     totalCorrect: summary?.totalCorrect ?? 0,
     distinctCorrect: summary?.totalSeen ?? 0,
     totalAttempts: (summary?.totalCorrect ?? 0) + (summary?.totalWrong ?? 0),
     currentStreak: streak,
-    bestSessionRun: bestRunFromUnlocked((unlockedQ.data ?? []).map((u) => u.achievementId)),
+    bestSessionRun: 0,
   };
+  const stats = statsQ.data ?? fallbackStats;
   const progress = summarizeStudentProgress({
     totalSeen: summary?.totalSeen ?? 0,
     totalCorrect: summary?.totalCorrect ?? 0,
@@ -61,10 +67,7 @@ export function StudentAchievements() {
   const unlocked = [...unlockedIds]
     .map((achievementId) => getAchievement(achievementId))
     .filter((a): a is AchievementDefinition => a !== null);
-  const locked = ACHIEVEMENTS.filter((a) => !unlockedIds.has(a.id))
-    .map((a) => ({ achievement: a, progress: achievementProgress(a, stats) }))
-    .sort((a, b) => b.progress.pct - a.progress.pct)
-    .slice(0, 36);
+  const locked = nextAchievementQuests(ACHIEVEMENTS, unlockedIds, stats);
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-7 px-8 py-10">
@@ -136,7 +139,7 @@ export function StudentAchievements() {
           <div className="flex items-end justify-between gap-3">
             <div>
               <h2 className="font-display text-2xl font-semibold">Almost there</h2>
-              <p className="text-sm text-muted">Progress bars make the next quest visible.</p>
+              <p className="text-sm text-muted">Closest unfinished quest per achievement group.</p>
             </div>
             <Badge tone="focus" uppercase>
               Next quests
@@ -152,6 +155,7 @@ export function StudentAchievements() {
                   label={progress.label}
                   tone="accent"
                   className="mt-2"
+                  showValue
                 />
                 <p className="mt-1 text-[11px] text-muted-2">{progress.label}</p>
               </li>
@@ -205,11 +209,4 @@ function tierClass(tier: AchievementDefinition["tier"]): string {
   if (tier === "gold") return "border-warning/45 bg-warning/10 text-warning";
   if (tier === "silver") return "border-accent/35 bg-accent/10 text-accent";
   return "border-success/35 bg-success/10 text-success";
-}
-
-function bestRunFromUnlocked(ids: string[]): number {
-  return ids.reduce((best, id) => {
-    const match = id.match(/^streak_(\d+)$/);
-    return match ? Math.max(best, Number(match[1])) : best;
-  }, 0);
 }

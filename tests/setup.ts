@@ -313,6 +313,13 @@ Object.defineProperty(window, "api", {
       }),
     },
     rewards: {
+      stats: async () => ({
+        totalCorrect: 0,
+        distinctCorrect: 0,
+        totalAttempts: 0,
+        currentStreak: 0,
+        bestSessionRun: 0,
+      }),
       listUnlocked: async () => [],
       streak: async () => ({
         currentStreak: 0,

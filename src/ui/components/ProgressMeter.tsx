@@ -56,7 +56,7 @@ export function ProgressMeter({
       <div aria-hidden className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface-3/80">
         <div
           className={cn(
-            "progress-shimmer h-full rounded-full transition-[width] duration-500 ease-out",
+            "progress-shimmer h-full rounded-full transition-[width] duration-200 ease-out",
             TONES[tone],
           )}
           style={{ width: `${pct}%` }}
