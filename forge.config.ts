@@ -83,7 +83,7 @@ const config: ForgeConfig = {
     name: "Vocab App",
     executableName: "vocab-app",
     appBundleId: "dev.mhd-quan.vocab-app",
-    icon: undefined,
+    icon: path.join(__dirname, "assets", "icons", "app"),
     extendInfo: {
       NSCameraUsageDescription:
         "Vocab App can take visible, consented camera check-ins during student study sessions.",

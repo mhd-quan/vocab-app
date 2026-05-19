@@ -22,6 +22,7 @@ const createMainWindow = (): BrowserWindow => {
     autoHideMenuBar: true,
     titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "default",
     trafficLightPosition: { x: 16, y: 16 },
+    icon: path.join(__dirname, "..", "..", "assets", "icons", "app-256.png"),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,

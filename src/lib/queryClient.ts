@@ -74,6 +74,7 @@ export const queryKeys = {
       ["students", "assignedUnits", studentId, bookId] as const,
     assignedUnitIds: (studentId: number, bookId?: number) =>
       ["students", "assignedUnitIds", studentId, bookId ?? "all"] as const,
+    hasPin: (studentId: number) => ["students", "hasPin", studentId] as const,
   },
   studentPrefs: {
     studyBackground: (studentId: number) => ["studentPrefs", studentId, "studyBackground"] as const,

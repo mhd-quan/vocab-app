@@ -4,7 +4,7 @@ Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
 student practice) running as a desktop app on Windows and macOS.
 
-> **Status:** v0.12.5 — local-first tutor workspace, student practice,
+> **Status:** v0.13.0 — local-first tutor workspace, student practice,
 > FSRS-lite review, personal dictionary learning, rewards, imports, and
 > session-evidence reporting are all backed by the bundled SQLite schema.
 

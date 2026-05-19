@@ -1,15 +1,16 @@
 import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { queryClient, queryKeys } from "@/lib/queryClient";
+import { AppGlyph } from "@/ui/components/AppGlyph";
 import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
 import { Button } from "@/ui/components/Button";
 import { Field, TextInput } from "@/ui/components/Field";
-import { STUDENT_PETS, StudentPetIcon, parsePetSeed } from "@/ui/student/pets";
+import { PinInput } from "@/ui/components/PinInput";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 
 const COLORS = [
   "#38bdf8",
@@ -23,10 +24,6 @@ const COLORS = [
   "#84cc16",
   "#64748b",
 ];
-const EMOJI_SETS = [
-  "😀 😎 🤓 🥳 🦊 🐼 🐯 🦁 🐸 🐵 🐲 🦄 🐧 🦉 🚀 ⭐ 🔥 💎 👑 🎯".split(" "),
-  "🍀 🌈 ⚡ 🌙 ☀️ 🪐 🎮 🎧 📚 ✏️ 🧠 🏆 🥇 🎨 🧩".split(" "),
-].flat();
 const BG_PRESETS = [
   { id: "none", label: "Clean light", value: "" },
   { id: "sunrise", label: "Sunrise", value: "linear-gradient(135deg,#fff7ed,#fef3c7 45%,#ecfeff)" },
@@ -81,6 +78,8 @@ const BACKGROUND_SIZE_OPTIONS = [
   { id: "contain", label: "Fit image", value: "contain" },
   { id: "auto", label: "Tile original", value: "auto" },
 ] as const;
+const MIN_PIN_LENGTH = 4;
+const MAX_PIN_LENGTH = 12;
 type BackgroundSizeMode = (typeof BACKGROUND_SIZE_OPTIONS)[number]["value"];
 
 export function StudentSettings() {
@@ -98,18 +97,18 @@ export function StudentSettings() {
     staleTime: Number.POSITIVE_INFINITY,
     gcTime: Number.POSITIVE_INFINITY,
   });
+  const pinQ = useQuery({
+    queryKey: queryKeys.students.hasPin(id),
+    queryFn: () => api.students.hasPin({ studentId: id }),
+    enabled: Number.isFinite(id) && id > 0,
+  });
   const [nickname, setNickname] = useState("");
-  const [emojiSearch, setEmojiSearch] = useState("");
   const [backgroundSize, setBackgroundSize] = useState<BackgroundSizeMode>("cover");
   const student = studentQ.data;
   const display = nickname || student?.displayName || student?.name || "";
-  const selectedPet = parsePetSeed(student?.avatarSeed);
   const saveStudent = useMutation({
-    mutationFn: (patch: {
-      displayName?: string | null;
-      avatarSeed?: string | null;
-      color?: string | null;
-    }) => api.students.update({ id, patch }),
+    mutationFn: (patch: { displayName?: string | null; color?: string | null }) =>
+      api.students.update({ id, patch }),
     onSuccess: (updated) => {
       queryClient.setQueryData(queryKeys.students.byId(id), updated);
       queryClient.invalidateQueries({ queryKey: ["students"] });
@@ -131,19 +130,14 @@ export function StudentSettings() {
         Back to lessons
       </Link>
       <BentoCard tone="focus" className="grid gap-5 p-6 sm:grid-cols-[auto_1fr] sm:items-center">
-        <Avatar
-          name={display || "?"}
-          avatarSeed={student?.avatarSeed}
-          color={student?.color}
-          size="lg"
-        />
+        <Avatar name={display || "?"} avatarSeed={null} color={student?.color} size="lg" />
         <div>
           <Badge tone="focus" uppercase>
-            Student fun settings
+            Student settings
           </Badge>
-          <h1 className="mt-2 font-display text-4xl font-semibold">Customize your study vibe</h1>
+          <h1 className="mt-2 font-display text-4xl font-semibold">Personal workspace</h1>
           <p className="mt-1 text-sm text-muted">
-            Nickname, avatar, colors, emoji, background only. No app controls here.
+            Set your name, profile color, study background, and personal password.
           </p>
         </div>
       </BentoCard>
@@ -171,7 +165,7 @@ export function StudentSettings() {
         </BentoCard>
 
         <BentoCard className="p-5">
-          <h2 className="font-display text-2xl font-semibold">Avatar color</h2>
+          <h2 className="font-display text-2xl font-semibold">Profile color</h2>
           <div className="mt-4 flex flex-wrap gap-2">
             {COLORS.map((color) => (
               <button
@@ -186,77 +180,7 @@ export function StudentSettings() {
           </div>
         </BentoCard>
 
-        <BentoCard className="p-5 lg:col-span-2">
-          <h2 className="font-display text-2xl font-semibold">Study pet</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {STUDENT_PETS.map((pet) => {
-              const selected = selectedPet === pet.id;
-              return (
-                <button
-                  key={pet.id}
-                  type="button"
-                  aria-pressed={selected}
-                  className={cn(
-                    "group flex min-h-36 flex-col items-center justify-between rounded-bento border p-4 text-center shadow-card transition-[background-color,border-color,box-shadow,transform]",
-                    selected
-                      ? "border-accent/60 bg-accent/10 shadow-glow"
-                      : "border-border-subtle bg-surface-1 hover:-translate-y-1 hover:border-accent/40 hover:bg-surface-2",
-                  )}
-                  onClick={() => saveStudent.mutate({ avatarSeed: `pet:${pet.id}` })}
-                >
-                  <StudentPetIcon
-                    pet={pet.id}
-                    mood={selected ? "cheering" : "happy"}
-                    className="h-20 w-20"
-                  />
-                  <span className="mt-2 text-base font-semibold">{pet.name}</span>
-                  <span className="text-xs text-muted">{pet.tagline}</span>
-                </button>
-              );
-            })}
-          </div>
-        </BentoCard>
-
-        <BentoCard className="p-5 lg:col-span-2">
-          <h2 className="font-display text-2xl font-semibold">Emoji avatar picker</h2>
-          <Field label="Search or paste any Unicode emoji">
-            <TextInput
-              value={emojiSearch}
-              onChange={(e) => setEmojiSearch(e.target.value)}
-              placeholder="Paste emoji here: 🦄"
-            />
-          </Field>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {[
-              ...new Set([
-                ...EMOJI_SETS,
-                ...Array.from(emojiSearch).filter((ch) => /\p{Extended_Pictographic}/u.test(ch)),
-              ]),
-            ].map((emoji) => (
-              <button
-                key={emoji}
-                type="button"
-                className="grid h-11 w-11 place-items-center rounded-2xl border border-border-subtle bg-surface-1 text-2xl shadow-sm transition hover:-translate-y-0.5"
-                onClick={() => saveStudent.mutate({ avatarSeed: `emoji:${emoji}` })}
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
-          <label className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-button border border-border-subtle px-4 py-2 text-sm font-semibold hover:bg-surface-2">
-            Upload avatar image
-            <input
-              type="file"
-              accept="image/*"
-              className="sr-only"
-              onChange={(e) =>
-                readImage(e.currentTarget.files?.[0], (src) =>
-                  saveStudent.mutate({ avatarSeed: `image:${src}` }),
-                )
-              }
-            />
-          </label>
-        </BentoCard>
+        <PasswordCard studentId={id} hasPin={pinQ.data === true} />
 
         <BentoCard className="p-5 lg:col-span-2">
           <h2 className="font-display text-2xl font-semibold">Study background</h2>
@@ -315,6 +239,130 @@ export function StudentSettings() {
         </BentoCard>
       </section>
     </div>
+  );
+}
+
+function PasswordCard({ studentId, hasPin }: { studentId: number; hasPin: boolean }) {
+  const [currentPin, setCurrentPin] = useState("");
+  const [newPin, setNewPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (newPin.length < MIN_PIN_LENGTH) {
+        throw new Error(`Password must be at least ${MIN_PIN_LENGTH} characters`);
+      }
+      if (newPin !== confirmPin) throw new Error("Passwords do not match");
+      if (hasPin) {
+        if (currentPin.length < MIN_PIN_LENGTH) throw new Error("Current password is required");
+        return api.students.changePin({ studentId, currentPin, newPin });
+      }
+      return api.students.setupPin({ studentId, pin: newPin });
+    },
+    onSuccess: () => {
+      setCurrentPin("");
+      setNewPin("");
+      setConfirmPin("");
+      setError(null);
+      setMessage(hasPin ? "Password changed." : "Password enabled.");
+      queryClient.setQueryData(queryKeys.students.hasPin(studentId), true);
+    },
+    onError: (err) => {
+      setMessage(null);
+      setError(err instanceof Error ? err.message : "Could not save password");
+    },
+  });
+
+  const clear = useMutation({
+    mutationFn: () => api.students.clearPin({ studentId }),
+    onSuccess: () => {
+      setCurrentPin("");
+      setNewPin("");
+      setConfirmPin("");
+      setError(null);
+      setMessage("Password removed.");
+      queryClient.setQueryData(queryKeys.students.hasPin(studentId), false);
+    },
+    onError: (err) => {
+      setMessage(null);
+      setError(err instanceof Error ? err.message : "Could not remove password");
+    },
+  });
+
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    mutation.mutate();
+  }
+
+  return (
+    <BentoCard className="p-5 lg:col-span-2">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="font-display text-2xl font-semibold">Personal password</h2>
+          <p className="mt-1 text-sm text-muted">
+            Protect this student profile when multiple learners share the same Windows laptop.
+          </p>
+        </div>
+        <Badge tone={hasPin ? "success" : "muted"} uppercase>
+          {hasPin ? "Enabled" : "Optional"}
+        </Badge>
+      </div>
+      <form onSubmit={onSubmit} className="mt-4 grid gap-3 md:grid-cols-3">
+        {hasPin ? (
+          <Field label="Current password">
+            <PinInput
+              density="compact"
+              value={currentPin}
+              maxLength={MAX_PIN_LENGTH}
+              onChange={(e) => setCurrentPin(e.target.value.slice(0, MAX_PIN_LENGTH))}
+            />
+          </Field>
+        ) : null}
+        <Field label={hasPin ? "New password" : "Password"}>
+          <PinInput
+            density="compact"
+            value={newPin}
+            maxLength={MAX_PIN_LENGTH}
+            onChange={(e) => setNewPin(e.target.value.slice(0, MAX_PIN_LENGTH))}
+          />
+        </Field>
+        <Field label="Confirm password">
+          <PinInput
+            density="compact"
+            value={confirmPin}
+            maxLength={MAX_PIN_LENGTH}
+            onChange={(e) => setConfirmPin(e.target.value.slice(0, MAX_PIN_LENGTH))}
+          />
+        </Field>
+        <div className="flex items-end gap-2">
+          <Button type="submit" disabled={mutation.isPending}>
+            <AppGlyph name="lock" className="h-4 w-4" />
+            {mutation.isPending ? "Saving..." : hasPin ? "Change" : "Enable"}
+          </Button>
+          {hasPin ? (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => clear.mutate()}
+              disabled={clear.isPending}
+            >
+              Remove
+            </Button>
+          ) : null}
+        </div>
+      </form>
+      {message ? <p className="mt-3 text-sm text-success">{message}</p> : null}
+      {error ? (
+        <p
+          role="alert"
+          className="mt-3 rounded-xl border border-danger/40 bg-danger/10 px-3 py-2 text-xs text-danger"
+        >
+          {error}
+        </p>
+      ) : null}
+    </BentoCard>
   );
 }
 

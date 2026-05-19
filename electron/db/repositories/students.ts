@@ -67,6 +67,17 @@ export function createStudentsRepository(db: AppDatabase) {
       return row;
     },
 
+    updatePin(id: number, pinHash: string | null): void {
+      const result = db
+        .update(students)
+        .set({ pinHash, updatedAt: new Date() })
+        .where(and(eq(students.id, id), isNull(students.archivedAt)))
+        .run();
+      if (result.changes === 0) {
+        throw new Error(`Student ${id} not found or archived`);
+      }
+    },
+
     archive(id: number): void {
       db.update(students)
         .set({ archivedAt: new Date(), updatedAt: new Date() })

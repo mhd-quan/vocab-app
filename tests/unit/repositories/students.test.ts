@@ -38,6 +38,21 @@ describe("StudentsRepository", () => {
     expect(updated.updatedAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
   });
 
+  it("updatePin stores and clears a student password hash without touching profile fields", () => {
+    const created = repos.students.create({ name: "Alice", color: "#1a2b3c" });
+
+    repos.students.updatePin(created.id, "scrypt$1$hash");
+
+    const protectedStudent = repos.students.getById(created.id);
+    expect(protectedStudent?.pinHash).toBe("scrypt$1$hash");
+    expect(protectedStudent?.name).toBe("Alice");
+    expect(protectedStudent?.color).toBe("#1a2b3c");
+
+    repos.students.updatePin(created.id, null);
+
+    expect(repos.students.getById(created.id)?.pinHash).toBeNull();
+  });
+
   it("archive hides students from listActive but keeps them in listAll", () => {
     const a = repos.students.create({ name: "Alice" });
     repos.students.archive(a.id);

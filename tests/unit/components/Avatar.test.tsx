@@ -24,10 +24,10 @@ describe("computeInitials", () => {
 
 describe("Avatar", () => {
   it("renders initials and applies the supplied background color", () => {
-    render(<Avatar name="Alice Cooper" color="#1a2b3c" />);
+    const { container } = render(<Avatar name="Alice Cooper" color="#1a2b3c" />);
     const span = screen.getByText("AC");
     expect(span).toBeInTheDocument();
-    expect(span).toHaveStyle({ backgroundColor: "#1a2b3c" });
+    expect(container.firstElementChild).toHaveStyle({ backgroundColor: "#1a2b3c" });
   });
 
   it("falls back to the surface tone when no color is provided", () => {
@@ -54,13 +54,13 @@ describe("Avatar", () => {
     expect(img?.parentElement).not.toHaveStyle({ backgroundColor: "#1a2b3c" });
   });
 
-  it("renders pet avatar seeds without applying an inline background color", () => {
+  it("falls back to unified glyph initials for legacy pet avatar seeds", () => {
     const { container } = render(
       <Avatar name="Alice Cooper" avatarSeed="pet:nova" color="#1a2b3c" />,
     );
 
     expect(container.querySelector("svg")).toBeInTheDocument();
-    expect(screen.queryByText("AC")).toBeNull();
-    expect(container.querySelector("span")).not.toHaveStyle({ backgroundColor: "#1a2b3c" });
+    expect(screen.getByText("AC")).toBeInTheDocument();
+    expect(container.firstElementChild).toHaveStyle({ backgroundColor: "#1a2b3c" });
   });
 });
