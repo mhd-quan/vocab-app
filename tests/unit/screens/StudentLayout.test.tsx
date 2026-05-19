@@ -1,5 +1,6 @@
 import { AppModeProvider } from "@/providers/AppModeProvider";
 import { StudentLayout } from "@/ui/shell/StudentLayout";
+import { clearUnlockedStudentProfiles, markStudentUnlocked } from "@/ui/student/access";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -9,8 +10,8 @@ import {
   createRoute,
   createRouter,
 } from "@tanstack/react-router";
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 function renderStudentLayout() {
   const rootRoute = createRootRoute({ component: () => <Outlet /> });
@@ -40,12 +41,42 @@ function renderStudentLayout() {
 }
 
 describe("StudentLayout", () => {
+  beforeEach(() => {
+    clearUnlockedStudentProfiles();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("lets routed study screens own the full horizontal surface", async () => {
+    vi.spyOn(window.api.students, "hasPin").mockResolvedValue(false);
     renderStudentLayout();
 
     const main = await screen.findByRole("main");
     expect(main).toHaveClass("min-w-0", "flex-1", "overflow-y-auto");
     expect(main).not.toHaveClass("flex");
-    expect(screen.getByTestId("study-child")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId("study-child")).toBeInTheDocument());
+  });
+
+  it("blocks deep links to protected profiles until the profile is unlocked", async () => {
+    vi.spyOn(window.api.students, "hasPin").mockResolvedValue(true);
+    renderStudentLayout();
+
+    expect(await screen.findByText("Profile locked")).toBeInTheDocument();
+    expect(screen.queryByTestId("study-child")).toBeNull();
+    expect(screen.getByRole("link", { name: /choose profile/i })).toHaveAttribute(
+      "href",
+      "/student",
+    );
+  });
+
+  it("allows protected profile routes after the picker unlocks the student", async () => {
+    markStudentUnlocked(1);
+    vi.spyOn(window.api.students, "hasPin").mockResolvedValue(true);
+    renderStudentLayout();
+
+    expect(await screen.findByTestId("study-child")).toBeInTheDocument();
+    expect(screen.queryByText("Profile locked")).toBeNull();
   });
 });

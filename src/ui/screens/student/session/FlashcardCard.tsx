@@ -104,8 +104,15 @@ export function FlashcardCard({
           autoPlayKey={autoplay ? exercise.id : null}
           preferredAccent={preferredAccent}
           size="sm"
+          hotkeys={{ uk: "k", us: "u" }}
           className="justify-center"
         />
+        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase text-muted-2">
+          <span className="rounded-full border border-border-subtle px-2 py-0.5 font-mono">K</span>
+          <span>UK audio</span>
+          <span className="rounded-full border border-border-subtle px-2 py-0.5 font-mono">U</span>
+          <span>US audio</span>
+        </div>
       </div>
 
       {!revealed ? (

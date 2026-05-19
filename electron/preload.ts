@@ -182,7 +182,7 @@ interface UpdateStudentPatch {
 const api = {
   app: {
     name: "vocab-app",
-    version: "0.12.4",
+    version: "0.13.0",
     platform: process.platform,
   },
 
@@ -285,6 +285,17 @@ const api = {
     create: (input: CreateStudent) => invoke<Student>("students.create", input),
     update: (input: { id: number; patch: UpdateStudentPatch }) =>
       invoke<Student>("students.update", input),
+    hasPin: (input: { studentId: number }) => invoke<boolean>("students.hasPin", input),
+    setupPin: (input: { studentId: number; pin: string }) =>
+      invoke<{ ok: true }>("students.setupPin", input),
+    verifyPin: (input: { studentId: number; pin: string }) =>
+      invoke<{ ok: true } | { ok: false; reason: "no_pin" | "invalid" }>(
+        "students.verifyPin",
+        input,
+      ),
+    changePin: (input: { studentId: number; currentPin: string; newPin: string }) =>
+      invoke<{ ok: true }>("students.changePin", input),
+    clearPin: (input: { studentId: number }) => invoke<{ ok: true }>("students.clearPin", input),
     archive: (input: { id: number }) => invoke<{ ok: true }>("students.archive", input),
     restore: (input: { id: number }) => invoke<{ ok: true }>("students.restore", input),
     listAssignedBooks: (input: { studentId: number }) =>

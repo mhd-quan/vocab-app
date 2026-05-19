@@ -16,6 +16,7 @@ export function VocabularyPronunciation({
   autoPlayKey = null,
   preferredAccent = "uk",
   size = "sm",
+  hotkeys,
   className,
 }: {
   headword: string;
@@ -23,6 +24,7 @@ export function VocabularyPronunciation({
   autoPlayKey?: string | null;
   preferredAccent?: PreferredPronunciationAccent;
   size?: "sm" | "md";
+  hotkeys?: Partial<Record<"uk" | "us" | "preferred", string>>;
   className?: string;
 }) {
   const term = headword.trim();
@@ -47,6 +49,7 @@ export function VocabularyPronunciation({
       autoPlayKey={autoPlayKey}
       preferredAccent={preferredAccent}
       size={size}
+      hotkeys={hotkeys}
       className={className}
     />
   );

@@ -5,11 +5,17 @@ import { computeStudentXp } from "@/modules/rewards";
 import { useAppMode } from "@/providers/AppModeProvider";
 import { Button } from "@/ui/components/Button";
 import { StudentDictionaryPopup } from "@/ui/components/dictionary/StudentDictionaryPopup";
+import {
+  getStudentAccessVersion,
+  isStudentUnlocked,
+  subscribeStudentAccess,
+} from "@/ui/student/access";
 import { StreakBanner } from "@/ui/student/components/StreakBanner";
 import { XPBadge } from "@/ui/student/components/XPBadge";
+import { StudentLogoMark } from "@/ui/student/pets";
 import { useQuery } from "@tanstack/react-query";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { LockIcon } from "./icons";
 
 const loadedStudyBackgrounds = new Set<string>();
@@ -20,6 +26,11 @@ export function StudentLayout() {
   const [dictionaryOpen, setDictionaryOpen] = useState(false);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const activeStudentId = studentIdFromPath(pathname);
+  const studentAccessVersion = useSyncExternalStore(
+    subscribeStudentAccess,
+    getStudentAccessVersion,
+    getStudentAccessVersion,
+  );
   const backgroundQ = useQuery({
     queryKey: queryKeys.studentPrefs.studyBackground(activeStudentId ?? 0),
     queryFn: () =>
@@ -49,6 +60,14 @@ export function StudentLayout() {
   const customBackground = useLoadedStudyBackground(savedBackground);
   const hasCustomBackground = savedBackground.length > 0;
   const summary = summaryQ.data;
+  const pinQ = useQuery({
+    queryKey: queryKeys.students.hasPin(activeStudentId ?? 0),
+    queryFn: () => api.students.hasPin({ studentId: activeStudentId ?? 0 }),
+    enabled: activeStudentId !== null,
+  });
+  const checkingStudentPin = activeStudentId !== null && pinQ.data === undefined;
+  const lockedByStudentPin =
+    activeStudentId !== null && pinQ.data === true && !isStudentUnlocked(activeStudentId);
   const xp = summary
     ? computeStudentXp({
         totalSeen: summary.totalSeen,
@@ -81,10 +100,13 @@ export function StudentLayout() {
         )}
       >
         <Link to="/student" className="flex items-center gap-3 [-webkit-app-region:no-drag]">
-          <span className="rounded-full border border-success/25 bg-success/10 px-2.5 py-1 text-xs font-semibold uppercase text-success">
-            Student
+          <StudentLogoMark className="h-10 w-10" />
+          <span className="flex flex-col leading-none">
+            <span className="font-display text-base font-semibold">Vocab App</span>
+            <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-success">
+              Student
+            </span>
           </span>
-          <span className="font-display text-base font-semibold">Vocab App</span>
         </Link>
         <div className="flex min-w-0 flex-1 items-center justify-end gap-2 [-webkit-app-region:no-drag]">
           {activeStudentId !== null ? (
@@ -130,13 +152,50 @@ export function StudentLayout() {
           hasCustomBackground ? "bg-transparent" : "bg-app/85",
         )}
       >
-        <Outlet />
+        {checkingStudentPin ? (
+          <StudentProfileChecking />
+        ) : lockedByStudentPin ? (
+          <StudentProfileLocked />
+        ) : (
+          <Outlet key={studentAccessVersion} />
+        )}
       </main>
       <StudentDictionaryPopup
         open={dictionaryOpen}
         onClose={() => setDictionaryOpen(false)}
         studentId={activeStudentId}
       />
+    </div>
+  );
+}
+
+function StudentProfileChecking() {
+  return (
+    <div className="mx-auto flex min-h-full w-full max-w-xl flex-col items-center justify-center gap-3 px-8 py-12 text-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-border-subtle border-t-accent" />
+      <p className="text-sm font-medium text-muted">Checking profile…</p>
+    </div>
+  );
+}
+
+function StudentProfileLocked() {
+  return (
+    <div className="mx-auto flex min-h-full w-full max-w-xl flex-col items-center justify-center gap-4 px-8 py-12 text-center">
+      <div className="grid h-16 w-16 place-items-center rounded-full border border-border-subtle bg-surface-1 text-muted shadow-card">
+        <LockIcon className="h-8 w-8" />
+      </div>
+      <div>
+        <h1 className="font-display text-3xl font-semibold">Profile locked</h1>
+        <p className="mt-2 text-sm text-muted">
+          Enter this student's password from the profile picker.
+        </p>
+      </div>
+      <Link
+        to="/student"
+        className="inline-flex h-10 items-center justify-center rounded-button bg-accent px-4 text-sm font-semibold text-accent-fg shadow-sm shadow-accent/20 hover:bg-accent/90"
+      >
+        Choose profile
+      </Link>
     </div>
   );
 }

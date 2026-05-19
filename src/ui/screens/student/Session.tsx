@@ -70,6 +70,12 @@ export function StudentSession() {
     enabled: Number.isFinite(lessonIdNum) && lessonIdNum > 0,
   });
 
+  const studentQ = useQuery({
+    queryKey: queryKeys.students.byId(studentIdNum),
+    queryFn: () => api.students.getById({ id: studentIdNum }),
+    enabled: Number.isFinite(studentIdNum) && studentIdNum > 0,
+  });
+
   const entriesQ = useQuery({
     queryKey: queryKeys.vocab.full(lessonIdNum),
     queryFn: () => api.vocab.listFullByLesson({ lessonId: lessonIdNum }),
@@ -330,6 +336,8 @@ export function StudentSession() {
           }
           contextLabel={contextLabel}
           soundEnabled={soundQ.data === true}
+          avatarSeed={studentQ.data?.avatarSeed ?? null}
+          studentId={studentIdNum}
         />
       </SessionEvidenceFrame>
     );
@@ -359,6 +367,8 @@ export function StudentSession() {
         soundEnabled={soundQ.data === true}
         autoplay={pronunciationAutoplay}
         preferredAccent={pronunciationAccent}
+        avatarSeed={studentQ.data?.avatarSeed ?? null}
+        studentId={studentIdNum}
       />
     </SessionEvidenceFrame>
   );

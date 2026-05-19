@@ -1,5 +1,7 @@
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { version } from "../package.json";
 
 interface PackagedTarget {
   label: string;
@@ -44,9 +46,13 @@ const requiredDrizzleFiles = [
 function main(): void {
   const failures: string[] = [];
 
+  requireFile(path.resolve("assets", "icons", "app.icns"), "source macOS app icon", failures);
+  requireFile(path.resolve("assets", "icons", "app.ico"), "source Windows app icon", failures);
+
   for (const target of targets) {
     failures.push(...verifyTarget(target));
   }
+  failures.push(...verifyWindowsInstallers());
 
   if (failures.length > 0) {
     for (const failure of failures) console.error(`x ${failure}`);
@@ -75,6 +81,9 @@ function verifyTarget(target: PackagedTarget): string[] {
   requireFile(target.executable, `${target.label} executable`, failures);
   requireFile(path.join(resourcesDir, "app.asar"), `${target.label} app.asar`, failures);
   requireFile(nativeModule, `${target.label} better-sqlite3 native module`, failures);
+  if (target.nativeHeader === "mach-o") {
+    verifyMacIcon(target, resourcesDir, failures);
+  }
 
   if (fs.existsSync(nativeModule) && !hasExpectedNativeHeader(nativeModule, target.nativeHeader)) {
     failures.push(`${target.label} better_sqlite3.node has the wrong native binary header`);
@@ -94,6 +103,69 @@ function verifyTarget(target: PackagedTarget): string[] {
       failures,
     );
   }
+
+  return failures;
+}
+
+function verifyMacIcon(target: PackagedTarget, resourcesDir: string, failures: string[]): void {
+  const infoPlist = path.join(target.appDir, "Info.plist");
+  requireFile(infoPlist, `${target.label} Info.plist app icon`, failures);
+  if (!fs.existsSync(infoPlist)) return;
+
+  const text = fs.readFileSync(infoPlist, "utf8");
+  const iconName = plistStringValue(text, "CFBundleIconFile");
+  if (!iconName) {
+    failures.push(`${target.label} Info.plist is missing CFBundleIconFile`);
+    return;
+  }
+
+  const bundledIcon = path.join(resourcesDir, iconName);
+  requireFile(bundledIcon, `${target.label} bundled app icon`, failures);
+  if (!fs.existsSync(bundledIcon)) return;
+
+  const sourceIcon = path.resolve("assets", "icons", "app.icns");
+  if (fs.existsSync(sourceIcon) && hashFile(sourceIcon) !== hashFile(bundledIcon)) {
+    failures.push(`${target.label} bundled app icon does not match assets/icons/app.icns`);
+  }
+}
+
+function verifyWindowsInstallers(): string[] {
+  const failures: string[] = [];
+  const releaseDir = path.resolve("out", "release", `v${version}`);
+  const appInstaller = path.join(releaseDir, "windows-installer");
+  const dictInstaller = path.join(releaseDir, "dictionary-installer");
+
+  requireFile(
+    path.join(appInstaller, "Install-Vocab-App.cmd"),
+    "Windows app installer command",
+    failures,
+  );
+  requireFile(
+    path.join(appInstaller, "Install-Vocab-App.ps1"),
+    "Windows app installer PowerShell",
+    failures,
+  );
+  requireFile(
+    path.join(appInstaller, "Vocab App-win32-x64", "vocab-app.exe"),
+    "Windows app installer executable payload",
+    failures,
+  );
+  requireFile(
+    path.join(appInstaller, "Vocab App-win32-x64", "resources", "app.asar"),
+    "Windows app installer app.asar payload",
+    failures,
+  );
+  requireFile(
+    path.join(dictInstaller, "Install-Vocab-Dictionary.cmd"),
+    "Windows dictionary installer command",
+    failures,
+  );
+  requireFile(
+    path.join(dictInstaller, "Install-Vocab-Dictionary.ps1"),
+    "Windows dictionary installer PowerShell",
+    failures,
+  );
+  requireDir(path.join(dictInstaller, "dictionary"), "Windows dictionary payload", failures);
 
   return failures;
 }
@@ -126,6 +198,15 @@ function requireFile(filePath: string, description: string, failures: string[]):
   if (!stat.isFile()) failures.push(`${description} is not a file at ${filePath}`);
 }
 
+function requireDir(dirPath: string, description: string, failures: string[]): void {
+  if (!fs.existsSync(dirPath)) {
+    failures.push(`${description} missing at ${dirPath}`);
+    return;
+  }
+  const stat = fs.statSync(dirPath);
+  if (!stat.isDirectory()) failures.push(`${description} is not a directory at ${dirPath}`);
+}
+
 function hasExpectedNativeHeader(filePath: string, expected: "mach-o" | "pe"): boolean {
   const fd = fs.openSync(filePath, "r");
   try {
@@ -138,6 +219,19 @@ function hasExpectedNativeHeader(filePath: string, expected: "mach-o" | "pe"): b
   } finally {
     fs.closeSync(fd);
   }
+}
+
+function plistStringValue(text: string, key: string): string | null {
+  const pattern = new RegExp(`<key>${escapeRegExp(key)}</key>\\s*<string>([^<]+)</string>`);
+  return text.match(pattern)?.[1] ?? null;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function hashFile(filePath: string): string {
+  return createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
 }
 
 main();

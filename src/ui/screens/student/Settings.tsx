@@ -1,13 +1,16 @@
 import { api } from "@/lib/api";
+import { cn } from "@/lib/cn";
 import { queryClient, queryKeys } from "@/lib/queryClient";
+import { AppGlyph } from "@/ui/components/AppGlyph";
 import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
 import { Button } from "@/ui/components/Button";
 import { Field, TextInput } from "@/ui/components/Field";
+import { PinInput } from "@/ui/components/PinInput";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 
 const COLORS = [
   "#38bdf8",
@@ -21,10 +24,6 @@ const COLORS = [
   "#84cc16",
   "#64748b",
 ];
-const EMOJI_SETS = [
-  "😀 😎 🤓 🥳 🦊 🐼 🐯 🦁 🐸 🐵 🐲 🦄 🐧 🦉 🚀 ⭐ 🔥 💎 👑 🎯".split(" "),
-  "🍀 🌈 ⚡ 🌙 ☀️ 🪐 🎮 🎧 📚 ✏️ 🧠 🏆 🥇 🎨 🧩".split(" "),
-].flat();
 const BG_PRESETS = [
   { id: "none", label: "Clean light", value: "" },
   { id: "sunrise", label: "Sunrise", value: "linear-gradient(135deg,#fff7ed,#fef3c7 45%,#ecfeff)" },
@@ -40,10 +39,48 @@ const BG_PRESETS = [
     value: "radial-gradient(#cbd5e1 1px,transparent 1px),#f8fafc",
   },
   { id: "peach", label: "Peach pop", value: "linear-gradient(160deg,#ffedd5,#fce7f3 55%,#e0f2fe)" },
+  {
+    id: "ocean",
+    label: "Ocean glass",
+    value:
+      "radial-gradient(circle at 18% 18%,#bae6fd,transparent 33%),radial-gradient(circle at 82% 28%,#99f6e4,transparent 30%),linear-gradient(135deg,#f8fafc,#dbeafe 48%,#cffafe)",
+  },
+  {
+    id: "cosmic",
+    label: "Cosmic study",
+    value:
+      "radial-gradient(circle at 20% 22%,#c4b5fd 0 9%,transparent 10%),radial-gradient(circle at 78% 18%,#f0abfc 0 7%,transparent 8%),linear-gradient(135deg,#f8fafc,#e0e7ff 45%,#fdf2f8)",
+  },
+  {
+    id: "notebook",
+    label: "Notebook grid",
+    value:
+      "repeating-linear-gradient(0deg,#dbeafe 0 1px,transparent 1px 28px),repeating-linear-gradient(90deg,#dbeafe 0 1px,transparent 1px 28px),#f8fafc",
+  },
+  {
+    id: "forest",
+    label: "Forest calm",
+    value:
+      "radial-gradient(circle at 18% 20%,#bbf7d0,transparent 34%),linear-gradient(145deg,#f7fee7,#dcfce7 48%,#e0f2fe)",
+  },
+  {
+    id: "arcade",
+    label: "Arcade lights",
+    value:
+      "radial-gradient(circle at 18% 22%,#fef08a 0 9%,transparent 10%),radial-gradient(circle at 78% 24%,#f9a8d4 0 8%,transparent 9%),linear-gradient(135deg,#eef2ff,#cffafe 55%,#fae8ff)",
+  },
 ];
 const BACKGROUND_MAX_EDGE = 1920;
 const BACKGROUND_INLINE_LIMIT_BYTES = 1_500_000;
 const BACKGROUND_JPEG_QUALITY = 0.82;
+const BACKGROUND_SIZE_OPTIONS = [
+  { id: "cover", label: "Fill screen", value: "cover" },
+  { id: "contain", label: "Fit image", value: "contain" },
+  { id: "auto", label: "Tile original", value: "auto" },
+] as const;
+const MIN_PIN_LENGTH = 4;
+const MAX_PIN_LENGTH = 12;
+type BackgroundSizeMode = (typeof BACKGROUND_SIZE_OPTIONS)[number]["value"];
 
 export function StudentSettings() {
   const { studentId } = useParams({ from: "/student/profile/$studentId/settings" });
@@ -60,17 +97,22 @@ export function StudentSettings() {
     staleTime: Number.POSITIVE_INFINITY,
     gcTime: Number.POSITIVE_INFINITY,
   });
+  const pinQ = useQuery({
+    queryKey: queryKeys.students.hasPin(id),
+    queryFn: () => api.students.hasPin({ studentId: id }),
+    enabled: Number.isFinite(id) && id > 0,
+  });
   const [nickname, setNickname] = useState("");
-  const [emojiSearch, setEmojiSearch] = useState("");
+  const [backgroundSize, setBackgroundSize] = useState<BackgroundSizeMode>("cover");
   const student = studentQ.data;
   const display = nickname || student?.displayName || student?.name || "";
   const saveStudent = useMutation({
-    mutationFn: (patch: {
-      displayName?: string | null;
-      avatarSeed?: string | null;
-      color?: string | null;
-    }) => api.students.update({ id, patch }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.students.byId(id) }),
+    mutationFn: (patch: { displayName?: string | null; color?: string | null }) =>
+      api.students.update({ id, patch }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(queryKeys.students.byId(id), updated);
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+    },
   });
   const saveBg = useMutation({
     mutationFn: (value: string) => api.settings.set({ key: bgKey(id), value }),
@@ -88,19 +130,14 @@ export function StudentSettings() {
         Back to lessons
       </Link>
       <BentoCard tone="focus" className="grid gap-5 p-6 sm:grid-cols-[auto_1fr] sm:items-center">
-        <Avatar
-          name={display || "?"}
-          avatarSeed={student?.avatarSeed}
-          color={student?.color}
-          size="lg"
-        />
+        <Avatar name={display || "?"} avatarSeed={null} color={student?.color} size="lg" />
         <div>
           <Badge tone="focus" uppercase>
-            Student fun settings
+            Student settings
           </Badge>
-          <h1 className="mt-2 font-display text-4xl font-semibold">Customize your study vibe</h1>
+          <h1 className="mt-2 font-display text-4xl font-semibold">Personal workspace</h1>
           <p className="mt-1 text-sm text-muted">
-            Nickname, avatar, colors, emoji, background only. No app controls here.
+            Set your name, profile color, study background, and personal password.
           </p>
         </div>
       </BentoCard>
@@ -128,7 +165,7 @@ export function StudentSettings() {
         </BentoCard>
 
         <BentoCard className="p-5">
-          <h2 className="font-display text-2xl font-semibold">Avatar color</h2>
+          <h2 className="font-display text-2xl font-semibold">Profile color</h2>
           <div className="mt-4 flex flex-wrap gap-2">
             {COLORS.map((color) => (
               <button
@@ -143,46 +180,7 @@ export function StudentSettings() {
           </div>
         </BentoCard>
 
-        <BentoCard className="p-5 lg:col-span-2">
-          <h2 className="font-display text-2xl font-semibold">Emoji avatar picker</h2>
-          <Field label="Search or paste any Unicode emoji">
-            <TextInput
-              value={emojiSearch}
-              onChange={(e) => setEmojiSearch(e.target.value)}
-              placeholder="Paste emoji here: 🦄"
-            />
-          </Field>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {[
-              ...new Set([
-                ...EMOJI_SETS,
-                ...Array.from(emojiSearch).filter((ch) => /\p{Extended_Pictographic}/u.test(ch)),
-              ]),
-            ].map((emoji) => (
-              <button
-                key={emoji}
-                type="button"
-                className="grid h-11 w-11 place-items-center rounded-2xl border border-border-subtle bg-surface-1 text-2xl shadow-sm transition hover:-translate-y-0.5"
-                onClick={() => saveStudent.mutate({ avatarSeed: `emoji:${emoji}` })}
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
-          <label className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-button border border-border-subtle px-4 py-2 text-sm font-semibold hover:bg-surface-2">
-            Upload avatar image
-            <input
-              type="file"
-              accept="image/*"
-              className="sr-only"
-              onChange={(e) =>
-                readImage(e.currentTarget.files?.[0], (src) =>
-                  saveStudent.mutate({ avatarSeed: `image:${src}` }),
-                )
-              }
-            />
-          </label>
-        </BentoCard>
+        <PasswordCard studentId={id} hasPin={pinQ.data === true} />
 
         <BentoCard className="p-5 lg:col-span-2">
           <h2 className="font-display text-2xl font-semibold">Study background</h2>
@@ -194,11 +192,29 @@ export function StudentSettings() {
               <button
                 key={preset.id}
                 type="button"
-                className="h-24 rounded-2xl border border-border-subtle p-3 text-left text-sm font-semibold shadow-card"
+                className="h-24 rounded-2xl border border-border-subtle bg-surface-1 p-3 text-left text-sm font-semibold shadow-card transition hover:-translate-y-0.5 hover:border-accent/40"
                 style={{ background: preset.value || "#f8fafc" }}
                 onClick={() => saveBg.mutate(preset.value)}
               >
                 {preset.label}
+              </button>
+            ))}
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {BACKGROUND_SIZE_OPTIONS.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                aria-pressed={backgroundSize === option.value}
+                className={cn(
+                  "rounded-full border px-4 py-2 text-xs font-semibold transition-[background-color,border-color,color]",
+                  backgroundSize === option.value
+                    ? "border-accent bg-accent/10 text-app"
+                    : "border-border-subtle bg-surface-1 text-muted hover:border-accent/40 hover:text-app",
+                )}
+                onClick={() => setBackgroundSize(option.value)}
+              >
+                {option.label}
               </button>
             ))}
           </div>
@@ -210,7 +226,7 @@ export function StudentSettings() {
               className="sr-only"
               onChange={(e) =>
                 readBackgroundImage(e.currentTarget.files?.[0], (src) =>
-                  saveBg.mutate(`url(${src}) center / cover no-repeat`),
+                  saveBg.mutate(backgroundCss(src, backgroundSize)),
                 )
               }
             />
@@ -226,8 +242,137 @@ export function StudentSettings() {
   );
 }
 
+function PasswordCard({ studentId, hasPin }: { studentId: number; hasPin: boolean }) {
+  const [currentPin, setCurrentPin] = useState("");
+  const [newPin, setNewPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (newPin.length < MIN_PIN_LENGTH) {
+        throw new Error(`Password must be at least ${MIN_PIN_LENGTH} characters`);
+      }
+      if (newPin !== confirmPin) throw new Error("Passwords do not match");
+      if (hasPin) {
+        if (currentPin.length < MIN_PIN_LENGTH) throw new Error("Current password is required");
+        return api.students.changePin({ studentId, currentPin, newPin });
+      }
+      return api.students.setupPin({ studentId, pin: newPin });
+    },
+    onSuccess: () => {
+      setCurrentPin("");
+      setNewPin("");
+      setConfirmPin("");
+      setError(null);
+      setMessage(hasPin ? "Password changed." : "Password enabled.");
+      queryClient.setQueryData(queryKeys.students.hasPin(studentId), true);
+    },
+    onError: (err) => {
+      setMessage(null);
+      setError(err instanceof Error ? err.message : "Could not save password");
+    },
+  });
+
+  const clear = useMutation({
+    mutationFn: () => api.students.clearPin({ studentId }),
+    onSuccess: () => {
+      setCurrentPin("");
+      setNewPin("");
+      setConfirmPin("");
+      setError(null);
+      setMessage("Password removed.");
+      queryClient.setQueryData(queryKeys.students.hasPin(studentId), false);
+    },
+    onError: (err) => {
+      setMessage(null);
+      setError(err instanceof Error ? err.message : "Could not remove password");
+    },
+  });
+
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    mutation.mutate();
+  }
+
+  return (
+    <BentoCard className="p-5 lg:col-span-2">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="font-display text-2xl font-semibold">Personal password</h2>
+          <p className="mt-1 text-sm text-muted">
+            Protect this student profile when multiple learners share the same Windows laptop.
+          </p>
+        </div>
+        <Badge tone={hasPin ? "success" : "muted"} uppercase>
+          {hasPin ? "Enabled" : "Optional"}
+        </Badge>
+      </div>
+      <form onSubmit={onSubmit} className="mt-4 grid gap-3 md:grid-cols-3">
+        {hasPin ? (
+          <Field label="Current password">
+            <PinInput
+              density="compact"
+              value={currentPin}
+              maxLength={MAX_PIN_LENGTH}
+              onChange={(e) => setCurrentPin(e.target.value.slice(0, MAX_PIN_LENGTH))}
+            />
+          </Field>
+        ) : null}
+        <Field label={hasPin ? "New password" : "Password"}>
+          <PinInput
+            density="compact"
+            value={newPin}
+            maxLength={MAX_PIN_LENGTH}
+            onChange={(e) => setNewPin(e.target.value.slice(0, MAX_PIN_LENGTH))}
+          />
+        </Field>
+        <Field label="Confirm password">
+          <PinInput
+            density="compact"
+            value={confirmPin}
+            maxLength={MAX_PIN_LENGTH}
+            onChange={(e) => setConfirmPin(e.target.value.slice(0, MAX_PIN_LENGTH))}
+          />
+        </Field>
+        <div className="flex items-end gap-2">
+          <Button type="submit" disabled={mutation.isPending}>
+            <AppGlyph name="lock" className="h-4 w-4" />
+            {mutation.isPending ? "Saving..." : hasPin ? "Change" : "Enable"}
+          </Button>
+          {hasPin ? (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => clear.mutate()}
+              disabled={clear.isPending}
+            >
+              Remove
+            </Button>
+          ) : null}
+        </div>
+      </form>
+      {message ? <p className="mt-3 text-sm text-success">{message}</p> : null}
+      {error ? (
+        <p
+          role="alert"
+          className="mt-3 rounded-xl border border-danger/40 bg-danger/10 px-3 py-2 text-xs text-danger"
+        >
+          {error}
+        </p>
+      ) : null}
+    </BentoCard>
+  );
+}
+
 function bgKey(studentId: number): string {
   return `student_profile:${studentId}:study_background`;
+}
+
+function backgroundCss(src: string, size: BackgroundSizeMode): string {
+  const repeat = size === "auto" ? "repeat" : "no-repeat";
+  return `url(${src}) center / ${size} ${repeat}`;
 }
 
 function readImage(file: File | undefined, done: (src: string) => void) {

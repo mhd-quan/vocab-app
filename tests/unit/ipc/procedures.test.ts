@@ -165,6 +165,44 @@ describe("IPC procedure registry", () => {
       expect(list).toHaveLength(0);
     });
 
+    it("sets, verifies, changes, and clears a student profile password", async () => {
+      const created = await call<{ id: number }>("students.create", { name: "Alice" }, ctx);
+
+      expect(await call<boolean>("students.hasPin", { studentId: created.id }, ctx)).toBe(false);
+      await call("students.setupPin", { studentId: created.id, pin: "1234" }, ctx);
+      expect(await call<boolean>("students.hasPin", { studentId: created.id }, ctx)).toBe(true);
+      expect(
+        await call<{ ok: boolean; reason?: string }>(
+          "students.verifyPin",
+          { studentId: created.id, pin: "0000" },
+          ctx,
+        ),
+      ).toEqual({ ok: false, reason: "invalid" });
+      expect(
+        await call<{ ok: boolean }>(
+          "students.verifyPin",
+          { studentId: created.id, pin: "1234" },
+          ctx,
+        ),
+      ).toEqual({ ok: true });
+
+      await call(
+        "students.changePin",
+        { studentId: created.id, currentPin: "1234", newPin: "5678" },
+        ctx,
+      );
+      expect(
+        await call<{ ok: boolean }>(
+          "students.verifyPin",
+          { studentId: created.id, pin: "5678" },
+          ctx,
+        ),
+      ).toEqual({ ok: true });
+
+      await call("students.clearPin", { studentId: created.id }, ctx);
+      expect(await call<boolean>("students.hasPin", { studentId: created.id }, ctx)).toBe(false);
+    });
+
     it("replaces unit assignments through IPC handlers", async () => {
       const { book, unit } = seedCurriculum(db);
       const secondUnit = first(

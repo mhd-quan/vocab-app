@@ -23,6 +23,12 @@ export function StudentPersonalVocabulary() {
     enabled: Number.isFinite(id) && id > 0,
   });
 
+  const studentQ = useQuery({
+    queryKey: queryKeys.students.byId(id),
+    queryFn: () => api.students.getById({ id }),
+    enabled: Number.isFinite(id) && id > 0,
+  });
+
   const itemsQ = useQuery({
     queryKey: queryKeys.dictionaryLearning.items(id),
     queryFn: () => api.dictionaryLearning.listItems({ studentId: id }),
@@ -62,6 +68,8 @@ export function StudentPersonalVocabulary() {
           <div className="flex items-start gap-4">
             <MascotIcon
               mood={summary.due > 0 ? "thinking" : "happy"}
+              avatarSeed={studentQ.data?.avatarSeed ?? null}
+              studentId={id}
               className="hidden h-24 w-24 shrink-0 sm:block"
             />
             <div>

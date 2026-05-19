@@ -37,6 +37,12 @@ export function StudentUnitStudy() {
     enabled: Number.isFinite(unitIdNum) && unitIdNum > 0,
   });
 
+  const studentQ = useQuery({
+    queryKey: queryKeys.students.byId(studentIdNum),
+    queryFn: () => api.students.getById({ id: studentIdNum }),
+    enabled: Number.isFinite(studentIdNum) && studentIdNum > 0,
+  });
+
   const lessons = lessonsQ.data ?? [];
   const vocabLesson = lessons.find((lesson) => lesson.kind === "vocabulary") ?? null;
   const grammarLessons = lessons.filter((lesson) => lesson.kind === "grammar");
@@ -142,7 +148,12 @@ export function StudentUnitStudy() {
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">{unit.summaryMd}</p>
           ) : null}
         </div>
-        <MascotIcon mood="thinking" className="hidden h-24 w-24 shrink-0 text-focus lg:block" />
+        <MascotIcon
+          mood="thinking"
+          avatarSeed={studentQ.data?.avatarSeed ?? null}
+          studentId={studentIdNum}
+          className="hidden h-24 w-24 shrink-0 text-focus lg:block"
+        />
         <div className="rounded-bento border border-border-subtle bg-surface-0/70 p-4">
           <p className="text-xs font-semibold uppercase text-muted-2">Selected cards</p>
           <p className="mt-1 font-mono text-3xl text-app">{selectedEntries.length}</p>

@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { AppGlyph } from "@/ui/components/AppGlyph";
 
 export interface AvatarProps {
   name: string;
@@ -28,17 +29,22 @@ export function Avatar({ name, avatarSeed, color, size = "md", className }: Avat
       className={cn(
         "inline-flex select-none items-center justify-center overflow-hidden rounded-full font-semibold uppercase",
         "ring-2 ring-surface-1 shadow-sm",
-        bg && !imageSrc ? "" : "bg-surface-2 text-app",
+        bg && !imageSrc && !emoji ? "" : "bg-surface-2 text-app",
         SIZES[size],
         emoji && "text-[1.35em] leading-none",
         className,
       )}
-      style={bg && !imageSrc ? { backgroundColor: bg, color: fg } : undefined}
+      style={bg && !imageSrc && !emoji ? { backgroundColor: bg, color: fg } : undefined}
     >
       {imageSrc ? (
         <img src={imageSrc} alt="" className="h-full w-full object-cover" draggable={false} />
+      ) : emoji ? (
+        emoji
       ) : (
-        (emoji ?? initials)
+        <span className="relative grid h-full w-full place-items-center">
+          <AppGlyph name="person" className="absolute h-[72%] w-[72%] opacity-18" />
+          <span className="relative">{initials}</span>
+        </span>
       )}
     </span>
   );

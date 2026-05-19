@@ -73,6 +73,8 @@ export interface SessionPlayerProps {
    */
   autoplay?: boolean;
   preferredAccent?: "uk" | "us" | "any";
+  avatarSeed?: string | null;
+  studentId?: number | string | null;
 }
 
 const DEFAULT_AUTO_ADVANCE_MS = 4_000;
@@ -129,6 +131,8 @@ export function SessionPlayer({
   soundEnabled = false,
   autoplay = true,
   preferredAccent = "uk",
+  avatarSeed,
+  studentId,
 }: SessionPlayerProps) {
   const [index, setIndex] = useState(0);
   const [results, setResults] = useState<SessionResult[]>([]);
@@ -313,6 +317,8 @@ export function SessionPlayer({
       <PlayerShell contextLabel={contextLabel} onExit={onExit}>
         <SessionSummary
           stats={summary}
+          avatarSeed={avatarSeed}
+          studentId={studentId}
           onRestart={() => {
             setResults([]);
             setIndex(0);

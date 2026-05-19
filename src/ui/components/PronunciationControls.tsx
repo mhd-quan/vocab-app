@@ -25,6 +25,7 @@ import type { DictionaryAudioRef } from "@/data/dictionary";
  */
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryClient";
+import { AppGlyph } from "@/ui/components/AppGlyph";
 import { Button } from "@/ui/components/Button";
 import { useQueries } from "@tanstack/react-query";
 import clsx from "clsx";
@@ -45,6 +46,7 @@ export interface PronunciationControlsProps {
   preferredAccent?: PreferredPronunciationAccent;
   showLabel?: boolean;
   size?: "sm" | "md";
+  hotkeys?: Partial<Record<"uk" | "us" | "preferred", string>>;
   className?: string;
 }
 
@@ -54,6 +56,7 @@ export function PronunciationControls({
   preferredAccent = "uk",
   showLabel = true,
   size = "sm",
+  hotkeys,
   className,
 }: PronunciationControlsProps) {
   const [playingRef, setPlayingRef] = useState<string | null>(null);
@@ -62,6 +65,10 @@ export function PronunciationControls({
   const orderedAudioRefs = useMemo(
     () => orderAudioRefs(audioRefs, preferredAccent),
     [audioRefs, preferredAccent],
+  );
+  const visibleAudioRefs = useMemo(
+    () => visiblePronunciations(orderedAudioRefs),
+    [orderedAudioRefs],
   );
 
   const queries = useQueries({
@@ -84,6 +91,28 @@ export function PronunciationControls({
     await player.play().catch(() => setPlayingRef(null));
   }, []);
 
+  const playRef = useCallback(
+    (ref: string) => {
+      const index = orderedAudioRefs.findIndex((audio) => audio.ref === ref);
+      if (index < 0) return;
+      const dataUrl = queries[index]?.data?.dataUrl;
+      void play(ref, dataUrl);
+    },
+    [orderedAudioRefs, play, queries],
+  );
+
+  const playAccent = useCallback(
+    (accent: "uk" | "us" | "preferred") => {
+      const audio =
+        accent === "preferred"
+          ? orderedAudioRefs[0]
+          : orderedAudioRefs.find((item) => item.accent === accent);
+      if (!audio) return;
+      playRef(audio.ref);
+    },
+    [orderedAudioRefs, playRef],
+  );
+
   // Autoplay effect — fires once per `autoPlayKey` transition once
   // the preferred audio is loaded. We compare against `playedForKey`
   // so React StrictMode's double-invoke doesn't double-fire.
@@ -98,6 +127,26 @@ export function PronunciationControls({
     void play(first.ref, data.dataUrl);
   }, [autoPlayKey, orderedAudioRefs, queries, play]);
 
+  useEffect(() => {
+    if (!hotkeys) return;
+    const activeHotkeys = hotkeys;
+    function onKey(e: KeyboardEvent) {
+      if (e.target instanceof HTMLElement) {
+        const tag = e.target.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable) return;
+      }
+      const key = e.key.toLowerCase();
+      const matched = (["uk", "us", "preferred"] as const).find(
+        (accent) => activeHotkeys[accent]?.toLowerCase() === key,
+      );
+      if (!matched) return;
+      e.preventDefault();
+      playAccent(matched);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [hotkeys, playAccent]);
+
   // Stop playback + clear key tracker when the component unmounts.
   useEffect(() => {
     return () => {
@@ -110,9 +159,12 @@ export function PronunciationControls({
 
   return (
     <div className={clsx("flex flex-wrap items-center gap-2", className)}>
-      {orderedAudioRefs.map((audio, index) => {
+      {visibleAudioRefs.map((audio) => {
+        const index = orderedAudioRefs.findIndex((item) => item.ref === audio.ref);
         const asset = queries[index]?.data;
         const loading = queries[index]?.isLoading;
+        const hotkey =
+          audio.accent === "uk" ? hotkeys?.uk : audio.accent === "us" ? hotkeys?.us : undefined;
         return (
           <Button
             key={audio.ref}
@@ -120,13 +172,22 @@ export function PronunciationControls({
             size={size}
             onClick={() => void play(audio.ref, asset?.dataUrl)}
             disabled={!asset || playingRef === audio.ref}
+            title={
+              hotkey ? `${audioLabel(audio)} pronunciation (${hotkey.toUpperCase()})` : undefined
+            }
           >
+            <AppGlyph
+              name={playingRef === audio.ref ? "playAudio" : "volume"}
+              className="h-4 w-4"
+            />
             {playingRef === audio.ref
               ? "Playing..."
               : loading
                 ? "Loading"
                 : showLabel
-                  ? audioLabel(audio)
+                  ? hotkey
+                    ? `${audioLabel(audio)} ${hotkey.toUpperCase()}`
+                    : audioLabel(audio)
                   : "Play audio"}
           </Button>
         );
@@ -150,6 +211,18 @@ function orderAudioRefs(
   return [...unique].sort(
     (a, b) => accentRank(a.accent, preferredAccent) - accentRank(b.accent, preferredAccent),
   );
+}
+
+function visiblePronunciations(refs: ReadonlyArray<DictionaryAudioRef>): DictionaryAudioRef[] {
+  const out: DictionaryAudioRef[] = [];
+  const seen = new Set<string>();
+  for (const ref of refs) {
+    const key = ref.accent === "other" ? `other:${ref.ref}` : ref.accent;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(ref);
+  }
+  return out;
 }
 
 function accentRank(

@@ -52,6 +52,12 @@ export function StudentPersonalVocabularySession() {
     enabled: Number.isFinite(studentIdNum) && studentIdNum > 0,
   });
 
+  const studentQ = useQuery({
+    queryKey: queryKeys.students.byId(studentIdNum),
+    queryFn: () => api.students.getById({ id: studentIdNum }),
+    enabled: Number.isFinite(studentIdNum) && studentIdNum > 0,
+  });
+
   const soundQ = useQuery({
     queryKey: ["settings", "get", SOUND_KEY],
     queryFn: () => api.settings.get<boolean>({ key: SOUND_KEY }),
@@ -241,6 +247,8 @@ export function StudentPersonalVocabularySession() {
       soundEnabled={soundQ.data === true}
       autoplay={pronunciationAutoplay}
       preferredAccent={pronunciationAccent}
+      avatarSeed={studentQ.data?.avatarSeed ?? null}
+      studentId={studentIdNum}
     />
   );
 }
