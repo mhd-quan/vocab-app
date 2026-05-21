@@ -1,5 +1,6 @@
 import { cn } from "@/lib/cn";
 import { useAppMode } from "@/providers/AppModeProvider";
+import { AppGlyph } from "@/ui/components/AppGlyph";
 import { Badge } from "@/ui/components/Badge";
 import { Button } from "@/ui/components/Button";
 import { PinInput } from "@/ui/components/PinInput";
@@ -93,7 +94,10 @@ function VerifyPinForm() {
         className="text-muted hover:text-app"
         size="sm"
       >
-        Continue to student practice →
+        <span className="inline-flex items-center gap-1.5">
+          <span>Continue to student practice</span>
+          <AppGlyph name="arrowRight" className="h-4 w-4" />
+        </span>
       </Button>
     </FullScreen>
   );

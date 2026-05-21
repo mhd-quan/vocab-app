@@ -37,9 +37,19 @@ describe("Avatar", () => {
     expect(span.getAttribute("style")).toBeNull();
   });
 
-  it("renders emoji avatar seeds ahead of initials", () => {
-    render(<Avatar name="Alice Cooper" avatarSeed="emoji:🔥" color="#1a2b3c" />);
-    expect(screen.getByText("🔥")).toBeInTheDocument();
+  it("renders legacy emoji avatar seeds as unified glyphs ahead of initials", () => {
+    const { container } = render(
+      <Avatar name="Alice Cooper" avatarSeed="emoji:🔥" color="#1a2b3c" />,
+    );
+    expect(container.querySelector("svg")).toBeInTheDocument();
+    expect(screen.queryByText("AC")).toBeNull();
+  });
+
+  it("renders glyph avatar seeds ahead of initials", () => {
+    const { container } = render(
+      <Avatar name="Alice Cooper" avatarSeed="glyph:flame" color="#1a2b3c" />,
+    );
+    expect(container.querySelector("svg")).toBeInTheDocument();
     expect(screen.queryByText("AC")).toBeNull();
   });
 

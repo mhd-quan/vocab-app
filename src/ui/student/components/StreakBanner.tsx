@@ -7,6 +7,7 @@
  */
 import { cn } from "@/lib/cn";
 import type { StreakStats } from "@/modules/rewards";
+import { AppGlyph } from "@/ui/components/AppGlyph";
 import { StreakFlame } from "@/ui/components/LearningIcons";
 
 export interface StreakBannerProps {
@@ -34,8 +35,15 @@ export function StreakBanner({ stats, variant = "compact", className }: StreakBa
       <StreakFlame streak={current} className="h-5 w-5" />
       <span>{current}</span>
       {variant === "full" ? (
-        <span className="text-xs font-medium text-muted">
-          {practicedToday ? "today ✓" : "practice today!"}
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-muted">
+          {practicedToday ? (
+            <>
+              <span>today</span>
+              <AppGlyph name="check" className="h-3.5 w-3.5 text-success" />
+            </>
+          ) : (
+            "practice today!"
+          )}
         </span>
       ) : null}
     </div>

@@ -42,4 +42,18 @@ describe("Heatmap", () => {
     fireEvent.mouseEnter(screen.getByRole("button", { name: /2026-05-10/i }));
     expect(screen.getByText(/2026-05-10 · 2 practice reps/i)).toBeInTheDocument();
   });
+
+  it("uses roomy mode to surface activity summary stats", () => {
+    const cells = bucketByDay({
+      eventTimestamps: [new Date(2026, 4, 8), new Date(2026, 4, 10), new Date(2026, 4, 10)],
+      now: new Date(2026, 4, 10),
+      days: 4,
+    });
+    render(<Heatmap cells={cells} title="Activity" caption="4 days" density="roomy" />);
+    expect(screen.getByText("Total reps")).toBeInTheDocument();
+    expect(screen.getByText("Active days")).toBeInTheDocument();
+    expect(screen.getByText("Best day")).toBeInTheDocument();
+    expect(screen.getByText("Last active")).toBeInTheDocument();
+    expect(screen.getByText("05/10")).toBeInTheDocument();
+  });
 });

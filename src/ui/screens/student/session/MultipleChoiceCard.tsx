@@ -1,5 +1,6 @@
 import { cn } from "@/lib/cn";
 import type { GradeOutcome, MultipleChoiceExercise } from "@/modules/exercises";
+import { AppGlyph } from "@/ui/components/AppGlyph";
 import { Badge } from "@/ui/components/Badge";
 import { VocabularyPronunciation } from "@/ui/components/VocabularyPronunciation";
 import { useEffect, useState } from "react";
@@ -110,14 +111,10 @@ export function MultipleChoiceCard({
                 </span>
                 <span className="flex-1 font-medium">{option.text}</span>
                 {locked && option.correct ? (
-                  <span aria-hidden className="text-lg text-success">
-                    ✓
-                  </span>
+                  <AppGlyph name="check" className="h-5 w-5 text-success" />
                 ) : null}
                 {locked && isPicked && !option.correct ? (
-                  <span aria-hidden className="text-lg text-danger">
-                    ✗
-                  </span>
+                  <AppGlyph name="x" className="h-5 w-5 text-danger" />
                 ) : null}
               </button>
             </li>
