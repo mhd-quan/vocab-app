@@ -33,7 +33,8 @@ export type AppGlyphName =
   | "trophy"
   | "tutorMode"
   | "volume"
-  | "warning";
+  | "warning"
+  | "x";
 
 export interface AppGlyphProps {
   name: AppGlyphName;
@@ -228,4 +229,5 @@ const GLYPHS: Record<AppGlyphName, ReactNode> = {
   warning: (
     <path d="M12 3.1c.5 0 .9.3 1.2.8l8.2 14.2c.5.9-.1 2-1.2 2H3.8c-1.1 0-1.7-1.1-1.2-2l8.2-14.2c.3-.5.7-.8 1.2-.8Zm-1.1 6v5.4h2.2V9.1h-2.2Zm0 7.2v2.1h2.2v-2.1h-2.2Z" />
   ),
+  x: <path d="m7 5.3 5 5 5-5L18.7 7l-5 5 5 5-1.7 1.7-5-5-5 5L5.3 17l5-5-5-5L7 5.3Z" />,
 };

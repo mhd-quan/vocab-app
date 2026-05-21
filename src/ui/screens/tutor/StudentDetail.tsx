@@ -183,6 +183,7 @@ export function TutorStudentDetail() {
             cells={heatmapCells}
             title="Practice activity"
             caption={`Last ${HEATMAP_DAYS} days`}
+            density="roomy"
           />
           <CadencePanel cadence={cadence} loading={activityQ.isLoading} />
         </section>

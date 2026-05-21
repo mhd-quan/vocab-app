@@ -3,6 +3,7 @@ import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
 import { summarizeStudentProgress } from "@/modules/rewards";
+import { AppGlyph } from "@/ui/components/AppGlyph";
 import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
@@ -156,7 +157,10 @@ function AchievementHallCard({ studentId }: { studentId: number }) {
           Open the dedicated trophy page to see polished badges, tiers, and live quest progress.
         </p>
       </div>
-      <span className="font-semibold text-mastery">View hall →</span>
+      <span className="inline-flex items-center gap-1.5 font-semibold text-mastery">
+        View hall
+        <AppGlyph name="arrowRight" className="h-4 w-4" />
+      </span>
     </Link>
   );
 }
