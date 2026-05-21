@@ -3,7 +3,7 @@ import { DisplayPreferencesProvider } from "@/providers/DisplayPreferencesProvid
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { TutorSettings } from "@/ui/screens/tutor/Settings";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 function renderSettings() {
@@ -36,6 +36,7 @@ describe("TutorSettings", () => {
       if (key === "session_default_mode") return "mixed";
       if (key === "session_shuffle") return true;
       if (key === "session_camera_checkins_enabled") return true;
+      if (key === "session_screenshots_enabled") return false;
       if (key === "fsrs_short_term_days") return 1;
       if (key === "fsrs_long_term_days") return 21;
       return null;
@@ -54,9 +55,30 @@ describe("TutorSettings", () => {
     await waitFor(() =>
       expect(screen.getByRole("switch", { name: /camera check-ins/i })).toBeChecked(),
     );
+    expect(screen.getByRole("switch", { name: /allow screenshots/i })).not.toBeChecked();
 
     expect(document.querySelector("md-outlined-select")).toBeNull();
     expect(document.querySelector("md-outlined-text-field")).toBeNull();
     expect(document.querySelector("md-switch")).toBeNull();
+  });
+
+  it("saves the tutor screenshot toggle through settings", async () => {
+    vi.spyOn(window.api.settings, "get").mockImplementation(async ({ key }) =>
+      key === "session_screenshots_enabled" ? false : null,
+    );
+    const setSpy = vi.spyOn(window.api.settings, "set").mockResolvedValue({ ok: true });
+
+    renderSettings();
+
+    const toggle = await screen.findByRole("switch", { name: /allow screenshots/i });
+    await waitFor(() => expect(toggle).not.toBeDisabled());
+    fireEvent.click(toggle);
+
+    await waitFor(() =>
+      expect(setSpy).toHaveBeenCalledWith({
+        key: "session_screenshots_enabled",
+        value: true,
+      }),
+    );
   });
 });

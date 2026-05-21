@@ -1,9 +1,11 @@
 import path from "node:path";
 import { BrowserWindow, app, shell } from "electron";
 import started from "electron-squirrel-startup";
+import { SETTINGS_KEYS } from "../src/modules/settings/keys";
 import { type AppDatabase, closeDatabase, openDatabase } from "./db";
 import { createRepositories } from "./db/repositories";
 import { allProcedures, registerIpcProcedures, unregisterIpcProcedures } from "./ipc";
+import { applyScreenshotPolicy } from "./windowPolicy";
 
 if (started) {
   app.quit();
@@ -12,7 +14,7 @@ if (started) {
 let db: AppDatabase | null = null;
 let mainWindow: BrowserWindow | null = null;
 
-const createMainWindow = (): BrowserWindow => {
+const createMainWindow = (screenshotsEnabled: boolean): BrowserWindow => {
   const win = new BrowserWindow({
     width: 1440,
     height: 900,
@@ -31,9 +33,7 @@ const createMainWindow = (): BrowserWindow => {
     },
   });
 
-  // Best-effort screen-capture guard for sensitive student-session content.
-  // Electron maps this to native content-protection APIs where supported.
-  win.setContentProtection(true);
+  applyScreenshotPolicy(win, screenshotsEnabled);
 
   win.once("ready-to-show", () => win.show());
   win.on("closed", () => {
@@ -62,11 +62,15 @@ app.whenReady().then(() => {
   registerIpcProcedures(allProcedures, { db, repos, getMainWindow: () => mainWindow });
   console.log(`[ipc] registered ${allProcedures.length} procedures`);
 
-  mainWindow = createMainWindow();
+  mainWindow = createMainWindow(
+    repos.settings.get<boolean>(SETTINGS_KEYS.screenshotsEnabled) === true,
+  );
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      mainWindow = createMainWindow();
+      mainWindow = createMainWindow(
+        repos.settings.get<boolean>(SETTINGS_KEYS.screenshotsEnabled) === true,
+      );
     }
   });
 });

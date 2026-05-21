@@ -4,6 +4,7 @@ import {
   type ExerciseSessionMode,
   exerciseSessionModeOptions,
 } from "@/modules/exercises/sessionModes";
+import { SETTINGS_KEYS } from "@/modules/settings/keys";
 import { useAppMode } from "@/providers/AppModeProvider";
 import {
   type DisplayFontSize,
@@ -35,6 +36,7 @@ const SETTINGS = {
   sessionShuffle: "session_shuffle",
   definitionPriority: "definition_priority",
   cameraCheckinsEnabled: "session_camera_checkins_enabled",
+  screenshotsEnabled: SETTINGS_KEYS.screenshotsEnabled,
   pronunciationAccent: "pronunciation_default_accent",
   idleTimeout: "idle_timeout_minutes",
   lockOnClose: "lock_on_close",
@@ -185,6 +187,7 @@ function SessionDefaultsCard() {
   const mode = useSetting<ExerciseSessionMode>(SETTINGS.sessionMode, "mixed");
   const shuffle = useSetting<boolean>(SETTINGS.sessionShuffle, true);
   const cameraCheckins = useSetting<boolean>(SETTINGS.cameraCheckinsEnabled, false);
+  const screenshots = useSetting<boolean>(SETTINGS.screenshotsEnabled, false);
 
   return (
     <SettingsCard title="Session defaults" description="Starting values for student sessions.">
@@ -227,6 +230,17 @@ function SessionDefaultsCard() {
             : "Student sessions track timing and focus only."
         }
         onChange={cameraCheckins.setValue}
+      />
+      <SettingToggle
+        label="Allow screenshots"
+        checked={screenshots.value === true}
+        disabled={screenshots.loading || screenshots.saving}
+        description={
+          screenshots.value === true
+            ? "Students can capture student-session windows."
+            : "Student-session windows ask the OS to block screen capture where supported."
+        }
+        onChange={screenshots.setValue}
       />
     </SettingsCard>
   );

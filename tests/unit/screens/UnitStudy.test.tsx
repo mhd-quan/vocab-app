@@ -1,4 +1,4 @@
-import type { Lesson, Unit } from "@/data/types";
+import type { Lesson, Unit, VocabEntry } from "@/data/types";
 import { StudentUnitStudy } from "@/ui/screens/student/UnitStudy";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
@@ -8,8 +8,9 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
+  useRouterState,
 } from "@tanstack/react-router";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const epoch = new Date(0);
@@ -50,6 +51,28 @@ const grammarLesson: Lesson = {
   updatedAt: epoch,
 };
 
+function vocabEntry(overrides: Partial<VocabEntry>): VocabEntry {
+  return {
+    id: 1,
+    lessonId: 100,
+    sourceId: "relative-noun",
+    headword: "relative",
+    lemma: null,
+    pos: "noun",
+    ipa: null,
+    cefrLevel: "B1",
+    frequencyRank: null,
+    imageRef: null,
+    audioRef: null,
+    tags: null,
+    metadata: null,
+    contentHash: "h",
+    createdAt: epoch,
+    updatedAt: epoch,
+    ...overrides,
+  };
+}
+
 function renderUnitStudy() {
   const rootRoute = createRootRoute({ component: () => <Outlet /> });
   const studentRoute = createRoute({
@@ -70,7 +93,10 @@ function renderUnitStudy() {
   const sessionRoute = createRoute({
     getParentRoute: () => studentRoute,
     path: "profile/$studentId/session/$lessonId",
-    component: () => <div data-testid="session-route" />,
+    validateSearch: (raw: Record<string, unknown>) => ({
+      sections: typeof raw.sections === "string" ? raw.sections : "",
+    }),
+    component: SessionProbe,
   });
   const router = createRouter({
     routeTree: rootRoute.addChildren([
@@ -86,24 +112,59 @@ function renderUnitStudy() {
   );
 }
 
+function SessionProbe() {
+  const search = useRouterState({ select: (state) => state.location.search });
+  return <div data-testid="session-route">{JSON.stringify(search)}</div>;
+}
+
 describe("StudentUnitStudy", () => {
   beforeEach(() => {
     vi.spyOn(window.api.curriculum, "getUnitById").mockResolvedValue(unit);
     vi.spyOn(window.api.curriculum, "listLessonsByUnit").mockResolvedValue([vocabLesson]);
-    vi.spyOn(window.api.vocab, "listByLesson").mockResolvedValue([]);
+    vi.spyOn(window.api.vocab, "listByLesson").mockResolvedValue([
+      vocabEntry({ id: 1, pos: "noun", headword: "relative" }),
+      vocabEntry({
+        id: 2,
+        sourceId: "give-up",
+        headword: "give up",
+        pos: "phrasal_verb",
+        tags: ["phrasal-verb"],
+      }),
+    ]);
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("redirects vocabulary-only units straight to the vocab session", async () => {
+  it("keeps vocabulary-only units on the section picker before starting a session", async () => {
     renderUnitStudy();
 
-    await screen.findByTestId("session-route");
+    await waitFor(() => expect(screen.getByText(/Study plan/i)).toBeInTheDocument());
+    expect(screen.queryByTestId("session-route")).toBeNull();
+    expect(window.api.vocab.listByLesson).toHaveBeenCalledWith({ lessonId: vocabLesson.id });
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /Vocabulary/i })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      ),
+    );
+    expect(await screen.findByRole("button", { name: /Phrasal verbs/i })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
 
-    expect(screen.queryByText(/Study plan/i)).not.toBeInTheDocument();
-    expect(window.api.vocab.listByLesson).not.toHaveBeenCalled();
+  it("starts vocab sessions with the selected section filter", async () => {
+    renderUnitStudy();
+
+    const vocabularySection = await screen.findByRole("button", { name: /Vocabulary/i });
+    await waitFor(() => expect(vocabularySection).toHaveAttribute("aria-pressed", "true"));
+    fireEvent.click(vocabularySection);
+    fireEvent.click(screen.getByRole("button", { name: /Start 1 cards/i }));
+
+    await waitFor(() => expect(screen.getByTestId("session-route")).toBeInTheDocument());
+    expect(screen.getByTestId("session-route")).toHaveTextContent('"sections":"phrasal_verbs"');
   });
 
   it("keeps the unit study layer when a unit has grammar", async () => {

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { type AppDatabase, closeDatabase } from "../../../electron/db";
 import type { Repositories } from "../../../electron/db/repositories";
@@ -238,6 +238,23 @@ describe("IPC procedure registry", () => {
     it("set + get round-trips", async () => {
       await call("settings.set", { key: "theme", value: "dark" }, ctx);
       expect(await call<string | null>("settings.get", { key: "theme" }, ctx)).toBe("dark");
+    });
+
+    it("applies the screenshot policy to the main window when toggled", async () => {
+      const setContentProtection = vi.fn();
+      const windowCtx = {
+        repos: ctx.repos,
+        getMainWindow: () => ({ setContentProtection }),
+      };
+
+      await call("settings.set", { key: "session_screenshots_enabled", value: true }, windowCtx);
+      expect(setContentProtection).toHaveBeenLastCalledWith(false);
+
+      await call("settings.set", { key: "session_screenshots_enabled", value: false }, windowCtx);
+      expect(setContentProtection).toHaveBeenLastCalledWith(true);
+
+      await call("settings.delete", { key: "session_screenshots_enabled" }, windowCtx);
+      expect(setContentProtection).toHaveBeenLastCalledWith(true);
     });
   });
 
