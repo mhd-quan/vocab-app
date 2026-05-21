@@ -59,6 +59,7 @@ export function StudentLayout() {
   const savedBackground = normalizeStudyBackground(backgroundQ.data || "");
   const customBackground = useLoadedStudyBackground(savedBackground);
   const hasCustomBackground = savedBackground.length > 0;
+  const hasUploadedBackground = extractBackgroundImageUrl(savedBackground) !== null;
   const summary = summaryQ.data;
   const pinQ = useQuery({
     queryKey: queryKeys.students.hasPin(activeStudentId ?? 0),
@@ -81,21 +82,27 @@ export function StudentLayout() {
 
   return (
     <div
-      className="flex h-screen w-screen flex-col bg-app"
+      className="relative isolate flex h-screen w-screen flex-col overflow-hidden bg-app"
       data-student-bg={hasCustomBackground ? "custom" : "default"}
       style={
         hasCustomBackground
           ? {
               background: customBackground || "rgb(var(--color-surface-0))",
-              backgroundAttachment: "scroll",
               colorScheme: "light",
             }
           : undefined
       }
     >
+      {hasUploadedBackground ? (
+        <div
+          aria-hidden="true"
+          data-testid="student-background-tint"
+          className="pointer-events-none absolute inset-0 z-0 bg-surface-0/35 backdrop-brightness-75 backdrop-saturate-75"
+        />
+      ) : null}
       <header
         className={cn(
-          "flex min-h-[var(--student-header-height)] items-center justify-between gap-4 border-b border-border-subtle bg-surface-1/95 py-3 pr-6 shadow-sm [-webkit-app-region:drag]",
+          "relative z-10 flex min-h-[var(--student-header-height)] items-center justify-between gap-4 border-b border-border-subtle bg-surface-1/95 py-3 pr-6 shadow-sm [-webkit-app-region:drag]",
           isMac ? "pl-20" : "pl-6",
         )}
       >
@@ -148,7 +155,7 @@ export function StudentLayout() {
       </header>
       <main
         className={cn(
-          "min-w-0 flex-1 overflow-y-auto",
+          "relative z-10 min-w-0 flex-1 overflow-y-auto",
           hasCustomBackground ? "bg-transparent" : "bg-app/85",
         )}
       >

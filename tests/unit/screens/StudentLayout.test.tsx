@@ -59,6 +59,29 @@ describe("StudentLayout", () => {
     await waitFor(() => expect(screen.getByTestId("study-child")).toBeInTheDocument());
   });
 
+  it("tints uploaded study background images behind the student surface", async () => {
+    vi.spyOn(window.api.students, "hasPin").mockResolvedValue(false);
+    vi.spyOn(window.api.settings, "get").mockResolvedValue(
+      'url("data:image/png;base64,abc") center / cover no-repeat',
+    );
+    renderStudentLayout();
+
+    expect(await screen.findByTestId("student-background-tint")).toHaveClass(
+      "backdrop-brightness-75",
+      "backdrop-saturate-75",
+    );
+    expect(await screen.findByRole("main")).toHaveClass("relative", "z-10", "bg-transparent");
+  });
+
+  it("keeps preset gradient study backgrounds untinted", async () => {
+    vi.spyOn(window.api.students, "hasPin").mockResolvedValue(false);
+    vi.spyOn(window.api.settings, "get").mockResolvedValue("linear-gradient(135deg,#fff,#eef)");
+    renderStudentLayout();
+
+    await waitFor(() => expect(screen.getByRole("main")).toHaveClass("bg-transparent"));
+    expect(screen.queryByTestId("student-background-tint")).toBeNull();
+  });
+
   it("blocks deep links to protected profiles until the profile is unlocked", async () => {
     vi.spyOn(window.api.students, "hasPin").mockResolvedValue(true);
     renderStudentLayout();

@@ -37,20 +37,19 @@ describe("Avatar", () => {
     expect(span.getAttribute("style")).toBeNull();
   });
 
-  it("renders legacy emoji avatar seeds as unified glyphs ahead of initials", () => {
-    const { container } = render(
-      <Avatar name="Alice Cooper" avatarSeed="emoji:🔥" color="#1a2b3c" />,
-    );
-    expect(container.querySelector("svg")).toBeInTheDocument();
+  it("renders emoji avatar seeds ahead of initials", () => {
+    render(<Avatar name="Alice Cooper" avatarSeed="emoji:🔥" color="#1a2b3c" />);
+    expect(screen.getByText("🔥")).toBeInTheDocument();
     expect(screen.queryByText("AC")).toBeNull();
   });
 
-  it("renders glyph avatar seeds ahead of initials", () => {
+  it("falls back to initials for unsupported glyph avatar seeds", () => {
     const { container } = render(
       <Avatar name="Alice Cooper" avatarSeed="glyph:flame" color="#1a2b3c" />,
     );
     expect(container.querySelector("svg")).toBeInTheDocument();
-    expect(screen.queryByText("AC")).toBeNull();
+    expect(screen.getByText("AC")).toBeInTheDocument();
+    expect(container.firstElementChild).toHaveStyle({ backgroundColor: "#1a2b3c" });
   });
 
   it("renders image avatar seeds without applying an inline background color", () => {
@@ -64,7 +63,7 @@ describe("Avatar", () => {
     expect(img?.parentElement).not.toHaveStyle({ backgroundColor: "#1a2b3c" });
   });
 
-  it("falls back to unified glyph initials for legacy pet avatar seeds", () => {
+  it("falls back to initials for legacy pet avatar seeds", () => {
     const { container } = render(
       <Avatar name="Alice Cooper" avatarSeed="pet:nova" color="#1a2b3c" />,
     );

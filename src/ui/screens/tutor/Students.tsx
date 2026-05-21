@@ -9,7 +9,6 @@ import { EmptyState } from "@/ui/components/EmptyState";
 import { Field, useFieldId } from "@/ui/components/Field";
 import { Modal } from "@/ui/components/Modal";
 import { PageHeader } from "@/ui/components/PageHeader";
-import { AVATAR_GLYPH_OPTIONS, AvatarGlyph, parseAvatarGlyph } from "@/ui/components/avatarGlyphs";
 import {
   TutorSegmentedControl,
   TutorTextAreaField,
@@ -34,6 +33,7 @@ const COLOR_OPTIONS = [
   "#2dd4b7", // focus
 ];
 
+const EMOJI_OPTIONS = ["⭐", "🔥", "⚡", "🚀", "🎯", "🧠", "📚", "🌈", "🍀", "💎", "🎮", "🏆"];
 const MAX_AVATAR_FILE_BYTES = 5 * 1024 * 1024;
 const MAX_AVATAR_SEED_CHARS = 180_000;
 
@@ -377,24 +377,24 @@ function StudentEditor({ open, onClose, editing }: StudentEditorProps) {
               />
             </div>
             <div className="grid grid-cols-6 gap-2 sm:grid-cols-12">
-              {AVATAR_GLYPH_OPTIONS.map((option) => {
-                const selected = parseAvatarGlyph(avatarSeed)?.id === option.id;
+              {EMOJI_OPTIONS.map((emoji) => {
+                const seed = `emoji:${emoji}`;
+                const selected = avatarSeed === seed;
                 return (
                   <button
-                    key={option.id}
+                    key={emoji}
                     type="button"
-                    aria-label={`Avatar ${option.label}`}
+                    aria-label={`Avatar ${emoji}`}
                     aria-pressed={selected}
-                    onClick={() => setAvatarSeed(option.seed)}
+                    onClick={() => setAvatarSeed(seed)}
                     className={cn(
-                      "grid h-9 w-9 place-items-center rounded-full border transition-[background-color,border-color,box-shadow,transform]",
-                      option.toneClassName,
+                      "grid h-9 w-9 place-items-center rounded-full border text-lg leading-none transition-[background-color,border-color,box-shadow,transform]",
                       selected
                         ? "border-accent bg-accent/10 shadow-[0_0_0_4px_rgb(var(--color-accent)/0.12)]"
                         : "border-border-subtle bg-surface-1 hover:-translate-y-0.5 hover:border-accent/40",
                     )}
                   >
-                    <AvatarGlyph option={option} className="h-5 w-5" />
+                    {emoji}
                   </button>
                 );
               })}
