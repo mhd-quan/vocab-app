@@ -217,7 +217,9 @@ function RuntimeCard({ status }: { status: PronunciationStatusView | null }) {
     <div className="rounded-bento border border-border-subtle bg-surface-0/70 p-4 text-xs">
       <p className="font-semibold uppercase text-muted-2">Runtime</p>
       <p className="mt-1 font-mono text-lg text-app">
-        {status ? `${status.backend} / ${status.executionProvider}` : "..."}
+        {status
+          ? `${status.modelFamily ?? "capt"} / ${status.backend} / ${status.executionProvider}`
+          : "..."}
       </p>
       <p className="mt-1 max-w-xs leading-5 text-muted">
         {status?.reason ?? "Offline model ready."}
@@ -288,6 +290,7 @@ function TargetPanel({
 
       {assessment ? (
         <>
+          {result?.ok ? <AttemptOutcome assessment={assessment} /> : null}
           <section className="grid gap-3 sm:grid-cols-3">
             <ScoreCard label="Overall" value={assessment.overallScore} />
             <ScoreCard label="Phonemes" value={assessment.phonemeScore} />
@@ -308,6 +311,31 @@ function TargetPanel({
           </div>
         </>
       ) : null}
+    </div>
+  );
+}
+
+function AttemptOutcome({
+  assessment,
+}: {
+  assessment: Extract<PronunciationAssessView, { ok: true }>["assessment"];
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-xl border px-4 py-3 text-sm",
+        assessment.retryRequired
+          ? "border-warning/35 bg-warning/10 text-warning"
+          : "border-success/30 bg-success/10 text-success",
+      )}
+    >
+      <p className="font-semibold">
+        {assessment.retryRequired ? "Retry this word" : "Pronunciation target passed"}
+      </p>
+      <p className="mt-1 leading-6">
+        Score {assessment.overallScore}/{assessment.passingScore}
+        {assessment.guardrails.length > 0 ? ` · ${assessment.guardrails[0]?.message}` : ""}
+      </p>
     </div>
   );
 }

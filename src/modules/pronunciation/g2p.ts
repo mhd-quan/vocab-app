@@ -1,15 +1,12 @@
+import { isArpabetVowel, normalizeAcousticLabel } from "./labels";
 import type { PronunciationTarget } from "./types";
 
-const CMU_FALLBACK: Record<string, string> = {
-  fantastic: "F AE1 N T AE2 S T IH0 K",
-  family: "F AE1 M AH0 L IY0",
-  relative: "R EH1 L AH0 T IH0 V",
-  pronunciation: "P R AH0 N AH2 N S IY0 EY1 SH AH0 N",
-  vocabulary: "V OW0 K AE1 B Y AH0 L EH2 R IY0",
-  grammar: "G R AE1 M ER0",
-  student: "S T UW1 D AH0 N T",
-  tutor: "T UW1 T ER0",
-};
+const PRIMARY_STRESS = "ˈ";
+const SECONDARY_STRESS = "ˌ";
+
+export interface BuildPronunciationTargetOptions {
+  lookup?: (word: string) => string | null;
+}
 
 const DIGRAPH_PHONEMES: Array<[string, string]> = [
   ["tion", "SH AH0 N"],
@@ -67,9 +64,13 @@ const LETTER_PHONEMES: Record<string, string> = {
   z: "Z",
 };
 
-export function buildPronunciationTarget(text: string, ipa?: string | null): PronunciationTarget {
+export function buildPronunciationTarget(
+  text: string,
+  ipa?: string | null,
+  options?: BuildPronunciationTargetOptions,
+): PronunciationTarget {
   const normalized = normalizeTerm(text);
-  const cmu = CMU_FALLBACK[normalized];
+  const cmu = options?.lookup?.(normalized);
   if (cmu) return targetFromCmu(text, cmu, "cmudict");
 
   const ipaTarget = targetFromIpa(text, ipa);
@@ -103,20 +104,61 @@ function targetFromCmu(
 }
 
 function targetFromIpa(text: string, ipa?: string | null): PronunciationTarget | null {
-  const cleaned = ipa?.trim().replace(/^\/|\/$/g, "");
+  const cleaned = ipa
+    ?.trim()
+    .replace(/^\/|\/$/g, "")
+    .replace(/^\[|\]$/g, "");
   if (!cleaned) return null;
-  const phonemes = cleaned
-    .replace(/[ˈˌ.]/g, " ")
-    .split(/\s+/)
-    .map((part) => ipaTokenToArpabet(part))
-    .filter((part): part is string => Boolean(part));
+  const phonemes: string[] = [];
+  const stressPattern: Array<0 | 1 | 2 | null> = [];
+  let pendingStress: 0 | 1 | 2 = 0;
+
+  let i = 0;
+  while (i < cleaned.length) {
+    const char = cleaned[i] ?? "";
+    if (char === PRIMARY_STRESS) {
+      pendingStress = 1;
+      i += 1;
+      continue;
+    }
+    if (char === SECONDARY_STRESS) {
+      pendingStress = 2;
+      i += 1;
+      continue;
+    }
+    if (char === "." || /\s/.test(char)) {
+      i += 1;
+      continue;
+    }
+
+    const matched = matchIpaToken(cleaned, i);
+    if (!matched) {
+      i += 1;
+      continue;
+    }
+
+    phonemes.push(matched.arpabet);
+    if (isArpabetVowel(matched.arpabet)) {
+      stressPattern.push(pendingStress);
+      pendingStress = 0;
+    } else {
+      stressPattern.push(null);
+    }
+    i += matched.length;
+  }
+
   if (phonemes.length === 0) return null;
-  return {
-    text,
-    phonemes,
-    stressPattern: phonemes.map(() => null),
-    source: "ipa",
-  };
+  return { text, phonemes, stressPattern, source: "ipa" };
+}
+
+function matchIpaToken(input: string, offset: number): { arpabet: string; length: number } | null {
+  for (const length of [3, 2, 1]) {
+    const slice = input.slice(offset, offset + length);
+    if (slice.length !== length) continue;
+    const arpabet = normalizeAcousticLabel(slice);
+    if (arpabet && arpabet !== "<blank>") return { arpabet, length };
+  }
+  return null;
 }
 
 function heuristicCmu(term: string): string {
@@ -138,50 +180,6 @@ function heuristicCmu(term: string): string {
     i += 1;
   }
   return out.join(" ");
-}
-
-function ipaTokenToArpabet(token: string): string | null {
-  const map: Record<string, string> = {
-    f: "F",
-    v: "V",
-    p: "P",
-    b: "B",
-    t: "T",
-    d: "D",
-    k: "K",
-    g: "G",
-    s: "S",
-    z: "Z",
-    m: "M",
-    n: "N",
-    l: "L",
-    r: "R",
-    h: "HH",
-    w: "W",
-    j: "Y",
-    i: "IY",
-    "i:": "IY",
-    ɪ: "IH",
-    e: "EH",
-    æ: "AE",
-    ə: "AH",
-    ʌ: "AH",
-    ɑ: "AA",
-    "ɑ:": "AA",
-    ɔ: "AO",
-    "ɔ:": "AO",
-    u: "UW",
-    "u:": "UW",
-    ʊ: "UH",
-    θ: "TH",
-    ð: "DH",
-    ʃ: "SH",
-    ʒ: "ZH",
-    tʃ: "CH",
-    dʒ: "JH",
-    ŋ: "NG",
-  };
-  return map[token] ?? null;
 }
 
 function normalizeTerm(text: string): string {

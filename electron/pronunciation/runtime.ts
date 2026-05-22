@@ -8,24 +8,24 @@ import {
   type PronunciationAnalyzeInput,
   type PronunciationAssessment,
   type PronunciationExecutionProvider,
+  type PronunciationModelManifest,
   type PronunciationRuntimeStatus,
+  type PronunciationScoringPolicy,
   assessPronunciationFromFrames,
   buildPronunciationTarget,
   ctcViterbiAlign,
   deterministicAcousticFrames,
+  isPronunciationModelManifest,
+  normalizeAcousticLabel,
+  normalizeLabelMap,
+  pronunciationLabelCoverage,
   scoreStress,
 } from "../../src/modules/pronunciation";
+import { cmudictLookup } from "./cmudict";
 
 const require = createRequire(import.meta.url);
 const ASSET_DIR = "capt-models";
 const MANIFEST_FILE = "manifest.json";
-
-interface PronunciationModelManifest {
-  modelId: string;
-  sampleRate?: number;
-  frameMs?: number;
-  labels?: Record<string, string>;
-}
 
 type TransformersBundle = {
   env: {
@@ -52,22 +52,43 @@ export async function pronunciationStatus(): Promise<PronunciationRuntimeStatus>
   const status = baseRuntimeStatus();
   const manifest = readModelManifest(status.modelPath);
   const dependenciesReady = await hasTransformersRuntime(status.platform, status.arch);
+  const labels = readLabelMap(status.modelPath, manifest);
+  const coverage = pronunciationLabelCoverage(labels);
+  const architecture = verifyHubertArchitecture(status.modelPath, manifest?.modelId);
 
   if (!status.modelPresent) {
     return {
       ...status,
       available: false,
       backend: "deterministic",
-      reason: `No offline CAPT model bundle found. Install ${ASSET_DIR}/${MANIFEST_FILE} plus ONNX model files.`,
+      reason: `No offline HuBERT CAPT model bundle found. Install ${ASSET_DIR}/${MANIFEST_FILE} plus ONNX model files.`,
     };
   }
 
-  if (!manifest?.labels || Object.keys(manifest.labels).length === 0) {
+  if (!manifest) {
     return {
       ...status,
       available: false,
       backend: "deterministic",
-      reason: "CAPT model manifest is missing a phoneme label map.",
+      reason: "CAPT model manifest must declare modelFamily=hubert and a local modelId.",
+    };
+  }
+
+  if (!coverage.ok) {
+    return {
+      ...status,
+      available: false,
+      backend: "deterministic",
+      reason: `HuBERT CAPT model labels are missing required English phonemes: ${formatMissingLabels(coverage.missing)}.`,
+    };
+  }
+
+  if (!architecture.ok) {
+    return {
+      ...status,
+      available: false,
+      backend: "deterministic",
+      reason: architecture.reason ?? "CAPT bundle does not declare a HuBERT architecture.",
     };
   }
 
@@ -89,11 +110,12 @@ export async function pronunciationStatus(): Promise<PronunciationRuntimeStatus>
 }
 
 export function pronunciationTarget(input: { text: string; ipa?: string | null }) {
-  return buildPronunciationTarget(input.text, input.ipa);
+  return buildPronunciationTarget(input.text, input.ipa, { lookup: cmudictLookup });
 }
 
 export async function assessPronunciation(
   input: PronunciationAnalyzeInput,
+  policy?: Partial<PronunciationScoringPolicy> | null,
 ): Promise<
   | { ok: true; assessment: PronunciationAssessment; status: PronunciationRuntimeStatus }
   | { ok: false; status: PronunciationRuntimeStatus; reason: string }
@@ -111,13 +133,15 @@ export async function assessPronunciation(
       frames,
       runtime,
       startedAt,
+      policy,
+      buildTargetOptions: { lookup: cmudictLookup },
     });
     return {
       ok: true,
       status: runtime,
       assessment: {
         ...assessment,
-        target: buildPronunciationTarget(input.targetText, input.ipa),
+        target: buildPronunciationTarget(input.targetText, input.ipa, { lookup: cmudictLookup }),
         durationMs: Math.max(0, Date.now() - startedAt),
         modelUsed: true,
         feedback: [
@@ -137,11 +161,13 @@ export async function assessPronunciation(
 }
 
 export function previewPronunciation(input: PronunciationAnalyzeInput): PronunciationAssessment {
-  const target = buildPronunciationTarget(input.targetText, input.ipa);
+  const target = buildPronunciationTarget(input.targetText, input.ipa, { lookup: cmudictLookup });
   const runtime: PronunciationRuntimeStatus = {
     available: true,
     backend: "deterministic",
     executionProvider: "cpu",
+    modelFamily: "hubert",
+    modelId: null,
     platform: process.platform,
     arch: process.arch,
     modelPath: null,
@@ -153,6 +179,7 @@ export function previewPronunciation(input: PronunciationAnalyzeInput): Pronunci
     input,
     frames: deterministicAcousticFrames(target.phonemes),
     runtime,
+    enforcePolicy: false,
   });
 }
 
@@ -168,7 +195,22 @@ async function acousticFramesFromTransformers(
     throw new Error("No PCM audio was supplied for pronunciation analysis.");
   }
   const manifest = readModelManifest(status.modelPath);
-  if (!manifest?.labels) throw new Error("CAPT model manifest is missing labels.");
+  if (!manifest) {
+    throw new Error("CAPT model manifest must declare modelFamily=hubert and a local modelId.");
+  }
+  const labels = readLabelMap(status.modelPath, manifest);
+  const coverage = pronunciationLabelCoverage(labels);
+  if (!coverage.ok) {
+    throw new Error(
+      `HuBERT CAPT model labels are missing required English phonemes: ${formatMissingLabels(
+        coverage.missing,
+      )}.`,
+    );
+  }
+  const architecture = verifyHubertArchitecture(status.modelPath, manifest.modelId);
+  if (!architecture.ok) {
+    throw new Error(architecture.reason ?? "CAPT bundle does not declare a HuBERT architecture.");
+  }
   const bundle = (await import("@huggingface/transformers")) as unknown as TransformersBundle;
   if (!status.modelPath) throw new Error("CAPT model path is unavailable.");
 
@@ -180,6 +222,7 @@ async function acousticFramesFromTransformers(
     const options = {
       local_files_only: true,
       device: deviceForProvider(status.executionProvider),
+      dtype: manifest.dtype,
     };
     cachedModel = {
       key: cacheKey,
@@ -190,11 +233,14 @@ async function acousticFramesFromTransformers(
     };
   }
 
-  const processor = cachedModel.processor as (
+  const loadedModel = cachedModel;
+  if (!loadedModel) throw new Error("CAPT model failed to load.");
+
+  const processor = loadedModel.processor as (
     audio: Float32Array,
     options?: Record<string, unknown>,
   ) => Promise<Record<string, unknown>>;
-  const model = cachedModel.model as (
+  const model = loadedModel.model as (
     inputs: Record<string, unknown>,
   ) => Promise<Record<string, unknown>>;
   const modelSampleRate = manifest.sampleRate ?? 16_000;
@@ -208,7 +254,7 @@ async function acousticFramesFromTransformers(
   });
   const output = await model(processed);
   return {
-    frames: logitsToFrames(output, manifest),
+    frames: logitsToFrames(output, { ...manifest, labels }),
     manifest,
     status,
   };
@@ -277,11 +323,14 @@ function logitsToFrames(
 
 function baseRuntimeStatus(): PronunciationRuntimeStatus {
   const modelPath = findModelPath();
+  const manifest = readModelManifest(modelPath);
   const executionProvider = defaultProvider();
   return {
     available: false,
     backend: "deterministic",
     executionProvider,
+    modelFamily: manifest?.modelFamily ?? "hubert",
+    modelId: manifest?.modelId ?? null,
     platform: process.platform,
     arch: process.arch,
     modelPath,
@@ -331,10 +380,77 @@ function readModelManifest(modelPath: string | null): PronunciationModelManifest
   const file = path.join(modelPath, MANIFEST_FILE);
   if (!fs.existsSync(file)) return null;
   try {
-    return JSON.parse(fs.readFileSync(file, "utf8")) as PronunciationModelManifest;
+    const parsed = JSON.parse(fs.readFileSync(file, "utf8")) as unknown;
+    return isPronunciationModelManifest(parsed) ? parsed : null;
   } catch {
     return null;
   }
+}
+
+function verifyHubertArchitecture(
+  modelPath: string | null,
+  modelId: string | undefined,
+): { ok: boolean; reason?: string } {
+  if (!modelPath || !modelId) return { ok: true };
+  const configFile = path.join(modelPath, ...modelId.split("/"), "config.json");
+  if (!fs.existsSync(configFile)) return { ok: true };
+
+  try {
+    const config = JSON.parse(fs.readFileSync(configFile, "utf8")) as { model_type?: unknown };
+    const modelType = typeof config.model_type === "string" ? config.model_type : null;
+    if (modelType === "hubert") return { ok: true };
+    if (!modelType) {
+      return {
+        ok: false,
+        reason: `CAPT bundle ${modelId}/config.json is missing model_type. HuBERT is required.`,
+      };
+    }
+    return {
+      ok: false,
+      reason: `CAPT bundle ${modelId} declares model_type='${modelType}'. HuBERT is required.`,
+    };
+  } catch {
+    return {
+      ok: false,
+      reason: `CAPT bundle ${modelId}/config.json could not be parsed.`,
+    };
+  }
+}
+
+function readLabelMap(
+  modelPath: string | null,
+  manifest: PronunciationModelManifest | null,
+): Record<string, string> {
+  const labels = normalizeLabelMap(manifest?.labels);
+  if (Object.keys(labels).length > 0) return labels;
+  return labelsFromVocab(modelPath, manifest?.modelId);
+}
+
+function labelsFromVocab(
+  modelPath: string | null,
+  modelId: string | undefined,
+): Record<string, string> {
+  if (!modelPath || !modelId) return {};
+  const file = path.join(modelPath, ...modelId.split("/"), "vocab.json");
+  if (!fs.existsSync(file)) return {};
+
+  try {
+    const vocab = JSON.parse(fs.readFileSync(file, "utf8")) as Record<string, unknown>;
+    const out: Record<string, string> = {};
+    for (const [label, index] of Object.entries(vocab)) {
+      if (typeof index !== "number") continue;
+      const normalized = normalizeAcousticLabel(label);
+      if (normalized) out[String(index)] = normalized;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+function formatMissingLabels(labels: string[]): string {
+  if (labels.length <= 10) return labels.join(", ");
+  return `${labels.slice(0, 10).join(", ")} and ${labels.length - 10} more`;
 }
 
 async function hasTransformersRuntime(
@@ -431,4 +547,6 @@ export const _internal = {
   ctcViterbiAlign,
   scoreStress,
   buildPronunciationTarget,
+  readLabelMap,
+  verifyHubertArchitecture,
 };

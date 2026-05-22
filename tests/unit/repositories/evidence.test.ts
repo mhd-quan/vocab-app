@@ -56,7 +56,12 @@ describe("EvidenceRepository", () => {
         studentId: student.id,
         sessionId: session.id,
         kind: "pronunciation_assessment",
-        payload: { overallScore: 58, phonemeScore: 62 },
+        payload: {
+          overallScore: 58,
+          phonemeScore: 62,
+          passingScore: 70,
+          retryRequired: true,
+        },
         occurredAt: new Date("2026-01-01T00:06:00Z"),
       },
     ]);
@@ -68,6 +73,7 @@ describe("EvidenceRepository", () => {
     expect(overview.pronunciationAssessmentCount).toBe(1);
     expect(overview.pronunciationAverageScore).toBe(58);
     expect(overview.pronunciationFlagCount).toBe(1);
+    expect(overview.pronunciationRetryRequiredCount).toBe(1);
     expect(overview.recentSessions[0]?.metrics.avgResponseMs).toBe(42_000);
     expect(overview.recentSessions[0]?.metrics.attentionScore).toBeLessThan(100);
   });

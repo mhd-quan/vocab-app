@@ -184,6 +184,8 @@ interface PronunciationStatus {
   available: boolean;
   backend: "onnx-native" | "transformers-js" | "deterministic";
   executionProvider: "coreml" | "directml" | "webgpu" | "wasm" | "cpu";
+  modelFamily: "hubert" | null;
+  modelId: string | null;
   platform: NodeJS.Platform | "test";
   arch: string;
   modelPath: string | null;
@@ -208,6 +210,27 @@ interface PronunciationAssessment {
   overallScore: number;
   phonemeScore: number;
   stressScore: number | null;
+  passingScore: number;
+  errorRate: number;
+  retryRequired: boolean;
+  guardrails: Array<{
+    code:
+      | "audio_missing"
+      | "audio_too_short"
+      | "audio_too_quiet"
+      | "audio_clipped"
+      | "score_below_threshold";
+    severity: "info" | "warning" | "retry";
+    message: string;
+  }>;
+  audioQuality: {
+    durationMs: number;
+    sampleRate: number;
+    rms: number;
+    peak: number;
+    clippedRatio: number;
+    silentRatio: number;
+  } | null;
   phonemes: Array<{
     phoneme: string;
     expectedIndex: number;
@@ -229,7 +252,7 @@ interface PronunciationAssessment {
 const api = {
   app: {
     name: "vocab-app",
-    version: "0.13.6",
+    version: "0.14.0",
     platform: process.platform,
   },
 

@@ -45,6 +45,7 @@ const requiredDrizzleFiles = [
 ];
 
 const captModelManifest = path.join("capt-models", "manifest.json");
+const cmudictFile = path.join("cmudict", "cmudict-0.7b.txt");
 
 function main(): void {
   const failures: string[] = [];
@@ -56,6 +57,7 @@ function main(): void {
     failures.push(...verifyTarget(target));
   }
   failures.push(...verifyWindowsInstallers());
+  failures.push(...verifyMacInstallers());
 
   if (failures.length > 0) {
     for (const failure of failures) console.error(`x ${failure}`);
@@ -112,6 +114,8 @@ function verifyTarget(target: PackagedTarget): string[] {
     `${target.label} ${captModelManifest}`,
     failures,
   );
+
+  requireFile(path.join(resourcesDir, cmudictFile), `${target.label} ${cmudictFile}`, failures);
 
   return failures;
 }
@@ -175,6 +179,23 @@ function verifyWindowsInstallers(): string[] {
     failures,
   );
   requireDir(path.join(dictInstaller, "dictionary"), "Windows dictionary payload", failures);
+
+  return failures;
+}
+
+function verifyMacInstallers(): string[] {
+  const failures: string[] = [];
+  const releaseDir = path.resolve("out", "release", `v${version}`);
+  const macDictStaging = path.join(releaseDir, "macos-dictionary-installer");
+  const macDictDmg = path.join(releaseDir, `Vocab-App-v${version}-dict-installer-oald10-macOS.dmg`);
+
+  requireFile(
+    path.join(macDictStaging, "Install-Vocab-Dictionary.command"),
+    "macOS dictionary installer command",
+    failures,
+  );
+  requireDir(path.join(macDictStaging, "dictionary"), "macOS dictionary payload", failures);
+  requireFile(macDictDmg, "macOS dictionary installer DMG", failures);
 
   return failures;
 }

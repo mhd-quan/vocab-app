@@ -133,6 +133,7 @@ function StudentTable({
     totalReviewFlags: number;
     pronunciationAverageScore?: number | null;
     pronunciationFlagCount?: number;
+    pronunciationRetryRequiredCount?: number;
   }>;
 }) {
   const evidenceByStudent = new Map(evidenceRows.map((row) => [row.student.id, row]));
@@ -187,6 +188,7 @@ function StudentRow({
     totalReviewFlags: number;
     pronunciationAverageScore?: number | null;
     pronunciationFlagCount?: number;
+    pronunciationRetryRequiredCount?: number;
   };
 }) {
   const display = row.student.displayName ?? row.student.name;
@@ -255,9 +257,11 @@ function StudentRow({
             <Badge tone={attentionTone(evidence.pronunciationAverageScore)} uppercase>
               {evidence.pronunciationAverageScore}
             </Badge>
-            {(evidence.pronunciationFlagCount ?? 0) > 0 ? (
+            {(evidence.pronunciationRetryRequiredCount ?? evidence.pronunciationFlagCount ?? 0) >
+            0 ? (
               <span className="font-mono text-[10px] text-muted-2">
-                {evidence.pronunciationFlagCount} flags
+                {evidence.pronunciationRetryRequiredCount ?? evidence.pronunciationFlagCount}{" "}
+                retries
               </span>
             ) : null}
           </span>

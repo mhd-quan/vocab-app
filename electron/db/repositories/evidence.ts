@@ -59,6 +59,7 @@ export interface TutorEvidenceOverviewRow {
   pronunciationAssessmentCount: number;
   pronunciationAverageScore: number | null;
   pronunciationFlagCount: number;
+  pronunciationRetryRequiredCount: number;
 }
 
 export interface StudentEvidenceOverview {
@@ -71,6 +72,7 @@ export interface StudentEvidenceOverview {
   pronunciationAssessmentCount: number;
   pronunciationAverageScore: number | null;
   pronunciationFlagCount: number;
+  pronunciationRetryRequiredCount: number;
   latestSessionAt: Date | null;
   recentSessions: SessionEvidenceSummaryRow[];
 }
@@ -284,6 +286,10 @@ export function createEvidenceRepository(db: AppDatabase) {
           (sum, s) => sum + s.metrics.pronunciationFlagCount,
           0,
         ),
+        pronunciationRetryRequiredCount: scored.reduce(
+          (sum, s) => sum + s.metrics.pronunciationRetryRequiredCount,
+          0,
+        ),
         latestSessionAt: scored[0]?.startedAt ?? null,
         recentSessions: sessions.slice(0, limit),
       };
@@ -349,6 +355,10 @@ export function createEvidenceRepository(db: AppDatabase) {
           pronunciationAverageScore: pronunciationAverage(rows),
           pronunciationFlagCount: rows.reduce(
             (sum, row) => sum + row.metrics.pronunciationFlagCount,
+            0,
+          ),
+          pronunciationRetryRequiredCount: rows.reduce(
+            (sum, row) => sum + row.metrics.pronunciationRetryRequiredCount,
             0,
           ),
         };

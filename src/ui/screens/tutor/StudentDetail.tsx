@@ -693,6 +693,7 @@ function EvidencePanel({
     pronunciationAssessmentCount?: number;
     pronunciationAverageScore?: number | null;
     pronunciationFlagCount?: number;
+    pronunciationRetryRequiredCount?: number;
     recentSessions: Array<{
       sessionId: number;
       mode: string;
@@ -708,6 +709,7 @@ function EvidencePanel({
         pronunciationAssessmentCount?: number;
         pronunciationAverageScore?: number | null;
         pronunciationFlagCount?: number;
+        pronunciationRetryRequiredCount?: number;
         reviewFlagCount: number;
       };
     }>;
@@ -902,6 +904,7 @@ function PronunciationEvidencePanel({
     pronunciationAssessmentCount?: number;
     pronunciationAverageScore?: number | null;
     pronunciationFlagCount?: number;
+    pronunciationRetryRequiredCount?: number;
     recentSessions: Array<{
       sessionId: number;
       startedAt: Date;
@@ -909,6 +912,7 @@ function PronunciationEvidencePanel({
         pronunciationAssessmentCount?: number;
         pronunciationAverageScore?: number | null;
         pronunciationFlagCount?: number;
+        pronunciationRetryRequiredCount?: number;
       };
     }>;
   } | null;
@@ -947,9 +951,16 @@ function PronunciationEvidencePanel({
             />
             <EvidenceStat label="Attempts" value={attemptCount} tone="accent" />
             <EvidenceStat
-              label="CAPT flags"
-              value={overview.pronunciationFlagCount ?? 0}
-              tone={(overview.pronunciationFlagCount ?? 0) > 0 ? "warning" : "success"}
+              label="Retries"
+              value={
+                overview.pronunciationRetryRequiredCount ?? overview.pronunciationFlagCount ?? 0
+              }
+              tone={
+                (overview.pronunciationRetryRequiredCount ?? overview.pronunciationFlagCount ?? 0) >
+                0
+                  ? "warning"
+                  : "success"
+              }
             />
           </dl>
           <div className="rounded-[var(--shape-corner-lg)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-4">
@@ -977,6 +988,14 @@ function PronunciationEvidencePanel({
                     </Badge>
                     <span className="font-mono text-muted-2">
                       {session.metrics.pronunciationAssessmentCount ?? 0} attempts
+                      {(session.metrics.pronunciationRetryRequiredCount ??
+                        session.metrics.pronunciationFlagCount ??
+                        0) > 0
+                        ? ` · ${
+                            session.metrics.pronunciationRetryRequiredCount ??
+                            session.metrics.pronunciationFlagCount
+                          } retries`
+                        : ""}
                     </span>
                   </span>
                 </li>

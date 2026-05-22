@@ -139,7 +139,7 @@ const config: ForgeConfig = {
     // SQL migration files live alongside the app bundle so the runtime
     // migrator can read them. Resolved via `process.resourcesPath` in
     // electron/db/paths.ts.
-    extraResource: ["./drizzle", "./assets/capt-models"],
+    extraResource: ["./drizzle", "./assets/capt-models", "./assets/cmudict"],
   },
   rebuildConfig: {},
   makers: [

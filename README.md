@@ -4,9 +4,10 @@ Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
 student practice) running as a desktop app on Windows and macOS.
 
-> **Status:** v0.13.6 — local-first tutor workspace, student practice,
+> **Status:** v0.14.0 — local-first tutor workspace, student practice,
 > FSRS-lite review, personal dictionary learning, rewards, imports, and
-> CAPT pronunciation foundations are all backed by the bundled SQLite schema.
+> the HuBERT-backed CAPT pronunciation pipeline (full CMU G2P, IPA stress
+> preservation, tutor-tunable policy) all backed by the bundled SQLite schema.
 
 ## Stack
 
