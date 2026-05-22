@@ -13,7 +13,16 @@ import { VitePlugin } from "@electron-forge/plugin-vite";
 import type { ForgeConfig } from "@electron-forge/shared-types";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
 
-const runtimeNativeDependencies = ["better-sqlite3", "bindings", "file-uri-to-path"];
+const runtimeNativeDependencies = [
+  "better-sqlite3",
+  "@huggingface/transformers",
+  "bindings",
+  "file-uri-to-path",
+  "onnxruntime-node",
+  "onnxruntime-common",
+  "onnxruntime-web",
+  "adm-zip",
+];
 const execFileAsync = promisify(execFile);
 
 function copyRuntimeNativeDependencies(buildPath: string): void {
@@ -23,6 +32,7 @@ function copyRuntimeNativeDependencies(buildPath: string): void {
   for (const dependency of runtimeNativeDependencies) {
     const source = path.join(__dirname, "node_modules", dependency);
     const destination = path.join(targetNodeModules, dependency);
+    fs.mkdirSync(path.dirname(destination), { recursive: true });
     fs.rmSync(destination, { recursive: true, force: true });
     fs.cpSync(source, destination, { recursive: true });
 
@@ -69,6 +79,43 @@ async function installTargetBetterSqlitePrebuild(
   );
 }
 
+function pruneOnnxRuntimeBinaries(buildPath: string, platform: string, arch: string): void {
+  for (const packageDir of onnxRuntimePackageDirs(buildPath)) {
+    const napiRoot = path.join(packageDir, "bin", "napi-v6");
+    if (!fs.existsSync(napiRoot)) continue;
+
+    for (const platformEntry of fs.readdirSync(napiRoot)) {
+      const platformPath = path.join(napiRoot, platformEntry);
+      if (!fs.statSync(platformPath).isDirectory()) continue;
+      if (platformEntry !== platform) {
+        fs.rmSync(platformPath, { recursive: true, force: true });
+        continue;
+      }
+
+      for (const archEntry of fs.readdirSync(platformPath)) {
+        const archPath = path.join(platformPath, archEntry);
+        if (fs.statSync(archPath).isDirectory() && archEntry !== arch) {
+          fs.rmSync(archPath, { recursive: true, force: true });
+        }
+      }
+    }
+  }
+}
+
+function onnxRuntimePackageDirs(buildPath: string): string[] {
+  return [
+    path.join(buildPath, "node_modules", "onnxruntime-node"),
+    path.join(
+      buildPath,
+      "node_modules",
+      "@huggingface",
+      "transformers",
+      "node_modules",
+      "onnxruntime-node",
+    ),
+  ];
+}
+
 const config: ForgeConfig = {
   hooks: {
     packageAfterCopy: async (_config, buildPath) => {
@@ -76,6 +123,7 @@ const config: ForgeConfig = {
     },
     packageAfterPrune: async (_config, buildPath, electronVersion, platform, arch) => {
       await installTargetBetterSqlitePrebuild(buildPath, electronVersion, platform, arch);
+      pruneOnnxRuntimeBinaries(buildPath, platform, arch);
     },
   },
   packagerConfig: {
@@ -91,7 +139,7 @@ const config: ForgeConfig = {
     // SQL migration files live alongside the app bundle so the runtime
     // migrator can read them. Resolved via `process.resourcesPath` in
     // electron/db/paths.ts.
-    extraResource: ["./drizzle"],
+    extraResource: ["./drizzle", "./assets/capt-models"],
   },
   rebuildConfig: {},
   makers: [

@@ -16,6 +16,7 @@ export const sessionEvidenceEventKinds = [
   "guardrail_overlay_shown",
   "guardrail_overlay_dismissed",
   "answer_submitted",
+  "pronunciation_assessment",
 ] as const;
 export type SessionEvidenceEventKind = (typeof sessionEvidenceEventKinds)[number];
 
@@ -25,7 +26,8 @@ export type SessionEvidenceSeverity = (typeof sessionEvidenceSeverities)[number]
 /**
  * Append-only session evidence stream. This deliberately sits beside
  * `learning_events`: learning events remain the academic source of truth,
- * while evidence events capture timing, focus and consented camera check-ins.
+ * while evidence events capture timing, focus, consented camera check-ins,
+ * and CAPT pronunciation assessment summaries.
  */
 export const sessionEvidenceEvents = sqliteTable(
   "session_evidence_events",

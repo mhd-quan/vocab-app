@@ -128,6 +128,7 @@ interface EvidenceEventPayload {
     | "document_visible"
     | "guardrail_overlay_shown"
     | "guardrail_overlay_dismissed"
+    | "pronunciation_assessment"
     | "answer_submitted";
   severity?: "info" | "attention" | "integrity" | "system";
   durationMs?: number | null;
@@ -179,10 +180,56 @@ interface UpdateStudentPatch {
   notes?: string | null;
 }
 
+interface PronunciationStatus {
+  available: boolean;
+  backend: "onnx-native" | "transformers-js" | "deterministic";
+  executionProvider: "coreml" | "directml" | "webgpu" | "wasm" | "cpu";
+  platform: NodeJS.Platform | "test";
+  arch: string;
+  modelPath: string | null;
+  modelPresent: boolean;
+  localOnly: boolean;
+  reason: string | null;
+}
+
+interface PronunciationTarget {
+  text: string;
+  phonemes: string[];
+  stressPattern: Array<0 | 1 | 2 | null>;
+  source: "cmudict" | "heuristic" | "ipa";
+}
+
+interface PronunciationAssessment {
+  target: PronunciationTarget;
+  backend: "onnx-native" | "transformers-js" | "deterministic";
+  executionProvider: "coreml" | "directml" | "webgpu" | "wasm" | "cpu";
+  modelUsed: boolean;
+  durationMs: number;
+  overallScore: number;
+  phonemeScore: number;
+  stressScore: number | null;
+  phonemes: Array<{
+    phoneme: string;
+    expectedIndex: number;
+    startMs: number;
+    endMs: number;
+    score: number;
+    detectedPhoneme: string | null;
+    issue: "ok" | "substitution" | "weak" | "missing";
+  }>;
+  stress: {
+    expectedStress: Array<0 | 1 | 2 | null>;
+    observedStress: Array<0 | 1 | 2 | null>;
+    score: number;
+    issue: "ok" | "flat" | "shifted" | "unavailable";
+  };
+  feedback: string[];
+}
+
 const api = {
   app: {
     name: "vocab-app",
-    version: "0.13.5",
+    version: "0.13.6",
     platform: process.platform,
   },
 
@@ -407,6 +454,26 @@ const api = {
     }) => invoke<EvidenceExportResult>("evidence.exportStudentReport", input),
     importStudentData: (input?: { passphrase?: string }) =>
       invoke<EvidenceImportResult>("evidence.importStudentData", input ?? {}),
+  },
+
+  pronunciation: {
+    status: () => invoke<PronunciationStatus>("pronunciation.status", {}),
+    target: (input: { text: string; ipa?: string | null }) =>
+      invoke<PronunciationTarget>("pronunciation.target", input),
+    preview: (input: { text: string; ipa?: string | null }) =>
+      invoke<PronunciationAssessment>("pronunciation.preview", input),
+    assess: (input: {
+      studentId: number;
+      sessionId: number;
+      targetText: string;
+      ipa?: string | null;
+      audioPcm?: number[];
+      sampleRate?: number;
+    }) =>
+      invoke<
+        | { ok: true; assessment: PronunciationAssessment; status: PronunciationStatus }
+        | { ok: false; status: PronunciationStatus; reason: string }
+      >("pronunciation.assess", input),
   },
 
   rewards: {

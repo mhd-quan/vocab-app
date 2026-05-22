@@ -14,6 +14,7 @@ import {
   importsProcedures,
   metaProcedures,
   progressProcedures,
+  pronunciationProcedures,
   rewardsProcedures,
   settingsProcedures,
   studentsProcedures,
@@ -63,6 +64,7 @@ describe("IPC procedure registry", () => {
         studentsProcedures.length +
         settingsProcedures.length +
         importsProcedures.length +
+        pronunciationProcedures.length +
         progressProcedures.length +
         rewardsProcedures.length +
         dictionaryProcedures.length +
@@ -255,6 +257,28 @@ describe("IPC procedure registry", () => {
 
       await call("settings.delete", { key: "session_screenshots_enabled" }, windowCtx);
       expect(setContentProtection).toHaveBeenLastCalledWith(true);
+    });
+  });
+
+  describe("pronunciation", () => {
+    it("returns a local-only CAPT runtime status", async () => {
+      const status = await call<{ localOnly: boolean; executionProvider: string }>(
+        "pronunciation.status",
+        undefined,
+        ctx,
+      );
+      expect(status.localOnly).toBe(true);
+      expect(["coreml", "directml", "cpu"]).toContain(status.executionProvider);
+    });
+
+    it("builds pronunciation targets through IPC", async () => {
+      const target = await call<{ phonemes: string[] }>(
+        "pronunciation.target",
+        { text: "Fantastic" },
+        ctx,
+      );
+      expect(target.phonemes).toContain("F");
+      expect(target.phonemes).toContain("AE");
     });
   });
 

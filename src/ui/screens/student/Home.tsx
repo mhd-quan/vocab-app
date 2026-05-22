@@ -109,8 +109,9 @@ export function StudentHome() {
         )}
       </header>
 
-      <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,3fr)]">
+      <section className="grid gap-4 lg:grid-cols-3">
         <AchievementHallCard studentId={id} />
+        <PronunciationLabCard studentId={id} />
         <PersonalVocabularyCard
           studentId={id}
           summary={
@@ -159,6 +160,33 @@ function AchievementHallCard({ studentId }: { studentId: number }) {
       </div>
       <span className="inline-flex items-center gap-1.5 font-semibold text-mastery">
         View hall
+        <AppGlyph name="arrowRight" className="h-4 w-4" />
+      </span>
+    </Link>
+  );
+}
+
+function PronunciationLabCard({ studentId }: { studentId: number }) {
+  return (
+    <Link
+      to="/student/profile/$studentId/pronunciation"
+      params={{ studentId: String(studentId) }}
+      className="motion-card flex min-h-48 flex-col justify-between gap-4 rounded-bento border border-sky/30 bg-sky/10 px-5 py-5 shadow-card transition hover:-translate-y-0.5 hover:border-sky/50 hover:shadow-lift"
+    >
+      <div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge tone="sky" uppercase>
+            Pronunciation
+          </Badge>
+          <AppGlyph name="volume" className="h-7 w-7 text-sky" />
+        </div>
+        <h2 className="mt-3 font-display text-2xl font-semibold">Pronunciation lab</h2>
+        <p className="mt-1 text-sm leading-6 text-muted">
+          Compare IPA, sample audio, and CAPT scoring when the offline model bundle is installed.
+        </p>
+      </div>
+      <span className="inline-flex items-center gap-1.5 font-semibold text-sky">
+        Open lab
         <AppGlyph name="arrowRight" className="h-4 w-4" />
       </span>
     </Link>

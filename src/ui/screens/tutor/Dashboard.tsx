@@ -46,7 +46,7 @@ export function TutorDashboard() {
         subtitle="At-a-glance corpus stats + per-student roll-up. Click a student to drill into their analytics."
       />
 
-      <section className="grid grid-cols-1 gap-4 px-8 py-6 md:grid-cols-2 xl:grid-cols-5">
+      <section className="grid grid-cols-1 gap-4 px-8 py-6 md:grid-cols-2 xl:grid-cols-6">
         <Stat
           label="Books"
           value={booksQ.isLoading ? "…" : String(books.length)}
@@ -78,6 +78,12 @@ export function TutorDashboard() {
           label="Review flags"
           value={evidenceQ.data ? String(sumReviewFlags(evidenceQ.data)) : "…"}
           hint="attention signals"
+          icon={<DashboardIcon />}
+        />
+        <Stat
+          label="Pronunciation"
+          value={evidenceQ.data ? formatPronunciationAverage(evidenceQ.data) : "…"}
+          hint="CAPT avg score"
           icon={<DashboardIcon />}
         />
       </section>
@@ -125,6 +131,8 @@ function StudentTable({
     student: { id: number };
     avgAttentionScore: number | null;
     totalReviewFlags: number;
+    pronunciationAverageScore?: number | null;
+    pronunciationFlagCount?: number;
   }>;
 }) {
   const evidenceByStudent = new Map(evidenceRows.map((row) => [row.student.id, row]));
@@ -138,6 +146,7 @@ function StudentTable({
             <th className="px-4 py-2 font-medium">Due</th>
             <th className="px-4 py-2 font-medium">Accuracy</th>
             <th className="px-4 py-2 font-medium">Attention</th>
+            <th className="px-4 py-2 font-medium">Pronunciation</th>
             <th className="px-4 py-2 font-medium">Last practised</th>
             <th aria-hidden className="px-4 py-2" />
           </tr>
@@ -176,6 +185,8 @@ function StudentRow({
   evidence?: {
     avgAttentionScore: number | null;
     totalReviewFlags: number;
+    pronunciationAverageScore?: number | null;
+    pronunciationFlagCount?: number;
   };
 }) {
   const display = row.student.displayName ?? row.student.name;
@@ -230,6 +241,23 @@ function StudentRow({
             {evidence.totalReviewFlags > 0 ? (
               <span className="font-mono text-[10px] text-muted-2">
                 {evidence.totalReviewFlags} flags
+              </span>
+            ) : null}
+          </span>
+        )}
+      </td>
+      <td className="px-4 py-3">
+        {evidence?.pronunciationAverageScore === null ||
+        evidence?.pronunciationAverageScore === undefined ? (
+          <span className="font-mono text-xs text-muted-2">—</span>
+        ) : (
+          <span className="inline-flex items-center gap-2">
+            <Badge tone={attentionTone(evidence.pronunciationAverageScore)} uppercase>
+              {evidence.pronunciationAverageScore}
+            </Badge>
+            {(evidence.pronunciationFlagCount ?? 0) > 0 ? (
+              <span className="font-mono text-[10px] text-muted-2">
+                {evidence.pronunciationFlagCount} flags
               </span>
             ) : null}
           </span>
@@ -305,6 +333,16 @@ function sumPracticed(rows: Array<{ totalSeen: number }>): number {
 
 function sumReviewFlags(rows: Array<{ totalReviewFlags: number }>): number {
   return rows.reduce((acc, r) => acc + r.totalReviewFlags, 0);
+}
+
+function formatPronunciationAverage(
+  rows: Array<{ pronunciationAverageScore?: number | null }>,
+): string {
+  const scores = rows
+    .map((row) => row.pronunciationAverageScore)
+    .filter((score): score is number => typeof score === "number");
+  if (scores.length === 0) return "—";
+  return String(Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length));
 }
 
 function attentionTone(score: number): "success" | "accent" | "warning" {

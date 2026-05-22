@@ -106,6 +106,11 @@ export const queryKeys = {
     sessionTimeline: (sessionId: number, includeSnapshots = false) =>
       ["evidence", "sessionTimeline", sessionId, includeSnapshots] as const,
   },
+  pronunciation: {
+    status: () => ["pronunciation", "status"] as const,
+    preview: (text: string, ipa?: string | null) =>
+      ["pronunciation", "preview", text, ipa ?? ""] as const,
+  },
   rewards: {
     stats: (studentId: number) => ["rewards", "stats", studentId] as const,
     listUnlocked: (studentId: number) => ["rewards", "listUnlocked", studentId] as const,

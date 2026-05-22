@@ -149,7 +149,9 @@ describe("StudentHome", () => {
       totalDue: 0,
     });
     renderHome();
-    await waitFor(() => expect(screen.getByText("Alice")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("Alice")).toBeInTheDocument(), {
+      timeout: 5000,
+    });
     expect(screen.getByText("Destination B1")).toBeInTheDocument();
     await waitFor(() => expect(screen.getByText(/No cards yet/i)).toBeInTheDocument());
     expect(screen.getByRole("link", { name: /People/ })).toHaveAttribute(

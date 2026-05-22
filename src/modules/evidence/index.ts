@@ -22,6 +22,9 @@ export interface SessionEvidenceMetrics {
   cameraUnavailableCount: number;
   cameraConsentGranted: boolean;
   cameraConsentDeclined: boolean;
+  pronunciationAssessmentCount: number;
+  pronunciationAverageScore: number | null;
+  pronunciationFlagCount: number;
   attentionScore: number;
   attentionBand: EvidenceAttentionBand;
   reviewFlagCount: number;
@@ -46,6 +49,9 @@ export function summarizeSessionEvidence(
   let cameraUnavailableCount = 0;
   let cameraConsentGranted = false;
   let cameraConsentDeclined = false;
+  let pronunciationAssessmentCount = 0;
+  let pronunciationScoreTotal = 0;
+  let pronunciationFlagCount = 0;
 
   for (const event of events) {
     if (event.kind === "answer_submitted") {
@@ -72,10 +78,21 @@ export function summarizeSessionEvidence(
       cameraConsentGranted = true;
     } else if (event.kind === "camera_consent_declined") {
       cameraConsentDeclined = true;
+    } else if (event.kind === "pronunciation_assessment") {
+      const score = numericPayload(event.payload, "overallScore");
+      if (score !== null) {
+        pronunciationAssessmentCount += 1;
+        pronunciationScoreTotal += score;
+        if (score < 65) pronunciationFlagCount += 1;
+      }
     }
   }
 
   const avgResponseMs = answerCount === 0 ? null : Math.round(responseTotalMs / answerCount);
+  const pronunciationAverageScore =
+    pronunciationAssessmentCount === 0
+      ? null
+      : Math.round(pronunciationScoreTotal / pronunciationAssessmentCount);
   const focusMinutes = focusLossMs / 60_000;
   const hiddenMinutes = documentHiddenMs / 60_000;
   const reviewFlagCount =
@@ -84,7 +101,8 @@ export function summarizeSessionEvidence(
     guardrailCount +
     slowResponseCount +
     rapidResponseCount +
-    cameraUnavailableCount;
+    cameraUnavailableCount +
+    pronunciationFlagCount;
   const penalty =
     Math.min(35, focusLossCount * 8) +
     Math.min(25, focusMinutes * 5) +
@@ -93,7 +111,8 @@ export function summarizeSessionEvidence(
     Math.min(18, slowResponseCount * 3) +
     Math.min(12, rapidResponseCount * 2) +
     Math.min(10, guardrailCount * 4) +
-    Math.min(10, cameraUnavailableCount * 5);
+    Math.min(10, cameraUnavailableCount * 5) +
+    Math.min(12, pronunciationFlagCount * 3);
   const attentionScore = clampInt(100 - penalty, 0, 100);
 
   return {
@@ -110,6 +129,9 @@ export function summarizeSessionEvidence(
     cameraUnavailableCount,
     cameraConsentGranted,
     cameraConsentDeclined,
+    pronunciationAssessmentCount,
+    pronunciationAverageScore,
+    pronunciationFlagCount,
     attentionScore,
     attentionBand:
       attentionScore >= 85 ? "steady" : attentionScore >= 65 ? "review" : "intervention",

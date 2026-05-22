@@ -8,6 +8,7 @@ import { grammarProcedures } from "./grammar";
 import { importsProcedures } from "./imports";
 import { metaProcedures } from "./meta";
 import { progressProcedures } from "./progress";
+import { pronunciationProcedures } from "./pronunciation";
 import { rewardsProcedures } from "./rewards";
 import { settingsProcedures } from "./settings";
 import { studentsProcedures } from "./students";
@@ -25,6 +26,7 @@ export const allProcedures: ReadonlyArray<AnyProcedure> = [
   ...studentsProcedures,
   ...settingsProcedures,
   ...importsProcedures,
+  ...pronunciationProcedures,
   ...progressProcedures,
   ...rewardsProcedures,
 ] as ReadonlyArray<AnyProcedure>;
@@ -38,6 +40,7 @@ export {
   grammarProcedures,
   importsProcedures,
   metaProcedures,
+  pronunciationProcedures,
   progressProcedures,
   rewardsProcedures,
   settingsProcedures,

@@ -13,7 +13,7 @@ export const metaProcedures = [
     input: z.void(),
     handler: () => ({
       name: "vocab-app",
-      version: "0.13.5",
+      version: "0.13.6",
       schemaTablesExpected: 26,
       dbPath: getDatabasePath(),
     }),

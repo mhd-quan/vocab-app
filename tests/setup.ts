@@ -8,14 +8,14 @@ Object.defineProperty(window, "api", {
   value: {
     app: {
       name: "vocab-app",
-      version: "0.13.0",
+      version: "0.13.6",
       platform: "test",
     },
     meta: {
       ping: async () => "pong" as const,
       appInfo: async () => ({
         name: "vocab-app",
-        version: "0.13.0",
+        version: "0.13.6",
         schemaTablesExpected: 26,
         dbPath: ":memory:",
       }),
@@ -315,6 +315,77 @@ Object.defineProperty(window, "api", {
         imported: false,
         studentId: null,
         stats: null,
+      }),
+    },
+    pronunciation: {
+      status: async () => ({
+        available: false,
+        backend: "deterministic",
+        executionProvider: "cpu",
+        platform: "test",
+        arch: "test",
+        modelPath: null,
+        modelPresent: false,
+        localOnly: true,
+        reason: "No offline CAPT model bundle is configured.",
+      }),
+      target: async (input: { text: string; ipa?: string | null }) => ({
+        text: input.text,
+        phonemes: input.text
+          .trim()
+          .toLowerCase()
+          .split(/\s+/)
+          .map((part) => part.replace(/[^a-z]/g, "")),
+        stressPattern: [],
+        source: "heuristic",
+      }),
+      preview: async (input: { text: string; ipa?: string | null }) => ({
+        target: {
+          text: input.text,
+          phonemes: ["F"],
+          stressPattern: [1],
+          source: "heuristic",
+        },
+        backend: "deterministic",
+        executionProvider: "cpu",
+        modelUsed: false,
+        durationMs: 1,
+        overallScore: 88,
+        phonemeScore: 90,
+        stressScore: 84,
+        phonemes: [
+          {
+            phoneme: "F",
+            expectedIndex: 0,
+            startMs: 0,
+            endMs: 40,
+            score: 90,
+            detectedPhoneme: "F",
+            issue: "ok",
+          },
+        ],
+        stress: {
+          expectedStress: [1],
+          observedStress: [1],
+          score: 84,
+          issue: "ok",
+        },
+        feedback: ["Pronunciation is clear for this target."],
+      }),
+      assess: async () => ({
+        ok: false,
+        status: {
+          available: false,
+          backend: "deterministic",
+          executionProvider: "cpu",
+          platform: "test",
+          arch: "test",
+          modelPath: null,
+          modelPresent: false,
+          localOnly: true,
+          reason: "No offline CAPT model bundle is configured.",
+        },
+        reason: "No offline CAPT model bundle is configured.",
       }),
     },
     rewards: {
