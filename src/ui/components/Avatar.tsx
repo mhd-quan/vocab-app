@@ -1,6 +1,5 @@
 import { cn } from "@/lib/cn";
 import { AppGlyph } from "@/ui/components/AppGlyph";
-import { AvatarGlyph, parseAvatarGlyph } from "@/ui/components/avatarGlyphs";
 
 export interface AvatarProps {
   name: string;
@@ -19,7 +18,7 @@ const SIZES: Record<NonNullable<AvatarProps["size"]>, string> = {
 export function Avatar({ name, avatarSeed, color, size = "md", className }: AvatarProps) {
   const initials = computeInitials(name);
   const imageSrc = parseAvatarImage(avatarSeed);
-  const glyph = parseAvatarGlyph(avatarSeed);
+  const emoji = parseAvatarEmoji(avatarSeed);
   const bg = color || undefined;
   // When the tutor picks a color, derive a readable foreground; otherwise
   // fall back to the surface-2 token so themed surfaces still match.
@@ -30,23 +29,17 @@ export function Avatar({ name, avatarSeed, color, size = "md", className }: Avat
       className={cn(
         "inline-flex select-none items-center justify-center overflow-hidden rounded-full font-semibold uppercase",
         "ring-2 ring-surface-1 shadow-sm",
-        bg && !imageSrc && !glyph ? "" : "bg-surface-2 text-app",
+        bg && !imageSrc && !emoji ? "" : "bg-surface-2 text-app",
         SIZES[size],
+        emoji && "text-[1.35em] leading-none",
         className,
       )}
-      style={bg && !imageSrc && !glyph ? { backgroundColor: bg, color: fg } : undefined}
+      style={bg && !imageSrc && !emoji ? { backgroundColor: bg, color: fg } : undefined}
     >
       {imageSrc ? (
         <img src={imageSrc} alt="" className="h-full w-full object-cover" draggable={false} />
-      ) : glyph ? (
-        <span
-          className={cn(
-            "grid h-full w-full place-items-center rounded-full bg-current/10",
-            glyph.toneClassName,
-          )}
-        >
-          <AvatarGlyph option={glyph} className="h-[64%] w-[64%]" />
-        </span>
+      ) : emoji ? (
+        emoji
       ) : (
         <span className="relative grid h-full w-full place-items-center">
           <AppGlyph name="person" className="absolute h-[72%] w-[72%] opacity-18" />
@@ -66,6 +59,11 @@ export function computeInitials(name: string): string {
       .map((p) => p[0]?.toUpperCase() ?? "")
       .join("") || "?"
   );
+}
+
+function parseAvatarEmoji(seed: string | null | undefined): string | null {
+  if (!seed?.startsWith("emoji:")) return null;
+  return seed.slice("emoji:".length) || null;
 }
 
 function parseAvatarImage(seed: string | null | undefined): string | null {

@@ -96,12 +96,12 @@ describe("TutorStudents", () => {
     fireEvent.change(within(dialog).getByLabelText(/^name$/i), {
       target: { value: "Bob" },
     });
-    fireEvent.click(within(dialog).getByRole("button", { name: "Avatar Flame" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Avatar 🔥" }));
     fireEvent.click(within(dialog).getByRole("button", { name: /create student/i }));
 
     await waitFor(() => expect(window.api.students.create).toHaveBeenCalledTimes(1));
     expect(window.api.students.create).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "Bob", avatarSeed: "glyph:flame" }),
+      expect.objectContaining({ name: "Bob", avatarSeed: "emoji:🔥" }),
     );
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     await waitFor(() => expect(screen.getByText("Bob")).toBeInTheDocument());
