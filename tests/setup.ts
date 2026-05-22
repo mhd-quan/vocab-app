@@ -8,14 +8,14 @@ Object.defineProperty(window, "api", {
   value: {
     app: {
       name: "vocab-app",
-      version: "0.13.6",
+      version: "0.14.0",
       platform: "test",
     },
     meta: {
       ping: async () => "pong" as const,
       appInfo: async () => ({
         name: "vocab-app",
-        version: "0.13.6",
+        version: "0.14.0",
         schemaTablesExpected: 26,
         dbPath: ":memory:",
       }),
@@ -322,6 +322,8 @@ Object.defineProperty(window, "api", {
         available: false,
         backend: "deterministic",
         executionProvider: "cpu",
+        modelFamily: "hubert",
+        modelId: null,
         platform: "test",
         arch: "test",
         modelPath: null,
@@ -353,6 +355,11 @@ Object.defineProperty(window, "api", {
         overallScore: 88,
         phonemeScore: 90,
         stressScore: 84,
+        passingScore: 70,
+        errorRate: 0.12,
+        retryRequired: false,
+        guardrails: [],
+        audioQuality: null,
         phonemes: [
           {
             phoneme: "F",
@@ -378,6 +385,8 @@ Object.defineProperty(window, "api", {
           available: false,
           backend: "deterministic",
           executionProvider: "cpu",
+          modelFamily: "hubert",
+          modelId: null,
           platform: "test",
           arch: "test",
           modelPath: null,

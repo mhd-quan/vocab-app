@@ -1,5 +1,6 @@
 import { ctcViterbiAlign } from "./ctc";
-import { buildPronunciationTarget } from "./g2p";
+import { type BuildPronunciationTargetOptions, buildPronunciationTarget } from "./g2p";
+import { evaluatePronunciationPolicy } from "./policy";
 import { scoreStress } from "./prosody";
 import type {
   AcousticFrame,
@@ -14,8 +15,12 @@ export type {
   AcousticFrame,
   PronunciationAnalyzeInput,
   PronunciationAssessment,
+  PronunciationAudioQuality,
   PronunciationBackend,
   PronunciationExecutionProvider,
+  PronunciationGuardrail,
+  PronunciationGuardrailCode,
+  PronunciationGuardrailSeverity,
   PronunciationPhonemeScore,
   PronunciationRuntimeStatus,
   PronunciationStressScore,
@@ -24,6 +29,27 @@ export type {
 
 export { ctcViterbiAlign } from "./ctc";
 export { buildPronunciationTarget, stripStress } from "./g2p";
+export type { BuildPronunciationTargetOptions } from "./g2p";
+export { ARPABET_VOWELS, isArpabetVowel, normalizeAcousticLabel } from "./labels";
+export {
+  PRONUNCIATION_MODEL_FAMILY,
+  REQUIRED_PRONUNCIATION_LABELS,
+  isPronunciationModelManifest,
+  normalizeLabelMap,
+  pronunciationLabelCoverage,
+} from "./model";
+export type {
+  PronunciationLabelCoverage,
+  PronunciationModelFamily,
+  PronunciationModelManifest,
+} from "./model";
+export {
+  DEFAULT_PRONUNCIATION_POLICY,
+  audioQualityFromPcm,
+  evaluatePronunciationPolicy,
+  normalizePronunciationPolicy,
+} from "./policy";
+export type { PronunciationPolicyResult, PronunciationScoringPolicy } from "./policy";
 export { scoreStress } from "./prosody";
 
 export function assessPronunciationFromFrames({
@@ -31,13 +57,19 @@ export function assessPronunciationFromFrames({
   frames,
   runtime,
   startedAt = Date.now(),
+  enforcePolicy = true,
+  policy,
+  buildTargetOptions,
 }: {
   input: PronunciationAnalyzeInput;
   frames: AcousticFrame[];
   runtime: PronunciationRuntimeStatus;
   startedAt?: number;
+  enforcePolicy?: boolean;
+  policy?: Parameters<typeof evaluatePronunciationPolicy>[0]["policy"];
+  buildTargetOptions?: BuildPronunciationTargetOptions;
 }): PronunciationAssessment {
-  const target = buildPronunciationTarget(input.targetText, input.ipa);
+  const target = buildPronunciationTarget(input.targetText, input.ipa, buildTargetOptions);
   const alignment = ctcViterbiAlign({ target: target.phonemes, frames });
   const stress = scoreStress({
     stressPattern: target.stressPattern,
@@ -53,6 +85,13 @@ export function assessPronunciationFromFrames({
         );
   const stressScore = stress.issue === "unavailable" ? null : stress.score;
   const overallScore = Math.round(phonemeScore * 0.78 + (stressScore ?? phonemeScore) * 0.22);
+  const policyResult = evaluatePronunciationPolicy({
+    overallScore,
+    audioPcm: input.audioPcm,
+    sampleRate: input.sampleRate,
+    policy,
+    enforceGuardrails: enforcePolicy,
+  });
 
   return {
     target,
@@ -63,9 +102,14 @@ export function assessPronunciationFromFrames({
     overallScore,
     phonemeScore,
     stressScore,
+    passingScore: policyResult.passingScore,
+    errorRate: policyResult.errorRate,
+    retryRequired: policyResult.retryRequired,
+    guardrails: policyResult.guardrails,
+    audioQuality: policyResult.audioQuality,
     phonemes: alignment.phonemes,
     stress,
-    feedback: buildFeedback(alignment.phonemes, stress.issue),
+    feedback: buildFeedback(alignment.phonemes, stress.issue, policyResult.guardrails),
   };
 }
 
@@ -93,6 +137,8 @@ export function defaultRuntimeStatus(
     available: backend === "deterministic",
     backend,
     executionProvider,
+    modelFamily: "hubert",
+    modelId: null,
     platform: "test",
     arch: "test",
     modelPath: null,
@@ -105,6 +151,7 @@ export function defaultRuntimeStatus(
 function buildFeedback(
   phonemes: PronunciationAssessment["phonemes"],
   stressIssue: PronunciationAssessment["stress"]["issue"],
+  guardrails: PronunciationAssessment["guardrails"] = [],
 ): string[] {
   const feedback: string[] = [];
   const firstIssue = phonemes.find((phoneme) => phoneme.issue !== "ok");
@@ -117,6 +164,7 @@ function buildFeedback(
   }
   if (stressIssue === "flat") feedback.push("Add more energy to the stressed syllable.");
   if (stressIssue === "shifted") feedback.push("Move the strongest beat onto the marked syllable.");
+  for (const guardrail of guardrails) feedback.push(guardrail.message);
   if (feedback.length === 0) feedback.push("Pronunciation is clear for this target.");
   return feedback;
 }

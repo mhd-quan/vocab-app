@@ -1,6 +1,6 @@
 {
   "name": "vocab-app",
-  "version": "0.13.6",
+  "version": "0.14.0",
   "description": "Interactive vocabulary & grammar tutoring platform for Destination B1/B2",
   "main": ".vite/build/main.js",
   "private": true,
@@ -21,7 +21,7 @@
     "test:watch": "vitest",
     "verify:artifacts": "tsx scripts/verify-package-artifacts.ts",
     "build:icons": "tsx scripts/build-app-icons.ts",
-    "build:windows-installers": "tsx scripts/build-windows-installers.ts",
+    "build:installers": "tsx scripts/build-installers.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate:dev": "tsx scripts/migrate-dev.ts",
     "rebuild": "electron-rebuild -f -w better-sqlite3",
@@ -40,10 +40,13 @@
     "drizzle-orm": "^0.38.2",
     "electron-squirrel-startup": "^1.0.1",
     "js-yaml": "^4.1.0",
-    "onnxruntime-node": "^1.26.0",
+    "onnxruntime-node": "1.23.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^3.24.1"
+  },
+  "overrides": {
+    "onnxruntime-node": "1.23.2"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

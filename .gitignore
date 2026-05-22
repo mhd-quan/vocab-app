@@ -48,6 +48,10 @@ coverage/
 /dictionary-pack/
 /dictionary-packs/
 
+# Local CAPT model bundles
+/assets/capt-models/**
+!/assets/capt-models/manifest.json
+
 # Cache
 .eslintcache
 .cache/

@@ -4,6 +4,7 @@ import {
   type ExerciseSessionMode,
   exerciseSessionModeOptions,
 } from "@/modules/exercises/sessionModes";
+import { DEFAULT_PRONUNCIATION_POLICY } from "@/modules/pronunciation";
 import { SETTINGS_KEYS } from "@/modules/settings/keys";
 import { useAppMode } from "@/providers/AppModeProvider";
 import {
@@ -50,6 +51,9 @@ const RESETTABLE_KEYS = [
   SOUND_KEY,
   "display_font_size",
   ...Object.values(SETTINGS),
+  SETTINGS_KEYS.pronunciationMaxErrorRate,
+  SETTINGS_KEYS.pronunciationMinDurationMs,
+  SETTINGS_KEYS.pronunciationMinRms,
   ...LEGACY_SETTING_KEYS,
 ];
 
@@ -72,6 +76,7 @@ export function TutorSettings() {
           <PreferencesCard />
           <SessionDefaultsCard />
           <SrsThresholdsCard />
+          <PronunciationPolicyCard />
         </div>
       </section>
     </>
@@ -280,6 +285,66 @@ function SrsThresholdsCard() {
           onCommit={longTerm.setValue}
         />
       </div>
+    </SettingsCard>
+  );
+}
+
+function PronunciationPolicyCard() {
+  // CAPT scoring policy lives in app_settings; the backend reads these on every
+  // assess call via electron/ipc/procedures/pronunciation.ts and clamps them in
+  // normalizePronunciationPolicy. Pass threshold is derived from max-error rate.
+  const maxErrorRate = useSetting<number>(
+    SETTINGS_KEYS.pronunciationMaxErrorRate,
+    DEFAULT_PRONUNCIATION_POLICY.maxErrorRate,
+  );
+  const minDuration = useSetting<number>(
+    SETTINGS_KEYS.pronunciationMinDurationMs,
+    DEFAULT_PRONUNCIATION_POLICY.minDurationMs,
+  );
+  const minRms = useSetting<number>(
+    SETTINGS_KEYS.pronunciationMinRms,
+    DEFAULT_PRONUNCIATION_POLICY.minRms,
+  );
+  const percent = Math.round(maxErrorRate.value * 100);
+  const passThreshold = Math.round((1 - maxErrorRate.value) * 100);
+
+  return (
+    <SettingsCard
+      title="Pronunciation policy"
+      description="Retry thresholds the HuBERT scorer uses for student attempts."
+    >
+      <div className="grid gap-3 lg:grid-cols-2">
+        <SettingNumberInput
+          label="Max error rate (%)"
+          value={percent}
+          disabled={maxErrorRate.loading || maxErrorRate.saving}
+          min={5}
+          max={80}
+          step={1}
+          supportingText={`Pass threshold: ${passThreshold}/100`}
+          onCommit={(next) => maxErrorRate.setValue(next / 100)}
+        />
+        <SettingNumberInput
+          label="Min recording (ms)"
+          value={minDuration.value}
+          disabled={minDuration.loading || minDuration.saving}
+          min={200}
+          max={3000}
+          step={100}
+          supportingText={`Default: ${DEFAULT_PRONUNCIATION_POLICY.minDurationMs} ms`}
+          onCommit={minDuration.setValue}
+        />
+      </div>
+      <SettingNumberInput
+        label="Min microphone level (RMS)"
+        value={minRms.value}
+        disabled={minRms.loading || minRms.saving}
+        min={0.001}
+        max={0.08}
+        step={0.001}
+        supportingText={`Default: ${DEFAULT_PRONUNCIATION_POLICY.minRms} · raise to reject quieter takes`}
+        onCommit={minRms.setValue}
+      />
     </SettingsCard>
   );
 }

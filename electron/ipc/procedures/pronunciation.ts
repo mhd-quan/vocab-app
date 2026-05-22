@@ -1,5 +1,10 @@
 import { z } from "zod";
 import {
+  DEFAULT_PRONUNCIATION_POLICY,
+  type PronunciationScoringPolicy,
+} from "../../../src/modules/pronunciation";
+import { SETTINGS_KEYS } from "../../../src/modules/settings/keys";
+import {
   assessPronunciation,
   previewPronunciation,
   pronunciationStatus,
@@ -44,13 +49,13 @@ export const pronunciationProcedures = [
     name: "pronunciation.assess",
     input: assessInput,
     handler: async (input, ctx) => {
-      const result = await assessPronunciation(input);
+      const result = await assessPronunciation(input, pronunciationPolicyFromSettings(ctx));
       if (!result.ok) return result;
       ctx.repos.evidence.recordEvent({
         studentId: input.studentId,
         sessionId: input.sessionId,
         kind: "pronunciation_assessment",
-        severity: result.assessment.overallScore < 65 ? "attention" : "info",
+        severity: result.assessment.retryRequired ? "attention" : "info",
         durationMs: result.assessment.durationMs,
         payload: {
           targetText: input.targetText,
@@ -61,6 +66,11 @@ export const pronunciationProcedures = [
           overallScore: result.assessment.overallScore,
           phonemeScore: result.assessment.phonemeScore,
           stressScore: result.assessment.stressScore,
+          passingScore: result.assessment.passingScore,
+          errorRate: result.assessment.errorRate,
+          retryRequired: result.assessment.retryRequired,
+          guardrails: result.assessment.guardrails,
+          audioQuality: result.assessment.audioQuality,
           feedback: result.assessment.feedback,
           phonemes: result.assessment.phonemes,
           stress: result.assessment.stress,
@@ -70,3 +80,41 @@ export const pronunciationProcedures = [
     },
   }),
 ];
+
+function pronunciationPolicyFromSettings(ctx: {
+  repos: { settings: { get: <T = unknown>(key: string) => T | undefined } };
+}): Partial<PronunciationScoringPolicy> {
+  const maxErrorRate = numberSetting(
+    ctx,
+    SETTINGS_KEYS.pronunciationMaxErrorRate,
+    DEFAULT_PRONUNCIATION_POLICY.maxErrorRate,
+  );
+  return {
+    maxErrorRate,
+    passingScore: Math.round((1 - maxErrorRate) * 100),
+    minDurationMs: numberSetting(
+      ctx,
+      SETTINGS_KEYS.pronunciationMinDurationMs,
+      DEFAULT_PRONUNCIATION_POLICY.minDurationMs,
+    ),
+    minRms: numberSetting(
+      ctx,
+      SETTINGS_KEYS.pronunciationMinRms,
+      DEFAULT_PRONUNCIATION_POLICY.minRms,
+    ),
+  };
+}
+
+function numberSetting(
+  ctx: { repos: { settings: { get: <T = unknown>(key: string) => T | undefined } } },
+  key: string,
+  fallback: number,
+): number {
+  const value = ctx.repos.settings.get(key);
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return fallback;
+}

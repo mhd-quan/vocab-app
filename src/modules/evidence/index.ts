@@ -25,6 +25,7 @@ export interface SessionEvidenceMetrics {
   pronunciationAssessmentCount: number;
   pronunciationAverageScore: number | null;
   pronunciationFlagCount: number;
+  pronunciationRetryRequiredCount: number;
   attentionScore: number;
   attentionBand: EvidenceAttentionBand;
   reviewFlagCount: number;
@@ -52,6 +53,7 @@ export function summarizeSessionEvidence(
   let pronunciationAssessmentCount = 0;
   let pronunciationScoreTotal = 0;
   let pronunciationFlagCount = 0;
+  let pronunciationRetryRequiredCount = 0;
 
   for (const event of events) {
     if (event.kind === "answer_submitted") {
@@ -83,7 +85,10 @@ export function summarizeSessionEvidence(
       if (score !== null) {
         pronunciationAssessmentCount += 1;
         pronunciationScoreTotal += score;
-        if (score < 65) pronunciationFlagCount += 1;
+        const retryRequired = event.payload?.retryRequired === true;
+        const passingScore = numericPayload(event.payload, "passingScore") ?? 65;
+        if (retryRequired) pronunciationRetryRequiredCount += 1;
+        if (retryRequired || score < passingScore) pronunciationFlagCount += 1;
       }
     }
   }
@@ -132,6 +137,7 @@ export function summarizeSessionEvidence(
     pronunciationAssessmentCount,
     pronunciationAverageScore,
     pronunciationFlagCount,
+    pronunciationRetryRequiredCount,
     attentionScore,
     attentionBand:
       attentionScore >= 85 ? "steady" : attentionScore >= 65 ? "review" : "intervention",

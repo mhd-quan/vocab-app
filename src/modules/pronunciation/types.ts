@@ -6,12 +6,38 @@ export interface PronunciationRuntimeStatus {
   available: boolean;
   backend: PronunciationBackend;
   executionProvider: PronunciationExecutionProvider;
+  modelFamily: "hubert" | null;
+  modelId: string | null;
   platform: NodeJS.Platform | "test";
   arch: string;
   modelPath: string | null;
   modelPresent: boolean;
   localOnly: boolean;
   reason: string | null;
+}
+
+export type PronunciationGuardrailSeverity = "info" | "warning" | "retry";
+
+export type PronunciationGuardrailCode =
+  | "audio_missing"
+  | "audio_too_short"
+  | "audio_too_quiet"
+  | "audio_clipped"
+  | "score_below_threshold";
+
+export interface PronunciationAudioQuality {
+  durationMs: number;
+  sampleRate: number;
+  rms: number;
+  peak: number;
+  clippedRatio: number;
+  silentRatio: number;
+}
+
+export interface PronunciationGuardrail {
+  code: PronunciationGuardrailCode;
+  severity: PronunciationGuardrailSeverity;
+  message: string;
 }
 
 export interface PronunciationTarget {
@@ -47,6 +73,11 @@ export interface PronunciationAssessment {
   overallScore: number;
   phonemeScore: number;
   stressScore: number | null;
+  passingScore: number;
+  errorRate: number;
+  retryRequired: boolean;
+  guardrails: PronunciationGuardrail[];
+  audioQuality: PronunciationAudioQuality | null;
   phonemes: PronunciationPhonemeScore[];
   stress: PronunciationStressScore;
   feedback: string[];
