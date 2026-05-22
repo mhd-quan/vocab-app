@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "vocab.capt-model.v1",
+  "modelId": "Xenova/wav2vec2-large-xlsr-53-english",
+  "sampleRate": 16000,
+  "frameMs": 20,
+  "labels": {},
+  "note": "Placeholder manifest for the offline CAPT model bundle. Add ONNX model files and a phoneme label map before enabling acoustic scoring."
+}

@@ -200,6 +200,11 @@ export function TutorStudentDetail() {
           loading={evidenceQ.isLoading}
         />
 
+        <PronunciationEvidencePanel
+          overview={evidenceQ.data ?? null}
+          loading={evidenceQ.isLoading}
+        />
+
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <WeakWordsPanel rows={weakQ.data ?? []} loading={weakQ.isLoading} />
           <RecentSessionsPanel rows={recentQ.data ?? []} loading={recentQ.isLoading} />
@@ -685,6 +690,9 @@ function EvidencePanel({
     totalReviewFlags: number;
     focusLossCount: number;
     cameraSnapshotCount: number;
+    pronunciationAssessmentCount?: number;
+    pronunciationAverageScore?: number | null;
+    pronunciationFlagCount?: number;
     recentSessions: Array<{
       sessionId: number;
       mode: string;
@@ -697,6 +705,9 @@ function EvidencePanel({
         focusLossCount: number;
         focusLossMs: number;
         cameraSnapshotCount: number;
+        pronunciationAssessmentCount?: number;
+        pronunciationAverageScore?: number | null;
+        pronunciationFlagCount?: number;
         reviewFlagCount: number;
       };
     }>;
@@ -876,6 +887,101 @@ function EvidencePanel({
                   : "Could not import data."}
               </p>
             ) : null}
+          </div>
+        </div>
+      )}
+    </Panel>
+  );
+}
+
+function PronunciationEvidencePanel({
+  overview,
+  loading,
+}: {
+  overview: {
+    pronunciationAssessmentCount?: number;
+    pronunciationAverageScore?: number | null;
+    pronunciationFlagCount?: number;
+    recentSessions: Array<{
+      sessionId: number;
+      startedAt: Date;
+      metrics: {
+        pronunciationAssessmentCount?: number;
+        pronunciationAverageScore?: number | null;
+        pronunciationFlagCount?: number;
+      };
+    }>;
+  } | null;
+  loading: boolean;
+}) {
+  const attemptCount = overview?.pronunciationAssessmentCount ?? 0;
+  const sessions = (overview?.recentSessions ?? []).filter(
+    (session) => (session.metrics.pronunciationAssessmentCount ?? 0) > 0,
+  );
+
+  return (
+    <Panel
+      title="Pronunciation CAPT"
+      caption="Computer-assisted pronunciation training scores from pronunciation sessions."
+      tone="accent"
+    >
+      {loading ? (
+        <p className="text-xs text-muted">Loading pronunciation evidence...</p>
+      ) : !overview || attemptCount === 0 ? (
+        <EmptyState
+          title="No pronunciation attempts yet"
+          body="CAPT attempts appear here after a student opens the pronunciation lab."
+        />
+      ) : (
+        <div className="grid gap-4 xl:grid-cols-[18rem_1fr]">
+          <dl className="grid gap-3">
+            <EvidenceStat
+              label="Avg score"
+              value={overview.pronunciationAverageScore ?? "—"}
+              tone={
+                overview.pronunciationAverageScore === null ||
+                overview.pronunciationAverageScore === undefined
+                  ? "neutral"
+                  : attentionScoreTone(overview.pronunciationAverageScore)
+              }
+            />
+            <EvidenceStat label="Attempts" value={attemptCount} tone="accent" />
+            <EvidenceStat
+              label="CAPT flags"
+              value={overview.pronunciationFlagCount ?? 0}
+              tone={(overview.pronunciationFlagCount ?? 0) > 0 ? "warning" : "success"}
+            />
+          </dl>
+          <div className="rounded-[var(--shape-corner-lg)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-4">
+            <p className="text-[10px] font-semibold uppercase text-muted-2">
+              Recent pronunciation sessions
+            </p>
+            <ul className="mt-3 flex flex-col gap-2">
+              {sessions.slice(0, 6).map((session) => (
+                <li
+                  key={session.sessionId}
+                  className="flex items-center justify-between gap-3 rounded-[var(--shape-corner-md)] border border-border-subtle bg-surface-0 px-3 py-2 text-xs"
+                >
+                  <span className="text-muted">{formatDate(session.startedAt)}</span>
+                  <span className="flex items-center gap-2">
+                    <Badge
+                      tone={
+                        session.metrics.pronunciationAverageScore === null ||
+                        session.metrics.pronunciationAverageScore === undefined
+                          ? "muted"
+                          : attentionScoreTone(session.metrics.pronunciationAverageScore)
+                      }
+                      uppercase
+                    >
+                      {session.metrics.pronunciationAverageScore ?? "—"}
+                    </Badge>
+                    <span className="font-mono text-muted-2">
+                      {session.metrics.pronunciationAssessmentCount ?? 0} attempts
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       )}
@@ -1260,14 +1366,17 @@ function Panel({
 }: {
   title: string;
   caption?: string;
-  tone?: "neutral" | "mastery";
+  tone?: "neutral" | "mastery" | "accent";
   children: React.ReactNode;
 }) {
   return (
     <TutorPanel
       title={title}
       description={caption}
-      className={tone === "mastery" ? "border-mastery/30 bg-mastery/10" : undefined}
+      className={cn(
+        tone === "mastery" && "border-mastery/30 bg-mastery/10",
+        tone === "accent" && "border-accent/25 bg-accent/10",
+      )}
     >
       {children}
     </TutorPanel>

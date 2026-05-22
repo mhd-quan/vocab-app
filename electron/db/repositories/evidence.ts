@@ -56,6 +56,9 @@ export interface TutorEvidenceOverviewRow {
   totalReviewFlags: number;
   focusLossCount: number;
   cameraSnapshotCount: number;
+  pronunciationAssessmentCount: number;
+  pronunciationAverageScore: number | null;
+  pronunciationFlagCount: number;
 }
 
 export interface StudentEvidenceOverview {
@@ -65,6 +68,9 @@ export interface StudentEvidenceOverview {
   totalReviewFlags: number;
   focusLossCount: number;
   cameraSnapshotCount: number;
+  pronunciationAssessmentCount: number;
+  pronunciationAverageScore: number | null;
+  pronunciationFlagCount: number;
   latestSessionAt: Date | null;
   recentSessions: SessionEvidenceSummaryRow[];
 }
@@ -269,6 +275,15 @@ export function createEvidenceRepository(db: AppDatabase) {
         totalReviewFlags: scored.reduce((sum, s) => sum + s.metrics.reviewFlagCount, 0),
         focusLossCount: scored.reduce((sum, s) => sum + s.metrics.focusLossCount, 0),
         cameraSnapshotCount: scored.reduce((sum, s) => sum + s.metrics.cameraSnapshotCount, 0),
+        pronunciationAssessmentCount: scored.reduce(
+          (sum, s) => sum + s.metrics.pronunciationAssessmentCount,
+          0,
+        ),
+        pronunciationAverageScore: pronunciationAverage(scored),
+        pronunciationFlagCount: scored.reduce(
+          (sum, s) => sum + s.metrics.pronunciationFlagCount,
+          0,
+        ),
         latestSessionAt: scored[0]?.startedAt ?? null,
         recentSessions: sessions.slice(0, limit),
       };
@@ -327,6 +342,15 @@ export function createEvidenceRepository(db: AppDatabase) {
           totalReviewFlags: rows.reduce((sum, row) => sum + row.metrics.reviewFlagCount, 0),
           focusLossCount: rows.reduce((sum, row) => sum + row.metrics.focusLossCount, 0),
           cameraSnapshotCount: rows.reduce((sum, row) => sum + row.metrics.cameraSnapshotCount, 0),
+          pronunciationAssessmentCount: rows.reduce(
+            (sum, row) => sum + row.metrics.pronunciationAssessmentCount,
+            0,
+          ),
+          pronunciationAverageScore: pronunciationAverage(rows),
+          pronunciationFlagCount: rows.reduce(
+            (sum, row) => sum + row.metrics.pronunciationFlagCount,
+            0,
+          ),
         };
       });
     },
@@ -343,4 +367,18 @@ function stringPayload(payload: Record<string, unknown>, key: string): string | 
 function numberPayload(payload: Record<string, unknown>, key: string): number | null {
   const value = payload[key];
   return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function pronunciationAverage(rows: SessionEvidenceSummaryRow[]): number | null {
+  let scoreTotal = 0;
+  let attemptTotal = 0;
+  for (const row of rows) {
+    const average = row.metrics.pronunciationAverageScore;
+    const count = row.metrics.pronunciationAssessmentCount;
+    if (typeof average !== "number" || count <= 0) continue;
+    scoreTotal += average * count;
+    attemptTotal += count;
+  }
+  if (attemptTotal === 0) return null;
+  return Math.round(scoreTotal / attemptTotal);
 }

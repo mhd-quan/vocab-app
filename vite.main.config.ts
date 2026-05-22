@@ -11,7 +11,13 @@ import { defineConfig } from "vite";
  */
 const nodeBuiltins = [...builtinModules, ...builtinModules.map((m) => `node:${m}`)];
 
-const nativeModules = ["electron", "better-sqlite3", "bindings"];
+const nativeModules = [
+  "electron",
+  "better-sqlite3",
+  "bindings",
+  "@huggingface/transformers",
+  "onnxruntime-node",
+];
 
 export default defineConfig({
   resolve: {

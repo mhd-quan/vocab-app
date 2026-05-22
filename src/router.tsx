@@ -3,6 +3,7 @@ import { StudentHome } from "@/ui/screens/student/Home";
 import { StudentPersonalVocabulary } from "@/ui/screens/student/PersonalVocabulary";
 import { StudentPersonalVocabularySession } from "@/ui/screens/student/PersonalVocabularySession";
 import { StudentProfilePicker } from "@/ui/screens/student/ProfilePicker";
+import { StudentPronunciationPractice } from "@/ui/screens/student/PronunciationPractice";
 import { StudentSession } from "@/ui/screens/student/Session";
 import { StudentSettings } from "@/ui/screens/student/Settings";
 import { StudentUnitStudy } from "@/ui/screens/student/UnitStudy";
@@ -142,6 +143,12 @@ const studentPersonalVocabularySessionRoute = createRoute({
   component: StudentPersonalVocabularySession,
 });
 
+const studentPronunciationRoute = createRoute({
+  getParentRoute: () => studentRoute,
+  path: "profile/$studentId/pronunciation",
+  component: StudentPronunciationPractice,
+});
+
 interface StudentSessionSearch {
   sections?: string;
 }
@@ -175,6 +182,7 @@ const routeTree = rootRoute.addChildren([
     studentSettingsRoute,
     studentPersonalVocabularyRoute,
     studentPersonalVocabularySessionRoute,
+    studentPronunciationRoute,
     studentUnitRoute,
     studentSessionRoute,
   ]),

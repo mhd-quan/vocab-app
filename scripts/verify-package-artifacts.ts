@@ -40,8 +40,11 @@ const requiredDrizzleFiles = [
   "0004_lexicon_v0_10_fsrs.sql",
   "0005_personal_dict_fsrs.sql",
   "0006_session_evidence_events.sql",
+  "0007_pronunciation_evidence.sql",
   path.join("meta", "_journal.json"),
 ];
+
+const captModelManifest = path.join("capt-models", "manifest.json");
 
 function main(): void {
   const failures: string[] = [];
@@ -103,6 +106,12 @@ function verifyTarget(target: PackagedTarget): string[] {
       failures,
     );
   }
+
+  requireFile(
+    path.join(resourcesDir, captModelManifest),
+    `${target.label} ${captModelManifest}`,
+    failures,
+  );
 
   return failures;
 }
@@ -183,10 +192,23 @@ function findNativeModules(root: string): string[] {
       for (const entry of fs.readdirSync(current)) pending.push(path.join(current, entry));
       continue;
     }
-    if (current.endsWith(".node")) out.push(current);
+    if (current.endsWith(".node") && isTargetNativeModule(current)) out.push(current);
   }
 
   return out;
+}
+
+function isTargetNativeModule(filePath: string): boolean {
+  const parts = filePath.split(path.sep);
+  const napiIndex = parts.lastIndexOf("napi-v6");
+  if (napiIndex < 0) return true;
+  const platform = parts[napiIndex + 1];
+  const arch = parts[napiIndex + 2];
+  if (!platform || !arch) return true;
+  const target = filePath.includes(`${path.sep}Vocab App-win32-x64${path.sep}`)
+    ? { platform: "win32", arch: "x64" }
+    : { platform: "darwin", arch: "x64" };
+  return platform === target.platform && arch === target.arch;
 }
 
 function requireFile(filePath: string, description: string, failures: string[]): void {

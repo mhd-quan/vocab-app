@@ -14,6 +14,7 @@ export const practiceModes = [
   "review",
   "mixed",
   "grammar",
+  "pronunciation",
   "revision",
   "unit_review",
   "multi_unit_review",

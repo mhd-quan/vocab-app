@@ -4,9 +4,9 @@ Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
 student practice) running as a desktop app on Windows and macOS.
 
-> **Status:** v0.13.5 — local-first tutor workspace, student practice,
+> **Status:** v0.13.6 — local-first tutor workspace, student practice,
 > FSRS-lite review, personal dictionary learning, rewards, imports, and
-> session-evidence reporting are all backed by the bundled SQLite schema.
+> CAPT pronunciation foundations are all backed by the bundled SQLite schema.
 
 ## Stack
 
@@ -24,6 +24,7 @@ student practice) running as a desktop app on Windows and macOS.
 | Validation   | Zod (IPC inputs + YAML import)                    |
 | Auth         | scrypt-hashed tutor PIN (Node `crypto`)           |
 | Content      | YAML files in `content/`, parsed via `js-yaml`    |
+| CAPT         | Transformers.js + ONNX Runtime Node, offline model resources |
 | Watch        | chokidar (`npm run import:watch`)                 |
 
 ## Folder layout
@@ -36,7 +37,7 @@ vocab-app/
 │   ├── db/               # SQLite client, paths, migration runner
 │   │   └── repositories/ # domain data access, analytics, evidence
 │   └── ipc/              # defineProcedure + Zod-validated handlers
-│       └── procedures/   # meta, curriculum, vocab, students, settings
+│       └── procedures/   # meta, curriculum, vocab, pronunciation, settings
 ├── src/
 │   ├── data/
 │   │   ├── schema/       # Drizzle table definitions (1 file per domain)
@@ -88,6 +89,7 @@ npm run test           # vitest run
 npm run test:watch     # vitest watch
 npm run package        # produce unpacked app bundle
 npm run make           # produce installers (DMG/ZIP/Squirrel/DEB)
+npm run verify:artifacts # verify app/dictionary/CAPT package resources
 npm run rebuild        # rebuild better-sqlite3 against Electron's Node ABI
 
 npm run db:generate    # drizzle-kit generate (after editing src/data/schema)
@@ -137,6 +139,10 @@ resolved at runtime through `electron/db/paths.ts`.
 - **Import**: `import_runs`, `import_items`
 - **Settings**: `app_settings`
 - **Evidence**: `session_evidence_events`
+
+CAPT pronunciation attempts are stored as `pronunciation_assessment` rows in
+`session_evidence_events`, so tutor dashboards and exported student bundles use
+the same evidence pipeline as focus/camera review data.
 
 Adding a new content kind later (custom exercise type, listening clip, …) is
 a single migration that adds the concrete table plus a row in `content_items`
