@@ -27,11 +27,13 @@ export function useSessionEvidence({
   sessionId,
   contextLabel,
   cameraCheckinsEnabled = false,
+  screenshotsEnabled = false,
 }: {
   studentId: number;
   sessionId: number | null;
   contextLabel?: string;
   cameraCheckinsEnabled?: boolean;
+  screenshotsEnabled?: boolean;
 }) {
   const active = sessionId !== null;
   const [cameraState, setCameraState] = useState<CameraState>("idle");
@@ -106,11 +108,12 @@ export function useSessionEvidence({
         appVersion: api.app.version,
         platform: api.app.platform,
         cameraIntervalMs: CAMERA_INTERVAL_MS,
-        contentProtection: true,
+        contentProtection: !screenshotsEnabled,
+        tutorScreenshotsEnabled: screenshotsEnabled,
         tutorCameraCheckinsEnabled: cameraCheckinsEnabled,
       },
     });
-  }, [active, cameraCheckinsEnabled, contextLabel, recordEvent, sessionId]);
+  }, [active, cameraCheckinsEnabled, contextLabel, recordEvent, screenshotsEnabled, sessionId]);
 
   useEffect(() => {
     if (!active) return;

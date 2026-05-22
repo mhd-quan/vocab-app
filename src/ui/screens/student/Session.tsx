@@ -11,6 +11,7 @@ import {
   type GrammarPracticeResult,
   buildGrammarDeck,
 } from "@/modules/grammarPractice";
+import { SETTINGS_KEYS } from "@/modules/settings/keys";
 import { filterVocabEntriesBySections, parseStudySectionParam } from "@/modules/studySections";
 import { useDisplayPreferences } from "@/providers/DisplayPreferencesProvider";
 import { Button } from "@/ui/components/Button";
@@ -31,6 +32,7 @@ const SESSION_MODE_KEY = "session_default_mode";
 const SESSION_SHUFFLE_KEY = "session_shuffle";
 const DEFINITION_PRIORITY_KEY = "definition_priority";
 const CAMERA_CHECKINS_KEY = "session_camera_checkins_enabled";
+const SCREENSHOTS_KEY = SETTINGS_KEYS.screenshotsEnabled;
 
 /**
  * Route screen: glues lesson data → the matching practice engine/player →
@@ -130,6 +132,11 @@ export function StudentSession() {
     queryFn: () => api.settings.get<boolean>({ key: CAMERA_CHECKINS_KEY }),
   });
 
+  const screenshotsQ = useQuery({
+    queryKey: ["settings", "get", SCREENSHOTS_KEY],
+    queryFn: () => api.settings.get<boolean>({ key: SCREENSHOTS_KEY }),
+  });
+
   const sessionCount = normalizeSessionCount(sessionCountQ.data);
   const sessionMode = normalizeExerciseSessionMode(sessionModeQ.data);
   const definitionPriority = normalizeDefinitionPriority(definitionPriorityQ.data);
@@ -142,7 +149,8 @@ export function StudentSession() {
     sessionModeQ.isLoading ||
     sessionShuffleQ.isLoading ||
     definitionPriorityQ.isLoading ||
-    cameraCheckinsQ.isLoading;
+    cameraCheckinsQ.isLoading ||
+    screenshotsQ.isLoading;
 
   const sessionStart = useMutation({
     mutationFn: (input: { studentId: number }) =>
@@ -158,6 +166,7 @@ export function StudentSession() {
     sessionId,
     contextLabel: lessonQ.data?.title,
     cameraCheckinsEnabled: cameraCheckinsQ.data === true,
+    screenshotsEnabled: screenshotsQ.data === true,
   });
 
   useEffect(() => {

@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { SETTINGS_KEYS } from "../../../src/modules/settings/keys";
+import { applyScreenshotPolicy } from "../../windowPolicy";
 import { defineProcedure } from "../procedure";
 
 const keyInput = z.object({ key: z.string().min(1).max(120) });
@@ -18,6 +20,9 @@ export const settingsProcedures = [
     input: setInput,
     handler: ({ key, value }, ctx) => {
       ctx.repos.settings.set(key, value);
+      if (key === SETTINGS_KEYS.screenshotsEnabled) {
+        applyScreenshotPolicy(ctx.getMainWindow?.(), value === true);
+      }
       return { ok: true } as const;
     },
   }),
@@ -26,6 +31,9 @@ export const settingsProcedures = [
     input: keyInput,
     handler: ({ key }, ctx) => {
       ctx.repos.settings.delete(key);
+      if (key === SETTINGS_KEYS.screenshotsEnabled) {
+        applyScreenshotPolicy(ctx.getMainWindow?.(), false);
+      }
       return { ok: true } as const;
     },
   }),

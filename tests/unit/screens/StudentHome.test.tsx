@@ -154,7 +154,7 @@ describe("StudentHome", () => {
     await waitFor(() => expect(screen.getByText(/No cards yet/i)).toBeInTheDocument());
     expect(screen.getByRole("link", { name: /People/ })).toHaveAttribute(
       "href",
-      "/student/profile/1/session/100",
+      "/student/profile/1/unit/10",
     );
   });
 
