@@ -4,20 +4,22 @@ Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
 student practice) running as a desktop app on Windows and macOS.
 
-> **Status:** v0.15.1 — local-first tutor workspace, student practice,
+> **Status:** v0.15.2 — local-first tutor workspace, student practice,
 > FSRS-lite review, personal dictionary learning, rewards, imports, and
-> the HuBERT-backed CAPT pronunciation pipeline. v0.15.1 unblocks
-> microphone capture on macOS (Info.plist now declares
-> `NSMicrophoneUsageDescription`), silences the spurious
-> `AVCaptureDeviceTypeExternal` boot warning by moving the transformers
-> probe out of the main process, adds **word-segmented phrase /
-> sentence scoring** to the Pronunciation lab (Words ↔ Phrases tab,
-> 10 s recording cap, per-word phoneme rail, suggestion chips mined
-> from imported `vocab_examples`), rebalances the student dashboard
-> into a 2-column layout with a compact `AchievementStrip` in the
-> header, and replaces the Profile picker's decorative mascot card
-> with a `FleetSnapshot` (active count, total due, top XP / streak)
-> sourced from a new `progress.fleetSnapshot` IPC.
+> the HuBERT-backed CAPT pronunciation pipeline. v0.15.2 polishes the
+> lab: dev-mode macOS no longer prints the
+> `AVCaptureDeviceTypeExternal` warning (a postinstall script patches
+> the Electron binary's Info.plist), transient `node-fetch` aborts
+> during transformers.js bootstrap retry quietly, multi-word entries
+> (phrasal verbs, idioms) now display a CMUdict-composed IPA instead
+> of "IPA unavailable", reference audio renders the same UK / US
+> buttons as the vocab study screen, the record + check buttons
+> collapse into a single central mic affordance that auto-checks on
+> stop, and the targets sidebar prefers FSRS short-term words (with
+> a small long-term sample for spot checks) over the broader
+> assigned-units list. The deeper "pronunciation gate inside vocab
+> learning sessions" lands in v0.15.3 as its own change because the
+> exercise engine needs an async-grading path first.
 >
 
 ## Stack
