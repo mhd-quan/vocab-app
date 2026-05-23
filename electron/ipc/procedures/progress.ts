@@ -190,6 +190,12 @@ export const progressProcedures = [
   }),
 
   defineProcedure({
+    name: "progress.studyTargets",
+    input: studentIdInput,
+    handler: ({ studentId }, ctx) => ctx.repos.progress.studyTargets({ studentId }),
+  }),
+
+  defineProcedure({
     name: "progress.weakItems",
     input: weakItemsInput,
     handler: ({ studentId, minAttempts, limit }, ctx) =>

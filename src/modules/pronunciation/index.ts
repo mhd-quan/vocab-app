@@ -39,7 +39,7 @@ export type {
 export { ctcViterbiAlign } from "./ctc";
 export { buildPhrasePronunciationTarget, buildPronunciationTarget, stripStress } from "./g2p";
 export type { BuildPronunciationTargetOptions } from "./g2p";
-export { ARPABET_VOWELS, isArpabetVowel, normalizeAcousticLabel } from "./labels";
+export { ARPABET_VOWELS, arpabetToIpa, isArpabetVowel, normalizeAcousticLabel } from "./labels";
 export {
   PRONUNCIATION_MODEL_FAMILY,
   REQUIRED_PRONUNCIATION_LABELS,

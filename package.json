@@ -1,6 +1,6 @@
 {
   "name": "vocab-app",
-  "version": "0.15.1",
+  "version": "0.15.2",
   "description": "Interactive vocabulary & grammar tutoring platform for Destination B1/B2",
   "main": ".vite/build/main.js",
   "private": true,
@@ -9,7 +9,9 @@
   },
   "license": "UNLICENSED",
   "scripts": {
-    "start": "electron-forge start",
+    "start": "npm run prestart && electron-forge start",
+    "prestart": "tsx scripts/patch-dev-electron-plist.ts",
+    "postinstall": "tsx scripts/patch-dev-electron-plist.ts",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
