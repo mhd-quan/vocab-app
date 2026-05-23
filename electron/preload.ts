@@ -44,6 +44,7 @@ import type {
   UnitReportRow,
   UnitSessionReportRow,
 } from "./db/repositories/progress";
+import type { FleetSnapshot } from "./db/repositories/progress";
 import type { VocabEntryFull } from "./db/repositories/vocab";
 
 const invoke = <T>(channel: string, payload?: unknown): Promise<T> =>
@@ -449,6 +450,8 @@ const api = {
       invoke<SessionLearningReport | null>("progress.sessionReport", input),
     tutorOverview: (input?: { nowIso?: string }) =>
       invoke<TutorOverviewRow[]>("progress.tutorOverview", input ?? {}),
+    fleetSnapshot: (input?: { nowIso?: string }) =>
+      invoke<FleetSnapshot>("progress.fleetSnapshot", input ?? {}),
   },
 
   evidence: {

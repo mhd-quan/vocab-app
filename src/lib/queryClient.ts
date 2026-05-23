@@ -99,6 +99,7 @@ export const queryKeys = {
       ["progress", "unitSessions", studentId, unitId] as const,
     sessionReport: (sessionId: number) => ["progress", "sessionReport", sessionId] as const,
     tutorOverview: () => ["progress", "tutorOverview"] as const,
+    fleetSnapshot: () => ["progress", "fleetSnapshot"] as const,
   },
   evidence: {
     tutorOverview: () => ["evidence", "tutorOverview"] as const,

@@ -238,4 +238,11 @@ export const progressProcedures = [
     handler: ({ nowIso }, ctx) =>
       ctx.repos.progress.tutorOverview({ now: nowIso ? new Date(nowIso) : new Date() }),
   }),
+
+  defineProcedure({
+    name: "progress.fleetSnapshot",
+    input: tutorOverviewInput,
+    handler: ({ nowIso }, ctx) =>
+      ctx.repos.progress.fleetSnapshot({ now: nowIso ? new Date(nowIso) : new Date() }),
+  }),
 ];
