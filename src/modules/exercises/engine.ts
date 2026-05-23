@@ -4,6 +4,7 @@ import { definitionMatchPlugin } from "./definitionMatch";
 import { flashcardPlugin } from "./flashcard";
 import { createLazyDeck } from "./lazyDeck";
 import { multipleChoicePlugin } from "./multipleChoice";
+import { pronunciationPlugin } from "./pronunciation";
 import { sentenceRebuildPlugin } from "./sentenceRebuild";
 import { fromVocabEntry, sourceKey } from "./sources";
 import type {
@@ -35,6 +36,7 @@ const PLUGINS: Record<ExerciseKind, AnyExercisePlugin> = {
   audio_recall: audioRecallPlugin as unknown as AnyExercisePlugin,
   definition_match: definitionMatchPlugin as unknown as AnyExercisePlugin,
   sentence_rebuild: sentenceRebuildPlugin as unknown as AnyExercisePlugin,
+  pronunciation: pronunciationPlugin as unknown as AnyExercisePlugin,
 };
 
 export function getPlugin(kind: ExerciseKind): AnyExercisePlugin {

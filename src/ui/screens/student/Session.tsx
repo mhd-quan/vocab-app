@@ -378,6 +378,7 @@ export function StudentSession() {
         preferredAccent={pronunciationAccent}
         avatarSeed={studentQ.data?.avatarSeed ?? null}
         studentId={studentIdNum}
+        sessionId={sessionId}
       />
     </SessionEvidenceFrame>
   );

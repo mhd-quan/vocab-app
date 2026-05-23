@@ -18,7 +18,8 @@ export type ExerciseKind =
   | "multiple_choice"
   | "audio_recall"
   | "definition_match"
-  | "sentence_rebuild";
+  | "sentence_rebuild"
+  | "pronunciation";
 export type DefinitionPriority = "en_first" | "vi_first";
 export type ExerciseTrack = "curated" | "personal";
 export type PronunciationAccent = "uk" | "us" | "other";
@@ -205,12 +206,47 @@ export interface SentenceRebuildExercise extends ExerciseBase {
   payload: SentenceRebuildPayload;
 }
 
+/* ---------------------------------------------------------------------- *
+ *  Pronunciation — speak the headword; CAPT scores against the target.
+ *  The assessment runs in the UI before the answer reaches `grade()`,
+ *  so the plugin stays sync: it just inspects the attempt's pass flag.
+ * ---------------------------------------------------------------------- */
+
+export interface PronunciationPayload {
+  headword: string;
+  ipa: string | null;
+  /** Reference audio for "listen before you speak". */
+  referenceAudio: ExerciseAudioRef[];
+  /** Cut-off used by the UI + plugin. Mirrors the runtime pronunciation policy. */
+  passingScore: number;
+}
+
+export interface PronunciationExercise extends ExerciseBase {
+  kind: "pronunciation";
+  payload: PronunciationPayload;
+}
+
+/**
+ * Subset of `PronunciationAssessment` (see `modules/pronunciation/types.ts`)
+ * the engine needs to grade. The full assessment is consumed by the card
+ * for inline feedback; only these fields cross the engine seam.
+ */
+export interface PronunciationAttempt {
+  overallScore: number;
+  phonemeScore: number;
+  stressScore: number | null;
+  passed: boolean;
+  retryRequired: boolean;
+  durationMs: number;
+}
+
 export type Exercise =
   | FlashcardExercise
   | MultipleChoiceExercise
   | AudioRecallExercise
   | DefinitionMatchExercise
-  | SentenceRebuildExercise;
+  | SentenceRebuildExercise
+  | PronunciationExercise;
 
 export type Answer =
   | { kind: "flashcard"; grade: SelfGrade }
@@ -220,7 +256,8 @@ export type Answer =
       kind: "definition_match";
       assignments: Array<{ definitionPairId: string; headword: string }>;
     }
-  | { kind: "sentence_rebuild"; tokens: string[] };
+  | { kind: "sentence_rebuild"; tokens: string[] }
+  | { kind: "pronunciation"; attempt: PronunciationAttempt };
 
 export interface GradeOutcome {
   /** Whether to count this as a correct attempt for stats. */
@@ -231,6 +268,12 @@ export interface GradeOutcome {
   selfGrade: SelfGrade | null;
   /** Index the student picked, if applicable. */
   selectedIndex: number | null;
+  /**
+   * UI-only signal: keep the card active for another attempt. Persistence
+   * still fires (FSRS counts the wrong attempt) — only the player loop
+   * uses this to skip auto-advance. Defaults to false.
+   */
+  needsRetry?: boolean;
 }
 
 export interface BuildContext {
