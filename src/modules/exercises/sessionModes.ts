@@ -9,6 +9,7 @@ export const mixedExerciseKinds: ExerciseKind[] = [
   "audio_recall",
   "sentence_rebuild",
   "definition_match",
+  "pronunciation",
 ];
 
 export const exerciseSessionModeOptions: Array<{ value: ExerciseSessionMode; label: string }> = [
@@ -18,6 +19,7 @@ export const exerciseSessionModeOptions: Array<{ value: ExerciseSessionMode; lab
   { value: "audio_recall", label: "Audio recall" },
   { value: "definition_match", label: "Definition matching" },
   { value: "sentence_rebuild", label: "Sentence rebuild" },
+  { value: "pronunciation", label: "Pronunciation" },
 ];
 
 const exerciseSessionModeValues = new Set<string>(

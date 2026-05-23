@@ -20,6 +20,7 @@ import { PressButton } from "@/ui/student/components/PressButton";
 import { ProgressBubble } from "@/ui/student/components/ProgressBubble";
 import { AudioRecallCard } from "@/ui/student/exercises/AudioRecallCard";
 import { DefinitionMatchCard } from "@/ui/student/exercises/DefinitionMatchCard";
+import { PronunciationCard } from "@/ui/student/exercises/PronunciationCard";
 import { SentenceRebuildCard } from "@/ui/student/exercises/SentenceRebuildCard";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { FlashcardCard } from "./FlashcardCard";
@@ -75,6 +76,12 @@ export interface SessionPlayerProps {
   preferredAccent?: "uk" | "us" | "any";
   avatarSeed?: string | null;
   studentId?: number | string | null;
+  /**
+   * Active practice session row id — threaded down so pronunciation
+   * exercises can attribute the assess IPC. Null until the session
+   * mutation resolves; the pronunciation card stays disabled while null.
+   */
+  sessionId?: number | null;
 }
 
 const DEFAULT_AUTO_ADVANCE_MS = 4_000;
@@ -133,6 +140,7 @@ export function SessionPlayer({
   preferredAccent = "uk",
   avatarSeed,
   studentId,
+  sessionId = null,
 }: SessionPlayerProps) {
   const [index, setIndex] = useState(0);
   const [results, setResults] = useState<SessionResult[]>([]);
@@ -142,6 +150,12 @@ export function SessionPlayer({
   const [correctRun, setCorrectRun] = useState(0);
   const [confettiKey, setConfettiKey] = useState(0);
   const [toasts, setToasts] = useState<ToastSpec[]>([]);
+  /**
+   * Per-exercise retry counter — bumped when the engine reports
+   * `needsRetry`, then folded into the card's React `key` so the card
+   * resets and a fresh attempt is possible without an explicit reset.
+   */
+  const [retryAttempt, setRetryAttempt] = useState(0);
   const advancedExerciseIds = useRef(new Set<string>());
 
   const total = deck.length;
@@ -172,6 +186,9 @@ export function SessionPlayer({
       if (ex.kind === "audio_recall") {
         out.push(ex.payload.audioRef);
       }
+      if (ex.kind === "pronunciation") {
+        out.push(...ex.payload.referenceAudio.map((audio) => audio.ref));
+      }
     }
     return out;
   }, [deck, index]);
@@ -186,6 +203,7 @@ export function SessionPlayer({
         if (correct) out.push(correct.text);
       }
       if (ex.kind === "audio_recall") out.push(ex.payload.displayHeadword);
+      if (ex.kind === "pronunciation") out.push(ex.payload.headword);
     }
     return out;
   }, [deck, index]);
@@ -278,6 +296,17 @@ export function SessionPlayer({
         return;
       }
 
+      // Cards that ask for a retry (e.g. pronunciation under threshold)
+      // stay on screen. Persistence already fired above — FSRS counts
+      // the lapse — but the deck does not advance. The card re-mounts
+      // via the bumped retry key so a fresh attempt is possible.
+      if (outcome.needsRetry) {
+        setRetryAttempt((n) => n + 1);
+        setPendingOutcome(outcome);
+        setPendingResult(null);
+        return;
+      }
+
       // Auto-graded: hold on the result so the student sees the green/red
       // marks, then advance after a short pause. `autoAdvanceDelayMs=0`
       // (used in tests) collapses this into the next tick.
@@ -358,6 +387,9 @@ export function SessionPlayer({
           outcome={pendingOutcome}
           autoplay={autoplay}
           preferredAccent={preferredAccent}
+          studentId={studentId}
+          sessionId={sessionId}
+          retryAttempt={retryAttempt}
         />
         {pendingResult ? (
           <div className="flex justify-end">
@@ -383,12 +415,18 @@ function ExerciseCard({
   outcome,
   autoplay,
   preferredAccent,
+  studentId,
+  sessionId,
+  retryAttempt,
 }: {
   exercise: Exercise;
   onAnswer: (answer: Answer) => void;
   outcome: GradeOutcome | null;
   autoplay: boolean;
   preferredAccent: "uk" | "us" | "any";
+  studentId?: number | string | null;
+  sessionId: number | null;
+  retryAttempt: number;
 }) {
   // `key={exercise.id}` re-mounts the per-kind component on each new
   // exercise so internal state (revealed flag, picked option) resets
@@ -443,6 +481,27 @@ function ExerciseCard({
           onAnswer={(tokens) => onAnswer({ kind: "sentence_rebuild", tokens })}
         />
       );
+    case "pronunciation": {
+      const numericStudentId = typeof studentId === "number" ? studentId : Number(studentId);
+      if (!Number.isFinite(numericStudentId) || numericStudentId <= 0) {
+        return (
+          <p className="px-6 py-10 text-center text-sm text-muted">
+            Pronunciation needs an active student.
+          </p>
+        );
+      }
+      return (
+        <PronunciationCard
+          key={`${exercise.id}:${retryAttempt}`}
+          exercise={exercise}
+          outcome={outcome}
+          studentId={numericStudentId}
+          sessionId={sessionId}
+          preferredAccent={preferredAccent}
+          onAnswer={(attempt) => onAnswer({ kind: "pronunciation", attempt })}
+        />
+      );
+    }
   }
 }
 

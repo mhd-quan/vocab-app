@@ -200,49 +200,33 @@ export async function infer(
 ): Promise<InferenceResult> {
   let lastError: Error | null = null;
   for (const provider of providerFallbacks(preferred)) {
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-      try {
-        const response = await enqueue<SuccessResponse>({
-          id: nextId++,
-          kind: "infer",
-          modelPath: bundle.modelPath,
-          manifest: bundle.manifest,
-          labels: bundle.labels,
-          provider,
-          audioPcm,
-          sampleRate,
-        });
-        if (!response.frames || !response.labels) {
-          throw new Error("CAPT worker returned response without frames or labels.");
-        }
-        return {
-          frames: response.frames,
-          labels: response.labels,
-          provider: response.provider,
-          durationMs: response.durationMs,
-        };
-      } catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error));
-        const recoverable = (error as Error & { recoverable?: boolean }).recoverable === true;
-        // node-fetch's AbortError fires transiently during transformers.js model
-        // bootstrapping even with local_files_only=true. One quiet retry on the
-        // same provider clears it without surfacing the noise to the UI.
-        if (attempt === 0 && isTransientAbortError(lastError)) continue;
-        if (!recoverable) return rethrow(lastError);
-        break;
+    try {
+      const response = await enqueue<SuccessResponse>({
+        id: nextId++,
+        kind: "infer",
+        modelPath: bundle.modelPath,
+        manifest: bundle.manifest,
+        labels: bundle.labels,
+        provider,
+        audioPcm,
+        sampleRate,
+      });
+      if (!response.frames || !response.labels) {
+        throw new Error("CAPT worker returned response without frames or labels.");
       }
+      return {
+        frames: response.frames,
+        labels: response.labels,
+        provider: response.provider,
+        durationMs: response.durationMs,
+      };
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      const recoverable = (error as Error & { recoverable?: boolean }).recoverable === true;
+      if (!recoverable) throw lastError;
     }
   }
   throw lastError ?? new Error("CAPT worker inference failed for all providers.");
-}
-
-function isTransientAbortError(error: Error): boolean {
-  const message = error.message ?? "";
-  return message.includes("The user aborted a request") || message.includes("AbortError");
-}
-
-function rethrow(error: Error): never {
-  throw error;
 }
 
 /** Cancel any pending queued requests. The in-flight request can't be

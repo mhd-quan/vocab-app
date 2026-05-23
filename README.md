@@ -4,22 +4,24 @@ Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
 student practice) running as a desktop app on Windows and macOS.
 
-> **Status:** v0.15.2 — local-first tutor workspace, student practice,
+> **Status:** v0.15.3 — local-first tutor workspace, student practice,
 > FSRS-lite review, personal dictionary learning, rewards, imports, and
-> the HuBERT-backed CAPT pronunciation pipeline. v0.15.2 polishes the
-> lab: dev-mode macOS no longer prints the
-> `AVCaptureDeviceTypeExternal` warning (a postinstall script patches
-> the Electron binary's Info.plist), transient `node-fetch` aborts
-> during transformers.js bootstrap retry quietly, multi-word entries
-> (phrasal verbs, idioms) now display a CMUdict-composed IPA instead
-> of "IPA unavailable", reference audio renders the same UK / US
-> buttons as the vocab study screen, the record + check buttons
-> collapse into a single central mic affordance that auto-checks on
-> stop, and the targets sidebar prefers FSRS short-term words (with
-> a small long-term sample for spot checks) over the broader
-> assigned-units list. The deeper "pronunciation gate inside vocab
-> learning sessions" lands in v0.15.3 as its own change because the
-> exercise engine needs an async-grading path first.
+> the HuBERT-backed CAPT pronunciation pipeline, now with pronunciation
+> as a first-class exercise inside vocab learning sessions. v0.15.3
+> closes the two macOS noise sources that survived v0.15.2: the
+> `AVCaptureDeviceTypeExternal` warning is gone in packaged builds
+> (forge's `extendHelperInfo` patches every helper bundle's plist) and
+> in dev (the postinstall script now patches all four Electron helper
+> bundles, not just the top-level app), and the transient
+> "user aborted a request." has been pushed down into the CAPT worker
+> so warmup + inference both benefit from the same single quiet retry.
+> The new pronunciation exercise lives behind the existing exercise
+> plugin seam: the card runs the assess IPC inline, packs the result
+> into the answer, and the engine's sync `grade()` flips the card's
+> `needsRetry` flag when the score lands under 70 so SessionPlayer
+> holds the card for another attempt while FSRS keeps counting lapses.
+> It appears in Mixed mode and in a dedicated "Pronunciation" session
+> mode.
 >
 
 ## Stack

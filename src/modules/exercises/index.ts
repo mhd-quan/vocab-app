@@ -3,6 +3,7 @@ export { multipleChoicePlugin } from "./multipleChoice";
 export { audioRecallPlugin, normaliseSpelling } from "./audioRecall";
 export { definitionMatchPlugin } from "./definitionMatch";
 export { sentenceRebuildPlugin, tokenise } from "./sentenceRebuild";
+export { pronunciationPlugin } from "./pronunciation";
 export { fromDictionaryItem, fromVocabEntry, sourceKey } from "./sources";
 export {
   type BuildDeckOptions,
@@ -46,6 +47,9 @@ export type {
   MultipleChoiceExercise,
   MultipleChoiceOption,
   MultipleChoicePayload,
+  PronunciationAttempt,
+  PronunciationExercise,
+  PronunciationPayload,
   SelfGrade,
   SentenceRebuildExercise,
   SentenceRebuildPayload,

@@ -167,11 +167,38 @@ async function ensureLoaded(
   };
   cached = {
     key: cacheKey,
-    processor: await transformers.AutoProcessor.from_pretrained(manifest.modelId, options),
-    model: await transformers.AutoModelForCTC.from_pretrained(manifest.modelId, options),
+    processor: await loadOnce(
+      () => transformers.AutoProcessor.from_pretrained(manifest.modelId, options),
+      "AutoProcessor.from_pretrained",
+    ),
+    model: await loadOnce(
+      () => transformers.AutoModelForCTC.from_pretrained(manifest.modelId, options),
+      "AutoModelForCTC.from_pretrained",
+    ),
     manifest,
     provider,
   };
+}
+
+// transformers.js fetches model assets via node-fetch even when
+// local_files_only is set; the initial probe races an AbortController
+// and surfaces "The user aborted a request." sporadically on macOS.
+// A single silent retry clears it without escalating to the UI.
+async function loadOnce<T>(load: () => Promise<T>, label: string): Promise<T> {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return await load();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (attempt === 0 && isTransientAbort(message)) continue;
+      throw error;
+    }
+  }
+  throw new Error(`[capt-worker] ${label} retry exhausted`);
+}
+
+function isTransientAbort(message: string): boolean {
+  return message.includes("The user aborted a request") || message.includes("AbortError");
 }
 
 async function runInference(request: InferRequest): Promise<{
