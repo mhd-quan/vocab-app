@@ -12,7 +12,6 @@ import {
 } from "@/ui/student/access";
 import { StreakBanner } from "@/ui/student/components/StreakBanner";
 import { XPBadge } from "@/ui/student/components/XPBadge";
-import { StudentLogoMark } from "@/ui/student/pets";
 import { useQuery } from "@tanstack/react-query";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, useSyncExternalStore } from "react";
@@ -106,8 +105,7 @@ export function StudentLayout() {
           isMac ? "pl-20" : "pl-6",
         )}
       >
-        <Link to="/student" className="flex items-center gap-3 [-webkit-app-region:no-drag]">
-          <StudentLogoMark className="h-10 w-10" />
+        <Link to="/student" className="flex items-center [-webkit-app-region:no-drag]">
           <span className="flex flex-col leading-none">
             <span className="font-display text-base font-semibold">Vocab App</span>
             <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-success">

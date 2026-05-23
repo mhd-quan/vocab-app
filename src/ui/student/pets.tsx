@@ -84,58 +84,6 @@ export function StudentPetIcon({
   );
 }
 
-export function StudentLogoMark({ className }: { className?: string }) {
-  const uid = useId().replace(/:/g, "");
-  const bodyId = `student-logo-${uid}-body`;
-  const pageId = `student-logo-${uid}-page`;
-  return (
-    <svg
-      viewBox="0 0 64 64"
-      role="img"
-      aria-label="Vocab App student logo"
-      className={cn(
-        "h-10 w-10 overflow-visible drop-shadow-[0_10px_18px_rgb(15_23_42/0.18)]",
-        className,
-      )}
-    >
-      <defs>
-        <linearGradient id={bodyId} x1="12" y1="9" x2="54" y2="58" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#7dd3fc" />
-          <stop offset="0.5" stopColor="#58cc02" />
-          <stop offset="1" stopColor="#16a34a" />
-        </linearGradient>
-        <linearGradient id={pageId} x1="22" y1="18" x2="45" y2="45" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#ffffff" />
-          <stop offset="1" stopColor="#e0f2fe" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M10 23.5c0-8.1 6.5-14.6 14.6-14.6h14.8C47.5 8.9 54 15.4 54 23.5v13.9C54 48 46.5 55.1 32 58 17.5 55.1 10 48 10 37.4V23.5Z"
-        fill={`url(#${bodyId})`}
-      />
-      <path
-        d="M17 23.6c0-5 4-9 9-9h13.3c4.2 0 7.7 3.4 7.7 7.7v17.9c-3.1-1.6-7-2.4-11.7-2.4H25c-4.4 0-8 3.6-8 8V23.6Z"
-        fill={`url(#${pageId})`}
-      />
-      <path
-        d="M24 23.5h14.7M24 30.4h12M24 37.3h8.5"
-        stroke="#0f172a"
-        strokeOpacity="0.34"
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
-      <path
-        d="M45.5 15.5 51 10l2.4 7.4 7.1 2.6-6.4 4.2.2 7.7-6.1-4.8-7.1 2.1 2.7-7.2-4.4-6.1 7.6.1Z"
-        fill="#ffc800"
-      />
-      <path
-        d="M48 18.1 50 16l.9 2.8 2.7 1-2.4 1.6.1 2.9-2.3-1.8-2.7.8 1-2.7-1.7-2.3 2.9.1Z"
-        fill="#fff7ad"
-      />
-    </svg>
-  );
-}
-
 function renderPetShape(pet: StudentPetId, fill: string, colors: ReturnType<typeof petColors>) {
   if (pet === "miso") {
     return (

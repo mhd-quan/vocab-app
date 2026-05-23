@@ -130,9 +130,7 @@ function handleResponse(raw: unknown): void {
     console.warn("[capt] worker returned malformed response; rejecting in-flight request", {
       keys: response && typeof response === "object" ? Object.keys(response) : null,
     });
-    pending.reject(
-      makeError("CAPT worker returned a malformed response envelope.", true),
-    );
+    pending.reject(makeError("CAPT worker returned a malformed response envelope.", true));
     pump();
     return;
   }
@@ -153,9 +151,7 @@ function handleResponse(raw: unknown): void {
       ),
     );
   } else {
-    pending.reject(
-      makeError("CAPT worker response missing ok flag.", true),
-    );
+    pending.reject(makeError("CAPT worker response missing ok flag.", true));
   }
   pump();
 }

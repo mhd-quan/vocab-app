@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { AppGlyph } from "@/ui/components/AppGlyph";
 
 export interface HeartsBarProps {
   remaining: number;
@@ -23,8 +24,10 @@ export function HeartsBar({ remaining, total = 5, className }: HeartsBarProps) {
       aria-label={`${safeRemaining} of ${safeTotal} hearts remaining`}
     >
       {slots.map((slot) => (
-        <HeartIcon
+        <AppGlyph
           key={slot.id}
+          name="heart"
+          filled={slot.active}
           className={cn(
             "h-4 w-4 transition-[color,transform]",
             slot.active ? "text-danger" : "text-muted-2/45",
@@ -32,16 +35,5 @@ export function HeartsBar({ remaining, total = 5, className }: HeartsBarProps) {
         />
       ))}
     </div>
-  );
-}
-
-function HeartIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" className={className}>
-      <path
-        fill="currentColor"
-        d="M12 21.2 10.7 20C5.8 15.6 2.6 12.7 2.6 8.9 2.6 5.8 5 3.5 8.1 3.5c1.7 0 3.3.8 4.3 2.1 1-1.3 2.6-2.1 4.3-2.1 3.1 0 5.5 2.3 5.5 5.4 0 3.8-3.2 6.7-8.1 11.1L12 21.2Z"
-      />
-    </svg>
   );
 }

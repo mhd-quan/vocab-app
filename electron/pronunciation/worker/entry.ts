@@ -108,9 +108,10 @@ let cached: {
 } | null = null;
 
 activePort.on("message", (event) => {
-  const payload = (event && typeof event === "object" && "data" in event
-    ? event.data
-    : event) as Partial<Request> | null | undefined;
+  const payload = (event && typeof event === "object" && "data" in event ? event.data : event) as
+    | Partial<Request>
+    | null
+    | undefined;
   const id =
     payload && typeof payload === "object" && typeof payload.id === "number" ? payload.id : -1;
   const validationError = validateRequest(payload);
