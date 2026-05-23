@@ -6,7 +6,7 @@ export function scoreStress({
   sampleRate,
 }: {
   stressPattern: Array<0 | 1 | 2 | null>;
-  audioPcm?: number[];
+  audioPcm?: ArrayLike<number>;
   sampleRate?: number;
 }): PronunciationStressScore {
   if (!audioPcm || audioPcm.length === 0 || !sampleRate || sampleRate <= 0) {
@@ -55,7 +55,7 @@ export function scoreStress({
   };
 }
 
-function splitEnergy(audioPcm: number[], buckets: number): number[] {
+function splitEnergy(audioPcm: ArrayLike<number>, buckets: number): number[] {
   const out: number[] = [];
   const bucketSize = Math.max(1, Math.floor(audioPcm.length / buckets));
   for (let i = 0; i < buckets; i += 1) {

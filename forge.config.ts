@@ -139,7 +139,12 @@ const config: ForgeConfig = {
     // SQL migration files live alongside the app bundle so the runtime
     // migrator can read them. Resolved via `process.resourcesPath` in
     // electron/db/paths.ts.
-    extraResource: ["./drizzle", "./assets/capt-models", "./assets/cmudict"],
+    extraResource: [
+      "./drizzle",
+      "./assets/capt-models",
+      "./assets/cmudict",
+      "./assets/pronunciation",
+    ],
   },
   rebuildConfig: {},
   makers: [
@@ -161,6 +166,11 @@ const config: ForgeConfig = {
           entry: "electron/preload.ts",
           config: "vite.preload.config.ts",
           target: "preload",
+        },
+        {
+          entry: "electron/pronunciation/worker/entry.ts",
+          config: "vite.pronunciation-worker.config.ts",
+          target: "main",
         },
       ],
       renderer: [

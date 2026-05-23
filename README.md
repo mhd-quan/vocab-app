@@ -4,10 +4,13 @@ Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
 student practice) running as a desktop app on Windows and macOS.
 
-> **Status:** v0.14.0 — local-first tutor workspace, student practice,
+> **Status:** v0.15.0 — local-first tutor workspace, student practice,
 > FSRS-lite review, personal dictionary learning, rewards, imports, and
-> the HuBERT-backed CAPT pronunciation pipeline (full CMU G2P, IPA stress
-> preservation, tutor-tunable policy) all backed by the bundled SQLite schema.
+> the HuBERT-backed CAPT pronunciation pipeline. v0.15.0 hardens the
+> CAPT subsystem: HuBERT inference now runs in an Electron
+> `utilityProcess`, audio flows as `Float32Array` end-to-end, the
+> recorder uses `AudioWorklet`, and CTC Viterbi alignment is served by a
+> precompiled Rust→WASM crate (`crates/viterbi`, ~14 KB).
 
 ## Stack
 
@@ -92,6 +95,7 @@ npm run package        # produce unpacked app bundle
 npm run make           # produce installers (DMG/ZIP/Squirrel/DEB)
 npm run verify:artifacts # verify app/dictionary/CAPT package resources
 npm run rebuild        # rebuild better-sqlite3 against Electron's Node ABI
+npm run build:wasm     # build crates/viterbi → assets/pronunciation/viterbi.wasm (needs rustup + wasm32 target)
 
 npm run db:generate    # drizzle-kit generate (after editing src/data/schema)
 npm run db:migrate:dev # apply migrations to ./data/dev.db without Electron

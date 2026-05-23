@@ -72,7 +72,7 @@ export function evaluatePronunciationPolicy({
   enforceGuardrails = true,
 }: {
   overallScore: number;
-  audioPcm?: number[];
+  audioPcm?: ArrayLike<number>;
   sampleRate?: number;
   policy?: Partial<PronunciationScoringPolicy> | null;
   enforceGuardrails?: boolean;
@@ -135,7 +135,7 @@ export function evaluatePronunciationPolicy({
 }
 
 export function audioQualityFromPcm(
-  audioPcm?: number[],
+  audioPcm?: ArrayLike<number>,
   sampleRate?: number,
 ): PronunciationAudioQuality | null {
   if (!audioPcm || audioPcm.length === 0 || !sampleRate || sampleRate <= 0) return null;
@@ -144,7 +144,8 @@ export function audioQualityFromPcm(
   let clipped = 0;
   let silent = 0;
 
-  for (const sample of audioPcm) {
+  for (let i = 0; i < audioPcm.length; i += 1) {
+    const sample = audioPcm[i] ?? 0;
     const value = Number.isFinite(sample) ? Math.max(-1, Math.min(1, sample)) : 0;
     const abs = Math.abs(value);
     sumSquares += value * value;

@@ -485,12 +485,14 @@ const api = {
       invoke<PronunciationTarget>("pronunciation.target", input),
     preview: (input: { text: string; ipa?: string | null }) =>
       invoke<PronunciationAssessment>("pronunciation.preview", input),
+    warmup: () => invoke<{ ok: boolean; reason?: string }>("pronunciation.warmup", {}),
+    cancel: () => invoke<{ cancelled: number }>("pronunciation.cancel", {}),
     assess: (input: {
       studentId: number;
       sessionId: number;
       targetText: string;
       ipa?: string | null;
-      audioPcm?: number[];
+      audioPcm?: Float32Array;
       sampleRate?: number;
     }) =>
       invoke<

@@ -46,6 +46,7 @@ const requiredDrizzleFiles = [
 
 const captModelManifest = path.join("capt-models", "manifest.json");
 const cmudictFile = path.join("cmudict", "cmudict-0.7b.txt");
+const viterbiWasm = path.join("pronunciation", "viterbi.wasm");
 
 function main(): void {
   const failures: string[] = [];
@@ -116,6 +117,8 @@ function verifyTarget(target: PackagedTarget): string[] {
   );
 
   requireFile(path.join(resourcesDir, cmudictFile), `${target.label} ${cmudictFile}`, failures);
+
+  requireFile(path.join(resourcesDir, viterbiWasm), `${target.label} ${viterbiWasm}`, failures);
 
   return failures;
 }

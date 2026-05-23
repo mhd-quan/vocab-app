@@ -1,9 +1,11 @@
 import { ctcViterbiAlign } from "./ctc";
-import { type BuildPronunciationTargetOptions, buildPronunciationTarget } from "./g2p";
+import { type BuildPronunciationTargetOptions, buildPronunciationTarget, stripStress } from "./g2p";
 import { evaluatePronunciationPolicy } from "./policy";
 import { scoreStress } from "./prosody";
 import type {
   AcousticFrame,
+  AcousticFrameSet,
+  AcousticLabels,
   PronunciationAnalyzeInput,
   PronunciationAssessment,
   PronunciationBackend,
@@ -13,6 +15,8 @@ import type {
 
 export type {
   AcousticFrame,
+  AcousticFrameSet,
+  AcousticLabels,
   PronunciationAnalyzeInput,
   PronunciationAssessment,
   PronunciationAudioQuality,
@@ -55,22 +59,33 @@ export { scoreStress } from "./prosody";
 export function assessPronunciationFromFrames({
   input,
   frames,
+  labels,
   runtime,
   startedAt = Date.now(),
   enforcePolicy = true,
   policy,
   buildTargetOptions,
+  align,
 }: {
   input: PronunciationAnalyzeInput;
   frames: AcousticFrame[];
+  labels: AcousticLabels;
   runtime: PronunciationRuntimeStatus;
   startedAt?: number;
   enforcePolicy?: boolean;
   policy?: Parameters<typeof evaluatePronunciationPolicy>[0]["policy"];
   buildTargetOptions?: BuildPronunciationTargetOptions;
+  /**
+   * Optional alignment override. When supplied (e.g. the Wasm Viterbi
+   * loaded from `electron/pronunciation/wasm/loader.ts`), this replaces
+   * the in-process JS Viterbi at `ctcViterbiAlign`. The contract is
+   * identical — same inputs, same `AlignmentResult` shape.
+   */
+  align?: typeof ctcViterbiAlign;
 }): PronunciationAssessment {
   const target = buildPronunciationTarget(input.targetText, input.ipa, buildTargetOptions);
-  const alignment = ctcViterbiAlign({ target: target.phonemes, frames });
+  const alignFn = align ?? ctcViterbiAlign;
+  const alignment = alignFn({ target: target.phonemes, frames, labels });
   const stress = scoreStress({
     stressPattern: target.stressPattern,
     audioPcm: input.audioPcm,
@@ -113,20 +128,43 @@ export function assessPronunciationFromFrames({
   };
 }
 
-export function deterministicAcousticFrames(target: string[], frameMs = 20): AcousticFrame[] {
-  const frames: AcousticFrame[] = [];
-  for (const phoneme of target) {
-    for (let i = 0; i < 4; i += 1) {
-      const logProbs: Record<string, number> = { "<blank>": -5 };
-      logProbs[phoneme] = i === 0 || i === 3 ? -1.4 : -0.22;
-      frames.push({ timeMs: frames.length * frameMs, logProbs });
-    }
-    frames.push({
-      timeMs: frames.length * frameMs,
-      logProbs: { "<blank>": -0.12, [phoneme]: -2.5 },
-    });
+/**
+ * Produce synthetic frames + label table for the deterministic preview
+ * path (no acoustic model). The label table mixes `<blank>` with every
+ * unique target phoneme, indexed by integer — matching the shape real
+ * acoustic frames take.
+ */
+export function deterministicAcousticFrames(target: string[], frameMs = 20): AcousticFrameSet {
+  const stripped = target.map(stripStress);
+  const uniquePhonemes = Array.from(new Set(stripped));
+  const labels: AcousticLabels = {
+    labels: ["<blank>", ...uniquePhonemes],
+    blankIndex: 0,
+  };
+  const phonemeIndex = new Map<string, number>();
+  for (let i = 0; i < labels.labels.length; i += 1) {
+    const label = labels.labels[i];
+    if (label) phonemeIndex.set(label, i);
   }
-  return frames;
+  const labelCount = labels.labels.length;
+
+  const frames: AcousticFrame[] = [];
+  for (const phoneme of stripped) {
+    const idx = phonemeIndex.get(phoneme) ?? labels.blankIndex;
+    for (let i = 0; i < 4; i += 1) {
+      const buf = new Float32Array(labelCount);
+      buf.fill(-9);
+      buf[labels.blankIndex] = -5;
+      buf[idx] = i === 0 || i === 3 ? -1.4 : -0.22;
+      frames.push({ timeMs: frames.length * frameMs, logProbs: buf });
+    }
+    const trail = new Float32Array(labelCount);
+    trail.fill(-9);
+    trail[labels.blankIndex] = -0.12;
+    trail[idx] = -2.5;
+    frames.push({ timeMs: frames.length * frameMs, logProbs: trail });
+  }
+  return { frames, labels };
 }
 
 export function defaultRuntimeStatus(

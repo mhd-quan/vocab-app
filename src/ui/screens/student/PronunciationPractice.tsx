@@ -11,19 +11,34 @@ import { PronunciationControls } from "@/ui/components/PronunciationControls";
 import { MascotIcon } from "@/ui/student/components/MascotIcon";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePronunciationRecorder } from "./pronunciation/usePronunciationRecorder";
 
 export function StudentPronunciationPractice() {
   const { studentId } = useParams({ from: "/student/profile/$studentId/pronunciation" });
   const id = Number(studentId);
   const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null);
+  const [warmupActive, setWarmupActive] = useState(false);
+  const warmupFiredFor = useRef<string | null>(null);
   const recorder = usePronunciationRecorder();
 
   const statusQ = useQuery({
     queryKey: queryKeys.pronunciation.status(),
     queryFn: () => api.pronunciation.status(),
   });
+
+  // Preload the CAPT model in the utility process as soon as the screen
+  // mounts and the runtime reports availability. Avoids the first-click
+  // freeze on the Check button: the 360 MB ONNX session is paged into
+  // the worker while the student is still picking a target.
+  useEffect(() => {
+    if (!statusQ.data?.available) return;
+    const key = `${statusQ.data.modelId ?? "none"}:${statusQ.data.executionProvider}`;
+    if (warmupFiredFor.current === key) return;
+    warmupFiredFor.current = key;
+    setWarmupActive(true);
+    void api.pronunciation.warmup().finally(() => setWarmupActive(false));
+  }, [statusQ.data?.available, statusQ.data?.modelId, statusQ.data?.executionProvider]);
   const booksQ = useQuery({
     queryKey: queryKeys.students.assignedBooks(id),
     queryFn: () => api.students.listAssignedBooks({ studentId: id }),
@@ -148,7 +163,7 @@ export function StudentPronunciationPractice() {
               </p>
             </div>
           </div>
-          <RuntimeCard status={statusQ.data ?? null} />
+          <RuntimeCard status={statusQ.data ?? null} warmupActive={warmupActive} />
         </div>
       </BentoCard>
 
@@ -212,7 +227,13 @@ type PronunciationPreviewView = Awaited<ReturnType<typeof api.pronunciation.prev
 type PronunciationAssessView = Awaited<ReturnType<typeof api.pronunciation.assess>>;
 type PronunciationRecorderView = ReturnType<typeof usePronunciationRecorder>;
 
-function RuntimeCard({ status }: { status: PronunciationStatusView | null }) {
+function RuntimeCard({
+  status,
+  warmupActive,
+}: {
+  status: PronunciationStatusView | null;
+  warmupActive: boolean;
+}) {
   return (
     <div className="rounded-bento border border-border-subtle bg-surface-0/70 p-4 text-xs">
       <p className="font-semibold uppercase text-muted-2">Runtime</p>
@@ -222,7 +243,9 @@ function RuntimeCard({ status }: { status: PronunciationStatusView | null }) {
           : "..."}
       </p>
       <p className="mt-1 max-w-xs leading-5 text-muted">
-        {status?.reason ?? "Offline model ready."}
+        {warmupActive
+          ? "Warming up CAPT… first attempt will start in a moment."
+          : (status?.reason ?? "Offline model ready.")}
       </p>
     </div>
   );
