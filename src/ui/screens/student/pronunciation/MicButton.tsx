@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { AppGlyph } from "@/ui/components/AppGlyph";
 
 interface MicButtonProps {
   state: "idle" | "recording" | "ready" | "assessing";
@@ -56,7 +57,13 @@ export function MicButton({ state, durationMs, maxDurationMs, disabled, onClick 
         )}
       >
         {recording ? <PulseRing /> : null}
-        {assessing ? <SpinnerIcon /> : recording ? <StopIcon /> : <MicIcon />}
+        {assessing ? (
+          <AppGlyph name="spinner" className="h-8 w-8 animate-spin" />
+        ) : recording ? (
+          <AppGlyph name="stop" filled className="h-8 w-8" />
+        ) : (
+          <AppGlyph name="microphone" className="h-9 w-9" />
+        )}
       </button>
       <div className="flex flex-col items-center gap-0.5">
         <span className="text-sm font-semibold text-app">{label}</span>
@@ -68,59 +75,6 @@ export function MicButton({ state, durationMs, maxDurationMs, disabled, onClick 
 
 function formatDuration(ms: number): string {
   return `${Math.max(0, Math.round(ms / 100) / 10).toFixed(1)}s`;
-}
-
-function MicIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-9 w-9"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      role="img"
-      aria-label="Microphone"
-    >
-      <title>Microphone</title>
-      <rect x="9" y="3" width="6" height="11" rx="3" />
-      <path d="M5 11a7 7 0 0 0 14 0" />
-      <path d="M12 18v3" />
-    </svg>
-  );
-}
-
-function StopIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-8 w-8 fill-current"
-      role="img"
-      aria-label="Stop recording"
-    >
-      <title>Stop recording</title>
-      <rect x="7" y="7" width="10" height="10" rx="1.5" />
-    </svg>
-  );
-}
-
-function SpinnerIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-8 w-8 animate-spin"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      role="img"
-      aria-label="Scoring"
-    >
-      <title>Scoring</title>
-      <path d="M12 3a9 9 0 1 1-6.36 2.64" />
-    </svg>
-  );
 }
 
 function PulseRing() {

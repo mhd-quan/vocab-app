@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { AppGlyph } from "@/ui/components/AppGlyph";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   type ButtonHTMLAttributes,
@@ -281,7 +282,10 @@ export function TutorSelectField({
             </option>
           ))}
         </select>
-        <ChevronDownIcon className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-2" />
+        <AppGlyph
+          name="chevronDown"
+          className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-2"
+        />
       </span>
       {supportingText ? (
         <span id={supportingId} className="text-xs text-muted-2">
@@ -426,7 +430,7 @@ export function TutorSwitchField({
             checked ? "translate-x-[1.32rem]" : "translate-x-0.5",
           )}
         >
-          {checked ? <CheckIcon className="h-3.5 w-3.5 text-accent" /> : null}
+          {checked ? <AppGlyph name="check" className="h-3.5 w-3.5 text-accent" /> : null}
         </span>
       </span>
     </button>
@@ -508,25 +512,3 @@ export const tutorFieldClassName = cn(
   "focus:border-accent focus:bg-[color:var(--md-sys-color-surface-container-lowest)] focus:outline-none focus:ring-4 focus:ring-accent/15",
   "disabled:cursor-not-allowed disabled:border-border-subtle disabled:bg-[color:var(--md-sys-color-surface-container)] disabled:text-muted",
 );
-
-function ChevronDownIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false" className={className}>
-      <path
-        fill="currentColor"
-        d="M4.2 6.1a.7.7 0 0 1 1 0L8 8.9l2.8-2.8a.7.7 0 0 1 1 1L8.5 10.4a.7.7 0 0 1-1 0L4.2 7.1a.7.7 0 0 1 0-1Z"
-      />
-    </svg>
-  );
-}
-
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false" className={className}>
-      <path
-        fill="currentColor"
-        d="M6.4 10.6 3.7 7.9a.8.8 0 1 1 1.1-1.1l1.6 1.6 4.7-4.7a.8.8 0 1 1 1.1 1.1l-5.3 5.8a.8.8 0 0 1-1.1 0Z"
-      />
-    </svg>
-  );
-}

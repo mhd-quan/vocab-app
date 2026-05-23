@@ -1,22 +1,46 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import sharp from "sharp";
 
 const ROOT = path.resolve(__dirname, "..");
-const svgPath = path.join(ROOT, "assets", "app-icon.svg");
+const sourcePath = path.join(ROOT, "assets", "source-icon.png");
 const iconDir = path.join(ROOT, "assets", "icons");
 const iconsetDir = path.join(iconDir, "app.iconset");
 
 const sizes = [16, 32, 64, 128, 256, 512, 1024];
 
-function main(): void {
-  if (!fs.existsSync(svgPath)) throw new Error(`Missing ${svgPath}`);
+// Apple uses a continuous-curve squircle. A rounded rect with rx = 22.46% of
+// width (230/1024) is the standard SVG approximation and matches what most
+// shipping macOS/iOS app icons use.
+const CORNER_RATIO = 230 / 1024;
+
+function squircleMask(size: number): Buffer {
+  const r = Math.round(size * CORNER_RATIO);
+  return Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"><rect width="${size}" height="${size}" rx="${r}" ry="${r}" fill="#ffffff"/></svg>`,
+  );
+}
+
+async function renderPng(size: number, output: string): Promise<void> {
+  const resized = await sharp(sourcePath)
+    .resize(size, size, { fit: "cover", kernel: "lanczos3" })
+    .ensureAlpha()
+    .toBuffer();
+  await sharp(resized)
+    .composite([{ input: squircleMask(size), blend: "dest-in" }])
+    .png({ compressionLevel: 9 })
+    .toFile(output);
+}
+
+async function main(): Promise<void> {
+  if (!fs.existsSync(sourcePath)) throw new Error(`Missing ${sourcePath}`);
   fs.rmSync(iconsetDir, { recursive: true, force: true });
   fs.mkdirSync(iconsetDir, { recursive: true });
 
   for (const size of sizes) {
     const pngPath = path.join(iconDir, `app-${size}.png`);
-    renderPng(size, pngPath);
+    await renderPng(size, pngPath);
   }
 
   for (const size of [16, 32, 128, 256, 512]) {
@@ -32,17 +56,6 @@ function main(): void {
 
   execFileSync("iconutil", ["-c", "icns", iconsetDir, "-o", path.join(iconDir, "app.icns")]);
   writeIco(path.join(iconDir, "app.ico"), [16, 32, 64, 128, 256]);
-}
-
-function renderPng(size: number, output: string): void {
-  fs.mkdirSync(path.dirname(output), { recursive: true });
-  execFileSync(
-    "sips",
-    ["-s", "format", "png", "-z", String(size), String(size), svgPath, "--out", output],
-    {
-      stdio: "ignore",
-    },
-  );
 }
 
 function writeIco(output: string, icoSizes: number[]): void {
@@ -74,4 +87,7 @@ function writeIco(output: string, icoSizes: number[]): void {
   fs.writeFileSync(output, Buffer.concat([header, ...entries, ...images]));
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

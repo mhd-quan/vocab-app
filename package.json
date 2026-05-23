@@ -1,6 +1,6 @@
 {
   "name": "vocab-app",
-  "version": "0.15.4",
+  "version": "0.16.0",
   "description": "Interactive vocabulary & grammar tutoring platform for Destination B1/B2",
   "main": ".vite/build/main.js",
   "private": true,
@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",
+    "@phosphor-icons/react": "^2.1.10",
     "@tanstack/react-query": "^5.62.16",
     "@tanstack/react-router": "^1.95.1",
     "better-sqlite3": "^11.7.0",
