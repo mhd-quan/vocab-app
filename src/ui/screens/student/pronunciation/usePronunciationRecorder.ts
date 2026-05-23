@@ -175,7 +175,7 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
     } catch (err) {
       await cleanup();
       setState("error");
-      setError(err instanceof Error ? err.message : "Microphone permission was not granted.");
+      setError(describeRecorderError(err));
       return false;
     }
   }, [cleanup, finish, maxDurationMs, state]);
@@ -222,4 +222,22 @@ function mergeChunks(chunks: Float32Array[]): Float32Array {
     offset += chunk.length;
   }
   return merged;
+}
+
+function describeRecorderError(err: unknown): string {
+  const name = err instanceof DOMException ? err.name : null;
+  if (name === "NotAllowedError") {
+    return "Microphone access was denied. Enable it in System Settings → Privacy & Security → Microphone, then try again.";
+  }
+  if (name === "NotFoundError") {
+    return "No microphone was found. Plug in or select an input device, then try again.";
+  }
+  if (name === "OverconstrainedError") {
+    return "The selected microphone does not support mono 16 kHz capture. Pick a different input device.";
+  }
+  if (name === "NotReadableError") {
+    return "The microphone is busy. Close other apps that may be recording, then try again.";
+  }
+  if (err instanceof Error && err.message) return err.message;
+  return "Microphone permission was not granted.";
 }

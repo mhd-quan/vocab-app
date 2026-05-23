@@ -1,5 +1,5 @@
 import path from "node:path";
-import { BrowserWindow, app, shell } from "electron";
+import { BrowserWindow, app, session, shell } from "electron";
 import started from "electron-squirrel-startup";
 import { SETTINGS_KEYS } from "../src/modules/settings/keys";
 import { type AppDatabase, closeDatabase, openDatabase } from "./db";
@@ -63,6 +63,10 @@ const createMainWindow = (screenshotsEnabled: boolean): BrowserWindow => {
 };
 
 app.whenReady().then(() => {
+  session.defaultSession.setPermissionRequestHandler((_wc, permission, callback) => {
+    callback(permission === "media");
+  });
+
   db = openDatabase();
   console.log("[db] opened, applied migrations through latest");
 
