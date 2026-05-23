@@ -1049,6 +1049,54 @@ export function createProgressRepository(db: AppDatabase) {
       });
     },
 
+    /**
+     * Pronunciation lab target shortlist. Returns the vocab entries the
+     * student is actively learning (new / learning / short_term) ordered
+     * by FSRS urgency, plus an occasional long_term sample so mastered
+     * words still resurface for spot checks. Each row carries the
+     * minimum data the lab needs (id, headword, ipa, pos, cefr, audio).
+     */
+    studyTargets({ studentId }: { studentId: number }): StudyTargetsResult {
+      const baseSelect = {
+        entryId: vocabEntries.id,
+        lessonId: vocabEntries.lessonId,
+        headword: vocabEntries.headword,
+        pos: vocabEntries.pos,
+        ipa: vocabEntries.ipa,
+        cefrLevel: vocabEntries.cefrLevel,
+        audioRef: vocabEntries.audioRef,
+        state: itemProgress.state,
+        nextDueAt: itemProgress.nextDueAt,
+        lastSeenAt: itemProgress.lastSeenAt,
+      } as const;
+      const baseConditions = and(
+        eq(itemProgress.studentId, studentId),
+        eq(contentItems.refTable, "vocab_entries"),
+      );
+      const learning = db
+        .select(baseSelect)
+        .from(itemProgress)
+        .innerJoin(contentItems, eq(itemProgress.contentItemId, contentItems.id))
+        .innerJoin(vocabEntries, eq(contentItems.refId, vocabEntries.id))
+        .where(and(baseConditions, inArray(itemProgress.state, ["new", "learning", "short_term"])))
+        .orderBy(
+          sql`coalesce(${itemProgress.nextDueAt}, 0) asc`,
+          sql`coalesce(${itemProgress.lastSeenAt}, 0) desc`,
+        )
+        .limit(30)
+        .all();
+      const longTerm = db
+        .select(baseSelect)
+        .from(itemProgress)
+        .innerJoin(contentItems, eq(itemProgress.contentItemId, contentItems.id))
+        .innerJoin(vocabEntries, eq(contentItems.refId, vocabEntries.id))
+        .where(and(baseConditions, eq(itemProgress.state, "long_term")))
+        .orderBy(sql`coalesce(${itemProgress.lastSeenAt}, 0) asc`)
+        .limit(10)
+        .all();
+      return { learning, longTermSample: longTerm };
+    },
+
     /** Coarse student-wide stats used by tutor / student summary cards. */
     studentSummary({ studentId, now }: { studentId: number; now: Date }) {
       const seen = db
@@ -1173,6 +1221,24 @@ export function createProgressRepository(db: AppDatabase) {
 }
 
 export type ProgressRepository = ReturnType<typeof createProgressRepository>;
+
+export interface StudyTargetRow {
+  entryId: number;
+  lessonId: number;
+  headword: string;
+  pos: string;
+  ipa: string | null;
+  cefrLevel: string | null;
+  audioRef: string | null;
+  state: "new" | "learning" | "short_term" | "long_term";
+  nextDueAt: Date | null;
+  lastSeenAt: Date | null;
+}
+
+export interface StudyTargetsResult {
+  learning: StudyTargetRow[];
+  longTermSample: StudyTargetRow[];
+}
 
 export interface FleetSnapshotProfile {
   studentId: number;
