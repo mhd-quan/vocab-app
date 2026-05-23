@@ -4,13 +4,21 @@ Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
 student practice) running as a desktop app on Windows and macOS.
 
-> **Status:** v0.15.0 — local-first tutor workspace, student practice,
+> **Status:** v0.15.1 — local-first tutor workspace, student practice,
 > FSRS-lite review, personal dictionary learning, rewards, imports, and
-> the HuBERT-backed CAPT pronunciation pipeline. v0.15.0 hardens the
-> CAPT subsystem: HuBERT inference now runs in an Electron
-> `utilityProcess`, audio flows as `Float32Array` end-to-end, the
-> recorder uses `AudioWorklet`, and CTC Viterbi alignment is served by a
-> precompiled Rust→WASM crate (`crates/viterbi`, ~14 KB).
+> the HuBERT-backed CAPT pronunciation pipeline. v0.15.1 unblocks
+> microphone capture on macOS (Info.plist now declares
+> `NSMicrophoneUsageDescription`), silences the spurious
+> `AVCaptureDeviceTypeExternal` boot warning by moving the transformers
+> probe out of the main process, adds **word-segmented phrase /
+> sentence scoring** to the Pronunciation lab (Words ↔ Phrases tab,
+> 10 s recording cap, per-word phoneme rail, suggestion chips mined
+> from imported `vocab_examples`), rebalances the student dashboard
+> into a 2-column layout with a compact `AchievementStrip` in the
+> header, and replaces the Profile picker's decorative mascot card
+> with a `FleetSnapshot` (active count, total due, top XP / streak)
+> sourced from a new `progress.fleetSnapshot` IPC.
+>
 
 ## Stack
 
