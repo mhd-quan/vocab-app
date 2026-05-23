@@ -6,9 +6,11 @@ import {
 import { SETTINGS_KEYS } from "../../../src/modules/settings/keys";
 import {
   assessPronunciation,
+  cancelPronunciationInflight,
   previewPronunciation,
   pronunciationStatus,
   pronunciationTarget,
+  warmupPronunciation,
 } from "../../pronunciation/runtime";
 import { defineProcedure } from "../procedure";
 
@@ -17,12 +19,17 @@ const targetInput = z.object({
   ipa: z.string().max(160).nullable().optional(),
 });
 
+const audioPcmSchema = z.custom<Float32Array>(
+  (value) => value instanceof Float32Array && value.length <= 320_000,
+  { message: "audioPcm must be a Float32Array of at most 320,000 samples" },
+);
+
 const assessInput = z.object({
   studentId: z.number().int().positive(),
   sessionId: z.number().int().positive(),
   targetText: z.string().min(1).max(160),
   ipa: z.string().max(160).nullable().optional(),
-  audioPcm: z.array(z.number()).max(320_000).optional(),
+  audioPcm: audioPcmSchema.optional(),
   sampleRate: z.number().int().positive().max(96_000).optional(),
 });
 
@@ -43,6 +50,18 @@ export const pronunciationProcedures = [
     name: "pronunciation.preview",
     input: targetInput,
     handler: (input) => previewPronunciation({ targetText: input.text, ipa: input.ipa }),
+  }),
+
+  defineProcedure({
+    name: "pronunciation.warmup",
+    input: z.void(),
+    handler: () => warmupPronunciation(),
+  }),
+
+  defineProcedure({
+    name: "pronunciation.cancel",
+    input: z.void(),
+    handler: () => cancelPronunciationInflight(),
   }),
 
   defineProcedure({

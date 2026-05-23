@@ -86,13 +86,37 @@ export interface PronunciationAssessment {
 export interface PronunciationAnalyzeInput {
   targetText: string;
   ipa?: string | null;
-  audioPcm?: number[];
+  /**
+   * Mono PCM samples in [-1, 1]. Use `Float32Array` end-to-end (binary
+   * structured-clone over IPC, no per-element Zod validation) — `number[]`
+   * is accepted only for legacy test fixtures via the engine.
+   */
+  audioPcm?: Float32Array | number[];
   sampleRate?: number;
   sessionId?: number | null;
   studentId?: number | null;
 }
 
+export interface AcousticLabels {
+  /** label index → phoneme name (e.g. "AA", "<blank>"). */
+  readonly labels: readonly string[];
+  /** Index of the CTC blank token within `labels`. */
+  readonly blankIndex: number;
+}
+
 export interface AcousticFrame {
   timeMs: number;
-  logProbs: Record<string, number>;
+  /**
+   * Log probabilities indexed by label index. Length matches
+   * `AcousticLabels.labels.length`. Using a flat Float32Array
+   * keeps the per-frame payload contiguous in memory (cheap to
+   * pass over IPC / WASM) and removes per-cell object-key lookups
+   * from the Viterbi hot loop.
+   */
+  logProbs: Float32Array;
+}
+
+export interface AcousticFrameSet {
+  frames: AcousticFrame[];
+  labels: AcousticLabels;
 }

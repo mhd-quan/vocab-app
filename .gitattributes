@@ -1,0 +1,4 @@
+*.wasm binary
+*.onnx binary
+*.icns binary
+*.ico binary

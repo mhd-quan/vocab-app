@@ -87,7 +87,8 @@ describe("pronunciation engine", () => {
 
   it("aligns target phonemes through CTC-Viterbi frames", () => {
     const target = ["F", "AE", "N"];
-    const result = ctcViterbiAlign({ target, frames: deterministicAcousticFrames(target) });
+    const { frames, labels } = deterministicAcousticFrames(target);
+    const result = ctcViterbiAlign({ target, frames, labels });
     expect(result.phonemes.map((phoneme) => phoneme.phoneme)).toEqual(target);
     expect(result.phonemes.every((phoneme) => phoneme.score > 70)).toBe(true);
   });
@@ -96,7 +97,11 @@ describe("pronunciation engine", () => {
     const score = scoreStress({
       stressPattern: [0, 1, 0],
       sampleRate: 16_000,
-      audioPcm: [...Array(200).fill(0.08), ...Array(200).fill(0.5), ...Array(200).fill(0.1)],
+      audioPcm: new Float32Array([
+        ...Array(200).fill(0.08),
+        ...Array(200).fill(0.5),
+        ...Array(200).fill(0.1),
+      ]),
     });
     expect(score.issue).toBe("ok");
     expect(score.score).toBeGreaterThan(80);
@@ -105,7 +110,7 @@ describe("pronunciation engine", () => {
   it("evaluates retry guardrails from score threshold and microphone quality", () => {
     const policyResult = evaluatePronunciationPolicy({
       overallScore: 64,
-      audioPcm: Array(800).fill(0.2),
+      audioPcm: new Float32Array(800).fill(0.2),
       sampleRate: 16_000,
     });
     expect(policyResult.retryRequired).toBe(true);
@@ -113,7 +118,7 @@ describe("pronunciation engine", () => {
       "score_below_threshold",
     );
 
-    const quiet = audioQualityFromPcm(Array(16_000).fill(0.001), 16_000);
+    const quiet = audioQualityFromPcm(new Float32Array(16_000).fill(0.001), 16_000);
     expect(quiet?.durationMs).toBe(1000);
     expect(quiet?.rms).toBeLessThan(0.012);
   });
@@ -122,13 +127,15 @@ describe("pronunciation engine", () => {
     const target = buildPronunciationTarget("family", null, {
       lookup: stubLookup({ family: "F AE1 M AH0 L IY0" }),
     });
+    const { frames, labels } = deterministicAcousticFrames(target.phonemes);
     const assessment = assessPronunciationFromFrames({
       input: {
         targetText: "family",
-        audioPcm: [...Array(6_000).fill(0.2), ...Array(6_000).fill(0.55)],
+        audioPcm: new Float32Array([...Array(6_000).fill(0.2), ...Array(6_000).fill(0.55)]),
         sampleRate: 16_000,
       },
-      frames: deterministicAcousticFrames(target.phonemes),
+      frames,
+      labels,
       runtime: {
         available: true,
         backend: "deterministic",

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { PCM_WORKLET_SOURCE } from "./pcmWorklet";
 
 export interface RecordedPronunciationAudio {
-  audioPcm: number[];
+  audioPcm: Float32Array;
   sampleRate: number;
   durationMs: number;
 }
@@ -9,6 +10,17 @@ export interface RecordedPronunciationAudio {
 export type PronunciationRecorderState = "idle" | "recording" | "ready" | "unsupported" | "error";
 
 const MAX_RECORDING_MS = 5_000;
+const TARGET_SAMPLE_RATE = 16_000;
+const PROCESSOR_NAME = "pcm-capture";
+
+let cachedWorkletUrl: string | null = null;
+
+function workletUrl(): string {
+  if (cachedWorkletUrl) return cachedWorkletUrl;
+  const blob = new Blob([PCM_WORKLET_SOURCE], { type: "application/javascript" });
+  cachedWorkletUrl = URL.createObjectURL(blob);
+  return cachedWorkletUrl;
+}
 
 export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
   const [state, setState] = useState<PronunciationRecorderState>("idle");
@@ -19,14 +31,13 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
   const audioContextRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
-  const processorRef = useRef<ScriptProcessorNode | null>(null);
-  const muteRef = useRef<GainNode | null>(null);
+  const workletRef = useRef<AudioWorkletNode | null>(null);
   const chunksRef = useRef<Float32Array[]>([]);
   const startedAtRef = useRef(0);
   const intervalRef = useRef<number | null>(null);
   const timeoutRef = useRef<number | null>(null);
 
-  const cleanup = useCallback(() => {
+  const cleanup = useCallback(async () => {
     if (intervalRef.current !== null) {
       window.clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -36,11 +47,13 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
       timeoutRef.current = null;
     }
 
-    processorRef.current?.disconnect();
-    muteRef.current?.disconnect();
+    const worklet = workletRef.current;
+    if (worklet) {
+      worklet.port.onmessage = null;
+      worklet.disconnect();
+    }
     sourceRef.current?.disconnect();
-    processorRef.current = null;
-    muteRef.current = null;
+    workletRef.current = null;
     sourceRef.current = null;
 
     for (const track of streamRef.current?.getTracks() ?? []) {
@@ -51,14 +64,19 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
     const context = audioContextRef.current;
     audioContextRef.current = null;
     if (context && context.state !== "closed") {
-      void context.close().catch(() => undefined);
+      try {
+        await context.close();
+      } catch {
+        // ignore — context may already be closing/closed
+      }
     }
   }, []);
 
-  const finish = useCallback((): RecordedPronunciationAudio | null => {
+  const finish = useCallback(async (): Promise<RecordedPronunciationAudio | null> => {
     const context = audioContextRef.current;
+    const sampleRate = context?.sampleRate ?? TARGET_SAMPLE_RATE;
     if (!context || chunksRef.current.length === 0) {
-      cleanup();
+      await cleanup();
       setState("error");
       setError("No microphone audio was captured.");
       return null;
@@ -66,12 +84,13 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
 
     const duration = Math.max(0, Date.now() - startedAtRef.current);
     const pcm = mergeChunks(chunksRef.current);
-    const nextRecording = {
-      audioPcm: Array.from(pcm),
-      sampleRate: context.sampleRate,
+    chunksRef.current = [];
+    const nextRecording: RecordedPronunciationAudio = {
+      audioPcm: pcm,
+      sampleRate,
       durationMs: duration,
     };
-    cleanup();
+    await cleanup();
     setDurationMs(duration);
     setRecording(nextRecording);
     setState("ready");
@@ -95,7 +114,7 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
       return false;
     }
 
-    cleanup();
+    await cleanup();
     setRecording(null);
     setError(null);
     setDurationMs(0);
@@ -111,26 +130,38 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
         },
         video: false,
       });
-      const context = new AudioContextCtor();
+      const context = new AudioContextCtor({ sampleRate: TARGET_SAMPLE_RATE });
+      if (!context.audioWorklet) {
+        await context.close().catch(() => undefined);
+        for (const track of stream.getTracks()) track.stop();
+        setState("unsupported");
+        setError("AudioWorklet is not supported in this environment.");
+        return false;
+      }
+
+      await context.audioWorklet.addModule(workletUrl());
       const source = context.createMediaStreamSource(stream);
-      const processor = context.createScriptProcessor(4096, 1, 1);
-      const mute = context.createGain();
-      mute.gain.value = 0;
-
-      processor.onaudioprocess = (event) => {
-        const channel = event.inputBuffer.getChannelData(0);
-        chunksRef.current.push(new Float32Array(channel));
+      const node = new AudioWorkletNode(context, PROCESSOR_NAME, {
+        numberOfInputs: 1,
+        numberOfOutputs: 1,
+        outputChannelCount: [1],
+      });
+      node.port.onmessage = (event) => {
+        if (event.data instanceof Float32Array && event.data.length > 0) {
+          chunksRef.current.push(event.data);
+        }
       };
-
-      source.connect(processor);
-      processor.connect(mute);
-      mute.connect(context.destination);
+      source.connect(node);
+      // The node needs an output sink to keep its render quantum running;
+      // routing through `destination` keeps things consistent across
+      // browsers without playing back the mic (output channel is silent
+      // since we never write to `outputs` in the processor).
+      node.connect(context.destination);
 
       audioContextRef.current = context;
       streamRef.current = stream;
       sourceRef.current = source;
-      processorRef.current = processor;
-      muteRef.current = mute;
+      workletRef.current = node;
       startedAtRef.current = Date.now();
       setState("recording");
 
@@ -138,11 +169,11 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
         setDurationMs(Math.max(0, Date.now() - startedAtRef.current));
       }, 120);
       timeoutRef.current = window.setTimeout(() => {
-        finish();
+        void finish();
       }, maxDurationMs);
       return true;
     } catch (err) {
-      cleanup();
+      await cleanup();
       setState("error");
       setError(err instanceof Error ? err.message : "Microphone permission was not granted.");
       return false;
@@ -154,8 +185,8 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
     return finish();
   }, [finish, recording, state]);
 
-  const reset = useCallback(() => {
-    cleanup();
+  const reset = useCallback(async () => {
+    await cleanup();
     chunksRef.current = [];
     setDurationMs(0);
     setRecording(null);
@@ -163,7 +194,11 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
     setState("idle");
   }, [cleanup]);
 
-  useEffect(() => cleanup, [cleanup]);
+  useEffect(() => {
+    return () => {
+      void cleanup();
+    };
+  }, [cleanup]);
 
   return {
     state,
@@ -178,6 +213,7 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
 }
 
 function mergeChunks(chunks: Float32Array[]): Float32Array {
+  if (chunks.length === 1) return chunks[0] ?? new Float32Array();
   const length = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
   const merged = new Float32Array(length);
   let offset = 0;
