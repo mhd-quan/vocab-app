@@ -120,16 +120,18 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
     setDurationMs(0);
     chunksRef.current = [];
 
+    // Tracked so the catch block can log which capture step failed —
+    // macOS in particular surfaces AbortError from getUserMedia when the
+    // Renderer helper bundle is missing NSMicrophoneUsageDescription,
+    // and the raw message ("The user aborted a request.") is unhelpful
+    // to the user without that context.
+    let phase: "getUserMedia" | "AudioContext" | "audioWorklet" | "graph" = "getUserMedia";
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          channelCount: 1,
-        },
+        audio: true,
         video: false,
       });
+      phase = "AudioContext";
       const context = new AudioContextCtor({ sampleRate: TARGET_SAMPLE_RATE });
       if (!context.audioWorklet) {
         await context.close().catch(() => undefined);
@@ -139,7 +141,9 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
         return false;
       }
 
+      phase = "audioWorklet";
       await context.audioWorklet.addModule(workletUrl());
+      phase = "graph";
       const source = context.createMediaStreamSource(stream);
       const node = new AudioWorkletNode(context, PROCESSOR_NAME, {
         numberOfInputs: 1,
@@ -173,9 +177,10 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
       }, maxDurationMs);
       return true;
     } catch (err) {
+      console.warn("[capt-recorder] capture failed", { phase, ...errorMeta(err) });
       await cleanup();
       setState("error");
-      setError(describeRecorderError(err));
+      setError(describeRecorderError(err, phase));
       return false;
     }
   }, [cleanup, finish, maxDurationMs, state]);
@@ -224,7 +229,7 @@ function mergeChunks(chunks: Float32Array[]): Float32Array {
   return merged;
 }
 
-function describeRecorderError(err: unknown): string {
+function describeRecorderError(err: unknown, phase: string): string {
   const name = err instanceof DOMException ? err.name : null;
   if (name === "NotAllowedError") {
     return "Microphone access was denied. Enable it in System Settings → Privacy & Security → Microphone, then try again.";
@@ -233,11 +238,36 @@ function describeRecorderError(err: unknown): string {
     return "No microphone was found. Plug in or select an input device, then try again.";
   }
   if (name === "OverconstrainedError") {
-    return "The selected microphone does not support mono 16 kHz capture. Pick a different input device.";
+    return "The selected microphone does not support the requested format. Pick a different input device.";
   }
   if (name === "NotReadableError") {
     return "The microphone is busy. Close other apps that may be recording, then try again.";
   }
-  if (err instanceof Error && err.message) return err.message;
-  return "Microphone permission was not granted.";
+  if (name === "AbortError" || /the user aborted a request/i.test(messageOf(err))) {
+    // On macOS this fires when the Renderer helper bundle is missing
+    // NSMicrophoneUsageDescription, or when the OS revokes the request
+    // mid-prompt. Either way, "user aborted" is misleading — the user
+    // didn't do anything.
+    return "Microphone capture was interrupted by the system. Open System Settings → Privacy & Security → Microphone, allow this app, then restart it.";
+  }
+  if (err instanceof Error && err.message) return `${err.message} (phase: ${phase})`;
+  return `Microphone permission was not granted (phase: ${phase}).`;
+}
+
+function messageOf(err: unknown): string {
+  return err instanceof Error ? err.message : "";
+}
+
+function errorMeta(err: unknown): {
+  name: string | null;
+  message: string;
+  code?: number;
+} {
+  if (err instanceof DOMException) {
+    return { name: err.name, message: err.message, code: err.code };
+  }
+  if (err instanceof Error) {
+    return { name: err.name, message: err.message };
+  }
+  return { name: null, message: String(err) };
 }
