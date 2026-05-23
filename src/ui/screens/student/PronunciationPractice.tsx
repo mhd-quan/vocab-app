@@ -4,18 +4,44 @@ import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
 import { Badge } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
-import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
-import { PronunciationControls } from "@/ui/components/PronunciationControls";
+import { VocabularyPronunciation } from "@/ui/components/VocabularyPronunciation";
 import { MascotIcon } from "@/ui/student/components/MascotIcon";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { MicButton } from "./pronunciation/MicButton";
 import { PhonemeRail, PhraseRail } from "./pronunciation/PhraseRail";
 import { usePronunciationRecorder } from "./pronunciation/usePronunciationRecorder";
 
 type LabMode = "words" | "phrases";
+
+type StudyTargetRow = Awaited<ReturnType<typeof api.progress.studyTargets>>["learning"][number];
+
+type LabTargetEntry = Pick<
+  VocabEntry,
+  "id" | "lessonId" | "headword" | "pos" | "ipa" | "cefrLevel" | "audioRef"
+> & { state?: StudyTargetRow["state"] };
+
+interface LabTargetSection {
+  kind: "learning" | "long_term" | "assigned";
+  label: string;
+  entries: LabTargetEntry[];
+}
+
+function rowToEntry(row: StudyTargetRow): LabTargetEntry {
+  return {
+    id: row.entryId,
+    lessonId: row.lessonId,
+    headword: row.headword,
+    pos: row.pos as LabTargetEntry["pos"],
+    ipa: row.ipa,
+    cefrLevel: row.cefrLevel as LabTargetEntry["cefrLevel"],
+    audioRef: row.audioRef,
+    state: row.state,
+  };
+}
 
 export function StudentPronunciationPractice() {
   const { studentId } = useParams({ from: "/student/profile/$studentId/pronunciation" });
@@ -54,10 +80,10 @@ export function StudentPronunciationPractice() {
     queryFn: () => api.students.getById({ id }),
     enabled: Number.isFinite(id) && id > 0,
   });
-  const entriesQ = useQuery({
+  const assignedEntriesQ = useQuery({
     queryKey: [
       "pronunciation",
-      "studentTargets",
+      "assignedTargets",
       id,
       booksQ.data?.map((book) => book.id).join(",") ?? "",
     ],
@@ -83,8 +109,57 @@ export function StudentPronunciationPractice() {
     enabled: Number.isFinite(id) && id > 0 && Boolean(booksQ.data),
   });
 
-  const entries = entriesQ.data ?? [];
+  const studyTargetsQ = useQuery({
+    queryKey: queryKeys.progress.studyTargets(id),
+    queryFn: () => api.progress.studyTargets({ studentId: id }),
+    enabled: Number.isFinite(id) && id > 0,
+  });
+
+  // Prefer student-progress-driven targets: words actively in the
+  // learning / short-term track, plus a small long-term sample for
+  // spot checks. Fall back to the broader assigned-units list when
+  // the student hasn't accumulated progress yet.
+  const labTargets = useMemo<LabTargetSection[]>(() => {
+    const sections: LabTargetSection[] = [];
+    if (studyTargetsQ.data) {
+      const learning = studyTargetsQ.data.learning.map(rowToEntry);
+      const longTerm = studyTargetsQ.data.longTermSample.map(rowToEntry);
+      if (learning.length > 0)
+        sections.push({ kind: "learning", label: "Currently learning", entries: learning });
+      if (longTerm.length > 0)
+        sections.push({ kind: "long_term", label: "Spot checks", entries: longTerm });
+    }
+    if (sections.length === 0 && assignedEntriesQ.data) {
+      sections.push({
+        kind: "assigned",
+        label: "Assigned vocabulary",
+        entries: assignedEntriesQ.data,
+      });
+    }
+    return sections;
+  }, [studyTargetsQ.data, assignedEntriesQ.data]);
+
+  const entries = useMemo(() => labTargets.flatMap((section) => section.entries), [labTargets]);
+  const entriesIsLoading =
+    studyTargetsQ.isLoading || (entries.length === 0 && assignedEntriesQ.isLoading);
   const selected = entries.find((entry) => entry.id === selectedEntryId) ?? entries[0] ?? null;
+
+  // Some entries (phrasal verbs, idioms) ship without an authored IPA in
+  // the dictionary YAML. Compose one from CMUdict in a single batched IPC
+  // so the lab can render a real IPA string instead of "IPA unavailable".
+  const composeIpaTexts = useMemo(() => {
+    const needed = entries.filter((entry) => !entry.ipa).map((entry) => entry.headword);
+    return Array.from(new Set(needed));
+  }, [entries]);
+  const composeIpaQ = useQuery({
+    queryKey: queryKeys.pronunciation.composeIpa(composeIpaTexts),
+    queryFn: () => api.pronunciation.composeIpa({ texts: composeIpaTexts }),
+    enabled: composeIpaTexts.length > 0,
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+  const composedIpa = composeIpaQ.data ?? {};
+  const ipaFor = (entry: LabTargetEntry | null): string | null =>
+    entry?.ipa ?? composedIpa[entry?.headword ?? ""] ?? null;
 
   const examplesQ = useQuery({
     queryKey: selected
@@ -107,7 +182,7 @@ export function StudentPronunciationPractice() {
   const preview = previewQ.data;
 
   const startSession = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (audio: { audioPcm: Float32Array; sampleRate: number }) => {
       let targetText: string;
       let ipa: string | null;
       if (mode === "phrases") {
@@ -125,8 +200,8 @@ export function StudentPronunciationPractice() {
         sessionId: session.id,
         targetText,
         ipa,
-        audioPcm: recorder.recording?.audioPcm,
-        sampleRate: recorder.recording?.sampleRate,
+        audioPcm: audio.audioPcm,
+        sampleRate: audio.sampleRate,
       });
       await api.progress.endSession({
         sessionId: session.id,
@@ -142,6 +217,25 @@ export function StudentPronunciationPractice() {
     },
   });
 
+  const handleMic = async () => {
+    if (recorder.state === "recording") {
+      const recorded = await recorder.stop();
+      if (recorded) {
+        startSession.mutate({ audioPcm: recorded.audioPcm, sampleRate: recorded.sampleRate });
+      }
+      return;
+    }
+    await recorder.start();
+  };
+
+  const micState: "idle" | "recording" | "ready" | "assessing" = startSession.isPending
+    ? "assessing"
+    : recorder.state === "recording"
+      ? "recording"
+      : recorder.recording
+        ? "ready"
+        : "idle";
+
   // Reset phrase + result when the selected entry or mode changes so stale
   // scores never leak across targets. `startSession.reset` is referentially
   // stable per react-query, so we exclude it from the dep list to keep the
@@ -153,7 +247,7 @@ export function StudentPronunciationPractice() {
     if (mode === "phrases") setPhraseText("");
   }, [mode, selected?.id, resetSession]);
 
-  const audioRefs = useMemo(
+  const audioFallback = useMemo(
     () =>
       selected?.audioRef
         ? [{ ref: selected.audioRef, label: "Audio", accent: "other" as const }]
@@ -204,12 +298,12 @@ export function StudentPronunciationPractice() {
         </div>
       </BentoCard>
 
-      {entriesQ.isLoading || booksQ.isLoading ? (
+      {entriesIsLoading || booksQ.isLoading ? (
         <p className="text-sm text-muted">Loading pronunciation targets...</p>
       ) : entries.length === 0 ? (
         <EmptyState
           title="No vocabulary targets"
-          body="Ask your tutor to assign imported vocabulary units first."
+          body="Practice a vocab unit first so the lab can surface what you're learning."
         />
       ) : (
         <>
@@ -217,29 +311,43 @@ export function StudentPronunciationPractice() {
           <section className="grid gap-5 xl:grid-cols-[20rem_1fr]">
             <BentoCard className="p-4">
               <h2 className="text-sm font-semibold uppercase text-muted-2">Targets</h2>
-              <ul className="mt-3 flex max-h-[34rem] flex-col gap-2 overflow-y-auto pr-1">
-                {entries.map((entry) => (
-                  <li key={entry.id}>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedEntryId(entry.id)}
-                      className={cn(
-                        "w-full rounded-xl border px-3 py-2 text-left transition",
-                        selected?.id === entry.id
-                          ? "border-sky/45 bg-sky/10"
-                          : "border-border-subtle bg-surface-0/70 hover:border-border-strong",
-                      )}
-                    >
-                      <span className="block truncate text-sm font-semibold text-app">
-                        {entry.headword}
+              <div className="mt-3 flex max-h-[34rem] flex-col gap-4 overflow-y-auto pr-1">
+                {labTargets.map((section) => (
+                  <div key={section.kind} className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-2">
+                        {section.label}
                       </span>
-                      <span className="font-mono text-[11px] text-muted-2">
-                        {entry.ipa ?? entry.pos}
+                      <span className="font-mono text-[10px] text-muted-2">
+                        {section.entries.length}
                       </span>
-                    </button>
-                  </li>
+                    </div>
+                    <ul className="flex flex-col gap-2">
+                      {section.entries.map((entry) => (
+                        <li key={entry.id}>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedEntryId(entry.id)}
+                            className={cn(
+                              "w-full rounded-xl border px-3 py-2 text-left transition",
+                              selected?.id === entry.id
+                                ? "border-sky/45 bg-sky/10"
+                                : "border-border-subtle bg-surface-0/70 hover:border-border-strong",
+                            )}
+                          >
+                            <span className="block truncate text-sm font-semibold text-app">
+                              {entry.headword}
+                            </span>
+                            <span className="font-mono text-[11px] text-muted-2">
+                              {entry.ipa ?? composedIpa[entry.headword] ?? entry.pos}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </BentoCard>
 
             <BentoCard className="p-5">
@@ -247,25 +355,27 @@ export function StudentPronunciationPractice() {
                 mode === "words" ? (
                   <TargetPanel
                     entry={selected}
-                    audioRefs={audioRefs}
+                    displayIpa={ipaFor(selected)}
+                    audioFallback={audioFallback}
                     preview={preview ?? null}
                     recorder={recorder}
-                    assessing={startSession.isPending}
+                    micState={micState}
+                    onMic={handleMic}
                     result={startSession.data ?? null}
-                    onAssess={() => startSession.mutate()}
                   />
                 ) : (
                   <PhraseTargetPanel
                     entry={selected}
+                    displayIpa={ipaFor(selected)}
                     phraseText={phraseText}
                     onPhraseChange={setPhraseText}
                     examples={examplesQ.data ?? []}
                     examplesLoading={examplesQ.isLoading}
                     preview={preview ?? null}
                     recorder={recorder}
-                    assessing={startSession.isPending}
+                    micState={micState}
+                    onMic={handleMic}
                     result={startSession.data ?? null}
-                    onAssess={() => startSession.mutate()}
                     phraseReady={phraseReady}
                   />
                 )
@@ -309,20 +419,22 @@ function RuntimeCard({
 
 function TargetPanel({
   entry,
-  audioRefs,
+  displayIpa,
+  audioFallback,
   preview,
   recorder,
   result,
-  assessing,
-  onAssess,
+  micState,
+  onMic,
 }: {
-  entry: VocabEntry;
-  audioRefs: Array<{ ref: string; label: string; accent: "uk" | "us" | "other" }>;
+  entry: LabTargetEntry;
+  displayIpa: string | null;
+  audioFallback: Array<{ ref: string; label: string; accent: "uk" | "us" | "other" }>;
   preview: PronunciationPreviewView | null;
   recorder: PronunciationRecorderView;
   result: PronunciationAssessView | null;
-  assessing: boolean;
-  onAssess: () => void;
+  micState: "idle" | "recording" | "ready" | "assessing";
+  onMic: () => void;
 }) {
   const assessment = result?.ok ? result.assessment : preview;
   return (
@@ -340,24 +452,26 @@ function TargetPanel({
             ) : null}
           </div>
           <h2 className="mt-3 text-4xl font-semibold leading-tight">{entry.headword}</h2>
-          <p className="mt-1 font-mono text-sm text-muted">{entry.ipa ?? "IPA unavailable"}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <PronunciationControls audioRefs={audioRefs} size="md" />
-          {recorder.state === "recording" ? (
-            <Button variant="secondary" onClick={() => void recorder.stop()}>
-              Stop {formatDuration(recorder.durationMs)}
-            </Button>
-          ) : (
-            <Button variant="secondary" onClick={() => void recorder.start()} disabled={assessing}>
-              {recorder.recording ? "Record again" : "Record"}
-            </Button>
-          )}
-          <Button onClick={onAssess} disabled={assessing}>
-            {assessing ? "Checking..." : "Check attempt"}
-          </Button>
+          <p className="mt-1 font-mono text-sm text-muted">{displayIpa ?? "IPA unavailable"}</p>
+          <div className="mt-3">
+            <VocabularyPronunciation
+              headword={entry.headword}
+              fallbackRefs={audioFallback}
+              preferredAccent="uk"
+              size="md"
+            />
+          </div>
         </div>
       </header>
+
+      <div className="flex justify-center">
+        <MicButton
+          state={micState}
+          durationMs={recorder.durationMs}
+          maxDurationMs={recorder.maxDurationMs}
+          onClick={onMic}
+        />
+      </div>
 
       <RecorderStatus recorder={recorder} />
 
@@ -394,6 +508,7 @@ function TargetPanel({
           </div>
         </>
       ) : null}
+      {/* MicButton reflects assessing via micState */}
     </div>
   );
 }
@@ -525,6 +640,7 @@ interface PhraseExample {
 
 function PhraseTargetPanel({
   entry,
+  displayIpa,
   phraseText,
   onPhraseChange,
   examples,
@@ -532,11 +648,12 @@ function PhraseTargetPanel({
   preview,
   recorder,
   result,
-  assessing,
-  onAssess,
+  micState,
+  onMic,
   phraseReady,
 }: {
-  entry: VocabEntry;
+  entry: LabTargetEntry;
+  displayIpa: string | null;
   phraseText: string;
   onPhraseChange: (next: string) => void;
   examples: PhraseExample[];
@@ -544,47 +661,28 @@ function PhraseTargetPanel({
   preview: PronunciationPreviewView | null;
   recorder: PronunciationRecorderView;
   result: PronunciationAssessView | null;
-  assessing: boolean;
-  onAssess: () => void;
+  micState: "idle" | "recording" | "ready" | "assessing";
+  onMic: () => void;
   phraseReady: boolean;
 }) {
   const assessment = result?.ok ? result.assessment : preview;
   return (
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge tone="lime" uppercase>
-                Phrase
-              </Badge>
-              <Badge tone="muted" uppercase>
-                from {entry.headword}
-              </Badge>
-            </div>
-            <p className="mt-2 text-xs text-muted">
-              Type or pick a phrase, then record up to 10 seconds. Stress is reported at the word
-              level only.
-            </p>
-          </div>
+        <div>
           <div className="flex flex-wrap items-center gap-2">
-            {recorder.state === "recording" ? (
-              <Button variant="secondary" onClick={() => void recorder.stop()}>
-                Stop {formatDuration(recorder.durationMs)}
-              </Button>
-            ) : (
-              <Button
-                variant="secondary"
-                onClick={() => void recorder.start()}
-                disabled={assessing || !phraseReady}
-              >
-                {recorder.recording ? "Record again" : "Record"}
-              </Button>
-            )}
-            <Button onClick={onAssess} disabled={assessing || !phraseReady}>
-              {assessing ? "Checking..." : "Check attempt"}
-            </Button>
+            <Badge tone="lime" uppercase>
+              Phrase
+            </Badge>
+            <Badge tone="muted" uppercase>
+              from {entry.headword}
+            </Badge>
+            {displayIpa ? <span className="font-mono text-xs text-muted">{displayIpa}</span> : null}
           </div>
+          <p className="mt-2 text-xs text-muted">
+            Type or pick a phrase, then tap the mic. Stop the recording to auto-check. Stress is
+            reported at the word level only.
+          </p>
         </div>
         <label className="flex flex-col gap-2 text-xs text-muted">
           <span className="font-semibold uppercase text-muted-2">Phrase or sentence</span>
@@ -599,6 +697,16 @@ function PhraseTargetPanel({
         </label>
         <SuggestionRail examples={examples} loading={examplesLoading} onPick={onPhraseChange} />
       </header>
+
+      <div className="flex justify-center">
+        <MicButton
+          state={micState}
+          durationMs={recorder.durationMs}
+          maxDurationMs={recorder.maxDurationMs}
+          disabled={!phraseReady && micState === "idle"}
+          onClick={onMic}
+        />
+      </div>
 
       <RecorderStatus recorder={recorder} />
 
