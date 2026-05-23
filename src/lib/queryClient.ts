@@ -102,6 +102,7 @@ export const queryKeys = {
     sessionReport: (sessionId: number) => ["progress", "sessionReport", sessionId] as const,
     tutorOverview: () => ["progress", "tutorOverview"] as const,
     fleetSnapshot: () => ["progress", "fleetSnapshot"] as const,
+    studyTargets: (studentId: number) => ["progress", "studyTargets", studentId] as const,
   },
   evidence: {
     tutorOverview: () => ["evidence", "tutorOverview"] as const,
@@ -113,6 +114,8 @@ export const queryKeys = {
     status: () => ["pronunciation", "status"] as const,
     preview: (text: string, ipa?: string | null) =>
       ["pronunciation", "preview", text, ipa ?? ""] as const,
+    composeIpa: (texts: ReadonlyArray<string>) =>
+      ["pronunciation", "composeIpa", [...texts].sort().join("|")] as const,
   },
   rewards: {
     stats: (studentId: number) => ["rewards", "stats", studentId] as const,

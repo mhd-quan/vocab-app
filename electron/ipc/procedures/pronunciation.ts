@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   DEFAULT_PRONUNCIATION_POLICY,
   type PronunciationScoringPolicy,
+  arpabetToIpa,
 } from "../../../src/modules/pronunciation";
 import { SETTINGS_KEYS } from "../../../src/modules/settings/keys";
 import {
@@ -44,6 +45,24 @@ export const pronunciationProcedures = [
     name: "pronunciation.target",
     input: targetInput,
     handler: (input) => pronunciationTarget(input),
+  }),
+
+  defineProcedure({
+    name: "pronunciation.composeIpa",
+    input: z.object({
+      texts: z.array(z.string().min(1).max(320)).max(120),
+    }),
+    handler: ({ texts }) => {
+      const out: Record<string, string | null> = {};
+      for (const text of texts) {
+        if (text in out) continue;
+        const target = pronunciationTarget({ text });
+        const boundaries = (target.words ?? []).map((word) => word.phonemeRange[0]);
+        const ipa = arpabetToIpa(target.phonemes, target.stressPattern, boundaries);
+        out[text] = ipa.length > 0 ? `/${ipa}/` : null;
+      }
+      return out;
+    },
   }),
 
   defineProcedure({

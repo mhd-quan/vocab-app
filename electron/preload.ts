@@ -45,6 +45,7 @@ import type {
   UnitSessionReportRow,
 } from "./db/repositories/progress";
 import type { FleetSnapshot } from "./db/repositories/progress";
+import type { StudyTargetsResult } from "./db/repositories/progress";
 import type { VocabEntryFull } from "./db/repositories/vocab";
 import type { PronunciationPhraseExample } from "./db/repositories/vocab";
 
@@ -444,6 +445,8 @@ const api = {
       invoke<DueItem[]>("progress.dueByStudent", input),
     studentSummary: (input: { studentId: number }) =>
       invoke<StudentSummary>("progress.studentSummary", input),
+    studyTargets: (input: { studentId: number }) =>
+      invoke<StudyTargetsResult>("progress.studyTargets", input),
     weakItems: (input: { studentId: number; minAttempts?: number; limit?: number }) =>
       invoke<WeakItem[]>("progress.weakItems", input),
     dailyActivity: (input: { studentId: number; sinceIso: string; untilIso: string }) =>
@@ -494,6 +497,8 @@ const api = {
     status: () => invoke<PronunciationStatus>("pronunciation.status", {}),
     target: (input: { text: string; ipa?: string | null }) =>
       invoke<PronunciationTarget>("pronunciation.target", input),
+    composeIpa: (input: { texts: string[] }) =>
+      invoke<Record<string, string | null>>("pronunciation.composeIpa", input),
     preview: (input: { text: string; ipa?: string | null }) =>
       invoke<PronunciationAssessment>("pronunciation.preview", input),
     warmup: () => invoke<{ ok: boolean; reason?: string }>("pronunciation.warmup", {}),
