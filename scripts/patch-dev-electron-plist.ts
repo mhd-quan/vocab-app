@@ -80,6 +80,18 @@ for (const bundle of HELPER_BUNDLES) {
   );
   if (!existsSync(helperPlist)) continue;
   set(helperPlist, "NSCameraUseContinuityCameraDeviceType", "bool", "true");
+  // The Renderer helper is where navigator.mediaDevices.getUserMedia()
+  // actually runs in Electron, so it needs its own usage description —
+  // without it macOS silently aborts the prompt and the renderer sees
+  // an opaque "The user aborted a request." AbortError. Patching every
+  // helper keeps us safe if Electron shuffles capture into another
+  // helper bundle in a future release.
+  set(
+    helperPlist,
+    "NSMicrophoneUsageDescription",
+    "string",
+    "Vocab App uses your microphone to score pronunciation locally.",
+  );
   helpersPatched += 1;
 }
 

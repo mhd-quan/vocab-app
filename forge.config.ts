@@ -142,8 +142,13 @@ const config: ForgeConfig = {
     // Helper bundles (notably "Electron Helper (Plugin)" where our
     // utilityProcess + onnxruntime-node live) emit their own AVCapture
     // deprecation warning unless this key is on each helper's Info.plist.
+    // The Renderer helper additionally needs NSMicrophoneUsageDescription
+    // because getUserMedia() runs there — without it macOS aborts the
+    // permission prompt with a misleading "user aborted" error.
     extendHelperInfo: {
       NSCameraUseContinuityCameraDeviceType: true,
+      NSMicrophoneUsageDescription:
+        "Vocab App uses your microphone to score pronunciation locally. Audio never leaves this device.",
     },
     // SQL migration files live alongside the app bundle so the runtime
     // migrator can read them. Resolved via `process.resourcesPath` in

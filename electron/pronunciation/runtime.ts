@@ -248,7 +248,11 @@ function baseRuntimeStatus(): PronunciationRuntimeStatus {
 }
 
 function defaultProvider(): PronunciationExecutionProvider {
-  if (process.platform === "darwin") return "coreml";
+  // macOS used to default to CoreML, but onnxruntime-node crashes natively
+  // when compiling the bundled HuBERT model with `device: "coreml"`
+  // ("Failed to create a working directory appropriate for URL: file:///tmp/").
+  // CPU runs the same bundle cleanly, so we stay on CPU until we add an
+  // isolated provider probe that can blacklist CoreML for the session.
   if (process.platform === "win32") return "directml";
   return "cpu";
 }

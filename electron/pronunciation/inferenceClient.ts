@@ -88,7 +88,7 @@ function spawnWorker(): UtilityProcess {
     process.stderr.write(`[capt-worker] ${chunk.toString()}`);
   });
 
-  proc.on("message", (raw) => handleResponse(raw as Response));
+  proc.on("message", (raw) => handleResponse(raw));
 
   proc.on("exit", (code) => {
     const wasUnexpected = inFlight !== null || queue.length > 0;
@@ -115,17 +115,47 @@ function ensureWorker(): UtilityProcess {
   return child;
 }
 
-function handleResponse(response: Response): void {
+function handleResponse(raw: unknown): void {
+  const response = raw as Partial<Response> | null | undefined;
   const pending = inFlight;
-  if (!pending || pending.request.id !== response.id) {
-    console.warn(`[capt] dropping orphaned worker response id=${response.id}`);
+  if (!pending) {
+    console.warn("[capt] dropping orphaned worker response (no in-flight)", {
+      id: response?.id,
+      ok: response?.ok,
+    });
+    return;
+  }
+  if (!response || typeof response !== "object" || typeof response.id !== "number") {
+    inFlight = null;
+    console.warn("[capt] worker returned malformed response; rejecting in-flight request", {
+      keys: response && typeof response === "object" ? Object.keys(response) : null,
+    });
+    pending.reject(
+      makeError("CAPT worker returned a malformed response envelope.", true),
+    );
+    pump();
+    return;
+  }
+  if (pending.request.id !== response.id) {
+    console.warn(
+      `[capt] dropping mismatched worker response id=${response.id} (expected ${pending.request.id})`,
+    );
     return;
   }
   inFlight = null;
-  if (response.ok) {
-    pending.resolve(response);
+  if (response.ok === true) {
+    pending.resolve(response as SuccessResponse);
+  } else if (response.ok === false) {
+    pending.reject(
+      makeError(
+        typeof response.reason === "string" ? response.reason : "CAPT worker inference failed.",
+        response.recoverable === true,
+      ),
+    );
   } else {
-    pending.reject(makeError(response.reason, response.recoverable));
+    pending.reject(
+      makeError("CAPT worker response missing ok flag.", true),
+    );
   }
   pump();
 }
@@ -173,6 +203,7 @@ export async function warmupInference(
   bundle: AcousticBundle,
   preferred: PronunciationExecutionProvider,
 ): Promise<void> {
+  let lastError: Error | null = null;
   for (const provider of providerFallbacks(preferred)) {
     try {
       await enqueue<SuccessResponse>({
@@ -185,10 +216,12 @@ export async function warmupInference(
       });
       return;
     } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
       const err = error as Error & { recoverable?: boolean };
       if (!err.recoverable) throw err;
     }
   }
+  if (lastError) throw lastError;
 }
 
 /** Run a single inference attempt. Provider fallback to CPU on failure. */

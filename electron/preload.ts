@@ -494,15 +494,15 @@ const api = {
   },
 
   pronunciation: {
-    status: () => invoke<PronunciationStatus>("pronunciation.status", {}),
+    status: () => invoke<PronunciationStatus>("pronunciation.status"),
     target: (input: { text: string; ipa?: string | null }) =>
       invoke<PronunciationTarget>("pronunciation.target", input),
     composeIpa: (input: { texts: string[] }) =>
       invoke<Record<string, string | null>>("pronunciation.composeIpa", input),
     preview: (input: { text: string; ipa?: string | null }) =>
       invoke<PronunciationAssessment>("pronunciation.preview", input),
-    warmup: () => invoke<{ ok: boolean; reason?: string }>("pronunciation.warmup", {}),
-    cancel: () => invoke<{ cancelled: number }>("pronunciation.cancel", {}),
+    warmup: () => invoke<{ ok: boolean; reason?: string }>("pronunciation.warmup"),
+    cancel: () => invoke<{ cancelled: number }>("pronunciation.cancel"),
     assess: (input: {
       studentId: number;
       sessionId: number;

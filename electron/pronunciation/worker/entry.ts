@@ -20,11 +20,16 @@ import type {
 } from "../../../src/modules/pronunciation";
 import { preparePcmForModel } from "../pcm";
 
-// Electron exposes `process.parentPort` to utility processes. Type it
-// loosely here so we don't depend on the full Electron types in the
-// worker bundle.
+// Electron exposes `process.parentPort` to utility processes. The
+// listener receives a MessageEvent-shaped `{ data, ports }` object (NOT
+// the raw payload — that asymmetry vs. `UtilityProcess.on('message')`
+// caused every field of `request` to come through as undefined before).
+// See https://www.electronjs.org/docs/latest/api/parent-port.
+interface MessageEventLike {
+  data: unknown;
+}
 interface ParentPort {
-  on(event: "message", listener: (message: unknown) => void): void;
+  on(event: "message", listener: (event: MessageEventLike) => void): void;
   postMessage(message: unknown): void;
 }
 const port = (process as unknown as { parentPort?: ParentPort }).parentPort;
@@ -102,13 +107,37 @@ let cached: {
   provider: PronunciationExecutionProvider;
 } | null = null;
 
-activePort.on("message", (raw: unknown) => {
-  const request = raw as Request;
+activePort.on("message", (event) => {
+  const payload = (event && typeof event === "object" && "data" in event
+    ? event.data
+    : event) as Partial<Request> | null | undefined;
+  const id =
+    payload && typeof payload === "object" && typeof payload.id === "number" ? payload.id : -1;
+  const validationError = validateRequest(payload);
+  if (validationError) {
+    send({ id, ok: false, reason: validationError, recoverable: false });
+    return;
+  }
+  const request = payload as Request;
   handle(request).catch((error) => {
     const reason = error instanceof Error ? error.message : String(error);
-    send({ id: request.id ?? -1, ok: false, reason, recoverable: false });
+    send({ id: request.id, ok: false, reason, recoverable: false });
   });
 });
+
+function validateRequest(payload: unknown): string | null {
+  if (!payload || typeof payload !== "object") {
+    return "[capt-worker] message payload missing — expected MessageEvent.data with request body";
+  }
+  const candidate = payload as { id?: unknown; kind?: unknown };
+  if (typeof candidate.id !== "number") {
+    return "[capt-worker] request.id missing or not a number";
+  }
+  if (candidate.kind !== "warmup" && candidate.kind !== "infer" && candidate.kind !== "shutdown") {
+    return `[capt-worker] request.kind invalid: ${String(candidate.kind)}`;
+  }
+  return null;
+}
 
 async function handle(request: Request): Promise<void> {
   if (request.kind === "shutdown") {
@@ -167,11 +196,11 @@ async function ensureLoaded(
   };
   cached = {
     key: cacheKey,
-    processor: await loadOnce(
+    processor: await retryOnTransientAbort(
       () => transformers.AutoProcessor.from_pretrained(manifest.modelId, options),
       "AutoProcessor.from_pretrained",
     ),
-    model: await loadOnce(
+    model: await retryOnTransientAbort(
       () => transformers.AutoModelForCTC.from_pretrained(manifest.modelId, options),
       "AutoModelForCTC.from_pretrained",
     ),
@@ -183,11 +212,13 @@ async function ensureLoaded(
 // transformers.js fetches model assets via node-fetch even when
 // local_files_only is set; the initial probe races an AbortController
 // and surfaces "The user aborted a request." sporadically on macOS.
-// A single silent retry clears it without escalating to the UI.
-async function loadOnce<T>(load: () => Promise<T>, label: string): Promise<T> {
+// The same abort can fire deep inside processor() and model() on the
+// first call after a cold worker spawn, so every transformers entry
+// point gets the same silent single-retry treatment.
+async function retryOnTransientAbort<T>(run: () => Promise<T>, label: string): Promise<T> {
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
-      return await load();
+      return await run();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       if (attempt === 0 && isTransientAbort(message)) continue;
@@ -219,8 +250,11 @@ async function runInference(request: InferRequest): Promise<{
 
   const modelSampleRate = request.manifest.sampleRate ?? 16_000;
   const prepared = preparePcmForModel(request.audioPcm, request.sampleRate, modelSampleRate);
-  const processed = await processor(prepared, { sampling_rate: modelSampleRate });
-  const output = await model(processed);
+  const processed = await retryOnTransientAbort(
+    () => processor(prepared, { sampling_rate: modelSampleRate }),
+    "processor",
+  );
+  const output = await retryOnTransientAbort(() => model(processed), "model");
   return logitsToFrames(output, request.manifest, request.labels);
 }
 
