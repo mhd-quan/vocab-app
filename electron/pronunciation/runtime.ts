@@ -5,6 +5,7 @@ import {
   type PronunciationRuntimeStatus,
   type PronunciationScoringPolicy,
   assessPronunciationFromFrames,
+  buildPhrasePronunciationTarget,
   buildPronunciationTarget,
   ctcViterbiAlign,
   deterministicAcousticFrames,
@@ -94,7 +95,7 @@ export async function pronunciationStatus(): Promise<PronunciationRuntimeStatus>
 }
 
 export function pronunciationTarget(input: { text: string; ipa?: string | null }) {
-  return buildPronunciationTarget(input.text, input.ipa, { lookup: cmudictLookup });
+  return buildTargetForText(input.text, input.ipa);
 }
 
 export async function assessPronunciation(
@@ -156,7 +157,7 @@ export async function assessPronunciation(
       status: usedStatus,
       assessment: {
         ...assessment,
-        target: buildPronunciationTarget(input.targetText, input.ipa, { lookup: cmudictLookup }),
+        target: buildTargetForText(input.targetText, input.ipa),
         durationMs: Math.max(0, Date.now() - startedAt),
         modelUsed: true,
         feedback: [
@@ -203,7 +204,7 @@ export async function disposePronunciationRuntime(): Promise<void> {
 }
 
 export function previewPronunciation(input: PronunciationAnalyzeInput): PronunciationAssessment {
-  const target = buildPronunciationTarget(input.targetText, input.ipa, { lookup: cmudictLookup });
+  const target = buildTargetForText(input.targetText, input.ipa);
   const runtime: PronunciationRuntimeStatus = {
     available: true,
     backend: "deterministic",
@@ -259,3 +260,11 @@ export const _internal = {
   loadAcousticBundle,
   verifyHubertArchitecture: bundleInternal.verifyHubertArchitecture,
 };
+
+function buildTargetForText(text: string, ipa?: string | null) {
+  const builder =
+    text.trim().split(/\s+/).filter(Boolean).length > 1
+      ? buildPhrasePronunciationTarget
+      : buildPronunciationTarget;
+  return builder(text, ipa, { lookup: cmudictLookup });
+}

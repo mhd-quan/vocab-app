@@ -1,5 +1,10 @@
 import { ctcViterbiAlign } from "./ctc";
-import { type BuildPronunciationTargetOptions, buildPronunciationTarget, stripStress } from "./g2p";
+import {
+  type BuildPronunciationTargetOptions,
+  buildPhrasePronunciationTarget,
+  buildPronunciationTarget,
+  stripStress,
+} from "./g2p";
 import { evaluatePronunciationPolicy } from "./policy";
 import { scoreStress } from "./prosody";
 import type {
@@ -32,7 +37,7 @@ export type {
 } from "./types";
 
 export { ctcViterbiAlign } from "./ctc";
-export { buildPronunciationTarget, stripStress } from "./g2p";
+export { buildPhrasePronunciationTarget, buildPronunciationTarget, stripStress } from "./g2p";
 export type { BuildPronunciationTargetOptions } from "./g2p";
 export { ARPABET_VOWELS, isArpabetVowel, normalizeAcousticLabel } from "./labels";
 export {
@@ -83,11 +88,14 @@ export function assessPronunciationFromFrames({
    */
   align?: typeof ctcViterbiAlign;
 }): PronunciationAssessment {
-  const target = buildPronunciationTarget(input.targetText, input.ipa, buildTargetOptions);
+  const target = isMultiWord(input.targetText)
+    ? buildPhrasePronunciationTarget(input.targetText, input.ipa, buildTargetOptions)
+    : buildPronunciationTarget(input.targetText, input.ipa, buildTargetOptions);
   const alignFn = align ?? ctcViterbiAlign;
   const alignment = alignFn({ target: target.phonemes, frames, labels });
+  const isPhraseTarget = (target.words?.length ?? 0) > 1;
   const stress = scoreStress({
-    stressPattern: target.stressPattern,
+    stressPattern: isPhraseTarget ? target.stressPattern.map(() => null) : target.stressPattern,
     audioPcm: input.audioPcm,
     sampleRate: input.sampleRate,
   });
@@ -205,4 +213,8 @@ function buildFeedback(
   for (const guardrail of guardrails) feedback.push(guardrail.message);
   if (feedback.length === 0) feedback.push("Pronunciation is clear for this target.");
   return feedback;
+}
+
+function isMultiWord(text: string): boolean {
+  return text.trim().split(/\s+/).filter(Boolean).length > 1;
 }

@@ -12,12 +12,17 @@ import { MascotIcon } from "@/ui/student/components/MascotIcon";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { PhonemeRail, PhraseRail } from "./pronunciation/PhraseRail";
 import { usePronunciationRecorder } from "./pronunciation/usePronunciationRecorder";
+
+type LabMode = "words" | "phrases";
 
 export function StudentPronunciationPractice() {
   const { studentId } = useParams({ from: "/student/profile/$studentId/pronunciation" });
   const id = Number(studentId);
   const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null);
+  const [mode, setMode] = useState<LabMode>("words");
+  const [phraseText, setPhraseText] = useState("");
   const [warmupActive, setWarmupActive] = useState(false);
   const warmupFiredFor = useRef<string | null>(null);
   const recorder = usePronunciationRecorder();
@@ -80,25 +85,46 @@ export function StudentPronunciationPractice() {
 
   const entries = entriesQ.data ?? [];
   const selected = entries.find((entry) => entry.id === selectedEntryId) ?? entries[0] ?? null;
-  const previewQ = useQuery({
+
+  const examplesQ = useQuery({
     queryKey: selected
-      ? queryKeys.pronunciation.preview(selected.headword, selected.ipa ?? "")
-      : ["pronunciation", "preview", "none"],
-    queryFn: () =>
-      api.pronunciation.preview({ text: selected?.headword ?? "", ipa: selected?.ipa }),
-    enabled: Boolean(selected),
+      ? queryKeys.vocab.examplesForHeadword(selected.headword)
+      : ["vocab", "examplesForHeadword", "none"],
+    queryFn: () => api.vocab.examplesForHeadword({ headword: selected?.headword ?? "" }),
+    enabled: Boolean(selected) && mode === "phrases",
+  });
+
+  const phraseTrimmed = phraseText.trim();
+  const phraseReady = phraseTrimmed.length > 0;
+  const previewText = mode === "phrases" ? phraseTrimmed : (selected?.headword ?? "");
+  const previewIpa = mode === "phrases" ? null : (selected?.ipa ?? null);
+
+  const previewQ = useQuery({
+    queryKey: queryKeys.pronunciation.preview(previewText, previewIpa ?? ""),
+    queryFn: () => api.pronunciation.preview({ text: previewText, ipa: previewIpa }),
+    enabled: previewText.length > 0,
   });
   const preview = previewQ.data;
 
   const startSession = useMutation({
     mutationFn: async () => {
-      if (!selected) throw new Error("Select a word first.");
+      let targetText: string;
+      let ipa: string | null;
+      if (mode === "phrases") {
+        if (!phraseReady) throw new Error("Type a phrase first.");
+        targetText = phraseTrimmed;
+        ipa = null;
+      } else {
+        if (!selected) throw new Error("Select a word first.");
+        targetText = selected.headword;
+        ipa = selected.ipa;
+      }
       const session = await api.progress.startSession({ studentId: id, mode: "pronunciation" });
       const result = await api.pronunciation.assess({
         studentId: id,
         sessionId: session.id,
-        targetText: selected.headword,
-        ipa: selected.ipa,
+        targetText,
+        ipa,
         audioPcm: recorder.recording?.audioPcm,
         sampleRate: recorder.recording?.sampleRate,
       });
@@ -106,7 +132,7 @@ export function StudentPronunciationPractice() {
         sessionId: session.id,
         summary: {
           kind: "pronunciation",
-          targetText: selected.headword,
+          targetText,
           modelReady: result.status.available,
           score: result.ok ? result.assessment.overallScore : null,
           reason: result.ok ? null : result.reason,
@@ -115,6 +141,17 @@ export function StudentPronunciationPractice() {
       return result;
     },
   });
+
+  // Reset phrase + result when the selected entry or mode changes so stale
+  // scores never leak across targets. `startSession.reset` is referentially
+  // stable per react-query, so we exclude it from the dep list to keep the
+  // effect from re-firing every render.
+  const resetSession = startSession.reset;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: selected?.id is the trigger we want to react to even though it's not read in the body.
+  useEffect(() => {
+    resetSession();
+    if (mode === "phrases") setPhraseText("");
+  }, [mode, selected?.id, resetSession]);
 
   const audioRefs = useMemo(
     () =>
@@ -175,48 +212,67 @@ export function StudentPronunciationPractice() {
           body="Ask your tutor to assign imported vocabulary units first."
         />
       ) : (
-        <section className="grid gap-5 xl:grid-cols-[20rem_1fr]">
-          <BentoCard className="p-4">
-            <h2 className="text-sm font-semibold uppercase text-muted-2">Targets</h2>
-            <ul className="mt-3 flex max-h-[34rem] flex-col gap-2 overflow-y-auto pr-1">
-              {entries.map((entry) => (
-                <li key={entry.id}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedEntryId(entry.id)}
-                    className={cn(
-                      "w-full rounded-xl border px-3 py-2 text-left transition",
-                      selected?.id === entry.id
-                        ? "border-sky/45 bg-sky/10"
-                        : "border-border-subtle bg-surface-0/70 hover:border-border-strong",
-                    )}
-                  >
-                    <span className="block truncate text-sm font-semibold text-app">
-                      {entry.headword}
-                    </span>
-                    <span className="font-mono text-[11px] text-muted-2">
-                      {entry.ipa ?? entry.pos}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </BentoCard>
+        <>
+          <ModeTabs mode={mode} onChange={setMode} />
+          <section className="grid gap-5 xl:grid-cols-[20rem_1fr]">
+            <BentoCard className="p-4">
+              <h2 className="text-sm font-semibold uppercase text-muted-2">Targets</h2>
+              <ul className="mt-3 flex max-h-[34rem] flex-col gap-2 overflow-y-auto pr-1">
+                {entries.map((entry) => (
+                  <li key={entry.id}>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedEntryId(entry.id)}
+                      className={cn(
+                        "w-full rounded-xl border px-3 py-2 text-left transition",
+                        selected?.id === entry.id
+                          ? "border-sky/45 bg-sky/10"
+                          : "border-border-subtle bg-surface-0/70 hover:border-border-strong",
+                      )}
+                    >
+                      <span className="block truncate text-sm font-semibold text-app">
+                        {entry.headword}
+                      </span>
+                      <span className="font-mono text-[11px] text-muted-2">
+                        {entry.ipa ?? entry.pos}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </BentoCard>
 
-          <BentoCard className="p-5">
-            {selected ? (
-              <TargetPanel
-                entry={selected}
-                audioRefs={audioRefs}
-                preview={preview ?? null}
-                recorder={recorder}
-                assessing={startSession.isPending}
-                result={startSession.data ?? null}
-                onAssess={() => startSession.mutate()}
-              />
-            ) : null}
-          </BentoCard>
-        </section>
+            <BentoCard className="p-5">
+              {selected ? (
+                mode === "words" ? (
+                  <TargetPanel
+                    entry={selected}
+                    audioRefs={audioRefs}
+                    preview={preview ?? null}
+                    recorder={recorder}
+                    assessing={startSession.isPending}
+                    result={startSession.data ?? null}
+                    onAssess={() => startSession.mutate()}
+                  />
+                ) : (
+                  <PhraseTargetPanel
+                    entry={selected}
+                    phraseText={phraseText}
+                    onPhraseChange={setPhraseText}
+                    examples={examplesQ.data ?? []}
+                    examplesLoading={examplesQ.isLoading}
+                    preview={preview ?? null}
+                    recorder={recorder}
+                    assessing={startSession.isPending}
+                    result={startSession.data ?? null}
+                    onAssess={() => startSession.mutate()}
+                    phraseReady={phraseReady}
+                  />
+                )
+              ) : null}
+            </BentoCard>
+          </section>
+        </>
       )}
     </div>
   );
@@ -318,12 +374,16 @@ function TargetPanel({
             <ScoreCard label="Overall" value={assessment.overallScore} />
             <ScoreCard label="Phonemes" value={assessment.phonemeScore} />
             <ScoreCard
-              label="Stress"
+              label={(assessment.target.words?.length ?? 0) > 1 ? "Stress · word-level" : "Stress"}
               value={assessment.stressScore ?? 0}
               muted={assessment.stressScore === null}
             />
           </section>
-          <PhonemeRail phonemes={assessment.phonemes} />
+          {(assessment.target.words?.length ?? 0) > 1 ? (
+            <PhraseRail phonemes={assessment.phonemes} target={assessment.target} />
+          ) : (
+            <PhonemeRail phonemes={assessment.phonemes} />
+          )}
           <div className="rounded-xl border border-border-subtle bg-surface-0/70 p-4">
             <p className="text-xs font-semibold uppercase text-muted-2">Feedback</p>
             <ul className="mt-2 flex flex-col gap-1 text-sm leading-6 text-muted">
@@ -420,37 +480,194 @@ function ScoreCard({ label, value, muted }: { label: string; value: number; mute
   );
 }
 
-function PhonemeRail({
-  phonemes,
-}: {
-  phonemes: Array<{
-    phoneme: string;
-    score: number;
-    issue: string;
-    detectedPhoneme: string | null;
-  }>;
-}) {
+function ModeTabs({ mode, onChange }: { mode: LabMode; onChange: (mode: LabMode) => void }) {
   return (
-    <div className="rounded-xl border border-border-subtle bg-surface-0/70 p-4">
-      <p className="text-xs font-semibold uppercase text-muted-2">Phoneme alignment</p>
-      <div className="mt-3 flex flex-wrap gap-2">
-        {phonemes.map((phoneme, index) => (
-          <span
-            key={`${phoneme.phoneme}-${index}`}
-            className={cn(
-              "inline-flex min-w-12 flex-col items-center rounded-lg border px-2 py-2 font-mono text-xs",
-              phoneme.issue === "ok"
-                ? "border-success/30 bg-success/10 text-success"
-                : "border-warning/35 bg-warning/10 text-warning",
+    <div
+      role="tablist"
+      aria-label="Pronunciation lab mode"
+      className="inline-flex w-fit rounded-full border border-border-subtle bg-surface-1 p-1 text-xs font-semibold"
+    >
+      <TabButton active={mode === "words"} onClick={() => onChange("words")}>
+        Words
+      </TabButton>
+      <TabButton active={mode === "phrases"} onClick={() => onChange("phrases")}>
+        Phrases
+      </TabButton>
+    </div>
+  );
+}
+
+function TabButton({
+  active,
+  onClick,
+  children,
+}: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={cn(
+        "rounded-full px-3 py-1.5 transition",
+        active ? "bg-sky/15 text-sky" : "text-muted hover:text-app",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+interface PhraseExample {
+  text: string;
+  translation: string | null;
+}
+
+function PhraseTargetPanel({
+  entry,
+  phraseText,
+  onPhraseChange,
+  examples,
+  examplesLoading,
+  preview,
+  recorder,
+  result,
+  assessing,
+  onAssess,
+  phraseReady,
+}: {
+  entry: VocabEntry;
+  phraseText: string;
+  onPhraseChange: (next: string) => void;
+  examples: PhraseExample[];
+  examplesLoading: boolean;
+  preview: PronunciationPreviewView | null;
+  recorder: PronunciationRecorderView;
+  result: PronunciationAssessView | null;
+  assessing: boolean;
+  onAssess: () => void;
+  phraseReady: boolean;
+}) {
+  const assessment = result?.ok ? result.assessment : preview;
+  return (
+    <div className="flex flex-col gap-5">
+      <header className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge tone="lime" uppercase>
+                Phrase
+              </Badge>
+              <Badge tone="muted" uppercase>
+                from {entry.headword}
+              </Badge>
+            </div>
+            <p className="mt-2 text-xs text-muted">
+              Type or pick a phrase, then record up to 10 seconds. Stress is reported at the word
+              level only.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {recorder.state === "recording" ? (
+              <Button variant="secondary" onClick={() => void recorder.stop()}>
+                Stop {formatDuration(recorder.durationMs)}
+              </Button>
+            ) : (
+              <Button
+                variant="secondary"
+                onClick={() => void recorder.start()}
+                disabled={assessing || !phraseReady}
+              >
+                {recorder.recording ? "Record again" : "Record"}
+              </Button>
             )}
+            <Button onClick={onAssess} disabled={assessing || !phraseReady}>
+              {assessing ? "Checking..." : "Check attempt"}
+            </Button>
+          </div>
+        </div>
+        <label className="flex flex-col gap-2 text-xs text-muted">
+          <span className="font-semibold uppercase text-muted-2">Phrase or sentence</span>
+          <textarea
+            value={phraseText}
+            onChange={(event) => onPhraseChange(event.target.value)}
+            maxLength={320}
+            rows={2}
+            placeholder="e.g. I want to ride a bike"
+            className="resize-none rounded-xl border border-border-subtle bg-surface-0/70 px-3 py-2 font-mono text-sm text-app focus:border-sky/50 focus:outline-none"
+          />
+        </label>
+        <SuggestionRail examples={examples} loading={examplesLoading} onPick={onPhraseChange} />
+      </header>
+
+      <RecorderStatus recorder={recorder} />
+
+      {result && !result.ok ? (
+        <div className="rounded-xl border border-warning/35 bg-warning/10 px-4 py-3 text-sm text-warning">
+          {result.reason}
+        </div>
+      ) : null}
+
+      {assessment ? (
+        <>
+          {result?.ok ? <AttemptOutcome assessment={assessment} /> : null}
+          <section className="grid gap-3 sm:grid-cols-3">
+            <ScoreCard label="Overall" value={assessment.overallScore} />
+            <ScoreCard label="Phonemes" value={assessment.phonemeScore} />
+            <ScoreCard
+              label={(assessment.target.words?.length ?? 0) > 1 ? "Stress · word-level" : "Stress"}
+              value={assessment.stressScore ?? 0}
+              muted={assessment.stressScore === null}
+            />
+          </section>
+          {(assessment.target.words?.length ?? 0) > 1 ? (
+            <PhraseRail phonemes={assessment.phonemes} target={assessment.target} />
+          ) : (
+            <PhonemeRail phonemes={assessment.phonemes} />
+          )}
+          <div className="rounded-xl border border-border-subtle bg-surface-0/70 p-4">
+            <p className="text-xs font-semibold uppercase text-muted-2">Feedback</p>
+            <ul className="mt-2 flex flex-col gap-1 text-sm leading-6 text-muted">
+              {assessment.feedback.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+function SuggestionRail({
+  examples,
+  loading,
+  onPick,
+}: {
+  examples: PhraseExample[];
+  loading: boolean;
+  onPick: (text: string) => void;
+}) {
+  if (loading) {
+    return <p className="text-xs text-muted-2">Loading example phrases…</p>;
+  }
+  if (examples.length === 0) {
+    return <p className="text-xs text-muted-2">No example phrases for this word yet.</p>;
+  }
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-xs font-semibold uppercase text-muted-2">Suggestions</span>
+      <div className="flex flex-wrap gap-2">
+        {examples.map((example) => (
+          <button
+            key={example.text}
+            type="button"
+            onClick={() => onPick(example.text)}
+            title={example.translation ?? undefined}
+            className="rounded-full border border-sky/30 bg-sky/10 px-3 py-1 text-xs font-medium text-sky hover:bg-sky/15"
           >
-            /{phoneme.phoneme}/
-            <span className="mt-1 text-[10px] text-muted-2">
-              {phoneme.detectedPhoneme && phoneme.detectedPhoneme !== phoneme.phoneme
-                ? `/${phoneme.detectedPhoneme}/`
-                : phoneme.score}
-            </span>
-          </span>
+            {example.text}
+          </button>
         ))}
       </div>
     </div>

@@ -79,6 +79,62 @@ export function buildPronunciationTarget(
   return targetFromCmu(text, heuristicCmu(normalized), "heuristic");
 }
 
+/**
+ * Build a phrase / sentence target by looking up each word individually
+ * and concatenating the per-word phoneme lists. Each word's slice into
+ * the flat `phonemes` array is recorded in `words[i].phonemeRange` so
+ * the UI can re-group phoneme scores by word. Single-word inputs
+ * short-circuit to the existing single-word builder so the hot path
+ * stays cheap.
+ *
+ * If `ipa` is supplied and its whitespace-token count exactly matches
+ * the word count, the tokens are paired per word as IPA hints. Otherwise
+ * the hint is ignored and each word falls back to CMU / heuristic.
+ */
+export function buildPhrasePronunciationTarget(
+  text: string,
+  ipa?: string | null,
+  options?: BuildPronunciationTargetOptions,
+): PronunciationTarget {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  if (words.length <= 1) {
+    return buildPronunciationTarget(text, ipa, options);
+  }
+
+  const cleaned = ipa
+    ?.trim()
+    .replace(/^\/|\/$/g, "")
+    .replace(/^\[|\]$/g, "");
+  const ipaTokens = cleaned ? cleaned.split(/\s+/).filter(Boolean) : [];
+  const ipaMatchesWords = ipaTokens.length === words.length;
+
+  const phonemes: string[] = [];
+  const stressPattern: Array<0 | 1 | 2 | null> = [];
+  const wordViews: NonNullable<PronunciationTarget["words"]> = [];
+  const sources = new Set<"cmudict" | "heuristic" | "ipa">();
+
+  for (let i = 0; i < words.length; i += 1) {
+    const word = words[i] ?? "";
+    const wordIpa = ipaMatchesWords ? (ipaTokens[i] ?? null) : null;
+    const wordTarget = buildPronunciationTarget(word, wordIpa, options);
+    if (wordTarget.source === "mixed") continue;
+    const start = phonemes.length;
+    phonemes.push(...wordTarget.phonemes);
+    stressPattern.push(...wordTarget.stressPattern);
+    wordViews.push({
+      text: word,
+      phonemeRange: [start, phonemes.length],
+      source: wordTarget.source,
+    });
+    sources.add(wordTarget.source);
+  }
+
+  const source: PronunciationTarget["source"] =
+    sources.size === 1 ? ([...sources][0] ?? "heuristic") : "mixed";
+
+  return { text, phonemes, stressPattern, source, words: wordViews };
+}
+
 export function stripStress(phoneme: string): string {
   return phoneme.replace(/[012]$/, "");
 }

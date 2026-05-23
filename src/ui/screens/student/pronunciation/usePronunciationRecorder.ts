@@ -9,7 +9,7 @@ export interface RecordedPronunciationAudio {
 
 export type PronunciationRecorderState = "idle" | "recording" | "ready" | "unsupported" | "error";
 
-const MAX_RECORDING_MS = 5_000;
+const MAX_RECORDING_MS = 10_000;
 const TARGET_SAMPLE_RATE = 16_000;
 const PROCESSOR_NAME = "pcm-capture";
 

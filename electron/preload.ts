@@ -46,6 +46,7 @@ import type {
 } from "./db/repositories/progress";
 import type { FleetSnapshot } from "./db/repositories/progress";
 import type { VocabEntryFull } from "./db/repositories/vocab";
+import type { PronunciationPhraseExample } from "./db/repositories/vocab";
 
 const invoke = <T>(channel: string, payload?: unknown): Promise<T> =>
   ipcRenderer.invoke(channel, payload) as Promise<T>;
@@ -199,7 +200,12 @@ interface PronunciationTarget {
   text: string;
   phonemes: string[];
   stressPattern: Array<0 | 1 | 2 | null>;
-  source: "cmudict" | "heuristic" | "ipa";
+  source: "cmudict" | "heuristic" | "ipa" | "mixed";
+  words?: Array<{
+    text: string;
+    phonemeRange: [number, number];
+    source: "cmudict" | "heuristic" | "ipa";
+  }>;
 }
 
 interface PronunciationAssessment {
@@ -299,6 +305,8 @@ const api = {
       invoke<VocabEntryFull[]>("vocab.listFullByLesson", input),
     countByLesson: (input: { lessonId: number }) => invoke<number>("vocab.countByLesson", input),
     getById: (input: { id: number }) => invoke<VocabEntryFull | null>("vocab.getById", input),
+    examplesForHeadword: (input: { headword: string }) =>
+      invoke<PronunciationPhraseExample[]>("vocab.examplesForHeadword", input),
   },
 
   dictionary: {

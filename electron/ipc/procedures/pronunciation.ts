@@ -15,8 +15,8 @@ import {
 import { defineProcedure } from "../procedure";
 
 const targetInput = z.object({
-  text: z.string().min(1).max(160),
-  ipa: z.string().max(160).nullable().optional(),
+  text: z.string().min(1).max(320),
+  ipa: z.string().max(320).nullable().optional(),
 });
 
 const audioPcmSchema = z.custom<Float32Array>(
@@ -27,8 +27,8 @@ const audioPcmSchema = z.custom<Float32Array>(
 const assessInput = z.object({
   studentId: z.number().int().positive(),
   sessionId: z.number().int().positive(),
-  targetText: z.string().min(1).max(160),
-  ipa: z.string().max(160).nullable().optional(),
+  targetText: z.string().min(1).max(320),
+  ipa: z.string().max(320).nullable().optional(),
   audioPcm: audioPcmSchema.optional(),
   sampleRate: z.number().int().positive().max(96_000).optional(),
 });
