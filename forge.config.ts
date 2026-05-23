@@ -139,6 +139,12 @@ const config: ForgeConfig = {
         "Vocab App can take visible, consented camera check-ins during student study sessions.",
       NSCameraUseContinuityCameraDeviceType: true,
     },
+    // Helper bundles (notably "Electron Helper (Plugin)" where our
+    // utilityProcess + onnxruntime-node live) emit their own AVCapture
+    // deprecation warning unless this key is on each helper's Info.plist.
+    extendHelperInfo: {
+      NSCameraUseContinuityCameraDeviceType: true,
+    },
     // SQL migration files live alongside the app bundle so the runtime
     // migrator can read them. Resolved via `process.resourcesPath` in
     // electron/db/paths.ts.
