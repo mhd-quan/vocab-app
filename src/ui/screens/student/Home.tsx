@@ -19,6 +19,7 @@ import { ProgressMeter } from "@/ui/components/ProgressMeter";
 import { MascotIcon } from "@/ui/student/components/MascotIcon";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
+import { AchievementStrip } from "./AchievementStrip";
 
 interface UnitWithLessons {
   unit: Unit;
@@ -73,7 +74,7 @@ export function StudentHome() {
       </Link>
 
       <header className="grid gap-4 lg:grid-cols-[1.25fr_1fr]">
-        <BentoCard className="flex items-center gap-5 p-6" interactive tone="focus">
+        <BentoCard className="flex items-start gap-5 p-6" interactive tone="focus">
           <Avatar
             name={studentQ.data?.displayName ?? studentQ.data?.name ?? "?"}
             avatarSeed={studentQ.data?.avatarSeed ?? null}
@@ -88,12 +89,13 @@ export function StudentHome() {
               {studentQ.isLoading ? "Loading..." : studentName}
             </h1>
             <p className="mt-1 text-sm text-muted">Choose a lesson and keep the run alive.</p>
+            <AchievementStrip studentId={id} />
           </div>
           <MascotIcon
             mood="cheering"
             avatarSeed={studentQ.data?.avatarSeed ?? null}
             studentId={id}
-            className="hidden h-24 w-24 shrink-0 text-success sm:block"
+            className="hidden h-24 w-24 shrink-0 self-center text-success sm:block"
           />
         </BentoCard>
         {summaryQ.data ? (
@@ -109,9 +111,7 @@ export function StudentHome() {
         )}
       </header>
 
-      <section className="grid gap-4 lg:grid-cols-3">
-        <AchievementHallCard studentId={id} />
-        <PronunciationLabCard studentId={id} />
+      <section className="grid gap-4 lg:grid-cols-[3fr_1fr]">
         <PersonalVocabularyCard
           studentId={id}
           summary={
@@ -126,6 +126,7 @@ export function StudentHome() {
           }
           loading={dictionaryLearningQ.isLoading}
         />
+        <PronunciationLabCard studentId={id} />
       </section>
 
       {booksQ.isLoading ? (
@@ -139,30 +140,6 @@ export function StudentHome() {
         <BookList studentId={id} books={booksQ.data ?? []} />
       )}
     </div>
-  );
-}
-
-function AchievementHallCard({ studentId }: { studentId: number }) {
-  return (
-    <Link
-      to="/student/profile/$studentId/achievements"
-      params={{ studentId: String(studentId) }}
-      className="motion-card flex min-h-48 flex-col justify-between gap-4 rounded-bento border border-mastery/30 bg-mastery/10 px-5 py-5 shadow-card transition hover:-translate-y-0.5 hover:border-mastery/50 hover:shadow-lift"
-    >
-      <div>
-        <Badge tone="mastery" uppercase>
-          Achievement hall
-        </Badge>
-        <h2 className="mt-3 font-display text-2xl font-semibold">Learning summary & trophies</h2>
-        <p className="mt-1 text-sm leading-6 text-muted">
-          Open the dedicated trophy page to see polished badges, tiers, and live quest progress.
-        </p>
-      </div>
-      <span className="inline-flex items-center gap-1.5 font-semibold text-mastery">
-        View hall
-        <AppGlyph name="arrowRight" className="h-4 w-4" />
-      </span>
-    </Link>
   );
 }
 
@@ -215,7 +192,7 @@ function PersonalVocabularyCard({
       to="/student/profile/$studentId/personal-vocabulary"
       params={{ studentId: String(studentId) }}
       className={cn(
-        "motion-card group grid min-h-48 gap-4 rounded-bento border px-5 py-5 shadow-card transition-[background-color,border-color,box-shadow,transform] hover:-translate-y-1 hover:border-focus/45 hover:shadow-lift sm:grid-cols-[1fr_auto] sm:items-center lg:grid-cols-1 lg:items-start xl:grid-cols-[1fr_auto] xl:items-center",
+        "motion-card group grid min-h-48 gap-4 rounded-bento border px-5 py-5 shadow-card transition-[background-color,border-color,box-shadow,transform] hover:-translate-y-1 hover:border-focus/45 hover:shadow-lift sm:grid-cols-[1fr_auto] sm:items-center lg:grid-cols-[1fr_auto] lg:items-center xl:grid-cols-[1fr_auto] xl:items-center",
         hasDue ? "border-focus/35 bg-focus/10" : "border-border-subtle bg-surface-1",
       )}
     >

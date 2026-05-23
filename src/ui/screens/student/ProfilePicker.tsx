@@ -42,13 +42,7 @@ export function StudentProfilePicker() {
               Pick a profile and jump straight back into the next vocabulary session.
             </p>
           </div>
-          <BentoCard as="div" tone="focus" className="flex items-center gap-3 p-4">
-            <MascotIcon mood="happy" className="h-16 w-16 shrink-0" />
-            <div>
-              <p className="text-xs font-semibold uppercase text-focus">Today</p>
-              <p className="mt-1 text-sm text-muted">Fresh run waiting.</p>
-            </div>
-          </BentoCard>
+          <FleetSnapshotCard />
         </div>
       </header>
 
@@ -294,5 +288,97 @@ function StudentPinDialog({
 function SkeletonCard() {
   return (
     <li className="min-h-44 animate-pulse rounded-bento border border-border-subtle bg-surface-1 shadow-card" />
+  );
+}
+
+function FleetSnapshotCard() {
+  const snapshotQ = useQuery({
+    queryKey: queryKeys.progress.fleetSnapshot(),
+    queryFn: () => api.progress.fleetSnapshot(),
+    staleTime: 60_000,
+  });
+  const data = snapshotQ.data;
+
+  if (snapshotQ.isLoading || !data) {
+    return (
+      <BentoCard as="div" tone="focus" className="flex items-center gap-3 p-4">
+        <div className="h-12 w-12 shrink-0 animate-pulse rounded-full bg-focus/15" />
+        <div className="min-w-0 space-y-1.5">
+          <span className="block h-2.5 w-24 animate-pulse rounded-full bg-focus/15" />
+          <span className="block h-2 w-32 animate-pulse rounded-full bg-focus/10" />
+        </div>
+      </BentoCard>
+    );
+  }
+
+  if (data.activeCount === 0) {
+    return (
+      <BentoCard as="div" tone="focus" className="flex items-center gap-3 p-4">
+        <MascotIcon mood="happy" className="h-12 w-12 shrink-0" />
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase text-focus">Welcome back</p>
+          <p className="mt-1 text-sm text-muted">Add a student profile to get started.</p>
+        </div>
+      </BentoCard>
+    );
+  }
+
+  return (
+    <BentoCard as="div" tone="focus" className="flex flex-col gap-2 p-4">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs font-semibold uppercase text-focus">Fleet snapshot</p>
+        <Badge tone={data.totalDue > 0 ? "warning" : "muted"} uppercase>
+          {data.activeCount} active
+        </Badge>
+      </div>
+      <dl className="grid grid-cols-2 gap-2 text-xs">
+        <FleetMetric
+          label="Due"
+          value={data.totalDue.toString()}
+          tone={data.totalDue > 0 ? "warning" : "muted"}
+        />
+        <FleetMetric
+          label="Top XP"
+          value={data.topXp ? `${data.topXp.name} · ${data.topXp.xp}` : "—"}
+        />
+        <FleetMetric
+          label="Streak"
+          value={data.topStreak ? `${data.topStreak.name} · ${data.topStreak.streak}d` : "—"}
+          className="col-span-2"
+        />
+      </dl>
+    </BentoCard>
+  );
+}
+
+function FleetMetric({
+  label,
+  value,
+  tone,
+  className,
+}: {
+  label: string;
+  value: string;
+  tone?: "warning" | "muted";
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-xl border border-border-subtle bg-surface-0/65 px-2.5 py-1.5",
+        className,
+      )}
+    >
+      <dt className="text-[10px] font-semibold uppercase text-muted-2">{label}</dt>
+      <dd
+        className={cn(
+          "mt-0.5 truncate font-mono text-sm text-app",
+          tone === "warning" && "text-warning",
+          tone === "muted" && "text-muted-2",
+        )}
+      >
+        {value}
+      </dd>
+    </div>
   );
 }

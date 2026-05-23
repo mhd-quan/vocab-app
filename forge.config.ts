@@ -133,8 +133,11 @@ const config: ForgeConfig = {
     appBundleId: "dev.mhd-quan.vocab-app",
     icon: path.join(__dirname, "assets", "icons", "app"),
     extendInfo: {
+      NSMicrophoneUsageDescription:
+        "Vocab App uses your microphone to score pronunciation locally. Audio never leaves this device.",
       NSCameraUsageDescription:
         "Vocab App can take visible, consented camera check-ins during student study sessions.",
+      NSCameraUseContinuityCameraDeviceType: true,
     },
     // SQL migration files live alongside the app bundle so the runtime
     // migrator can read them. Resolved via `process.resourcesPath` in

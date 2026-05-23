@@ -21,7 +21,11 @@ import type {
   StudentAchievement,
 } from "../../../src/data/types";
 import type { GradeOutcome } from "../../../src/modules/exercises";
-import { evaluateAchievements } from "../../../src/modules/rewards";
+import {
+  computeStreak,
+  computeStudentXp,
+  evaluateAchievements,
+} from "../../../src/modules/rewards";
 import { fsrs } from "../../../src/modules/srs";
 import type { AppDatabase, AppTransaction } from "../client";
 import { _internal as rewardsInternal } from "./rewards";
@@ -1066,10 +1070,123 @@ export function createProgressRepository(db: AppDatabase) {
       ).length;
       return { totalSeen, totalCorrect, totalWrong, accuracy, totalDue };
     },
+
+    /**
+     * Tutor-facing headline numbers shown on the picker before drilling
+     * into a student: who is active, how many cards are due across the
+     * fleet, and who's leading on XP / streak. Single-pass joins keep it
+     * cheap even when the fleet grows.
+     */
+    fleetSnapshot({ now }: { now: Date }): FleetSnapshot {
+      const studentRows = db
+        .select()
+        .from(students)
+        .where(isNull(students.archivedAt))
+        .orderBy(asc(students.name), asc(students.id))
+        .all();
+      if (studentRows.length === 0) {
+        return { activeCount: 0, totalDue: 0, topXp: null, topStreak: null };
+      }
+
+      const ids = studentRows.map((s) => s.id);
+      const progressRows = db
+        .select({
+          studentId: itemProgress.studentId,
+          totalCorrect: itemProgress.totalCorrect,
+          totalWrong: itemProgress.totalWrong,
+          nextDueAt: itemProgress.nextDueAt,
+        })
+        .from(itemProgress)
+        .where(inArray(itemProgress.studentId, ids))
+        .all();
+      const eventRows = db
+        .select({
+          studentId: learningEvents.studentId,
+          occurredAt: learningEvents.occurredAt,
+        })
+        .from(learningEvents)
+        .where(inArray(learningEvents.studentId, ids))
+        .all();
+
+      const stats = new Map<
+        number,
+        { totalSeen: number; totalCorrect: number; totalWrong: number; totalDue: number }
+      >();
+      const events = new Map<number, Date[]>();
+      for (const id of ids) {
+        stats.set(id, { totalSeen: 0, totalCorrect: 0, totalWrong: 0, totalDue: 0 });
+        events.set(id, []);
+      }
+      for (const r of progressRows) {
+        const cur = stats.get(r.studentId);
+        if (!cur) continue;
+        cur.totalSeen += 1;
+        cur.totalCorrect += r.totalCorrect;
+        cur.totalWrong += r.totalWrong;
+        if (r.nextDueAt === null || r.nextDueAt.getTime() <= now.getTime()) {
+          cur.totalDue += 1;
+        }
+      }
+      for (const r of eventRows) {
+        events.get(r.studentId)?.push(r.occurredAt);
+      }
+
+      let totalDue = 0;
+      let topXp: FleetSnapshot["topXp"] = null;
+      let topStreak: FleetSnapshot["topStreak"] = null;
+      for (const student of studentRows) {
+        const s = stats.get(student.id);
+        const seen = s?.totalSeen ?? 0;
+        const correct = s?.totalCorrect ?? 0;
+        const wrong = s?.totalWrong ?? 0;
+        const attempts = correct + wrong;
+        const accuracy = attempts === 0 ? 0 : correct / attempts;
+        const streak = computeStreak({ eventTimestamps: events.get(student.id) ?? [], now });
+        const xp = computeStudentXp({
+          totalSeen: seen,
+          totalCorrect: correct,
+          totalWrong: wrong,
+          accuracy,
+          streakDays: streak.currentStreak,
+          practicedToday: streak.practicedToday,
+        });
+        totalDue += s?.totalDue ?? 0;
+
+        const profile = {
+          studentId: student.id,
+          name: student.displayName ?? student.name,
+          avatarSeed: student.avatarSeed,
+          color: student.color,
+        };
+        if (!topXp || xp > topXp.xp) topXp = { ...profile, xp };
+        if (!topStreak || streak.currentStreak > topStreak.streak) {
+          topStreak = { ...profile, streak: streak.currentStreak };
+        }
+      }
+
+      if (topXp && topXp.xp === 0) topXp = null;
+      if (topStreak && topStreak.streak === 0) topStreak = null;
+
+      return { activeCount: studentRows.length, totalDue, topXp, topStreak };
+    },
   };
 }
 
 export type ProgressRepository = ReturnType<typeof createProgressRepository>;
+
+export interface FleetSnapshotProfile {
+  studentId: number;
+  name: string;
+  avatarSeed: string | null;
+  color: string | null;
+}
+
+export interface FleetSnapshot {
+  activeCount: number;
+  totalDue: number;
+  topXp: (FleetSnapshotProfile & { xp: number }) | null;
+  topStreak: (FleetSnapshotProfile & { streak: number }) | null;
+}
 
 function payloadNumber(payload: Record<string, unknown> | null, key: string): number | null {
   const value = payload?.[key];

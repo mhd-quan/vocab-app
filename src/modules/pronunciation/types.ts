@@ -44,7 +44,18 @@ export interface PronunciationTarget {
   text: string;
   phonemes: string[];
   stressPattern: Array<0 | 1 | 2 | null>;
-  source: "cmudict" | "heuristic" | "ipa";
+  source: "cmudict" | "heuristic" | "ipa" | "mixed";
+  /**
+   * Per-word breakdown for phrase / sentence targets. Each entry's
+   * `phonemeRange` is `[start, endExclusive)` into the flat `phonemes`
+   * list above. Single-word targets leave this undefined so existing
+   * call sites that only care about the flat phoneme list keep working.
+   */
+  words?: Array<{
+    text: string;
+    phonemeRange: [number, number];
+    source: "cmudict" | "heuristic" | "ipa";
+  }>;
 }
 
 export interface PronunciationPhonemeScore {

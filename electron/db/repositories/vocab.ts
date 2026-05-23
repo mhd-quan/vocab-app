@@ -208,6 +208,50 @@ export function createVocabRepository(db: AppDatabase) {
     },
 
     /**
+     * Mine the imported vocab examples for short, recordable phrases tied
+     * to a headword. Used by the Pronunciation lab's "Phrases" tab. Skips
+     * single-word and overly long sentences so the scoring stays reliable
+     * with the current 10 s recording cap. Cloze mustaches (`{{ ... }}`)
+     * are flattened to their inner word.
+     */
+    examplesForHeadword(input: { headword: string }): PronunciationPhraseExample[] {
+      const term = input.headword.trim().toLowerCase();
+      if (!term) return [];
+      const rows = db
+        .select({
+          text: vocabExamples.text,
+          translation: vocabExamples.translation,
+          audioRef: vocabExamples.audioRef,
+          ordinal: vocabExamples.ordinal,
+        })
+        .from(vocabExamples)
+        .innerJoin(vocabEntries, eq(vocabExamples.entryId, vocabEntries.id))
+        .where(
+          or(
+            sql`lower(${vocabEntries.headword}) = ${term}`,
+            sql`lower(coalesce(${vocabEntries.lemma}, '')) = ${term}`,
+          ),
+        )
+        .orderBy(asc(vocabExamples.ordinal))
+        .all();
+
+      const seen = new Set<string>();
+      const out: PronunciationPhraseExample[] = [];
+      for (const row of rows) {
+        const text = stripExampleMarkup(row.text);
+        if (!text) continue;
+        const wordCount = text.split(/\s+/).filter(Boolean).length;
+        if (wordCount < 2 || wordCount > 12) continue;
+        const key = text.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push({ text, translation: row.translation, audioRef: row.audioRef });
+        if (out.length >= 5) break;
+      }
+      return out;
+    },
+
+    /**
      * Atomically upsert one entry plus its children.
      *
      * Idempotency: when an existing row's `contentHash` matches the input's
@@ -355,6 +399,19 @@ export function createVocabRepository(db: AppDatabase) {
 }
 
 export type VocabRepository = ReturnType<typeof createVocabRepository>;
+
+export interface PronunciationPhraseExample {
+  text: string;
+  translation: string | null;
+  audioRef: string | null;
+}
+
+function stripExampleMarkup(text: string): string {
+  return text
+    .replace(/\{\{(.+?)\}\}/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 function dictionaryMatchTerms(term: string, headword?: string | null): string[] {
   const seeds = [term, headword ?? ""];

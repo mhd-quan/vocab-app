@@ -25,12 +25,7 @@ async function probeTransformersRuntime(
   if (!hasRuntimeDependency("@huggingface/transformers")) return false;
   if (!hasRuntimeDependency("onnxruntime-node")) return false;
   if (!hasRuntimeBinary("onnxruntime-node", platform, arch)) return false;
-  try {
-    await import("@huggingface/transformers");
-    return true;
-  } catch {
-    return false;
-  }
+  return true;
 }
 
 function hasRuntimeDependency(name: string): boolean {
