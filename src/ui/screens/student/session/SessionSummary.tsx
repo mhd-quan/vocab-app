@@ -1,7 +1,7 @@
 import { Badge } from "@/ui/components/Badge";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
-import { MascotIcon } from "@/ui/student/components/MascotIcon";
 import { PressButton } from "@/ui/student/components/PressButton";
+import { Mascot } from "@/ui/student/mascot";
 
 export interface SessionSummaryStats {
   total: number;
@@ -13,27 +13,21 @@ export function SessionSummary({
   stats,
   onRestart,
   onExit,
-  avatarSeed,
   studentId,
 }: {
   stats: SessionSummaryStats;
   onRestart: () => void;
   onExit: () => void;
-  avatarSeed?: string | null;
   studentId?: number | string | null;
 }) {
   const accuracy = stats.total === 0 ? 0 : Math.round((stats.correct / stats.total) * 100);
   const tone = accuracy >= 80 ? "success" : accuracy >= 50 ? "warning" : "danger";
+  const variant = accuracy >= 80 ? "cheer" : accuracy < 50 ? "concern" : "idle";
 
   return (
     <article className="flex flex-col gap-7 rounded-bento border border-border-subtle bg-surface-1 p-8 text-center shadow-card dark:shadow-card-dark">
       <header className="flex flex-col items-center gap-2">
-        <MascotIcon
-          mood={accuracy >= 80 ? "cheering" : "happy"}
-          avatarSeed={avatarSeed}
-          studentId={studentId}
-          className="h-24 w-24"
-        />
+        <Mascot variant={variant} studentId={studentId} className="h-24 w-24" />
         <Badge tone={tone} uppercase>
           Session complete
         </Badge>

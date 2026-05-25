@@ -16,7 +16,7 @@ import {
   StreakFlame,
 } from "@/ui/components/LearningIcons";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
-import { MascotIcon } from "@/ui/student/components/MascotIcon";
+import { Mascot } from "@/ui/student/mascot";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import { AchievementStrip } from "./AchievementStrip";
@@ -74,28 +74,31 @@ export function StudentHome() {
       </Link>
 
       <header className="grid gap-4 lg:grid-cols-[1.25fr_1fr]">
-        <BentoCard className="flex items-start gap-5 p-6" interactive tone="focus">
-          <Avatar
-            name={studentQ.data?.displayName ?? studentQ.data?.name ?? "?"}
-            avatarSeed={studentQ.data?.avatarSeed ?? null}
-            color={studentQ.data?.color ?? null}
-            size="lg"
-          />
-          <div className="flex min-w-0 flex-1 flex-col">
-            <Badge tone="focus" uppercase className="w-fit">
-              Student
-            </Badge>
-            <h1 className="mt-2 truncate text-4xl font-semibold leading-tight">
-              {studentQ.isLoading ? "Loading..." : studentName}
-            </h1>
-            <p className="mt-1 text-sm text-muted">Choose a lesson and keep the run alive.</p>
+        <BentoCard className="relative overflow-hidden p-6" interactive tone="focus">
+          <div className="absolute right-4 top-4 z-10">
             <AchievementStrip studentId={id} />
           </div>
-          <MascotIcon
-            mood="cheering"
-            avatarSeed={studentQ.data?.avatarSeed ?? null}
+          <div className="flex items-start gap-5 pr-32 sm:pr-40">
+            <Avatar
+              name={studentQ.data?.displayName ?? studentQ.data?.name ?? "?"}
+              avatarSeed={studentQ.data?.avatarSeed ?? null}
+              color={studentQ.data?.color ?? null}
+              size="lg"
+            />
+            <div className="flex min-w-0 flex-1 flex-col">
+              <Badge tone="focus" uppercase className="w-fit">
+                Student
+              </Badge>
+              <h1 className="mt-2 truncate text-4xl font-semibold leading-tight">
+                {studentQ.isLoading ? "Loading..." : studentName}
+              </h1>
+              <p className="mt-1 text-sm text-muted">Choose a lesson and keep the run alive.</p>
+            </div>
+          </div>
+          <Mascot
+            variant="cheer"
             studentId={id}
-            className="hidden h-24 w-24 shrink-0 self-center text-success sm:block"
+            className="pointer-events-none absolute -bottom-4 right-2 hidden h-44 w-44 select-none sm:block lg:h-48 lg:w-48"
           />
         </BentoCard>
         {summaryQ.data ? (

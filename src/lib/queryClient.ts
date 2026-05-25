@@ -80,6 +80,7 @@ export const queryKeys = {
   },
   studentPrefs: {
     studyBackground: (studentId: number) => ["studentPrefs", studentId, "studyBackground"] as const,
+    mascot: (studentId: number) => ["studentPrefs", studentId, "mascot"] as const,
   },
   imports: {
     listRuns: (limit?: number) => ["imports", "listRuns", limit ?? "default"] as const,

@@ -29,7 +29,6 @@ export interface GrammarSessionPlayerProps {
   ) => undefined | Promise<SessionResultPersistence | undefined>;
   onEvidence?: (result: GrammarPracticeResult) => void;
   soundEnabled?: boolean;
-  avatarSeed?: string | null;
   studentId?: number | string | null;
 }
 
@@ -51,7 +50,6 @@ export function GrammarSessionPlayer({
   onResult,
   onEvidence,
   soundEnabled = false,
-  avatarSeed,
   studentId,
 }: GrammarSessionPlayerProps) {
   const [started, setStarted] = useState(false);
@@ -178,7 +176,6 @@ export function GrammarSessionPlayer({
       <GrammarShell contextLabel={contextLabel} onExit={onExit}>
         <SessionSummary
           stats={summary}
-          avatarSeed={avatarSeed}
           studentId={studentId}
           onRestart={() => {
             setStarted(false);
