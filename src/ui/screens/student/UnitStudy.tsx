@@ -12,8 +12,8 @@ import { Badge } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { LessonIcon } from "@/ui/components/LearningIcons";
-import { MascotIcon } from "@/ui/student/components/MascotIcon";
 import { PressButton } from "@/ui/student/components/PressButton";
+import { Mascot } from "@/ui/student/mascot";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
@@ -35,12 +35,6 @@ export function StudentUnitStudy() {
     queryKey: queryKeys.curriculum.lessons(unitIdNum),
     queryFn: () => api.curriculum.listLessonsByUnit({ unitId: unitIdNum }),
     enabled: Number.isFinite(unitIdNum) && unitIdNum > 0,
-  });
-
-  const studentQ = useQuery({
-    queryKey: queryKeys.students.byId(studentIdNum),
-    queryFn: () => api.students.getById({ id: studentIdNum }),
-    enabled: Number.isFinite(studentIdNum) && studentIdNum > 0,
   });
 
   const lessons = lessonsQ.data ?? [];
@@ -132,11 +126,10 @@ export function StudentUnitStudy() {
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">{unit.summaryMd}</p>
           ) : null}
         </div>
-        <MascotIcon
-          mood="thinking"
-          avatarSeed={studentQ.data?.avatarSeed ?? null}
+        <Mascot
+          variant="focus"
           studentId={studentIdNum}
-          className="hidden h-24 w-24 shrink-0 text-focus lg:block"
+          className="hidden h-24 w-24 shrink-0 lg:block"
         />
         <div className="rounded-bento border border-border-subtle bg-surface-0/70 p-4">
           <p className="text-xs font-semibold uppercase text-muted-2">Selected cards</p>

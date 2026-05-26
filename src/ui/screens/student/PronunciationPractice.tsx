@@ -7,7 +7,7 @@ import { BentoCard } from "@/ui/components/BentoCard";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
 import { VocabularyPronunciation } from "@/ui/components/VocabularyPronunciation";
-import { MascotIcon } from "@/ui/student/components/MascotIcon";
+import { Mascot } from "@/ui/student/mascot";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -73,11 +73,6 @@ export function StudentPronunciationPractice() {
   const booksQ = useQuery({
     queryKey: queryKeys.students.assignedBooks(id),
     queryFn: () => api.students.listAssignedBooks({ studentId: id }),
-    enabled: Number.isFinite(id) && id > 0,
-  });
-  const studentQ = useQuery({
-    queryKey: queryKeys.students.byId(id),
-    queryFn: () => api.students.getById({ id }),
     enabled: Number.isFinite(id) && id > 0,
   });
   const assignedEntriesQ = useQuery({
@@ -269,33 +264,33 @@ export function StudentPronunciationPractice() {
         Back to units
       </Link>
 
-      <BentoCard tone="sky" className="p-6">
-        <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
-          <div className="flex items-start gap-4">
-            <MascotIcon
-              mood="thinking"
-              avatarSeed={studentQ.data?.avatarSeed ?? null}
-              studentId={id}
-              className="hidden h-24 w-24 shrink-0 sm:block"
-            />
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge tone="sky" uppercase>
-                  Pronunciation
-                </Badge>
-                <Badge tone={statusQ.data?.available ? "success" : "warning"} uppercase>
-                  {statusQ.data?.available ? statusQ.data.executionProvider : "model setup"}
-                </Badge>
-              </div>
-              <h1 className="mt-3 text-3xl font-semibold leading-tight">Pronunciation lab</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-                IPA and dictionary audio are ready. Acoustic scoring turns on automatically when the
-                offline CAPT model bundle is installed.
-              </p>
+      <BentoCard tone="sky" className="relative overflow-hidden p-6">
+        <div className="flex items-start gap-5 pr-32 sm:pr-44">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge tone="sky" uppercase>
+                Pronunciation
+              </Badge>
+              <Badge tone={statusQ.data?.available ? "success" : "warning"} uppercase>
+                {warmupActive
+                  ? "Warming up"
+                  : statusQ.data?.available
+                    ? "Model ready"
+                    : "Model setup"}
+              </Badge>
             </div>
+            <h1 className="mt-3 text-3xl font-semibold leading-tight">Pronunciation lab</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
+              IPA and dictionary audio are ready. Acoustic scoring turns on automatically when the
+              offline CAPT model bundle is installed.
+            </p>
           </div>
-          <RuntimeCard status={statusQ.data ?? null} warmupActive={warmupActive} />
         </div>
+        <Mascot
+          variant="focus"
+          studentId={id}
+          className="pointer-events-none absolute -bottom-4 right-2 hidden h-40 w-40 select-none sm:block lg:h-48 lg:w-48"
+        />
       </BentoCard>
 
       {entriesIsLoading || booksQ.isLoading ? (
@@ -311,7 +306,13 @@ export function StudentPronunciationPractice() {
           <section className="grid gap-5 xl:grid-cols-[20rem_1fr]">
             <BentoCard className="p-4">
               <h2 className="text-sm font-semibold uppercase text-muted-2">Targets</h2>
-              <div className="mt-3 flex max-h-[34rem] flex-col gap-4 overflow-y-auto pr-1">
+              <div
+                className={cn(
+                  "mt-3 flex max-h-[34rem] flex-col gap-4 overflow-y-auto pr-1 pb-6",
+                  "[mask-image:linear-gradient(to_bottom,black_calc(100%-3rem),transparent)]",
+                  "[-webkit-mask-image:linear-gradient(to_bottom,black_calc(100%-3rem),transparent)]",
+                )}
+              >
                 {labTargets.map((section) => (
                   <div key={section.kind} className="flex flex-col gap-2">
                     <div className="flex items-center justify-between">
@@ -388,34 +389,9 @@ export function StudentPronunciationPractice() {
   );
 }
 
-type PronunciationStatusView = Awaited<ReturnType<typeof api.pronunciation.status>>;
 type PronunciationPreviewView = Awaited<ReturnType<typeof api.pronunciation.preview>>;
 type PronunciationAssessView = Awaited<ReturnType<typeof api.pronunciation.assess>>;
 type PronunciationRecorderView = ReturnType<typeof usePronunciationRecorder>;
-
-function RuntimeCard({
-  status,
-  warmupActive,
-}: {
-  status: PronunciationStatusView | null;
-  warmupActive: boolean;
-}) {
-  return (
-    <div className="rounded-bento border border-border-subtle bg-surface-0/70 p-4 text-xs">
-      <p className="font-semibold uppercase text-muted-2">Runtime</p>
-      <p className="mt-1 font-mono text-lg text-app">
-        {status
-          ? `${status.modelFamily ?? "capt"} / ${status.backend} / ${status.executionProvider}`
-          : "..."}
-      </p>
-      <p className="mt-1 max-w-xs leading-5 text-muted">
-        {warmupActive
-          ? "Warming up CAPT… first attempt will start in a moment."
-          : (status?.reason ?? "Offline model ready.")}
-      </p>
-    </div>
-  );
-}
 
 function TargetPanel({
   entry,
