@@ -50,7 +50,7 @@ export function ImportModal({ open, onClose, onImported }: ImportModalProps) {
       open={open}
       onClose={onClose}
       title="Import YAML"
-      description="Add a vocabulary YAML file to the local content library."
+      description="Add a vocabulary or grammar YAML file to the local content library."
       size="lg"
       footer={
         <>

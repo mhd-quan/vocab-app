@@ -164,7 +164,7 @@ function AuthoringPanel({ onImported }: { onImported: () => Promise<void> }) {
         <div className="text-xs text-muted">
           {importDraft.data
             ? formatAuthoringResult(importDraft.data)
-            : "Imports are saved into content/books/<book-code>."}
+            : "Imports are saved into the local content library."}
         </div>
         <Button onClick={() => importDraft.mutate()} disabled={importDraft.isPending}>
           {importDraft.isPending ? "Importing..." : "Validate & import"}
