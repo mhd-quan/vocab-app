@@ -8,6 +8,7 @@ import {
   ImportVocabUseCase,
   parseContentFile,
 } from "../../../src/application/import";
+import { getImportedContentBooksRoot } from "../../content/paths";
 import type { Repositories } from "../../db/repositories";
 import { defineProcedure } from "../procedure";
 
@@ -61,13 +62,25 @@ export const importsProcedures = [
 
       const results: ImportFileResult[] = [];
       for (const filePath of result.filePaths) {
-        const content = await fs.readFile(filePath, "utf8");
-        results.push(await importContent(path.basename(filePath), content, ctx.repos));
+        results.push(await importSelectedFile(filePath, ctx.repos));
       }
       return { canceled: false, results };
     },
   }),
 ];
+
+async function importSelectedFile(
+  filePath: string,
+  repos: Repositories,
+): Promise<ImportFileResult> {
+  const start = Date.now();
+  try {
+    const content = await fs.readFile(filePath, "utf8");
+    return importContent(path.basename(filePath), content, repos);
+  } catch (err) {
+    return failedImportResult(filePath, start, `Cannot read file: ${formatError(err)}`);
+  }
+}
 
 async function importContent(
   fileName: string,
@@ -92,15 +105,7 @@ async function importContent(
     const usecase = new ImportVocabUseCase({ repos });
     return usecase.importFile(destinationPath);
   } catch (err) {
-    return {
-      filePath: fileName,
-      fileHash: "",
-      status: "failed",
-      durationMs: Date.now() - start,
-      stats: { inserted: 0, updated: 0, skipped: 0, failed: 1 },
-      items: [],
-      errors: [{ message: formatError(err) }],
-    };
+    return failedImportResult(fileName, start, formatError(err));
   }
 }
 
@@ -117,9 +122,23 @@ function safeYamlFileName(fileName: string): string {
 }
 
 function getContentBooksRoot(): string {
-  return process.env.VOCAB_CONTENT_ROOT
-    ? path.resolve(process.env.VOCAB_CONTENT_ROOT)
-    : path.resolve(process.cwd(), "content", "books");
+  return getImportedContentBooksRoot();
+}
+
+function failedImportResult(
+  filePath: string,
+  startedAt: number,
+  message: string,
+): ImportFileResult {
+  return {
+    filePath,
+    fileHash: "",
+    status: "failed",
+    durationMs: Date.now() - startedAt,
+    stats: { inserted: 0, updated: 0, skipped: 0, failed: 1 },
+    items: [],
+    errors: [{ message }],
+  };
 }
 
 function formatError(err: unknown): string {

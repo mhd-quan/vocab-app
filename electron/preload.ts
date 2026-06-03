@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
+import packageJson from "../package.json";
 import type { ImportFileResult } from "../src/application/import";
 import type {
   DictionaryAsset,
@@ -259,8 +260,8 @@ interface PronunciationAssessment {
 
 const api = {
   app: {
-    name: "vocab-app",
-    version: "0.14.0",
+    name: packageJson.name,
+    version: packageJson.version,
     platform: process.platform,
   },
 
