@@ -8,14 +8,14 @@ Object.defineProperty(window, "api", {
   value: {
     app: {
       name: "vocab-app",
-      version: "0.16.2",
+      version: "0.16.3",
       platform: "test",
     },
     meta: {
       ping: async () => "pong" as const,
       appInfo: async () => ({
         name: "vocab-app",
-        version: "0.16.2",
+        version: "0.16.3",
         schemaTablesExpected: 26,
         dbPath: ":memory:",
       }),
@@ -171,6 +171,31 @@ Object.defineProperty(window, "api", {
       set: async () => ({ ok: true }),
       delete: async () => ({ ok: true }),
       getAll: async () => ({}),
+    },
+    permissions: {
+      microphoneStatus: async () => ({
+        platform: "test",
+        status: "granted",
+        granted: true,
+        readyForCapture: true,
+        canPrompt: false,
+        canOpenSettings: false,
+        requiresSystemSettings: false,
+        requiresRestart: false,
+        reason: null,
+      }),
+      requestMicrophone: async () => ({
+        platform: "test",
+        status: "granted",
+        granted: true,
+        readyForCapture: true,
+        canPrompt: false,
+        canOpenSettings: false,
+        requiresSystemSettings: false,
+        requiresRestart: false,
+        reason: null,
+      }),
+      openMicrophoneSettings: async () => ({ opened: false }),
     },
     imports: {
       listRuns: async () => [],

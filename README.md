@@ -264,6 +264,11 @@ plumbing required.
 - The Imports screen supports drag/drop upload and native file selection for
   `.yaml` and `.yml`. Imported files are copied into the writable local content
   library and then processed by the same `ImportVocabUseCase` used by the CLI.
+- Microphone capture goes through both Electron session permission handlers and
+  the native `permissions.*` IPC service. macOS prompts via
+  `systemPreferences.askForMediaAccess("microphone")`; Windows reports the
+  system media-access status and links to the microphone privacy pane when the
+  OS blocks desktop apps.
 - `content/templates/` contains validating vocab and grammar templates,
   focused vocab-study and revision-practice starters, `IMPORT-SYNTAX.md`,
   and an exercise reference for current and planned exercise kinds.

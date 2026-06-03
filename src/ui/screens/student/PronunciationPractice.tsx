@@ -12,6 +12,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MicButton } from "./pronunciation/MicButton";
+import { MicrophonePermissionNotice } from "./pronunciation/MicrophonePermissionNotice";
 import { PhonemeRail, PhraseRail } from "./pronunciation/PhraseRail";
 import { usePronunciationRecorder } from "./pronunciation/usePronunciationRecorder";
 
@@ -534,11 +535,7 @@ function RecorderStatus({ recorder }: { recorder: PronunciationRecorderView }) {
   }
 
   if (recorder.error) {
-    return (
-      <div className="rounded-xl border border-warning/35 bg-warning/10 px-4 py-3 text-sm text-warning">
-        {recorder.error}
-      </div>
-    );
+    return <MicrophonePermissionNotice message={recorder.error} permission={recorder.permission} />;
   }
 
   return (
