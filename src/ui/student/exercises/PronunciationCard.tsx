@@ -25,6 +25,7 @@ import { BentoCard } from "@/ui/components/BentoCard";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
 import { VocabularyPronunciation } from "@/ui/components/VocabularyPronunciation";
 import { MicButton } from "@/ui/screens/student/pronunciation/MicButton";
+import { MicrophonePermissionNotice } from "@/ui/screens/student/pronunciation/MicrophonePermissionNotice";
 import { usePronunciationRecorder } from "@/ui/screens/student/pronunciation/usePronunciationRecorder";
 import { useMutation } from "@tanstack/react-query";
 
@@ -119,9 +120,7 @@ export function PronunciationCard({
       ) : null}
 
       {recorder.error ? (
-        <div className="rounded-xl border border-warning/35 bg-warning/10 px-4 py-3 text-sm text-warning">
-          {recorder.error}
-        </div>
+        <MicrophonePermissionNotice message={recorder.error} permission={recorder.permission} />
       ) : null}
 
       {assess.error ? (

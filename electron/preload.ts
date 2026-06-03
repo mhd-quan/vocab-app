@@ -49,6 +49,7 @@ import type { FleetSnapshot } from "./db/repositories/progress";
 import type { StudyTargetsResult } from "./db/repositories/progress";
 import type { VocabEntryFull } from "./db/repositories/vocab";
 import type { PronunciationPhraseExample } from "./db/repositories/vocab";
+import type { MicrophonePermissionState } from "./permissions/microphone";
 
 const invoke = <T>(channel: string, payload?: unknown): Promise<T> =>
   ipcRenderer.invoke(channel, payload) as Promise<T>;
@@ -394,6 +395,12 @@ const api = {
     set: (input: { key: string; value: unknown }) => invoke<{ ok: true }>("settings.set", input),
     delete: (input: { key: string }) => invoke<{ ok: true }>("settings.delete", input),
     getAll: () => invoke<Record<string, unknown>>("settings.getAll"),
+  },
+
+  permissions: {
+    microphoneStatus: () => invoke<MicrophonePermissionState>("permissions.microphoneStatus"),
+    requestMicrophone: () => invoke<MicrophonePermissionState>("permissions.requestMicrophone"),
+    openMicrophoneSettings: () => invoke<{ opened: boolean }>("permissions.openMicrophoneSettings"),
   },
 
   imports: {
