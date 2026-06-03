@@ -1,6 +1,12 @@
 import { api } from "@/lib/api";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PCM_WORKLET_SOURCE } from "./pcmWorklet";
+import {
+  type RecorderPhase,
+  describeRecorderError,
+  isTransientCaptureAbort,
+  recorderErrorMeta,
+} from "./recorderErrors";
 
 export interface RecordedPronunciationAudio {
   audioPcm: Float32Array;
@@ -12,7 +18,7 @@ export type PronunciationRecorderState = "idle" | "recording" | "ready" | "unsup
 type MicrophonePermissionView = Awaited<ReturnType<typeof api.permissions.microphoneStatus>>;
 
 const MAX_RECORDING_MS = 10_000;
-const TARGET_SAMPLE_RATE = 16_000;
+const FALLBACK_SAMPLE_RATE = 16_000;
 const PROCESSOR_NAME = "pcm-capture";
 
 let cachedWorkletUrl: string | null = null;
@@ -77,7 +83,7 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
 
   const finish = useCallback(async (): Promise<RecordedPronunciationAudio | null> => {
     const context = audioContextRef.current;
-    const sampleRate = context?.sampleRate ?? TARGET_SAMPLE_RATE;
+    const sampleRate = context?.sampleRate ?? FALLBACK_SAMPLE_RATE;
     if (!context || chunksRef.current.length === 0) {
       await cleanup();
       setState("error");
@@ -124,14 +130,14 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
     setDurationMs(0);
     chunksRef.current = [];
 
-    // Tracked so the catch block can log which capture step failed —
-    // macOS in particular surfaces AbortError from getUserMedia when the
-    // Renderer helper bundle is missing NSMicrophoneUsageDescription,
-    // and the raw message ("The user aborted a request.") is unhelpful
-    // to the user without that context.
-    let phase: "getUserMedia" | "AudioContext" | "audioWorklet" | "graph" = "getUserMedia";
+    // Tracked so the catch block can report the actual failing layer. macOS
+    // and Chromium both surface several unrelated capture failures as the
+    // same AbortError string.
+    let phase: RecorderPhase = "getUserMedia";
+    let activePermission: MicrophonePermissionView | null = null;
     try {
       const permission = await api.permissions.requestMicrophone();
+      activePermission = permission;
       setPermission(permission);
       if (!permission.readyForCapture) {
         setState("error");
@@ -139,15 +145,16 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
         return false;
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: false,
-      });
+      const stream = await getMicrophoneStream(permission);
+      streamRef.current = stream;
       phase = "AudioContext";
-      const context = new AudioContextCtor({ sampleRate: TARGET_SAMPLE_RATE });
+      const context = new AudioContextCtor();
+      audioContextRef.current = context;
+      if (context.state === "suspended") {
+        await context.resume();
+      }
       if (!context.audioWorklet) {
-        await context.close().catch(() => undefined);
-        for (const track of stream.getTracks()) track.stop();
+        await cleanup();
         setState("unsupported");
         setError("AudioWorklet is not supported in this environment.");
         return false;
@@ -157,11 +164,13 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
       await context.audioWorklet.addModule(workletUrl());
       phase = "graph";
       const source = context.createMediaStreamSource(stream);
+      sourceRef.current = source;
       const node = new AudioWorkletNode(context, PROCESSOR_NAME, {
         numberOfInputs: 1,
         numberOfOutputs: 1,
         outputChannelCount: [1],
       });
+      workletRef.current = node;
       node.port.onmessage = (event) => {
         if (event.data instanceof Float32Array && event.data.length > 0) {
           chunksRef.current.push(event.data);
@@ -174,10 +183,6 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
       // since we never write to `outputs` in the processor).
       node.connect(context.destination);
 
-      audioContextRef.current = context;
-      streamRef.current = stream;
-      sourceRef.current = source;
-      workletRef.current = node;
       startedAtRef.current = Date.now();
       setState("recording");
 
@@ -189,10 +194,16 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
       }, maxDurationMs);
       return true;
     } catch (err) {
-      console.warn("[capt-recorder] capture failed", { phase, ...errorMeta(err) });
+      activePermission = await latestMicrophonePermission(activePermission);
+      console.warn("[capt-recorder] capture failed", {
+        phase,
+        permission: activePermission,
+        ...recorderErrorMeta(err),
+      });
       await cleanup();
+      setPermission(activePermission);
       setState("error");
-      setError(describeRecorderError(err, phase));
+      setError(describeRecorderError(err, { phase, permission: activePermission }));
       return false;
     }
   }, [cleanup, finish, maxDurationMs, state]);
@@ -243,45 +254,34 @@ function mergeChunks(chunks: Float32Array[]): Float32Array {
   return merged;
 }
 
-function describeRecorderError(err: unknown, phase: string): string {
-  const name = err instanceof DOMException ? err.name : null;
-  if (name === "NotAllowedError") {
-    return "Microphone access was denied. Enable it in System Settings → Privacy & Security → Microphone, then try again.";
+async function getMicrophoneStream(permission: MicrophonePermissionView): Promise<MediaStream> {
+  const constraints: MediaStreamConstraints = { audio: true, video: false };
+  try {
+    return await navigator.mediaDevices.getUserMedia(constraints);
+  } catch (err) {
+    if (!shouldRetryGetUserMedia(err, permission)) throw err;
   }
-  if (name === "NotFoundError") {
-    return "No microphone was found. Plug in or select an input device, then try again.";
-  }
-  if (name === "OverconstrainedError") {
-    return "The selected microphone does not support the requested format. Pick a different input device.";
-  }
-  if (name === "NotReadableError") {
-    return "The microphone is busy. Close other apps that may be recording, then try again.";
-  }
-  if (name === "AbortError" || /the user aborted a request/i.test(messageOf(err))) {
-    // On macOS this fires when the Renderer helper bundle is missing
-    // NSMicrophoneUsageDescription, or when the OS revokes the request
-    // mid-prompt. Either way, "user aborted" is misleading — the user
-    // didn't do anything.
-    return "Microphone capture was interrupted by the system. Open System Settings → Privacy & Security → Microphone, allow this app, then restart it.";
-  }
-  if (err instanceof Error && err.message) return `${err.message} (phase: ${phase})`;
-  return `Microphone permission was not granted (phase: ${phase}).`;
+
+  await delay(200);
+  return navigator.mediaDevices.getUserMedia(constraints);
 }
 
-function messageOf(err: unknown): string {
-  return err instanceof Error ? err.message : "";
+function shouldRetryGetUserMedia(err: unknown, permission: MicrophonePermissionView): boolean {
+  if (!isTransientCaptureAbort(err)) return false;
+  if (permission.status === "denied" || permission.status === "restricted") return false;
+  return permission.readyForCapture;
 }
 
-function errorMeta(err: unknown): {
-  name: string | null;
-  message: string;
-  code?: number;
-} {
-  if (err instanceof DOMException) {
-    return { name: err.name, message: err.message, code: err.code };
+async function latestMicrophonePermission(
+  fallback: MicrophonePermissionView | null,
+): Promise<MicrophonePermissionView | null> {
+  try {
+    return await api.permissions.microphoneStatus();
+  } catch {
+    return fallback;
   }
-  if (err instanceof Error) {
-    return { name: err.name, message: err.message };
-  }
-  return { name: null, message: String(err) };
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
