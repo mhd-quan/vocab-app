@@ -1,0 +1,9 @@
+[workspace]
+members = ["vocab-core", "vocab-core-service"]
+resolver = "2"
+
+[workspace.package]
+version = "0.17.0"
+edition = "2021"
+license = "UNLICENSED"
+publish = false

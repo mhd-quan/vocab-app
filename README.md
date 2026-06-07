@@ -4,24 +4,11 @@ Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
 student practice) running as a desktop app on Windows and macOS.
 
-> **Status:** v0.15.3 — local-first tutor workspace, student practice,
-> FSRS-lite review, personal dictionary learning, rewards, imports, and
-> the HuBERT-backed CAPT pronunciation pipeline, now with pronunciation
-> as a first-class exercise inside vocab learning sessions. v0.15.3
-> closes the two macOS noise sources that survived v0.15.2: the
-> `AVCaptureDeviceTypeExternal` warning is gone in packaged builds
-> (forge's `extendHelperInfo` patches every helper bundle's plist) and
-> in dev (the postinstall script now patches all four Electron helper
-> bundles, not just the top-level app), and the transient
-> "user aborted a request." has been pushed down into the CAPT worker
-> so warmup + inference both benefit from the same single quiet retry.
-> The new pronunciation exercise lives behind the existing exercise
-> plugin seam: the card runs the assess IPC inline, packs the result
-> into the answer, and the engine's sync `grade()` flips the card's
-> `needsRetry` flag when the score lands under 70 so SessionPlayer
-> holds the card for another attempt while FSRS keeps counting lapses.
-> It appears in Mixed mode and in a dedicated "Pronunciation" session
-> mode.
+> **Status:** v0.17.0 — local-first tutor workspace, student practice,
+> FSRS-lite review, personal dictionary learning, rewards, imports, the
+> HuBERT-backed CAPT pronunciation pipeline, restored mascot assets, and
+> the first Rust native-core workspace for reusable pure logic plus future
+> utility-process services.
 >
 
 ## Stack
@@ -41,6 +28,7 @@ student practice) running as a desktop app on Windows and macOS.
 | Auth         | scrypt-hashed tutor PIN (Node `crypto`)           |
 | Content      | YAML files in `content/`, parsed via `js-yaml`    |
 | CAPT         | Transformers.js + ONNX Runtime Node, offline model resources |
+| Native core  | Rust workspace for reusable pure logic + future utility service |
 | Watch        | chokidar (`npm run import:watch`)                 |
 
 ## Folder layout
@@ -71,6 +59,8 @@ vocab-app/
 │   ├── books/
 │   │   └── destination-b1/
 │   └── templates/        # authoring templates + exercise reference
+├── core/                 # Rust native core workspace (pure logic + service scaffold)
+├── crates/               # Native/WASM adapters used by current Electron runtime
 ├── drizzle/              # Generated SQL migrations + meta (versioned)
 ├── scripts/
 │   ├── migrate-dev.ts    # Apply migrations without launching Electron
@@ -108,6 +98,8 @@ npm run make           # produce installers (DMG/ZIP/Squirrel/DEB)
 npm run verify:artifacts # verify app/dictionary/CAPT package resources
 npm run rebuild        # rebuild better-sqlite3 against Electron's Node ABI
 npm run build:wasm     # build crates/viterbi → assets/pronunciation/viterbi.wasm (needs rustup + wasm32 target)
+npm run core:check     # cargo check for the Rust native core workspace
+npm run core:test      # cargo test for the Rust native core workspace
 
 npm run db:generate    # drizzle-kit generate (after editing src/data/schema)
 npm run db:migrate:dev # apply migrations to ./data/dev.db without Electron
