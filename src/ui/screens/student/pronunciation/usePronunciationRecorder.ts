@@ -10,7 +10,7 @@ export interface RecordedPronunciationAudio {
 export type PronunciationRecorderState = "idle" | "recording" | "ready" | "unsupported" | "error";
 
 const MAX_RECORDING_MS = 10_000;
-const TARGET_SAMPLE_RATE = 16_000;
+const DEFAULT_SAMPLE_RATE = 16_000;
 const PROCESSOR_NAME = "pcm-capture";
 
 let cachedWorkletUrl: string | null = null;
@@ -74,7 +74,7 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
 
   const finish = useCallback(async (): Promise<RecordedPronunciationAudio | null> => {
     const context = audioContextRef.current;
-    const sampleRate = context?.sampleRate ?? TARGET_SAMPLE_RATE;
+    const sampleRate = context?.sampleRate ?? DEFAULT_SAMPLE_RATE;
     if (!context || chunksRef.current.length === 0) {
       await cleanup();
       setState("error");
@@ -131,11 +131,13 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
         audio: true,
         video: false,
       });
+      streamRef.current = stream;
+
       phase = "AudioContext";
-      const context = new AudioContextCtor({ sampleRate: TARGET_SAMPLE_RATE });
+      const context = new AudioContextCtor();
+      audioContextRef.current = context;
       if (!context.audioWorklet) {
-        await context.close().catch(() => undefined);
-        for (const track of stream.getTracks()) track.stop();
+        await cleanup();
         setState("unsupported");
         setError("AudioWorklet is not supported in this environment.");
         return false;
@@ -162,8 +164,6 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
       // since we never write to `outputs` in the processor).
       node.connect(context.destination);
 
-      audioContextRef.current = context;
-      streamRef.current = stream;
       sourceRef.current = source;
       workletRef.current = node;
       startedAtRef.current = Date.now();

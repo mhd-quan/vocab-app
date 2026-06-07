@@ -1,6 +1,12 @@
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryClient";
-import { type Exercise, buildDeck, defaultSessionSeed } from "@/modules/exercises";
+import {
+  createLazyDeck,
+  defaultSessionSeed,
+  fromVocabEntry,
+  getPlugin,
+  sourceKey,
+} from "@/modules/exercises";
 import {
   exerciseKindsForMode,
   normalizeExerciseSessionMode,
@@ -20,6 +26,7 @@ import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GrammarSessionPlayer } from "./session/GrammarSessionPlayer";
 import {
+  type SessionDeck,
   SessionPlayer,
   type SessionResult,
   type SessionResultPersistence,
@@ -102,55 +109,21 @@ export function StudentSession() {
     enabled: Number.isFinite(lessonIdNum) && lessonIdNum > 0 && lessonQ.data?.kind === "grammar",
   });
 
-  const soundQ = useQuery({
-    queryKey: ["settings", "get", SOUND_KEY],
-    queryFn: () => api.settings.get<boolean>({ key: SOUND_KEY }),
+  const settingsQ = useQuery({
+    queryKey: ["settings", "session"],
+    queryFn: () => api.settings.getAll(),
+    staleTime: 0,
   });
 
-  const sessionCountQ = useQuery({
-    queryKey: ["settings", "get", SESSION_COUNT_KEY],
-    queryFn: () => api.settings.get<number>({ key: SESSION_COUNT_KEY }),
-  });
-
-  const sessionModeQ = useQuery({
-    queryKey: ["settings", "get", SESSION_MODE_KEY],
-    queryFn: () => api.settings.get<string>({ key: SESSION_MODE_KEY }),
-  });
-
-  const sessionShuffleQ = useQuery({
-    queryKey: ["settings", "get", SESSION_SHUFFLE_KEY],
-    queryFn: () => api.settings.get<boolean>({ key: SESSION_SHUFFLE_KEY }),
-  });
-
-  const definitionPriorityQ = useQuery({
-    queryKey: ["settings", "get", DEFINITION_PRIORITY_KEY],
-    queryFn: () => api.settings.get<string>({ key: DEFINITION_PRIORITY_KEY }),
-  });
-
-  const cameraCheckinsQ = useQuery({
-    queryKey: ["settings", "get", CAMERA_CHECKINS_KEY],
-    queryFn: () => api.settings.get<boolean>({ key: CAMERA_CHECKINS_KEY }),
-  });
-
-  const screenshotsQ = useQuery({
-    queryKey: ["settings", "get", SCREENSHOTS_KEY],
-    queryFn: () => api.settings.get<boolean>({ key: SCREENSHOTS_KEY }),
-  });
-
-  const sessionCount = normalizeSessionCount(sessionCountQ.data);
-  const sessionMode = normalizeExerciseSessionMode(sessionModeQ.data);
-  const definitionPriority = normalizeDefinitionPriority(definitionPriorityQ.data);
+  const settings = settingsQ.data ?? {};
+  const sessionCount = normalizeSessionCount(settings[SESSION_COUNT_KEY]);
+  const sessionMode = normalizeExerciseSessionMode(settings[SESSION_MODE_KEY]);
+  const definitionPriority = normalizeDefinitionPriority(settings[DEFINITION_PRIORITY_KEY]);
   const effectiveSessionMode =
     lessonQ.data?.kind === "grammar" ? "grammar" : practiceModeForExerciseMode(sessionMode);
   const exerciseKinds = useMemo(() => exerciseKindsForMode(sessionMode), [sessionMode]);
-  const shuffleDeck = sessionShuffleQ.data !== false;
-  const settingsLoading =
-    sessionCountQ.isLoading ||
-    sessionModeQ.isLoading ||
-    sessionShuffleQ.isLoading ||
-    definitionPriorityQ.isLoading ||
-    cameraCheckinsQ.isLoading ||
-    screenshotsQ.isLoading;
+  const shuffleDeck = settings[SESSION_SHUFFLE_KEY] !== false;
+  const settingsLoading = settingsQ.isLoading;
 
   const sessionStart = useMutation({
     mutationFn: (input: { studentId: number }) =>
@@ -165,8 +138,8 @@ export function StudentSession() {
     studentId: studentIdNum,
     sessionId,
     contextLabel: lessonQ.data?.title,
-    cameraCheckinsEnabled: cameraCheckinsQ.data === true,
-    screenshotsEnabled: screenshotsQ.data === true,
+    cameraCheckinsEnabled: settings[CAMERA_CHECKINS_KEY] === true,
+    screenshotsEnabled: settings[SCREENSHOTS_KEY] === true,
   });
 
   useEffect(() => {
@@ -193,27 +166,35 @@ export function StudentSession() {
     return filterVocabEntriesBySections(entriesQ.data, selectedSections);
   }, [entriesQ.data, selectedSections]);
 
-  const deck = useMemo<Exercise[]>(() => {
+  const sources = useMemo(() => filteredEntries.map(fromVocabEntry), [filteredEntries]);
+  const seenSourceKeys = useMemo(
+    () => (seenEntryIdsQ.data ?? []).map((id) => sourceKey("curated", id)),
+    [seenEntryIdsQ.data],
+  );
+
+  const deck = useMemo<SessionDeck>(() => {
     if (!entriesQ.data || settingsLoading || seenEntryIdsQ.isLoading) return [];
-    return buildDeck({
-      entries: filteredEntries,
+    return createLazyDeck({
+      sources,
+      sourcePool: sources,
       kinds: exerciseKinds,
       sessionSeed: seed,
+      getPlugin,
       maxExercises: sessionCount,
       definitionPriority,
       shuffle: shuffleDeck,
-      seenEntryIds: seenEntryIdsQ.data ?? [],
+      seenSourceKeys,
       requireFlashcardForNew: true,
-    }).exercises;
+    });
   }, [
     entriesQ.data,
-    filteredEntries,
+    sources,
     exerciseKinds,
     seed,
     sessionCount,
     definitionPriority,
     shuffleDeck,
-    seenEntryIdsQ.data,
+    seenSourceKeys,
     seenEntryIdsQ.isLoading,
     settingsLoading,
   ]);
@@ -344,7 +325,7 @@ export function StudentSession() {
             })
           }
           contextLabel={contextLabel}
-          soundEnabled={soundQ.data === true}
+          soundEnabled={settings[SOUND_KEY] === true}
           avatarSeed={studentQ.data?.avatarSeed ?? null}
           studentId={studentIdNum}
         />
@@ -373,7 +354,7 @@ export function StudentSession() {
           })
         }
         contextLabel={contextLabel}
-        soundEnabled={soundQ.data === true}
+        soundEnabled={settings[SOUND_KEY] === true}
         autoplay={pronunciationAutoplay}
         preferredAccent={pronunciationAccent}
         avatarSeed={studentQ.data?.avatarSeed ?? null}

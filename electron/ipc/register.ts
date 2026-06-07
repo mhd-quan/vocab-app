@@ -1,6 +1,8 @@
 import { ipcMain } from "electron";
 import type { AnyProcedure, ProcedureContext } from "./procedure";
 
+const SLOW_IPC_WARN_MS = 100;
+
 /**
  * Wire every procedure into Electron's `ipcMain.handle`. Registered names
  * must be unique — duplicates throw at startup so we catch typos early.
@@ -21,8 +23,16 @@ export function registerIpcProcedures(
     seen.add(proc.name);
 
     ipcMain.handle(proc.name, async (_event, rawInput) => {
-      const input = proc.inputSchema.parse(rawInput);
-      return proc.handler(input, ctx);
+      const startedAt = Date.now();
+      try {
+        const input = proc.inputSchema.parse(rawInput);
+        return await proc.handler(input, ctx);
+      } finally {
+        const durationMs = Date.now() - startedAt;
+        if (durationMs >= SLOW_IPC_WARN_MS) {
+          console.warn("[ipc] slow handler", { channel: proc.name, durationMs });
+        }
+      }
     });
   }
 }

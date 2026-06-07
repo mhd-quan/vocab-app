@@ -147,6 +147,8 @@ const config: ForgeConfig = {
     // permission prompt with a misleading "user aborted" error.
     extendHelperInfo: {
       NSCameraUseContinuityCameraDeviceType: true,
+      NSCameraUsageDescription:
+        "Vocab App can take visible, consented camera check-ins during student study sessions.",
       NSMicrophoneUsageDescription:
         "Vocab App uses your microphone to score pronunciation locally. Audio never leaves this device.",
     },

@@ -108,10 +108,10 @@ export const evidenceProcedures = [
   defineProcedure({
     name: "evidence.recordCameraSnapshot",
     input: cameraSnapshotInput,
-    handler: (input, ctx) => {
+    handler: async (input, ctx) => {
       const parsed = parseSnapshotDataUrl(input.dataUrl);
       const capturedAt = input.capturedAtIso ? new Date(input.capturedAtIso) : new Date();
-      const relativePath = writeSnapshotFile(input.sessionId, capturedAt, parsed);
+      const relativePath = await writeSnapshotFile(input.sessionId, capturedAt, parsed);
       const sha256 = crypto.createHash("sha256").update(parsed.buffer).digest("hex");
 
       return ctx.repos.evidence.recordEvent({
@@ -607,7 +607,7 @@ function importEvidenceEvents(
       const { snapshotDataUrl: _snapshotDataUrl, ...payloadWithoutSnapshot } = payload;
       payload = {
         ...payloadWithoutSnapshot,
-        fileName: writeSnapshotFile(targetSessionId, occurredAt, parsed),
+        fileName: writeSnapshotFileSync(targetSessionId, occurredAt, parsed),
         mimeType: parsed.mimeType,
         bytes: parsed.buffer.byteLength,
         sha256: crypto.createHash("sha256").update(parsed.buffer).digest("hex"),
@@ -965,19 +965,37 @@ function parseSnapshotDataUrl(dataUrl: string): { mimeType: string; buffer: Buff
   return { mimeType: match[1] ?? "image/jpeg", buffer };
 }
 
-function writeSnapshotFile(
+async function writeSnapshotFile(
+  sessionId: number,
+  capturedAt: Date,
+  snapshot: { mimeType: string; buffer: Buffer },
+): Promise<string> {
+  const { fullPath, relativePath } = snapshotPath(sessionId, capturedAt, snapshot.mimeType);
+  await fs.promises.mkdir(path.dirname(fullPath), { recursive: true });
+  await fs.promises.writeFile(fullPath, snapshot.buffer);
+  return relativePath;
+}
+
+function writeSnapshotFileSync(
   sessionId: number,
   capturedAt: Date,
   snapshot: { mimeType: string; buffer: Buffer },
 ): string {
-  const ext =
-    snapshot.mimeType === "image/png" ? "png" : snapshot.mimeType === "image/webp" ? "webp" : "jpg";
-  const dirName = `session-${sessionId}`;
-  const relativePath = path.join(dirName, `${formatStamp(capturedAt)}.${ext}`);
-  const fullPath = safeEvidencePath(relativePath);
+  const { fullPath, relativePath } = snapshotPath(sessionId, capturedAt, snapshot.mimeType);
   fs.mkdirSync(path.dirname(fullPath), { recursive: true });
   fs.writeFileSync(fullPath, snapshot.buffer);
   return relativePath;
+}
+
+function snapshotPath(
+  sessionId: number,
+  capturedAt: Date,
+  mimeType: string,
+): { fullPath: string; relativePath: string } {
+  const ext = mimeType === "image/png" ? "png" : mimeType === "image/webp" ? "webp" : "jpg";
+  const dirName = `session-${sessionId}`;
+  const relativePath = path.join(dirName, `${formatStamp(capturedAt)}.${ext}`);
+  return { fullPath: safeEvidencePath(relativePath), relativePath };
 }
 
 function safeEvidencePath(relativePath: string): string {

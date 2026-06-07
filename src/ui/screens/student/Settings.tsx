@@ -8,6 +8,14 @@ import { BentoCard } from "@/ui/components/BentoCard";
 import { Button } from "@/ui/components/Button";
 import { Field, TextInput } from "@/ui/components/Field";
 import { PinInput } from "@/ui/components/PinInput";
+import {
+  MASCOTS,
+  type MascotId,
+  MascotStill,
+  defaultMascotForSeed,
+  isMascotId,
+  mascotSettingKey,
+} from "@/ui/student/mascot";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import { type FormEvent, useState } from "react";
@@ -179,6 +187,8 @@ export function StudentSettings() {
             ))}
           </div>
         </BentoCard>
+
+        <MascotCard studentId={id} />
 
         <PasswordCard studentId={id} hasPin={pinQ.data === true} />
 
@@ -368,6 +378,80 @@ function PasswordCard({ studentId, hasPin }: { studentId: number; hasPin: boolea
 
 function bgKey(studentId: number): string {
   return `student_profile:${studentId}:study_background`;
+}
+
+function MascotCard({ studentId }: { studentId: number }) {
+  const settingKey = mascotSettingKey(studentId);
+  const mascotQ = useQuery({
+    queryKey: queryKeys.studentPrefs.mascot(studentId),
+    queryFn: () => api.settings.get<string>({ key: settingKey }),
+    enabled: Number.isFinite(studentId) && studentId > 0,
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: Number.POSITIVE_INFINITY,
+  });
+  const save = useMutation({
+    mutationFn: (value: MascotId) => api.settings.set({ key: settingKey, value }),
+    onSuccess: (_result, value) =>
+      queryClient.setQueryData(queryKeys.studentPrefs.mascot(studentId), value),
+  });
+  const selected: MascotId = isMascotId(mascotQ.data)
+    ? mascotQ.data
+    : defaultMascotForSeed(studentId);
+
+  return (
+    <BentoCard className="p-5 lg:col-span-2">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="font-display text-2xl font-semibold">Study mascot</h2>
+          <p className="mt-1 text-sm text-muted">
+            Pick the buddy that cheers you on across every lesson and session summary.
+          </p>
+        </div>
+        <Badge tone="focus" uppercase>
+          {selected === defaultMascotForSeed(studentId) && !isMascotId(mascotQ.data)
+            ? "Auto"
+            : "Chosen"}
+        </Badge>
+      </div>
+      <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        {MASCOTS.map((mascot) => {
+          const isSelected = mascot.id === selected;
+          return (
+            <li key={mascot.id}>
+              <button
+                type="button"
+                onClick={() => save.mutate(mascot.id)}
+                aria-pressed={isSelected}
+                className={cn(
+                  "flex w-full flex-col items-center gap-2 rounded-2xl border bg-surface-1 p-3 text-center transition-[background-color,border-color,box-shadow,transform]",
+                  isSelected
+                    ? "border-accent bg-accent/10 shadow-[0_0_0_4px_rgb(var(--color-accent)/0.16)]"
+                    : "border-border-subtle hover:-translate-y-0.5 hover:border-accent/40 hover:bg-surface-2",
+                )}
+              >
+                <div
+                  className={cn(
+                    "mask-squircle grid h-20 w-20 place-items-center bg-gradient-to-br p-1",
+                    isSelected ? "from-accent/35 to-accent/10" : "from-surface-2 to-surface-3",
+                  )}
+                >
+                  <MascotStill
+                    mascotId={mascot.id}
+                    className="h-full w-full"
+                    alt={`${mascot.name} mascot`}
+                  />
+                </div>
+                <div>
+                  <span className="block text-sm font-semibold text-app">{mascot.name}</span>
+                  <span className="block text-[11px] text-muted">{mascot.tagline}</span>
+                </div>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </BentoCard>
+  );
 }
 
 function backgroundCss(src: string, size: BackgroundSizeMode): string {

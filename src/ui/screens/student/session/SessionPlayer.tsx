@@ -4,6 +4,7 @@ import {
   type Exercise,
   type ExerciseSourceRef,
   type GradeOutcome,
+  type LazyDeck,
   gradeExercise,
 } from "@/modules/exercises";
 import { type AchievementDefinition, getAchievement } from "@/modules/rewards";
@@ -22,7 +23,7 @@ import { AudioRecallCard } from "@/ui/student/exercises/AudioRecallCard";
 import { DefinitionMatchCard } from "@/ui/student/exercises/DefinitionMatchCard";
 import { PronunciationCard } from "@/ui/student/exercises/PronunciationCard";
 import { SentenceRebuildCard } from "@/ui/student/exercises/SentenceRebuildCard";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FlashcardCard } from "./FlashcardCard";
 import { MultipleChoiceCard } from "./MultipleChoiceCard";
 import { SessionSummary, type SessionSummaryStats } from "./SessionSummary";
@@ -45,8 +46,8 @@ export interface SessionResultPersistence {
 }
 
 export interface SessionPlayerProps {
-  /** Pre-built deck — keep this stable across renders to avoid index resets. */
-  deck: Exercise[];
+  /** Keep this stable across renders to avoid index resets. */
+  deck: SessionDeck;
   onExit: () => void;
   /** Visible label, e.g. "Family & Friends · 12 entries". */
   contextLabel?: string;
@@ -82,6 +83,13 @@ export interface SessionPlayerProps {
    * mutation resolves; the pronunciation card stays disabled while null.
    */
   sessionId?: number | null;
+}
+
+export type SessionDeck = Exercise[] | LazyDeck;
+
+interface SessionDeckSlot {
+  index: number;
+  exercise: Exercise;
 }
 
 const DEFAULT_AUTO_ADVANCE_MS = 4_000;
@@ -158,9 +166,14 @@ export function SessionPlayer({
   const [retryAttempt, setRetryAttempt] = useState(0);
   const advancedExerciseIds = useRef(new Set<string>());
 
-  const total = deck.length;
-  const current = deck[index] ?? null;
+  const total = deckSize(deck);
+  const currentSlot = useMemo(() => findNextDeckSlot(deck, index), [deck, index]);
+  const current = currentSlot?.exercise ?? null;
+  const currentSlotIndex = currentSlot?.index ?? index;
   const done = current === null;
+  const noExercises = total === 0 || (done && results.length === 0);
+  const currentSlotIndexRef = useRef(currentSlotIndex);
+  currentSlotIndexRef.current = currentSlotIndex;
   const promptShownAt = useRef(nowMs());
   const promptExerciseId = useRef<string | null>(null);
   if (promptExerciseId.current !== (current?.id ?? null)) {
@@ -170,10 +183,15 @@ export function SessionPlayer({
 
   // Audio prefetch: warm the next 3 cards' dictionary lookups and audio
   // blobs so autoplay on advance starts instantly.
+  useEffect(() => {
+    if (done) return;
+    prefetchDeck(deck, currentSlotIndex + 3);
+  }, [currentSlotIndex, deck, done]);
+
   const upcomingAudioRefs = useMemo(() => {
     const out: string[] = [];
-    for (let i = index; i < Math.min(deck.length, index + 4); i++) {
-      const ex = deck[i];
+    for (let i = currentSlotIndex; i < Math.min(total, currentSlotIndex + 4); i++) {
+      const ex = peekDeck(deck, i);
       if (!ex) continue;
       if (ex.kind === "flashcard") {
         out.push(...ex.payload.front.audioRefs.map((audio) => audio.ref));
@@ -191,11 +209,11 @@ export function SessionPlayer({
       }
     }
     return out;
-  }, [deck, index]);
+  }, [currentSlotIndex, deck, total]);
   const upcomingPronunciationTerms = useMemo(() => {
     const out: string[] = [];
-    for (let i = index; i < Math.min(deck.length, index + 4); i++) {
-      const ex = deck[i];
+    for (let i = currentSlotIndex; i < Math.min(total, currentSlotIndex + 4); i++) {
+      const ex = peekDeck(deck, i);
       if (!ex) continue;
       if (ex.kind === "flashcard") out.push(ex.payload.front.headword);
       if (ex.kind === "multiple_choice") {
@@ -206,7 +224,7 @@ export function SessionPlayer({
       if (ex.kind === "pronunciation") out.push(ex.payload.headword);
     }
     return out;
-  }, [deck, index]);
+  }, [currentSlotIndex, deck, total]);
   useAudioPrefetch(upcomingAudioRefs);
   usePronunciationLookupPrefetch(upcomingPronunciationTerms, preferredAccent);
 
@@ -216,7 +234,7 @@ export function SessionPlayer({
     setResults((prev) => [...prev, result]);
     setPendingOutcome(null);
     setPendingResult(null);
-    setIndex((prev) => prev + 1);
+    setIndex(currentSlotIndexRef.current + 1);
   }, []);
 
   const advancePending = useCallback(() => {
@@ -326,7 +344,7 @@ export function SessionPlayer({
     return summarize(results);
   }, [done, results]);
 
-  if (deck.length === 0) {
+  if (noExercises) {
     return (
       <PlayerShell contextLabel={contextLabel} onExit={onExit}>
         <BentoCard className="border-dashed px-6 py-10 text-center">
@@ -352,6 +370,9 @@ export function SessionPlayer({
             setResults([]);
             setIndex(0);
             setCorrectRun(0);
+            setPendingOutcome(null);
+            setPendingResult(null);
+            setRetryAttempt(0);
             advancedExerciseIds.current.clear();
           }}
           onExit={onExit}
@@ -366,6 +387,8 @@ export function SessionPlayer({
     );
   }
 
+  if (!current) return null;
+
   return (
     <PlayerShell contextLabel={contextLabel} onExit={onExit}>
       <CelebrationOverlay
@@ -376,13 +399,13 @@ export function SessionPlayer({
       />
       <div className="flex flex-col gap-4">
         <SessionStatus
-          current={index}
+          current={results.length}
           total={total}
           correctRun={correctRun}
-          tier={cardTier(current as Exercise, correctRun)}
+          tier={cardTier(current, correctRun)}
         />
         <ExerciseCard
-          exercise={current as Exercise}
+          exercise={current}
           onAnswer={handleAnswer}
           outcome={pendingOutcome}
           autoplay={autoplay}
@@ -592,6 +615,28 @@ function summarize(results: SessionResult[]): SessionSummaryStats {
     byKind[r.kind] = bucket;
   }
   return { total, correct, byKind };
+}
+
+function deckSize(deck: SessionDeck): number {
+  return Array.isArray(deck) ? deck.length : deck.size;
+}
+
+function peekDeck(deck: SessionDeck, index: number): Exercise | null {
+  if (index < 0) return null;
+  return Array.isArray(deck) ? (deck[index] ?? null) : deck.peek(index);
+}
+
+function prefetchDeck(deck: SessionDeck, upToIndex: number): void {
+  if (!Array.isArray(deck)) deck.prefetch(upToIndex);
+}
+
+function findNextDeckSlot(deck: SessionDeck, startIndex: number): SessionDeckSlot | null {
+  const total = deckSize(deck);
+  for (let index = Math.max(0, startIndex); index < total; index += 1) {
+    const exercise = peekDeck(deck, index);
+    if (exercise) return { index, exercise };
+  }
+  return null;
 }
 
 function nowMs(): number {

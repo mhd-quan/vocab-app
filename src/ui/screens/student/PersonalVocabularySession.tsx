@@ -2,10 +2,10 @@ import type { DictionaryLearningItemView } from "@/data/dictionaryLearning";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryClient";
 import {
-  type Exercise,
-  buildDeck,
+  createLazyDeck,
   defaultSessionSeed,
   fromDictionaryItem,
+  getPlugin,
 } from "@/modules/exercises";
 import {
   exerciseKindsForMode,
@@ -19,6 +19,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  type SessionDeck,
   SessionPlayer,
   type SessionResult,
   type SessionResultPersistence,
@@ -58,41 +59,19 @@ export function StudentPersonalVocabularySession() {
     enabled: Number.isFinite(studentIdNum) && studentIdNum > 0,
   });
 
-  const soundQ = useQuery({
-    queryKey: ["settings", "get", SOUND_KEY],
-    queryFn: () => api.settings.get<boolean>({ key: SOUND_KEY }),
+  const settingsQ = useQuery({
+    queryKey: ["settings", "personalVocabularySession"],
+    queryFn: () => api.settings.getAll(),
+    staleTime: 0,
   });
 
-  const sessionCountQ = useQuery({
-    queryKey: ["settings", "get", SESSION_COUNT_KEY],
-    queryFn: () => api.settings.get<number>({ key: SESSION_COUNT_KEY }),
-  });
-
-  const sessionModeQ = useQuery({
-    queryKey: ["settings", "get", SESSION_MODE_KEY],
-    queryFn: () => api.settings.get<string>({ key: SESSION_MODE_KEY }),
-  });
-
-  const sessionShuffleQ = useQuery({
-    queryKey: ["settings", "get", SESSION_SHUFFLE_KEY],
-    queryFn: () => api.settings.get<boolean>({ key: SESSION_SHUFFLE_KEY }),
-  });
-
-  const definitionPriorityQ = useQuery({
-    queryKey: ["settings", "get", DEFINITION_PRIORITY_KEY],
-    queryFn: () => api.settings.get<string>({ key: DEFINITION_PRIORITY_KEY }),
-  });
-
-  const sessionCount = normalizeSessionCount(sessionCountQ.data);
-  const sessionMode = normalizeExerciseSessionMode(sessionModeQ.data);
+  const settings = settingsQ.data ?? {};
+  const sessionCount = normalizeSessionCount(settings[SESSION_COUNT_KEY]);
+  const sessionMode = normalizeExerciseSessionMode(settings[SESSION_MODE_KEY]);
   const exerciseKinds = useMemo(() => exerciseKindsForMode(sessionMode), [sessionMode]);
-  const definitionPriority = normalizeDefinitionPriority(definitionPriorityQ.data);
-  const shuffleDeck = sessionShuffleQ.data !== false;
-  const settingsLoading =
-    sessionCountQ.isLoading ||
-    sessionModeQ.isLoading ||
-    sessionShuffleQ.isLoading ||
-    definitionPriorityQ.isLoading;
+  const definitionPriority = normalizeDefinitionPriority(settings[DEFINITION_PRIORITY_KEY]);
+  const shuffleDeck = settings[SESSION_SHUFFLE_KEY] !== false;
+  const settingsLoading = settingsQ.isLoading;
 
   const sessionStart = useMutation({
     mutationFn: (input: { studentId: number }) =>
@@ -121,19 +100,20 @@ export function StudentPersonalVocabularySession() {
     [sourceByItemId, sourcePool],
   );
 
-  const deck = useMemo<Exercise[]>(() => {
+  const deck = useMemo<SessionDeck>(() => {
     if (settingsLoading || queueQ.isLoading || itemsQ.isLoading) return [];
-    return buildDeck({
+    return createLazyDeck({
       sources: queue.map(fromDictionaryItem),
       sourcePool,
       kinds: exerciseKinds,
       sessionSeed: seed,
+      getPlugin,
       maxExercises: sessionCount,
       definitionPriority,
       shuffle: shuffleDeck,
       seenSourceKeys,
       requireFlashcardForNew: true,
-    }).exercises;
+    });
   }, [
     definitionPriority,
     exerciseKinds,
@@ -244,7 +224,7 @@ export function StudentPersonalVocabularySession() {
       onExit={exit}
       onResult={handleResult}
       contextLabel={`Personal vocabulary · ${queue.length}/${allItems.length} due words`}
-      soundEnabled={soundQ.data === true}
+      soundEnabled={settings[SOUND_KEY] === true}
       autoplay={pronunciationAutoplay}
       preferredAccent={pronunciationAccent}
       avatarSeed={studentQ.data?.avatarSeed ?? null}
