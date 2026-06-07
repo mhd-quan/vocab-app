@@ -75,7 +75,6 @@ export interface SessionPlayerProps {
    */
   autoplay?: boolean;
   preferredAccent?: "uk" | "us" | "any";
-  avatarSeed?: string | null;
   studentId?: number | string | null;
   /**
    * Active practice session row id — threaded down so pronunciation
@@ -146,7 +145,6 @@ export function SessionPlayer({
   soundEnabled = false,
   autoplay = true,
   preferredAccent = "uk",
-  avatarSeed,
   studentId,
   sessionId = null,
 }: SessionPlayerProps) {
@@ -364,7 +362,6 @@ export function SessionPlayer({
       <PlayerShell contextLabel={contextLabel} onExit={onExit}>
         <SessionSummary
           stats={summary}
-          avatarSeed={avatarSeed}
           studentId={studentId}
           onRestart={() => {
             setResults([]);

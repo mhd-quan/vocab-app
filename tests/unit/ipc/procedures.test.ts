@@ -13,6 +13,7 @@ import {
   grammarProcedures,
   importsProcedures,
   metaProcedures,
+  permissionsProcedures,
   progressProcedures,
   pronunciationProcedures,
   rewardsProcedures,
@@ -64,6 +65,7 @@ describe("IPC procedure registry", () => {
         studentsProcedures.length +
         settingsProcedures.length +
         importsProcedures.length +
+        permissionsProcedures.length +
         pronunciationProcedures.length +
         progressProcedures.length +
         rewardsProcedures.length +

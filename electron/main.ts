@@ -1,5 +1,5 @@
 import path from "node:path";
-import { BrowserWindow, app, session, shell } from "electron";
+import { BrowserWindow, type MediaAccessPermissionRequest, app, session, shell } from "electron";
 import started from "electron-squirrel-startup";
 import { SETTINGS_KEYS } from "../src/modules/settings/keys";
 import { type AppDatabase, closeDatabase, openDatabase } from "./db";
@@ -21,6 +21,21 @@ process.setMaxListeners(20);
 
 let db: AppDatabase | null = null;
 let mainWindow: BrowserWindow | null = null;
+
+function installPermissionHandlers(): void {
+  session.defaultSession.setPermissionCheckHandler((_wc, permission) => permission === "media");
+  session.defaultSession.setPermissionRequestHandler((_wc, permission, callback, details) => {
+    if (permission !== "media") {
+      callback(false);
+      return;
+    }
+
+    const mediaTypes = (details as MediaAccessPermissionRequest).mediaTypes ?? [];
+    callback(
+      mediaTypes.length === 0 || mediaTypes.some((type) => type === "audio" || type === "video"),
+    );
+  });
+}
 
 const createMainWindow = (screenshotsEnabled: boolean): BrowserWindow => {
   const win = new BrowserWindow({
@@ -63,9 +78,7 @@ const createMainWindow = (screenshotsEnabled: boolean): BrowserWindow => {
 };
 
 app.whenReady().then(() => {
-  session.defaultSession.setPermissionRequestHandler((_wc, permission, callback) => {
-    callback(permission === "media");
-  });
+  installPermissionHandlers();
 
   db = openDatabase();
   console.log("[db] opened, applied migrations through latest");

@@ -62,6 +62,20 @@
   .chip-pop {
     animation: chip-pop 240ms var(--motion-bounce) both;
   }
+
+  /* Apple-style squircle mask — for app-icon-shaped mascot art in the
+     Settings profile picker. The inline SVG path is a two-control-point
+     superellipse approximation of the iOS 7+ icon contour. */
+  .mask-squircle {
+    -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath fill='black' d='M50,0 C72.92,0 84.39,0 92.2,7.8 C100,15.6 100,27.07 100,50 C100,72.92 100,84.39 92.2,92.2 C84.39,100 72.92,100 50,100 C27.07,100 15.6,100 7.8,92.2 C0,84.39 0,72.92 0,50 C0,27.07 0,15.6 7.8,7.8 C15.6,0 27.07,0 50,0 Z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath fill='black' d='M50,0 C72.92,0 84.39,0 92.2,7.8 C100,15.6 100,27.07 100,50 C100,72.92 100,84.39 92.2,92.2 C84.39,100 72.92,100 50,100 C27.07,100 15.6,100 7.8,92.2 C0,84.39 0,72.92 0,50 C0,27.07 0,15.6 7.8,7.8 C15.6,0 27.07,0 50,0 Z'/%3E%3C/svg%3E");
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-position: center;
+    mask-position: center;
+  }
 }
 
 @keyframes panel-in {

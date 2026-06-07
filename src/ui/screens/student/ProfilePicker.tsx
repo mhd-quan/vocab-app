@@ -8,7 +8,7 @@ import { BentoCard } from "@/ui/components/BentoCard";
 import { Button } from "@/ui/components/Button";
 import { PinInput } from "@/ui/components/PinInput";
 import { markStudentUnlocked } from "@/ui/student/access";
-import { MascotIcon } from "@/ui/student/components/MascotIcon";
+import { MascotStill } from "@/ui/student/mascot";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { type FormEvent, useEffect, useRef, useState } from "react";
@@ -99,7 +99,7 @@ export function StudentProfilePicker() {
 
       {!isLoading && (data ?? []).length === 0 ? (
         <div className="rounded-bento border border-dashed border-border-subtle bg-surface-1 px-6 py-8 text-center">
-          <MascotIcon mood="sad" className="mx-auto mb-3 h-20 w-20 text-muted-2" />
+          <MascotStill mascotId="1" expression="sad" className="mx-auto mb-3 h-20 w-20" />
           <h2 className="text-base font-semibold">No students yet</h2>
           <p className="mt-1 text-xs text-muted">
             Switch to tutor mode and add a student profile from{" "}
@@ -314,7 +314,7 @@ function FleetSnapshotCard() {
   if (data.activeCount === 0) {
     return (
       <BentoCard as="div" tone="focus" className="flex items-center gap-3 p-4">
-        <MascotIcon mood="happy" className="h-12 w-12 shrink-0" />
+        <MascotStill mascotId="2" expression="adorable" className="h-12 w-12 shrink-0" />
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase text-focus">Welcome back</p>
           <p className="mt-1 text-sm text-muted">Add a student profile to get started.</p>

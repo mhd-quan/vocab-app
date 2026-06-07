@@ -138,6 +138,10 @@ automatically on Electron startup.
 Migrations folder is bundled with the packaged app via Forge's `extraResource`,
 resolved at runtime through `electron/db/paths.ts`.
 
+In-app YAML imports are copied to a writable content library before parsing:
+packaged Electron uses `<userData>/content/books`, while dev and CLI tests use
+`./content/books` unless `VOCAB_CONTENT_ROOT` overrides it.
+
 ### Schema overview
 
 26 tables, organized by domain:
@@ -258,9 +262,13 @@ plumbing required.
   definition priority, idle auto-lock, lock-on-close preference, reward sound,
   and a local version/database summary.
 - The Imports screen supports drag/drop upload and native file selection for
-  `.yaml` and `.yml`. Imported files are copied into
-  `content/books/<book-code>/` and then processed by the same
-  `ImportVocabUseCase` used by the CLI.
+  `.yaml` and `.yml`. Imported files are copied into the writable local content
+  library and then processed by the same `ImportVocabUseCase` used by the CLI.
+- Microphone capture goes through both Electron session permission handlers and
+  the native `permissions.*` IPC service. macOS prompts via
+  `systemPreferences.askForMediaAccess("microphone")`; Windows reports the
+  system media-access status and links to the microphone privacy pane when the
+  OS blocks desktop apps.
 - `content/templates/` contains validating vocab and grammar templates,
   focused vocab-study and revision-practice starters, `IMPORT-SYNTAX.md`,
   and an exercise reference for current and planned exercise kinds.

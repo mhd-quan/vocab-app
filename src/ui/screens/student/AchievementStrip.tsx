@@ -14,6 +14,11 @@ import { AchievementIcon } from "@/ui/components/rewards";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 
+/**
+ * Compact achievement summary shown in a corner of the student hero card.
+ * Surfaces XP + trophy count + a glance of the most recent unlocks, then
+ * deep-links into the full trophy hall.
+ */
 export function AchievementStrip({ studentId }: { studentId: number }) {
   const summaryQ = useQuery({
     queryKey: queryKeys.progress.summary(studentId),
@@ -41,12 +46,13 @@ export function AchievementStrip({ studentId }: { studentId: number }) {
     params: { studentId: String(studentId) },
   };
 
+  const baseClass =
+    "group inline-flex items-center gap-2 rounded-full border border-mastery/30 bg-mastery/10 px-3 py-1.5 text-[11px] font-semibold text-mastery shadow-sm transition hover:border-mastery/55 hover:bg-mastery/15";
+
   if (summaryQ.isLoading || streakQ.isLoading || statsQ.isLoading || unlockedQ.isLoading) {
     return (
-      <Link
-        {...linkProps}
-        className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-muted-2 hover:text-mastery"
-      >
+      <Link {...linkProps} className={baseClass}>
+        <AppGlyph name="trophy" className="h-3.5 w-3.5" />
         Trophy hall
         <AppGlyph name="arrowRight" className="h-3.5 w-3.5" />
       </Link>
@@ -79,36 +85,41 @@ export function AchievementStrip({ studentId }: { studentId: number }) {
   const featured = unlocked.slice(0, 3);
 
   return (
-    <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-mastery/25 bg-mastery/5 px-3 py-2 text-xs">
-      <Badge tone="xp" uppercase>
-        {progress.xp} XP
-      </Badge>
-      <span className="font-semibold text-mastery">
-        {unlocked.length} / {ACHIEVEMENTS.length} trophies
-      </span>
-      {featured.length > 0 ? (
-        <span className="flex items-center gap-1">
-          {featured.map((achievement) => (
-            <span
-              key={achievement.id}
-              title={achievement.title}
-              className={cn(
-                "grid h-6 w-6 place-items-center rounded-full border",
-                "border-mastery/30 bg-mastery/10 text-mastery",
-              )}
-            >
-              <AchievementIcon icon={achievement.icon} className="h-3.5 w-3.5" />
-            </span>
-          ))}
+    <Link
+      {...linkProps}
+      className={cn(
+        "group flex w-fit max-w-[16rem] flex-col gap-1.5 rounded-2xl border border-mastery/30 bg-mastery/10 px-3 py-2 text-[11px] shadow-sm transition",
+        "hover:border-mastery/55 hover:bg-mastery/15 hover:shadow-lift",
+      )}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <Badge tone="xp" uppercase>
+          {progress.xp} XP
+        </Badge>
+        <span className="inline-flex items-center gap-1 font-semibold text-mastery group-hover:underline">
+          Trophy hall
+          <AppGlyph name="arrowRight" className="h-3 w-3" />
         </span>
-      ) : null}
-      <Link
-        {...linkProps}
-        className="ml-auto inline-flex items-center gap-1 font-semibold text-mastery hover:underline"
-      >
-        Trophy hall
-        <AppGlyph name="arrowRight" className="h-3.5 w-3.5" />
-      </Link>
-    </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="font-mono text-xs font-semibold text-mastery">
+          {unlocked.length}/{ACHIEVEMENTS.length}
+        </span>
+        <span className="text-[10px] uppercase tracking-wide text-muted-2">trophies</span>
+        {featured.length > 0 ? (
+          <span className="ml-auto flex items-center gap-1">
+            {featured.map((achievement) => (
+              <span
+                key={achievement.id}
+                title={achievement.title}
+                className="grid h-5 w-5 place-items-center rounded-full border border-mastery/30 bg-mastery/10 text-mastery"
+              >
+                <AchievementIcon icon={achievement.icon} className="h-3 w-3" />
+              </span>
+            ))}
+          </span>
+        ) : null}
+      </div>
+    </Link>
   );
 }

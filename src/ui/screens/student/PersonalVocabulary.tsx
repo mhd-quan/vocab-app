@@ -9,7 +9,7 @@ import { Badge, type BadgeTone } from "@/ui/components/Badge";
 import { BentoCard } from "@/ui/components/BentoCard";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
-import { MascotIcon } from "@/ui/student/components/MascotIcon";
+import { Mascot } from "@/ui/student/mascot";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 
@@ -20,12 +20,6 @@ export function StudentPersonalVocabulary() {
   const summaryQ = useQuery({
     queryKey: queryKeys.dictionaryLearning.summary(id),
     queryFn: () => api.dictionaryLearning.summary({ studentId: id }),
-    enabled: Number.isFinite(id) && id > 0,
-  });
-
-  const studentQ = useQuery({
-    queryKey: queryKeys.students.byId(id),
-    queryFn: () => api.students.getById({ id }),
     enabled: Number.isFinite(id) && id > 0,
   });
 
@@ -66,9 +60,8 @@ export function StudentPersonalVocabulary() {
       <BentoCard tone={summary.due > 0 ? "focus" : "neutral"} className="p-6">
         <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
           <div className="flex items-start gap-4">
-            <MascotIcon
-              mood={summary.due > 0 ? "thinking" : "happy"}
-              avatarSeed={studentQ.data?.avatarSeed ?? null}
+            <Mascot
+              variant={summary.due > 0 ? "focus" : "cheer"}
               studentId={id}
               className="hidden h-24 w-24 shrink-0 sm:block"
             />

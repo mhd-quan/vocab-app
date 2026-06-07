@@ -1,3 +1,4 @@
+import { api } from "@/lib/api";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PCM_WORKLET_SOURCE } from "./pcmWorklet";
 
@@ -8,6 +9,7 @@ export interface RecordedPronunciationAudio {
 }
 
 export type PronunciationRecorderState = "idle" | "recording" | "ready" | "unsupported" | "error";
+type MicrophonePermissionView = Awaited<ReturnType<typeof api.permissions.microphoneStatus>>;
 
 const MAX_RECORDING_MS = 10_000;
 const DEFAULT_SAMPLE_RATE = 16_000;
@@ -27,6 +29,7 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
   const [durationMs, setDurationMs] = useState(0);
   const [recording, setRecording] = useState<RecordedPronunciationAudio | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [permission, setPermission] = useState<MicrophonePermissionView | null>(null);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -117,6 +120,7 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
     await cleanup();
     setRecording(null);
     setError(null);
+    setPermission(null);
     setDurationMs(0);
     chunksRef.current = [];
 
@@ -127,6 +131,14 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
     // to the user without that context.
     let phase: "getUserMedia" | "AudioContext" | "audioWorklet" | "graph" = "getUserMedia";
     try {
+      const permission = await api.permissions.requestMicrophone();
+      setPermission(permission);
+      if (!permission.readyForCapture) {
+        setState("error");
+        setError(permission.reason ?? "Microphone access is not available.");
+        return false;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: false,
@@ -196,6 +208,7 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
     setDurationMs(0);
     setRecording(null);
     setError(null);
+    setPermission(null);
     setState("idle");
   }, [cleanup]);
 
@@ -210,6 +223,7 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
     durationMs,
     recording,
     error,
+    permission,
     maxDurationMs,
     start,
     stop,

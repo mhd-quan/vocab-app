@@ -1,11 +1,23 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type AppDatabase, closeDatabase } from "../../../electron/db";
 import type { Repositories } from "../../../electron/db/repositories";
 import { allProcedures } from "../../../electron/ipc";
 import { freshDb } from "../../helpers";
+
+const electronMock = vi.hoisted(() => ({
+  app: {
+    isPackaged: false,
+    getPath: vi.fn(() => "/tmp/vocab-app-test-user-data"),
+  },
+  dialog: {
+    showOpenDialog: vi.fn(),
+  },
+}));
+
+vi.mock("electron", () => electronMock);
 
 function findProcedure(name: string) {
   const proc = allProcedures.find((p) => p.name === name);
@@ -17,6 +29,10 @@ async function call<T>(name: string, input: unknown, ctx: { repos: Repositories 
   const proc = findProcedure(name);
   const parsed = proc.inputSchema.parse(input);
   return (await proc.handler(parsed, ctx)) as T;
+}
+
+function clearContentRootEnv(): void {
+  Reflect.deleteProperty(process.env, "VOCAB_CONTENT_ROOT");
 }
 
 describe("imports.* procedures", () => {
@@ -32,16 +48,21 @@ describe("imports.* procedures", () => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "vocab-app-ipc-import-"));
     previousContentRoot = process.env.VOCAB_CONTENT_ROOT;
     process.env.VOCAB_CONTENT_ROOT = tmpDir;
+    electronMock.app.isPackaged = false;
+    electronMock.app.getPath.mockReset();
+    electronMock.app.getPath.mockReturnValue(path.join(tmpDir, "user-data"));
+    electronMock.dialog.showOpenDialog.mockReset();
   });
 
   afterEach(() => {
     closeDatabase(db);
     fs.rmSync(tmpDir, { recursive: true, force: true });
     if (previousContentRoot === undefined) {
-      process.env.VOCAB_CONTENT_ROOT = undefined;
+      clearContentRootEnv();
     } else {
       process.env.VOCAB_CONTENT_ROOT = previousContentRoot;
     }
+    electronMock.app.isPackaged = false;
   });
 
   it("listRuns returns an empty array on a fresh DB", async () => {
@@ -167,5 +188,48 @@ topics:
     const lesson = ctx.repos.curriculum.listLessonsByUnit(unit.id, "grammar")[0];
     if (!lesson) throw new Error("lesson not found");
     expect(ctx.repos.grammar.listByLesson(lesson.id)[0]?.title).toBe("Present simple for routines");
+  });
+
+  it("uploadFile stores packaged-app imports in the userData content library", async () => {
+    const userDataDir = path.join(tmpDir, "packaged-user-data");
+    clearContentRootEnv();
+    electronMock.app.isPackaged = true;
+    electronMock.app.getPath.mockReturnValue(userDataDir);
+
+    const result = await call<{ status: string; stats: { inserted: number }; filePath: string }>(
+      "imports.uploadFile",
+      {
+        fileName: "unit-02-vocab.yaml",
+        content: `
+book: destination-b1
+book_title: Destination B1
+unit: { ordinal: 2, code: U02, title: Unit 2 }
+lesson:
+  ordinal: 1
+  kind: vocabulary
+  title: Lesson 2
+  slug: lesson-2
+entries:
+  - id: packaged-path
+    headword: packaged
+    pos: adjective
+    senses:
+      - definition_en: installed as an app bundle
+`,
+      },
+      ctx,
+    );
+
+    const expectedPath = path.join(
+      userDataDir,
+      "content",
+      "books",
+      "destination-b1",
+      "unit-02-vocab.yaml",
+    );
+    expect(result.status).toBe("success");
+    expect(result.stats.inserted).toBe(1);
+    expect(result.filePath).toBe(expectedPath);
+    expect(fs.existsSync(expectedPath)).toBe(true);
   });
 });
