@@ -55,6 +55,9 @@ const MIME_BY_EXT: Record<string, string> = {
   ".svg": "image/svg+xml",
   ".webp": "image/webp",
 };
+const MAX_MDX_RECORD_CACHE_BLOCKS = 64;
+const MAX_MDD_RECORD_CACHE_BLOCKS = 16;
+const MAX_RELATED_CACHE_ENTRIES = 128;
 
 export function inspectDictionaryPack(packPath: string): DictionaryPackManifest | null {
   const stat = safeStat(packPath);
@@ -190,21 +193,37 @@ export class DictionaryPack {
 class MdxFile {
   readonly filePath: string;
   readonly entryCount: number;
-  private readonly buffer: Buffer;
   private readonly keys: KeyEntry[];
   private readonly lowerKeys: string[];
   private readonly keyIndex: Map<string, number>;
+  private readonly prefixIndex: Array<{ key: string; index: number }>;
+  private readonly compactFamilyKeys: string[];
+  private readonly familyIndex: Array<{ compact: string; index: number }>;
   private readonly recordBlocks: RecordBlockInfo[];
   private readonly recordCache = new Map<number, Buffer>();
+  private readonly relatedCache = new Map<string, RawSearchRecord[]>();
   private readonly sourceEncoding: BufferEncoding;
 
   constructor(filePath: string) {
     this.filePath = filePath;
-    this.buffer = fs.readFileSync(filePath);
-    const parsed = parseDictionaryFile(this.buffer, UTF8);
+    const fd = fs.openSync(filePath, "r");
+    let parsed: ReturnType<typeof parseDictionaryFileFromFd>;
+    try {
+      parsed = parseDictionaryFileFromFd(fd, UTF8);
+    } finally {
+      fs.closeSync(fd);
+    }
     this.entryCount = parsed.entryCount;
     this.keys = parsed.keys;
     this.lowerKeys = parsed.keys.map((entry) => entry.key.toLowerCase());
+    this.prefixIndex = this.lowerKeys
+      .map((key, index) => ({ key, index }))
+      .sort((a, b) => lexicalCompare(a.key, b.key));
+    this.compactFamilyKeys = this.lowerKeys.map(compactFamilyKey);
+    this.familyIndex = this.compactFamilyKeys
+      .map((compact, index) => ({ compact, index }))
+      .filter((entry) => entry.compact.length > 0)
+      .sort((a, b) => lexicalCompare(a.compact, b.compact));
     this.recordBlocks = parsed.recordBlocks;
     this.sourceEncoding = parsed.sourceEncoding;
     this.keyIndex = new Map();
@@ -232,8 +251,9 @@ class MdxFile {
       });
     };
 
-    for (let i = 0; i < this.lowerKeys.length && results.length < limit; i += 1) {
-      if (this.lowerKeys[i]?.startsWith(normalized)) push(i);
+    for (const index of this.prefixMatches(normalized)) {
+      if (results.length >= limit) break;
+      push(index);
     }
     for (let i = 0; i < this.lowerKeys.length && results.length < limit; i += 1) {
       if (hasBoundaryMatch(this.lowerKeys[i] ?? "", normalized)) push(i);
@@ -252,20 +272,39 @@ class MdxFile {
   }
 
   related(headword: string, currentKey: string, limit: number): RawSearchRecord[] {
+    const cacheKey = `${normalizeQuery(headword)}\0${normalizeQuery(currentKey)}\0${limit}`;
+    const cached = touchCache(this.relatedCache, cacheKey);
+    if (cached) return cached;
+
     const stems = familyStems(headword);
     if (stems.length === 0) return [];
 
-    const scored: Array<{ index: number; score: number }> = [];
-    for (let index = 0; index < this.lowerKeys.length; index += 1) {
-      const key = this.lowerKeys[index];
-      if (!key || key === normalizeQuery(currentKey)) continue;
-      const compact = compactFamilyKey(key);
-      const score = familyScore(compact, stems);
-      if (score > 0) scored.push({ index, score });
+    const normalizedCurrent = normalizeQuery(currentKey);
+    const scoredByIndex = new Map<number, number>();
+    for (const stem of stems) {
+      for (const item of this.familyPrefixMatches(stem)) {
+        const key = this.lowerKeys[item.index];
+        if (!key || key === normalizedCurrent) continue;
+        const score = familyScore(item.compact, stems);
+        if (score > 0) {
+          scoredByIndex.set(item.index, Math.max(scoredByIndex.get(item.index) ?? 0, score));
+        }
+      }
     }
 
+    if (scoredByIndex.size < limit * 5) {
+      for (let index = 0; index < this.compactFamilyKeys.length; index += 1) {
+        if (scoredByIndex.has(index)) continue;
+        const key = this.lowerKeys[index];
+        if (!key || key === normalizedCurrent) continue;
+        const score = familyScore(this.compactFamilyKeys[index] ?? "", stems);
+        if (score > 0) scoredByIndex.set(index, score);
+      }
+    }
+
+    const scored = [...scoredByIndex].map(([index, score]) => ({ index, score }));
     const results: RawSearchRecord[] = [];
-    const seen = new Set([normalizeQuery(currentKey)]);
+    const seen = new Set([normalizedCurrent]);
     for (const item of scored
       .sort((a, b) => {
         const keyA = this.keys[a.index]?.key ?? "";
@@ -281,6 +320,7 @@ class MdxFile {
       results.push({ ...record, exact: false, matchedKey });
       if (results.length >= limit) break;
     }
+    rememberCache(this.relatedCache, cacheKey, results, MAX_RELATED_CACHE_ENTRIES);
     return results;
   }
 
@@ -330,15 +370,41 @@ class MdxFile {
   }
 
   private recordBlock(index: number): Buffer {
-    const cached = this.recordCache.get(index);
+    const cached = touchCache(this.recordCache, index);
     if (cached) return cached;
     const info = this.recordBlocks[index];
     if (!info) throw new Error(`Missing dictionary record block ${index}`);
-    const block = decompressBlock(
-      this.buffer.subarray(info.compressedOffset, info.compressedOffset + info.compressedSize),
-    );
-    this.recordCache.set(index, block);
+    const fd = fs.openSync(this.filePath, "r");
+    let block: Buffer;
+    try {
+      block = decompressBlock(readAt(fd, info.compressedOffset, info.compressedSize));
+    } finally {
+      fs.closeSync(fd);
+    }
+    rememberCache(this.recordCache, index, block, MAX_MDX_RECORD_CACHE_BLOCKS);
     return block;
+  }
+
+  private prefixMatches(query: string): number[] {
+    const out: number[] = [];
+    const start = lowerBoundByKey(this.prefixIndex, query);
+    for (let cursor = start; cursor < this.prefixIndex.length; cursor += 1) {
+      const item = this.prefixIndex[cursor];
+      if (!item || !item.key.startsWith(query)) break;
+      out.push(item.index);
+    }
+    return out;
+  }
+
+  private familyPrefixMatches(stem: string): Array<{ compact: string; index: number }> {
+    const out: Array<{ compact: string; index: number }> = [];
+    const start = lowerBoundByCompact(this.familyIndex, stem);
+    for (let cursor = start; cursor < this.familyIndex.length; cursor += 1) {
+      const item = this.familyIndex[cursor];
+      if (!item || !item.compact.startsWith(stem)) break;
+      out.push(item);
+    }
+    return out;
   }
 }
 
@@ -347,6 +413,7 @@ class MddFile {
   private readonly keys: KeyEntry[];
   private readonly keyIndex: Map<string, number>;
   private readonly recordBlocks: RecordBlockInfo[];
+  private readonly recordCache = new Map<number, Buffer>();
 
   constructor(filePath: string) {
     this.filePath = filePath;
@@ -379,25 +446,15 @@ class MddFile {
     try {
       const info = this.recordBlocks[blockIndex];
       if (!info) return null;
-      const block = decompressBlock(readAt(fd, info.compressedOffset, info.compressedSize));
+      const cached = touchCache(this.recordCache, blockIndex);
+      const block =
+        cached ?? decompressBlock(readAt(fd, info.compressedOffset, info.compressedSize));
+      if (!cached) rememberCache(this.recordCache, blockIndex, block, MAX_MDD_RECORD_CACHE_BLOCKS);
       return block.subarray(start - info.decompressedOffset, end - info.decompressedOffset);
     } finally {
       fs.closeSync(fd);
     }
   }
-}
-
-function parseDictionaryFile(buffer: Buffer, keyEncoding: BufferEncoding) {
-  let offset = 0;
-  const headerSize = buffer.readUInt32BE(offset);
-  offset += 4 + headerSize + 4;
-  const parsed = parseDictionarySections({
-    read: (position, length) => buffer.subarray(position, position + length),
-    offset,
-    keyEncoding,
-    fileSize: buffer.length,
-  });
-  return parsed;
 }
 
 function parseDictionaryFileFromFd(fd: number, keyEncoding: BufferEncoding) {
@@ -565,12 +622,72 @@ function readAt(fd: number, position: number, length: number): Buffer {
 }
 
 function findRecordBlock(blocks: RecordBlockInfo[], recordOffset: number): number | null {
-  const index = blocks.findIndex(
-    (block) =>
-      recordOffset >= block.decompressedOffset &&
-      recordOffset < block.decompressedOffset + block.decompressedSize,
-  );
-  return index >= 0 ? index : null;
+  let lo = 0;
+  let hi = blocks.length - 1;
+  while (lo <= hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    const block = blocks[mid];
+    if (!block) return null;
+    if (recordOffset < block.decompressedOffset) {
+      hi = mid - 1;
+    } else if (recordOffset >= block.decompressedOffset + block.decompressedSize) {
+      lo = mid + 1;
+    } else {
+      return mid;
+    }
+  }
+  return null;
+}
+
+function lowerBoundByKey(items: Array<{ key: string; index: number }>, query: string): number {
+  let lo = 0;
+  let hi = items.length;
+  while (lo < hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    const item = items[mid];
+    if (!item || lexicalCompare(item.key, query) < 0) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo;
+}
+
+function lowerBoundByCompact(
+  items: Array<{ compact: string; index: number }>,
+  query: string,
+): number {
+  let lo = 0;
+  let hi = items.length;
+  while (lo < hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    const item = items[mid];
+    if (!item || lexicalCompare(item.compact, query) < 0) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo;
+}
+
+function touchCache<K, V>(cache: Map<K, V>, key: K): V | undefined {
+  const value = cache.get(key);
+  if (value === undefined) return undefined;
+  cache.delete(key);
+  cache.set(key, value);
+  return value;
+}
+
+function rememberCache<K, V>(cache: Map<K, V>, key: K, value: V, maxEntries: number): void {
+  cache.delete(key);
+  cache.set(key, value);
+  while (cache.size > maxEntries) {
+    const oldest = cache.keys().next().value;
+    if (oldest === undefined) return;
+    cache.delete(oldest);
+  }
+}
+
+function lexicalCompare(a: string, b: string): number {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
 }
 
 function totalDecompressedSize(blocks: RecordBlockInfo[]): number {

@@ -120,7 +120,10 @@ export function mascotSettingKey(studentId: number): string {
   return `student_profile:${studentId}:mascot`;
 }
 
-export function useStudentMascotId(studentId: number | null | undefined): MascotId {
+export function useStudentMascotId(
+  studentId: number | null | undefined,
+  fallback?: MascotId | null,
+): MascotId {
   const enabled = typeof studentId === "number" && Number.isFinite(studentId) && studentId > 0;
   const { data } = useQuery({
     queryKey: queryKeys.studentPrefs.mascot(enabled ? studentId : 0),
@@ -130,6 +133,7 @@ export function useStudentMascotId(studentId: number | null | undefined): Mascot
     gcTime: Number.POSITIVE_INFINITY,
   });
   if (isMascotId(data)) return data;
+  if (fallback) return fallback;
   return defaultMascotForSeed(studentId ?? null);
 }
 
@@ -138,6 +142,7 @@ export function useStudentMascotId(studentId: number | null | undefined): Mascot
 export interface MascotProps {
   studentId?: number | string | null;
   mascotId?: MascotId | null;
+  fallbackMascotId?: MascotId | null;
   variant?: MascotVariant;
   expression?: MascotExpression;
   className?: string;
@@ -147,6 +152,7 @@ export interface MascotProps {
 export function Mascot({
   studentId,
   mascotId,
+  fallbackMascotId,
   variant = "idle",
   expression,
   className,
@@ -154,7 +160,7 @@ export function Mascot({
 }: MascotProps) {
   const numericStudentId =
     typeof studentId === "number" && Number.isFinite(studentId) ? studentId : null;
-  const stored = useStudentMascotId(numericStudentId);
+  const stored = useStudentMascotId(numericStudentId, fallbackMascotId);
   const id = mascotId ?? stored;
   const bucket = bucketFor(variant);
   const [rotationIndex] = useState(() =>

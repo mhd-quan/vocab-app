@@ -9,6 +9,9 @@ publish = false
 [lib]
 crate-type = ["cdylib"]
 
+[dependencies]
+vocab-core = { path = "../../core/vocab-core" }
+
 [profile.release]
 opt-level = "z"
 lto = true

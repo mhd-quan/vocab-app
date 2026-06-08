@@ -3,12 +3,12 @@
 version = 4
 
 [[package]]
-name = "viterbi"
-version = "0.1.0"
+name = "vocab-core"
+version = "0.17.1"
+
+[[package]]
+name = "vocab-core-service"
+version = "0.17.1"
 dependencies = [
  "vocab-core",
 ]
-
-[[package]]
-name = "vocab-core"
-version = "0.17.0"

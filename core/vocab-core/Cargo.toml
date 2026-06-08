@@ -1,0 +1,10 @@
+[package]
+name = "vocab-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "Pure native core logic for vocab-app."
+
+[lib]
+name = "vocab_core"

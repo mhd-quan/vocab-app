@@ -2,7 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { type AppDatabase, closeDatabase } from "../../../electron/db";
 import type { Repositories } from "../../../electron/db/repositories";
-import { allProcedures } from "../../../electron/ipc";
+import {
+  REQUIRED_IPC_CHANNELS,
+  allProcedures,
+  missingRequiredIpcChannels,
+} from "../../../electron/ipc";
 import { defineProcedure } from "../../../electron/ipc/procedure";
 import {
   authProcedures,
@@ -72,6 +76,13 @@ describe("IPC procedure registry", () => {
         dictionaryProcedures.length +
         dictionaryLearningProcedures.length +
         evidenceProcedures.length,
+    );
+  });
+
+  it("keeps required runtime channels registered", () => {
+    expect(missingRequiredIpcChannels(allProcedures)).toEqual([]);
+    expect(allProcedures.map((procedure) => procedure.name)).toEqual(
+      expect.arrayContaining([...REQUIRED_IPC_CHANNELS]),
     );
   });
 
