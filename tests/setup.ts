@@ -196,6 +196,7 @@ Object.defineProperty(window, "api", {
         reason: null,
       }),
       openMicrophoneSettings: async () => ({ opened: false }),
+      logMicrophoneCaptureDiagnostic: async () => ({ ok: true }),
     },
     imports: {
       listRuns: async () => [],

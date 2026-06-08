@@ -401,6 +401,17 @@ const api = {
     microphoneStatus: () => invoke<MicrophonePermissionState>("permissions.microphoneStatus"),
     requestMicrophone: () => invoke<MicrophonePermissionState>("permissions.requestMicrophone"),
     openMicrophoneSettings: () => invoke<{ opened: boolean }>("permissions.openMicrophoneSettings"),
+    logMicrophoneCaptureDiagnostic: (input: {
+      event: string;
+      phase: string;
+      backend?: string;
+      permission?: MicrophonePermissionState | null;
+      context?: { state: string | null; sampleRate: number | null };
+      worklet?: { protocol: string; path: string };
+      error?: { name: string | null; message: string; code?: number };
+      detail?: string;
+      atIso: string;
+    }) => invoke<{ ok: true }>("permissions.logMicrophoneCaptureDiagnostic", input),
   },
 
   imports: {
