@@ -35,6 +35,7 @@ const SETTINGS = {
   sessionCount: "session_default_count",
   sessionMode: "session_default_mode",
   sessionShuffle: "session_shuffle",
+  unitReviewExcludeSpeaking: SETTINGS_KEYS.unitReviewExcludeSpeaking,
   definitionPriority: "definition_priority",
   cameraCheckinsEnabled: "session_camera_checkins_enabled",
   screenshotsEnabled: SETTINGS_KEYS.screenshotsEnabled,
@@ -191,6 +192,7 @@ function SessionDefaultsCard() {
   const count = useSetting<number>(SETTINGS.sessionCount, 15);
   const mode = useSetting<ExerciseSessionMode>(SETTINGS.sessionMode, "mixed");
   const shuffle = useSetting<boolean>(SETTINGS.sessionShuffle, true);
+  const excludeSpeaking = useSetting<boolean>(SETTINGS.unitReviewExcludeSpeaking, false);
   const cameraCheckins = useSetting<boolean>(SETTINGS.cameraCheckinsEnabled, false);
   const screenshots = useSetting<boolean>(SETTINGS.screenshotsEnabled, false);
 
@@ -225,6 +227,17 @@ function SessionDefaultsCard() {
           onChange={shuffle.setValue}
         />
       </div>
+      <SettingToggle
+        label="Exclude speaking in unit review"
+        checked={excludeSpeaking.value === true}
+        disabled={excludeSpeaking.loading || excludeSpeaking.saving}
+        description={
+          excludeSpeaking.value === true
+            ? "Unit review decks skip pronunciation cards."
+            : "Unit review decks can include pronunciation cards."
+        }
+        onChange={excludeSpeaking.setValue}
+      />
       <SettingToggle
         label="Camera check-ins"
         checked={cameraCheckins.value === true}

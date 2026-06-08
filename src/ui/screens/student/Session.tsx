@@ -113,9 +113,17 @@ export function StudentSession() {
   const sessionCount = normalizeSessionCount(settings[SESSION_COUNT_KEY]);
   const sessionMode = normalizeExerciseSessionMode(settings[SESSION_MODE_KEY]);
   const definitionPriority = normalizeDefinitionPriority(settings[DEFINITION_PRIORITY_KEY]);
+  const excludeSpeaking =
+    lessonQ.data?.kind === "vocabulary" &&
+    (search.skipSpeaking === true || settings[SETTINGS_KEYS.unitReviewExcludeSpeaking] === true);
   const effectiveSessionMode =
-    lessonQ.data?.kind === "grammar" ? "grammar" : practiceModeForExerciseMode(sessionMode);
-  const exerciseKinds = useMemo(() => exerciseKindsForMode(sessionMode), [sessionMode]);
+    lessonQ.data?.kind === "grammar"
+      ? "grammar"
+      : practiceModeForExerciseMode(sessionMode, { excludeSpeaking });
+  const exerciseKinds = useMemo(
+    () => exerciseKindsForMode(sessionMode, { excludeSpeaking }),
+    [excludeSpeaking, sessionMode],
+  );
   const shuffleDeck = settings[SESSION_SHUFFLE_KEY] !== false;
   const settingsLoading = settingsQ.isLoading;
 
@@ -140,7 +148,9 @@ export function StudentSession() {
     if (lessonQ.isLoading || !lessonQ.data) return;
     if (settingsLoading) return;
     if (!Number.isFinite(studentIdNum) || studentIdNum <= 0) return;
-    const key = `${studentIdNum}:${lessonIdNum}:${seed}:${effectiveSessionMode}`;
+    const key = `${studentIdNum}:${lessonIdNum}:${seed}:${effectiveSessionMode}:${
+      excludeSpeaking ? "no-speaking" : "speaking"
+    }`;
     if (openedFor.current === key) return;
     openedFor.current = key;
     sessionStart.mutate({ studentId: studentIdNum });
@@ -152,6 +162,7 @@ export function StudentSession() {
     lessonIdNum,
     seed,
     effectiveSessionMode,
+    excludeSpeaking,
     sessionStart.mutate,
   ]);
 

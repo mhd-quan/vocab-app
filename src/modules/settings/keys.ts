@@ -3,4 +3,5 @@ export const SETTINGS_KEYS = {
   pronunciationMinDurationMs: "pronunciation_min_duration_ms",
   pronunciationMinRms: "pronunciation_min_rms",
   screenshotsEnabled: "session_screenshots_enabled",
+  unitReviewExcludeSpeaking: "unit_review_exclude_speaking",
 } as const;

@@ -35,6 +35,7 @@ describe("TutorSettings", () => {
       if (key === "session_default_count") return 15;
       if (key === "session_default_mode") return "mixed";
       if (key === "session_shuffle") return true;
+      if (key === "unit_review_exclude_speaking") return false;
       if (key === "session_camera_checkins_enabled") return true;
       if (key === "session_screenshots_enabled") return false;
       if (key === "fsrs_short_term_days") return 1;
@@ -55,6 +56,9 @@ describe("TutorSettings", () => {
     await waitFor(() =>
       expect(screen.getByRole("switch", { name: /camera check-ins/i })).toBeChecked(),
     );
+    expect(
+      screen.getByRole("switch", { name: /exclude speaking in unit review/i }),
+    ).not.toBeChecked();
     expect(screen.getByRole("switch", { name: /allow screenshots/i })).not.toBeChecked();
 
     expect(document.querySelector("md-outlined-select")).toBeNull();
@@ -77,6 +81,28 @@ describe("TutorSettings", () => {
     await waitFor(() =>
       expect(setSpy).toHaveBeenCalledWith({
         key: "session_screenshots_enabled",
+        value: true,
+      }),
+    );
+  });
+
+  it("saves the tutor unit-review speaking exclusion toggle through settings", async () => {
+    vi.spyOn(window.api.settings, "get").mockImplementation(async ({ key }) =>
+      key === "unit_review_exclude_speaking" ? false : null,
+    );
+    const setSpy = vi.spyOn(window.api.settings, "set").mockResolvedValue({ ok: true });
+
+    renderSettings();
+
+    const toggle = await screen.findByRole("switch", {
+      name: /exclude speaking in unit review/i,
+    });
+    await waitFor(() => expect(toggle).not.toBeDisabled());
+    fireEvent.click(toggle);
+
+    await waitFor(() =>
+      expect(setSpy).toHaveBeenCalledWith({
+        key: "unit_review_exclude_speaking",
         value: true,
       }),
     );

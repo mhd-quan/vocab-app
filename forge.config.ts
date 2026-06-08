@@ -22,25 +22,128 @@ const runtimeNativeDependencies = [
   "onnxruntime-common",
   "onnxruntime-web",
   "adm-zip",
+  "sharp",
+  "@img/colour",
+  "detect-libc",
+  "semver",
 ];
+const sharpTargetDependencies: Record<string, string[]> = {
+  "darwin-arm64": ["@img/sharp-darwin-arm64", "@img/sharp-libvips-darwin-arm64"],
+  "darwin-x64": ["@img/sharp-darwin-x64", "@img/sharp-libvips-darwin-x64"],
+  "win32-arm64": ["@img/sharp-win32-arm64"],
+  "win32-ia32": ["@img/sharp-win32-ia32"],
+  "win32-x64": ["@img/sharp-win32-x64"],
+};
 const execFileAsync = promisify(execFile);
 
-function copyRuntimeNativeDependencies(buildPath: string): void {
+async function copyRuntimeNativeDependencies(
+  buildPath: string,
+  platform: string,
+  arch: string,
+): Promise<void> {
   const targetNodeModules = path.join(buildPath, "node_modules");
   fs.mkdirSync(targetNodeModules, { recursive: true });
 
-  for (const dependency of runtimeNativeDependencies) {
-    const source = path.join(__dirname, "node_modules", dependency);
-    const destination = path.join(targetNodeModules, dependency);
-    fs.mkdirSync(path.dirname(destination), { recursive: true });
-    fs.rmSync(destination, { recursive: true, force: true });
-    fs.cpSync(source, destination, { recursive: true });
-
+  for (const dependency of runtimeDependenciesForTarget(platform, arch)) {
+    const source = await runtimeDependencySource(dependency, platform, arch);
+    copyPackageDirectory(source, path.join(targetNodeModules, dependency));
     if (dependency === "better-sqlite3") {
+      const destination = path.join(targetNodeModules, dependency);
       fs.rmSync(path.join(destination, "build"), { recursive: true, force: true });
       fs.rmSync(path.join(destination, "bin"), { recursive: true, force: true });
     }
   }
+}
+
+function runtimeDependenciesForTarget(platform: string, arch: string): string[] {
+  return [...runtimeNativeDependencies, ...(sharpTargetDependencies[`${platform}-${arch}`] ?? [])];
+}
+
+async function runtimeDependencySource(
+  dependency: string,
+  platform: string,
+  arch: string,
+): Promise<string> {
+  const localSource = path.join(__dirname, "node_modules", dependency);
+  if (fs.existsSync(localSource)) return localSource;
+
+  if (dependency.startsWith("@img/sharp-")) {
+    return installTargetSharpDependency(dependency, platform, arch);
+  }
+
+  throw new Error(`Runtime dependency is missing from node_modules: ${dependency}`);
+}
+
+function copyPackageDirectory(source: string, destination: string): void {
+  fs.mkdirSync(path.dirname(destination), { recursive: true });
+  fs.rmSync(destination, { recursive: true, force: true });
+  fs.cpSync(source, destination, { recursive: true });
+}
+
+async function installTargetSharpDependency(
+  dependency: string,
+  platform: string,
+  arch: string,
+): Promise<string> {
+  const version = sharpOptionalDependencyVersion(dependency);
+  const cacheRoot = path.join(
+    os.tmpdir(),
+    "vocab-app-target-node-modules",
+    `${safePackagePath(dependency)}-${version}`,
+  );
+  const source = path.join(cacheRoot, "node_modules", dependency);
+  if (!fs.existsSync(source)) {
+    fs.rmSync(cacheRoot, { recursive: true, force: true });
+    fs.mkdirSync(cacheRoot, { recursive: true });
+    await execFileAsync(
+      npmExecutable(),
+      [
+        "install",
+        "--prefix",
+        cacheRoot,
+        "--no-save",
+        "--omit=dev",
+        "--include=optional",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        "--force",
+        `--os=${platform}`,
+        `--cpu=${arch}`,
+        `${dependency}@${version}`,
+      ],
+      {
+        env: {
+          ...process.env,
+          npm_config_cache:
+            process.env.npm_config_cache ?? path.join(os.tmpdir(), "vocab-app-npm-cache"),
+        },
+        maxBuffer: 1024 * 1024 * 10,
+      },
+    );
+  }
+
+  if (!fs.existsSync(source)) {
+    throw new Error(`Could not install target sharp dependency: ${dependency}@${version}`);
+  }
+  return source;
+}
+
+function sharpOptionalDependencyVersion(dependency: string): string {
+  const sharpPackageJson = JSON.parse(
+    fs.readFileSync(path.join(__dirname, "node_modules", "sharp", "package.json"), "utf8"),
+  ) as { optionalDependencies?: Record<string, string> };
+  const version = sharpPackageJson.optionalDependencies?.[dependency];
+  if (!version) throw new Error(`sharp does not declare optional dependency ${dependency}`);
+  return version;
+}
+
+function npmExecutable(): string {
+  return process.platform === "win32" ? "npm.cmd" : "npm";
+}
+
+function safePackagePath(packageName: string): string {
+  return packageName.replace(/^@/, "").replace(/\//g, "-");
 }
 
 async function installTargetBetterSqlitePrebuild(
@@ -118,10 +221,11 @@ function onnxRuntimePackageDirs(buildPath: string): string[] {
 
 const config: ForgeConfig = {
   hooks: {
-    packageAfterCopy: async (_config, buildPath) => {
-      copyRuntimeNativeDependencies(buildPath);
+    packageAfterCopy: async (_config, buildPath, _electronVersion, platform, arch) => {
+      await copyRuntimeNativeDependencies(buildPath, platform, arch);
     },
     packageAfterPrune: async (_config, buildPath, electronVersion, platform, arch) => {
+      await copyRuntimeNativeDependencies(buildPath, platform, arch);
       await installTargetBetterSqlitePrebuild(buildPath, electronVersion, platform, arch);
       pruneOnnxRuntimeBinaries(buildPath, platform, arch);
     },
