@@ -1,5 +1,9 @@
-import { api } from "@/lib/api";
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  type MicrophonePermissionView,
+  latestMicrophonePermission,
+  requestMicrophonePermissionForCapture,
+} from "./microphonePermissionClient";
 import { PCM_WORKLET_SOURCE } from "./pcmWorklet";
 import {
   type RecorderPhase,
@@ -15,7 +19,6 @@ export interface RecordedPronunciationAudio {
 }
 
 export type PronunciationRecorderState = "idle" | "recording" | "ready" | "unsupported" | "error";
-type MicrophonePermissionView = Awaited<ReturnType<typeof api.permissions.microphoneStatus>>;
 
 const MAX_RECORDING_MS = 10_000;
 const FALLBACK_SAMPLE_RATE = 16_000;
@@ -136,7 +139,7 @@ export function usePronunciationRecorder(maxDurationMs = MAX_RECORDING_MS) {
     let phase: RecorderPhase = "getUserMedia";
     let activePermission: MicrophonePermissionView | null = null;
     try {
-      const permission = await api.permissions.requestMicrophone();
+      const permission = await requestMicrophonePermissionForCapture();
       activePermission = permission;
       setPermission(permission);
       if (!permission.readyForCapture) {
@@ -269,16 +272,6 @@ function shouldRetryGetUserMedia(err: unknown, permission: MicrophonePermissionV
   if (!isTransientCaptureAbort(err)) return false;
   if (permission.status === "denied" || permission.status === "restricted") return false;
   return permission.readyForCapture;
-}
-
-async function latestMicrophonePermission(
-  fallback: MicrophonePermissionView | null,
-): Promise<MicrophonePermissionView | null> {
-  try {
-    return await api.permissions.microphoneStatus();
-  } catch {
-    return fallback;
-  }
 }
 
 function delay(ms: number): Promise<void> {

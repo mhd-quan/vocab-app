@@ -4,7 +4,12 @@ import started from "electron-squirrel-startup";
 import { SETTINGS_KEYS } from "../src/modules/settings/keys";
 import { type AppDatabase, closeDatabase, openDatabase } from "./db";
 import { createRepositories } from "./db/repositories";
-import { allProcedures, registerIpcProcedures, unregisterIpcProcedures } from "./ipc";
+import {
+  allProcedures,
+  assertRequiredIpcChannels,
+  registerIpcProcedures,
+  unregisterIpcProcedures,
+} from "./ipc";
 import { disposePronunciationRuntime } from "./pronunciation/runtime";
 import { applyScreenshotPolicy } from "./windowPolicy";
 
@@ -84,6 +89,7 @@ app.whenReady().then(() => {
   console.log("[db] opened, applied migrations through latest");
 
   const repos = createRepositories(db);
+  assertRequiredIpcChannels(allProcedures);
   registerIpcProcedures(allProcedures, { db, repos, getMainWindow: () => mainWindow });
   console.log(`[ipc] registered ${allProcedures.length} procedures`);
   console.log(`[boot] vocab-app pid=${process.pid} platform=${process.platform}`);
