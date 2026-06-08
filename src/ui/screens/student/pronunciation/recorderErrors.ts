@@ -1,4 +1,9 @@
-export type RecorderPhase = "getUserMedia" | "AudioContext" | "audioWorklet" | "graph";
+export type RecorderPhase =
+  | "getUserMedia"
+  | "AudioContext"
+  | "audioWorklet"
+  | "scriptProcessor"
+  | "graph";
 
 export interface RecorderPermissionSnapshot {
   platform: string;
@@ -76,5 +81,6 @@ function phaseLabel(phase: RecorderPhase): string {
   if (phase === "getUserMedia") return "starting microphone stream";
   if (phase === "AudioContext") return "starting audio engine";
   if (phase === "audioWorklet") return "loading audio processor";
+  if (phase === "scriptProcessor") return "starting fallback audio processor";
   return "connecting audio graph";
 }
