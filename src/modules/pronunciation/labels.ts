@@ -1,6 +1,13 @@
 const BLANK_LABEL = "<blank>";
 
-const SPECIAL_LABELS = new Set(["<s>", "</s>", "<unk>", "|"]);
+// CTC blank spellings across exporters. HuggingFace Wav2Vec2/HuBERT CTC
+// bundles use the pad token as the blank ("[PAD]"); other exports emit
+// "<pad>" or "<blank>". All map to our canonical blank sentinel.
+const BLANK_TOKENS = new Set([BLANK_LABEL, "<pad>", "[PAD]"]);
+
+// Non-phoneme vocabulary entries that must never be treated as a target
+// or as the blank. Covers both angle-bracket and square-bracket exports.
+const SPECIAL_LABELS = new Set(["<s>", "</s>", "<unk>", "[UNK]", "<cls>", "<sep>", "|"]);
 
 const ACOUSTIC_TO_ARPABET: Record<string, string> = {
   p: "P",
@@ -98,7 +105,7 @@ export function isArpabetVowel(label: string): boolean {
 export function normalizeAcousticLabel(label: string): string | null {
   const normalized = label.trim();
   if (!normalized) return null;
-  if (normalized === BLANK_LABEL || normalized === "<pad>") return BLANK_LABEL;
+  if (BLANK_TOKENS.has(normalized)) return BLANK_LABEL;
   if (SPECIAL_LABELS.has(normalized)) return null;
   if (ARPABET.has(normalized)) return normalized;
   return ACOUSTIC_TO_ARPABET[normalized] ?? null;

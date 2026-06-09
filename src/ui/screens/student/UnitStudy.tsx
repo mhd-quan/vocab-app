@@ -1,6 +1,7 @@
 import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
+import { SETTINGS_KEYS } from "@/modules/settings/keys";
 import {
   type VocabStudySectionId,
   countVocabSections,
@@ -24,6 +25,7 @@ export function StudentUnitStudy() {
   const unitIdNum = Number(unitId);
   const navigate = useNavigate();
   const [selected, setSelected] = useState<VocabStudySectionId[]>([]);
+  const [skipSpeaking, setSkipSpeaking] = useState(false);
 
   const unitQ = useQuery({
     queryKey: ["curriculum", "unit", unitIdNum],
@@ -45,6 +47,11 @@ export function StudentUnitStudy() {
     queryKey: vocabLesson ? queryKeys.vocab.list(vocabLesson.id) : ["vocab", "list", "none"],
     queryFn: () => api.vocab.listByLesson({ lessonId: vocabLesson?.id ?? 0 }),
     enabled: Boolean(vocabLesson),
+  });
+
+  const excludeSpeakingQ = useQuery({
+    queryKey: ["settings", "get", SETTINGS_KEYS.unitReviewExcludeSpeaking],
+    queryFn: () => api.settings.get<boolean>({ key: SETTINGS_KEYS.unitReviewExcludeSpeaking }),
   });
 
   const entries = entriesQ.data ?? [];
@@ -78,9 +85,15 @@ export function StudentUnitStudy() {
     void navigate({
       to: "/student/profile/$studentId/session/$lessonId",
       params: { studentId: String(studentIdNum), lessonId: String(vocabLesson.id) },
-      search: { sections: encodeStudySectionParam(selected) },
+      search: {
+        sections: encodeStudySectionParam(selected),
+        skipSpeaking: effectiveSkipSpeaking ? true : undefined,
+      },
     });
   };
+
+  const tutorExcludesSpeaking = excludeSpeakingQ.data === true;
+  const effectiveSkipSpeaking = tutorExcludesSpeaking || skipSpeaking;
 
   if (!Number.isFinite(studentIdNum) || !Number.isFinite(unitIdNum)) {
     return (
@@ -156,9 +169,28 @@ export function StudentUnitStudy() {
                 Pick one or more sections. Practice will only use matching cards.
               </p>
             </div>
-            <PressButton size="md" onClick={startVocab} disabled={selectedEntries.length === 0}>
-              Start {selectedEntries.length} cards
-            </PressButton>
+            <div className="flex flex-col gap-3 sm:min-w-56 sm:items-end">
+              <label className="flex w-full items-start gap-3 rounded-bento border border-border-subtle bg-surface-1 px-3 py-2 sm:max-w-64">
+                <input
+                  type="checkbox"
+                  className="mt-1 h-4 w-4 accent-accent"
+                  checked={effectiveSkipSpeaking}
+                  disabled={tutorExcludesSpeaking || excludeSpeakingQ.isLoading}
+                  onChange={(event) => setSkipSpeaking(event.currentTarget.checked)}
+                />
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold text-app">Skip speaking</span>
+                  <span className="block text-xs leading-5 text-muted">
+                    {tutorExcludesSpeaking
+                      ? "Tutor setting excludes pronunciation cards."
+                      : "Review with written and listening cards."}
+                  </span>
+                </span>
+              </label>
+              <PressButton size="md" onClick={startVocab} disabled={selectedEntries.length === 0}>
+                Start {selectedEntries.length} cards
+              </PressButton>
+            </div>
           </header>
 
           {entriesQ.isLoading ? (

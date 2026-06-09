@@ -14,6 +14,7 @@ const sizes = [16, 32, 64, 128, 256, 512, 1024];
 // width (230/1024) is the standard SVG approximation and matches what most
 // shipping macOS/iOS app icons use.
 const CORNER_RATIO = 230 / 1024;
+const ICON_OCCUPANCY_RATIO = 0.9;
 
 function squircleMask(size: number): Buffer {
   const r = Math.round(size * CORNER_RATIO);
@@ -23,12 +24,23 @@ function squircleMask(size: number): Buffer {
 }
 
 async function renderPng(size: number, output: string): Promise<void> {
+  const innerSize = Math.max(1, Math.round(size * ICON_OCCUPANCY_RATIO));
+  const inset = Math.round((size - innerSize) / 2);
   const resized = await sharp(sourcePath)
-    .resize(size, size, { fit: "cover", kernel: "lanczos3" })
+    .resize(innerSize, innerSize, { fit: "cover", kernel: "lanczos3" })
     .ensureAlpha()
+    .composite([{ input: squircleMask(innerSize), blend: "dest-in" }])
     .toBuffer();
-  await sharp(resized)
-    .composite([{ input: squircleMask(size), blend: "dest-in" }])
+
+  await sharp({
+    create: {
+      width: size,
+      height: size,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  })
+    .composite([{ input: resized, left: inset, top: inset }])
     .png({ compressionLevel: 9 })
     .toFile(output);
 }

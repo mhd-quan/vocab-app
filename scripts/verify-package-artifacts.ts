@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { listPackage } from "@electron/asar";
 import { version } from "../package.json";
 
 interface PackagedTarget {
@@ -85,10 +86,15 @@ function verifyTarget(target: PackagedTarget): string[] {
   );
 
   requireFile(target.executable, `${target.label} executable`, failures);
-  requireFile(path.join(resourcesDir, "app.asar"), `${target.label} app.asar`, failures);
+  const appAsar = path.join(resourcesDir, "app.asar");
+  requireFile(appAsar, `${target.label} app.asar`, failures);
   requireFile(nativeModule, `${target.label} better-sqlite3 native module`, failures);
+  verifyOnnxRuntimeLibraries(target, resourcesDir, failures);
   if (target.nativeHeader === "mach-o") {
     verifyMacIcon(target, resourcesDir, failures);
+  }
+  if (target.nativeHeader === "pe") {
+    verifyWindowsSharpRuntime(appAsar, resourcesDir, failures);
   }
 
   if (fs.existsSync(nativeModule) && !hasExpectedNativeHeader(nativeModule, target.nativeHeader)) {
@@ -121,6 +127,91 @@ function verifyTarget(target: PackagedTarget): string[] {
   requireFile(path.join(resourcesDir, viterbiWasm), `${target.label} ${viterbiWasm}`, failures);
 
   return failures;
+}
+
+// The onnxruntime-node binding loads its runtime shared library by file path
+// at load time. Those libraries MUST be unpacked next to `onnxruntime_binding.node`
+// (not left inside app.asar) or the binding binds to a stale system onnxruntime
+// on Windows and fails ORT API init. Guard the on-disk layout so the asar.unpack
+// rule in forge.config.ts can never silently regress.
+function verifyOnnxRuntimeLibraries(
+  target: PackagedTarget,
+  resourcesDir: string,
+  failures: string[],
+): void {
+  const { platform, arch, requiredLibs } =
+    target.nativeHeader === "pe"
+      ? { platform: "win32", arch: "x64", requiredLibs: ["onnxruntime.dll", "DirectML.dll"] }
+      : { platform: "darwin", arch: "x64", requiredLibs: [/^libonnxruntime\..*\.dylib$/] };
+
+  const binDir = path.join(
+    resourcesDir,
+    "app.asar.unpacked",
+    "node_modules",
+    "onnxruntime-node",
+    "bin",
+    "napi-v6",
+    platform,
+    arch,
+  );
+
+  requireFile(
+    path.join(binDir, "onnxruntime_binding.node"),
+    `${target.label} onnxruntime binding`,
+    failures,
+  );
+
+  if (!fs.existsSync(binDir)) {
+    failures.push(`${target.label} onnxruntime bin dir missing (DLLs not unpacked) at ${binDir}`);
+    return;
+  }
+  const present = fs.readdirSync(binDir);
+  for (const lib of requiredLibs) {
+    const found =
+      typeof lib === "string" ? present.includes(lib) : present.some((entry) => lib.test(entry));
+    if (!found) {
+      failures.push(
+        `${target.label} onnxruntime runtime library not unpacked next to the binding: ${String(
+          lib,
+        )} (still trapped in app.asar?)`,
+      );
+    }
+  }
+}
+
+function verifyWindowsSharpRuntime(
+  appAsar: string,
+  resourcesDir: string,
+  failures: string[],
+): void {
+  requireFile(
+    path.join(
+      resourcesDir,
+      "app.asar.unpacked",
+      "node_modules",
+      "@img",
+      "sharp-win32-x64",
+      "lib",
+      "sharp-win32-x64.node",
+    ),
+    "Windows sharp native module",
+    failures,
+  );
+  if (!fs.existsSync(appAsar)) return;
+
+  const entries = new Set(listPackage(appAsar));
+  for (const entry of [
+    "/node_modules/sharp/package.json",
+    "/node_modules/sharp/lib/index.js",
+    "/node_modules/@img/colour/package.json",
+    "/node_modules/@img/sharp-win32-x64/package.json",
+    "/node_modules/@img/sharp-win32-x64/lib/libvips-42.dll",
+    "/node_modules/@img/sharp-win32-x64/lib/sharp-win32-x64.node",
+    "/node_modules/detect-libc/package.json",
+    "/node_modules/semver/package.json",
+  ]) {
+    if (!entries.has(entry)) failures.push(`Windows app.asar is missing ${entry}`);
+  }
 }
 
 function verifyMacIcon(target: PackagedTarget, resourcesDir: string, failures: string[]): void {

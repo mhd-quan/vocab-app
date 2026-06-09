@@ -4,7 +4,7 @@ Interactive vocabulary & grammar tutoring platform for students working through
 Destination B1 / B2. Single-tutor app with a hybrid mode (tutor dashboard +
 student practice) running as a desktop app on Windows and macOS.
 
-> **Status:** v0.17.1 — local-first tutor workspace, student practice,
+> **Status:** v0.17.4 — local-first tutor workspace, student practice,
 > FSRS-lite review, personal dictionary learning, rewards, imports, the
 > HuBERT-backed CAPT pronunciation pipeline, restored mascot assets, and
 > the first Rust native-core workspace for reusable pure logic plus future

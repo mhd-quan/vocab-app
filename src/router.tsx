@@ -151,6 +151,7 @@ const studentPronunciationRoute = createRoute({
 
 interface StudentSessionSearch {
   sections?: string;
+  skipSpeaking?: boolean;
 }
 
 const studentSessionRoute = createRoute({
@@ -158,9 +159,12 @@ const studentSessionRoute = createRoute({
   path: "profile/$studentId/session/$lessonId",
   component: StudentSession,
   validateSearch: (raw: Record<string, unknown>): StudentSessionSearch => {
-    return typeof raw.sections === "string" && raw.sections.length > 0
-      ? { sections: raw.sections }
-      : {};
+    const out: StudentSessionSearch = {};
+    if (typeof raw.sections === "string" && raw.sections.length > 0) out.sections = raw.sections;
+    if (raw.skipSpeaking === true || raw.skipSpeaking === "true" || raw.skipSpeaking === "1") {
+      out.skipSpeaking = true;
+    }
+    return out;
   },
 });
 

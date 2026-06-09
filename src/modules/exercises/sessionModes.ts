@@ -22,6 +22,10 @@ export const exerciseSessionModeOptions: Array<{ value: ExerciseSessionMode; lab
   { value: "pronunciation", label: "Pronunciation" },
 ];
 
+interface ExerciseModeOptions {
+  excludeSpeaking?: boolean;
+}
+
 const exerciseSessionModeValues = new Set<string>(
   exerciseSessionModeOptions.map((option) => option.value),
 );
@@ -34,10 +38,21 @@ export function normalizeExerciseSessionMode(value: unknown): ExerciseSessionMod
     : "mixed";
 }
 
-export function exerciseKindsForMode(mode: ExerciseSessionMode): ExerciseKind[] {
-  return mode === "mixed" ? mixedExerciseKinds : [mode];
+export function exerciseKindsForMode(
+  mode: ExerciseSessionMode,
+  options: ExerciseModeOptions = {},
+): ExerciseKind[] {
+  const kinds = mode === "mixed" ? mixedExerciseKinds : [mode];
+  if (!options.excludeSpeaking) return kinds;
+
+  const filtered = kinds.filter((kind) => kind !== "pronunciation");
+  return filtered.length > 0 ? filtered : ["flashcard"];
 }
 
-export function practiceModeForExerciseMode(mode: ExerciseSessionMode): PracticeMode {
+export function practiceModeForExerciseMode(
+  mode: ExerciseSessionMode,
+  options: ExerciseModeOptions = {},
+): PracticeMode {
+  if (options.excludeSpeaking && mode === "pronunciation") return "flashcard";
   return mode;
 }

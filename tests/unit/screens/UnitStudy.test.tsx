@@ -93,9 +93,12 @@ function renderUnitStudy() {
   const sessionRoute = createRoute({
     getParentRoute: () => studentRoute,
     path: "profile/$studentId/session/$lessonId",
-    validateSearch: (raw: Record<string, unknown>) => ({
-      sections: typeof raw.sections === "string" ? raw.sections : "",
-    }),
+    validateSearch: (raw: Record<string, unknown>) => {
+      const out: { sections?: string; skipSpeaking?: boolean } = {};
+      if (typeof raw.sections === "string") out.sections = raw.sections;
+      if (raw.skipSpeaking === true || raw.skipSpeaking === "true") out.skipSpeaking = true;
+      return out;
+    },
     component: SessionProbe,
   });
   const router = createRouter({
@@ -165,6 +168,17 @@ describe("StudentUnitStudy", () => {
 
     await waitFor(() => expect(screen.getByTestId("session-route")).toBeInTheDocument());
     expect(screen.getByTestId("session-route")).toHaveTextContent('"sections":"phrasal_verbs"');
+  });
+
+  it("passes the per-unit skip-speaking choice into the vocab session", async () => {
+    renderUnitStudy();
+
+    const toggle = await screen.findByRole("checkbox", { name: /skip speaking/i });
+    fireEvent.click(toggle);
+    fireEvent.click(await screen.findByRole("button", { name: /Start 2 cards/i }));
+
+    await waitFor(() => expect(screen.getByTestId("session-route")).toBeInTheDocument());
+    expect(screen.getByTestId("session-route")).toHaveTextContent('"skipSpeaking":true');
   });
 
   it("keeps the unit study layer when a unit has grammar", async () => {
