@@ -321,6 +321,7 @@ function verifyWindowsInstallers(): string[] {
     "Windows app installer PowerShell",
     failures,
   );
+  verifyWindowsAppInstallerScript(path.join(appInstaller, "Install-Vocab-App.ps1"), failures);
   requireFile(
     path.join(appInstaller, "Vocab App-win32-x64", "vocab-app.exe"),
     "Windows app installer executable payload",
@@ -344,6 +345,22 @@ function verifyWindowsInstallers(): string[] {
   requireDir(path.join(dictInstaller, "dictionary"), "Windows dictionary payload", failures);
 
   return failures;
+}
+
+function verifyWindowsAppInstallerScript(scriptPath: string, failures: string[]): void {
+  if (!fs.existsSync(scriptPath)) return;
+
+  const script = fs.readFileSync(scriptPath, "utf8");
+  for (const required of [
+    "vc_redist.x64.exe",
+    "MSVCP140.dll",
+    "VCRUNTIME140.dll",
+    "VCRUNTIME140_1.dll",
+  ]) {
+    if (!script.includes(required)) {
+      failures.push(`Windows app installer does not check/install ${required}`);
+    }
+  }
 }
 
 function verifyMacInstallers(): string[] {

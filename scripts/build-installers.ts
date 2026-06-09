@@ -120,10 +120,46 @@ function winAppPs1(): string {
 $Source = Join-Path $PSScriptRoot "Vocab App-win32-x64"
 $InstallRoot = Join-Path $env:LOCALAPPDATA "Programs\Vocab App"
 $Exe = Join-Path $InstallRoot "vocab-app.exe"
+$VcRedistUrl = "https://aka.ms/vs/17/release/vc_redist.x64.exe"
+$VcRuntimeDlls = @("MSVCP140.dll", "VCRUNTIME140.dll", "VCRUNTIME140_1.dll")
 
 if (!(Test-Path $Source)) {
   throw "Missing app payload: $Source"
 }
+
+function Test-VcRuntime {
+  foreach ($Dll in $VcRuntimeDlls) {
+    if (!(Test-Path (Join-Path $env:WINDIR "System32\$Dll"))) {
+      return $false
+    }
+  }
+  return $true
+}
+
+function Install-VcRuntime {
+  if (Test-VcRuntime) {
+    return
+  }
+
+  Write-Host "Installing Microsoft Visual C++ 2015-2022 Redistributable (x64) for native pronunciation scoring..."
+  $Installer = Join-Path ([IO.Path]::GetTempPath()) "vocab-app-vc-redist.x64.exe"
+  try {
+    Invoke-WebRequest -Uri $VcRedistUrl -OutFile $Installer -UseBasicParsing
+  } catch {
+    throw "Microsoft Visual C++ runtime is required for Windows pronunciation scoring. Download and install $VcRedistUrl, then run this installer again. $($_.Exception.Message)"
+  }
+
+  $Process = Start-Process -FilePath $Installer -ArgumentList "/install /quiet /norestart" -Wait -PassThru
+  if ($Process.ExitCode -ne 0 -and $Process.ExitCode -ne 3010 -and $Process.ExitCode -ne 1638) {
+    throw "Microsoft Visual C++ Redistributable installer failed with exit code $($Process.ExitCode). Install $VcRedistUrl manually, then run this installer again."
+  }
+
+  if (!(Test-VcRuntime)) {
+    throw "Microsoft Visual C++ runtime files were still not detected after installation. Restart Windows, or install $VcRedistUrl manually, then open Vocab App again."
+  }
+}
+
+Install-VcRuntime
 
 New-Item -ItemType Directory -Force -Path $InstallRoot | Out-Null
 Get-ChildItem -LiteralPath $Source -Force | ForEach-Object {
