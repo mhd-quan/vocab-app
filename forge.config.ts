@@ -223,6 +223,24 @@ function onnxRuntimePackageDirs(buildPath: string): string[] {
   ];
 }
 
+function forgeMakers(): ForgeConfig["makers"] {
+  const makers: ForgeConfig["makers"] = [
+    new MakerZIP({}, ["darwin", "win32"]),
+    new MakerDMG({ format: "ULFO" }),
+    new MakerDeb({}),
+  ];
+
+  // electron-winstaller requires Mono + Wine when run off Windows. The release
+  // flow already ships a ready-to-run Windows ZIP plus our script installer, so
+  // keep cross-platform makes deterministic and allow Squirrel only where it can
+  // run without extra host tooling.
+  if (process.platform === "win32" || process.env.VOCAB_ENABLE_SQUIRREL === "1") {
+    makers.unshift(new MakerSquirrel({ name: "vocab-app" }));
+  }
+
+  return makers;
+}
+
 const config: ForgeConfig = {
   hooks: {
     packageAfterCopy: async (_config, buildPath, _electronVersion, platform, arch) => {
@@ -235,16 +253,18 @@ const config: ForgeConfig = {
     },
   },
   packagerConfig: {
-    // `onnxruntime_binding.node` dynamically loads its sibling runtime
-    // libraries (onnxruntime.dll + DirectML/dxil/dxcompiler on Windows,
-    // libonnxruntime.*.dylib on macOS) by file path at load time. The OS
-    // loader cannot read those out of an asar archive, so they MUST sit on
-    // disk next to the unpacked `.node`. AutoUnpackNatives only unpacks
-    // `*.node`; without this the binding falls back to a stale system
-    // onnxruntime.dll on Windows ("Failed to initialize ONNX Runtime API …
-    // lower version DLL"). AutoUnpackNatives composes this with its own
-    // `.node` glob, so both end up unpacked together.
-    asar: { unpack: "**/onnxruntime-node/bin/**" },
+    // Native `.node` addons load their sibling shared libraries (onnxruntime.dll
+    // + DirectML/dxil/dxcompiler and libonnxruntime.*.dylib for onnxruntime-node;
+    // libvips-cpp.*.dylib / libvips-42.dll for sharp) by file path at load time.
+    // The OS dynamic loader cannot read those out of an asar archive, so every
+    // native shared library MUST sit on disk. AutoUnpackNatives only unpacks
+    // `*.node`, which leaves the sidecar libraries trapped in app.asar — the
+    // binding then either fails to load (sharp: "Library not loaded …
+    // libvips-cpp.*.dylib") or binds to a stale system copy (Windows ONNX:
+    // "Failed to initialize ONNX Runtime API … lower version DLL"). Unpacking all
+    // shared libraries closes the whole class of bug for current and future
+    // native deps. AutoUnpackNatives composes this glob with its own `.node` one.
+    asar: { unpack: "**/*.{dll,dylib,so}" },
     name: "Vocab App",
     executableName: "vocab-app",
     appBundleId: "dev.mhd-quan.vocab-app",
@@ -280,12 +300,7 @@ const config: ForgeConfig = {
     ],
   },
   rebuildConfig: {},
-  makers: [
-    new MakerSquirrel({ name: "vocab-app" }),
-    new MakerZIP({}, ["darwin", "win32"]),
-    new MakerDMG({ format: "ULFO" }),
-    new MakerDeb({}),
-  ],
+  makers: forgeMakers(),
   plugins: [
     new AutoUnpackNativesPlugin({}),
     new VitePlugin({

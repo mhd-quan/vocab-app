@@ -89,12 +89,11 @@ function verifyTarget(target: PackagedTarget): string[] {
   const appAsar = path.join(resourcesDir, "app.asar");
   requireFile(appAsar, `${target.label} app.asar`, failures);
   requireFile(nativeModule, `${target.label} better-sqlite3 native module`, failures);
+  verifySharedLibrariesUnpacked(target, appAsar, resourcesDir, failures);
   verifyOnnxRuntimeLibraries(target, resourcesDir, failures);
+  verifySharpRuntime(target, appAsar, resourcesDir, failures);
   if (target.nativeHeader === "mach-o") {
     verifyMacIcon(target, resourcesDir, failures);
-  }
-  if (target.nativeHeader === "pe") {
-    verifyWindowsSharpRuntime(appAsar, resourcesDir, failures);
   }
 
   if (fs.existsSync(nativeModule) && !hasExpectedNativeHeader(nativeModule, target.nativeHeader)) {
@@ -127,6 +126,28 @@ function verifyTarget(target: PackagedTarget): string[] {
   requireFile(path.join(resourcesDir, viterbiWasm), `${target.label} ${viterbiWasm}`, failures);
 
   return failures;
+}
+
+function verifySharedLibrariesUnpacked(
+  target: PackagedTarget,
+  appAsar: string,
+  resourcesDir: string,
+  failures: string[],
+): void {
+  if (!fs.existsSync(appAsar)) return;
+
+  for (const entry of listPackage(appAsar)) {
+    if (!isSharedLibraryEntry(entry)) continue;
+    requireFile(
+      path.join(resourcesDir, "app.asar.unpacked", entry.replace(/^\//, "")),
+      `${target.label} unpacked shared library ${entry}`,
+      failures,
+    );
+  }
+}
+
+function isSharedLibraryEntry(entry: string): boolean {
+  return /\.(dll|dylib|so(?:\.\d+)*)$/i.test(entry);
 }
 
 // The onnxruntime-node binding loads its runtime shared library by file path
@@ -179,38 +200,86 @@ function verifyOnnxRuntimeLibraries(
   }
 }
 
-function verifyWindowsSharpRuntime(
+function verifySharpRuntime(
+  target: PackagedTarget,
   appAsar: string,
   resourcesDir: string,
   failures: string[],
 ): void {
+  const sharpPackage = target.nativeHeader === "pe" ? "sharp-win32-x64" : "sharp-darwin-x64";
   requireFile(
     path.join(
       resourcesDir,
       "app.asar.unpacked",
       "node_modules",
       "@img",
-      "sharp-win32-x64",
+      sharpPackage,
       "lib",
-      "sharp-win32-x64.node",
+      `${sharpPackage}.node`,
     ),
-    "Windows sharp native module",
+    `${target.label} sharp native module`,
     failures,
   );
+
+  if (target.nativeHeader === "mach-o") {
+    const libvipsDir = path.join(
+      resourcesDir,
+      "app.asar.unpacked",
+      "node_modules",
+      "@img",
+      "sharp-libvips-darwin-x64",
+      "lib",
+    );
+    requireFileMatching(
+      libvipsDir,
+      /^libvips-cpp\..*\.dylib$/,
+      `${target.label} sharp libvips dylib`,
+      failures,
+    );
+  } else {
+    requireFile(
+      path.join(
+        resourcesDir,
+        "app.asar.unpacked",
+        "node_modules",
+        "@img",
+        sharpPackage,
+        "lib",
+        "libvips-42.dll",
+      ),
+      `${target.label} sharp libvips DLL`,
+      failures,
+    );
+  }
+
   if (!fs.existsSync(appAsar)) return;
 
   const entries = new Set(listPackage(appAsar));
-  for (const entry of [
+  const requiredEntries = [
     "/node_modules/sharp/package.json",
     "/node_modules/sharp/lib/index.js",
     "/node_modules/@img/colour/package.json",
-    "/node_modules/@img/sharp-win32-x64/package.json",
-    "/node_modules/@img/sharp-win32-x64/lib/libvips-42.dll",
-    "/node_modules/@img/sharp-win32-x64/lib/sharp-win32-x64.node",
+    `/node_modules/@img/${sharpPackage}/package.json`,
+    `/node_modules/@img/${sharpPackage}/lib/${sharpPackage}.node`,
     "/node_modules/detect-libc/package.json",
     "/node_modules/semver/package.json",
-  ]) {
-    if (!entries.has(entry)) failures.push(`Windows app.asar is missing ${entry}`);
+  ];
+  if (target.nativeHeader === "mach-o") {
+    requiredEntries.push("/node_modules/@img/sharp-libvips-darwin-x64/package.json");
+  } else {
+    requiredEntries.push(`/node_modules/@img/${sharpPackage}/lib/libvips-42.dll`);
+  }
+
+  for (const entry of requiredEntries) {
+    if (!entries.has(entry)) failures.push(`${target.label} app.asar is missing ${entry}`);
+  }
+  if (
+    target.nativeHeader === "mach-o" &&
+    !Array.from(entries).some((entry) =>
+      /^\/node_modules\/@img\/sharp-libvips-darwin-x64\/lib\/libvips-cpp\..*\.dylib$/.test(entry),
+    )
+  ) {
+    failures.push(`${target.label} app.asar is missing sharp libvips dylib`);
   }
 }
 
@@ -342,6 +411,24 @@ function requireDir(dirPath: string, description: string, failures: string[]): v
   }
   const stat = fs.statSync(dirPath);
   if (!stat.isDirectory()) failures.push(`${description} is not a directory at ${dirPath}`);
+}
+
+function requireFileMatching(
+  dirPath: string,
+  pattern: RegExp,
+  description: string,
+  failures: string[],
+): void {
+  if (!fs.existsSync(dirPath)) {
+    failures.push(`${description} directory missing at ${dirPath}`);
+    return;
+  }
+  const match = fs.readdirSync(dirPath).find((entry) => pattern.test(entry));
+  if (!match) {
+    failures.push(`${description} missing in ${dirPath}`);
+    return;
+  }
+  requireFile(path.join(dirPath, match), description, failures);
 }
 
 function hasExpectedNativeHeader(filePath: string, expected: "mach-o" | "pe"): boolean {
