@@ -18,6 +18,7 @@ import type {
   PronunciationExecutionProvider,
   PronunciationModelManifest,
 } from "../../../src/modules/pronunciation";
+import { describeNativeOnnxRuntimeLoadError } from "../dependencies";
 import { preparePcmForModel } from "../pcm";
 
 // Electron exposes `process.parentPort` to utility processes. The
@@ -169,7 +170,7 @@ async function handle(request: Request): Promise<void> {
       labels,
     });
   } catch (error) {
-    const reason = error instanceof Error ? error.message : "CAPT worker inference failed.";
+    const reason = describeNativeOnnxRuntimeLoadError(error);
     send({ id: request.id, ok: false, reason, recoverable: true });
   }
 }

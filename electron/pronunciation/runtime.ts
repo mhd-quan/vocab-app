@@ -18,7 +18,7 @@ import {
   modelManifestExists,
 } from "./bundle";
 import { cmudictLookup } from "./cmudict";
-import { hasTransformersRuntime } from "./dependencies";
+import { transformersRuntimeDiagnostics } from "./dependencies";
 import { cancelPending, disposeInferenceClient, infer, warmupInference } from "./inferenceClient";
 import { findModelPath } from "./paths";
 import { tryLoadWasmAligner, wasmLoadFailureReason } from "./wasm/loader";
@@ -74,14 +74,16 @@ export async function pronunciationStatus(): Promise<PronunciationRuntimeStatus>
     };
   }
 
-  const dependenciesReady = await hasTransformersRuntime(baseStatus.platform, baseStatus.arch);
-  if (!dependenciesReady) {
+  const dependencies = await transformersRuntimeDiagnostics(baseStatus.platform, baseStatus.arch);
+  if (!dependencies.available) {
     return {
       ...baseStatus,
       available: false,
       backend: "deterministic",
       modelId: bundle.manifest.modelId,
-      reason: "CAPT runtime dependencies or native binaries are not installed for this platform.",
+      reason:
+        dependencies.reason ??
+        "CAPT runtime dependencies or native binaries are not installed for this platform.",
     };
   }
 
