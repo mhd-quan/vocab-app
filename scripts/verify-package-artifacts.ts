@@ -89,6 +89,7 @@ function verifyTarget(target: PackagedTarget): string[] {
   const appAsar = path.join(resourcesDir, "app.asar");
   requireFile(appAsar, `${target.label} app.asar`, failures);
   requireFile(nativeModule, `${target.label} better-sqlite3 native module`, failures);
+  verifyOnnxRuntimeLibraries(target, resourcesDir, failures);
   if (target.nativeHeader === "mach-o") {
     verifyMacIcon(target, resourcesDir, failures);
   }
@@ -126,6 +127,56 @@ function verifyTarget(target: PackagedTarget): string[] {
   requireFile(path.join(resourcesDir, viterbiWasm), `${target.label} ${viterbiWasm}`, failures);
 
   return failures;
+}
+
+// The onnxruntime-node binding loads its runtime shared library by file path
+// at load time. Those libraries MUST be unpacked next to `onnxruntime_binding.node`
+// (not left inside app.asar) or the binding binds to a stale system onnxruntime
+// on Windows and fails ORT API init. Guard the on-disk layout so the asar.unpack
+// rule in forge.config.ts can never silently regress.
+function verifyOnnxRuntimeLibraries(
+  target: PackagedTarget,
+  resourcesDir: string,
+  failures: string[],
+): void {
+  const { platform, arch, requiredLibs } =
+    target.nativeHeader === "pe"
+      ? { platform: "win32", arch: "x64", requiredLibs: ["onnxruntime.dll", "DirectML.dll"] }
+      : { platform: "darwin", arch: "x64", requiredLibs: [/^libonnxruntime\..*\.dylib$/] };
+
+  const binDir = path.join(
+    resourcesDir,
+    "app.asar.unpacked",
+    "node_modules",
+    "onnxruntime-node",
+    "bin",
+    "napi-v6",
+    platform,
+    arch,
+  );
+
+  requireFile(
+    path.join(binDir, "onnxruntime_binding.node"),
+    `${target.label} onnxruntime binding`,
+    failures,
+  );
+
+  if (!fs.existsSync(binDir)) {
+    failures.push(`${target.label} onnxruntime bin dir missing (DLLs not unpacked) at ${binDir}`);
+    return;
+  }
+  const present = fs.readdirSync(binDir);
+  for (const lib of requiredLibs) {
+    const found =
+      typeof lib === "string" ? present.includes(lib) : present.some((entry) => lib.test(entry));
+    if (!found) {
+      failures.push(
+        `${target.label} onnxruntime runtime library not unpacked next to the binding: ${String(
+          lib,
+        )} (still trapped in app.asar?)`,
+      );
+    }
+  }
 }
 
 function verifyWindowsSharpRuntime(

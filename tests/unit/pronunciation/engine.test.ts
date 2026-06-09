@@ -73,6 +73,16 @@ describe("pronunciation engine", () => {
     expect(normalizeAcousticLabel("<unk>")).toBeNull();
   });
 
+  it("maps HuggingFace CTC bracket tokens ([PAD] blank, [UNK]) like the bundled HuBERT model", () => {
+    // The shipped Peacockery/hubert-base-phoneme-en vocab uses "[PAD]" as the
+    // CTC blank (pad_token_id) and "[UNK]" as the unknown token. Both must be
+    // recognised so the worker locks blankIndex onto the real pad slot instead
+    // of falling back to index 0 (the "AA" phoneme).
+    expect(normalizeAcousticLabel("[PAD]")).toBe("<blank>");
+    expect(normalizeAcousticLabel("[UNK]")).toBeNull();
+    expect(normalizeAcousticLabel("<blank>")).toBe("<blank>");
+  });
+
   it("requires full English phoneme coverage for HuBERT CAPT labels", () => {
     const completeLabels = Object.fromEntries(
       ["<blank>", ...REQUIRED_PRONUNCIATION_LABELS].map((label, index) => [String(index), label]),

@@ -89,6 +89,69 @@ describe("loadAcousticBundle", () => {
     fs.writeFileSync(path.join(dir, modelId, "vocab.json"), JSON.stringify(vocab));
   }
 
+  it("maps the bundled HuBERT vocab's [PAD] token to the CTC blank slot", () => {
+    // Mirror the shipped Peacockery/hubert-base-phoneme-en vocab: 39 ARPABET
+    // phonemes at indices 0-38, then "[UNK]":39 and "[PAD]":40 (the CTC blank).
+    writeManifest();
+    const arpabet = [
+      "AA",
+      "AE",
+      "AH",
+      "AO",
+      "AW",
+      "AY",
+      "B",
+      "CH",
+      "D",
+      "DH",
+      "EH",
+      "ER",
+      "EY",
+      "F",
+      "G",
+      "HH",
+      "IH",
+      "IY",
+      "JH",
+      "K",
+      "L",
+      "M",
+      "N",
+      "NG",
+      "OW",
+      "OY",
+      "P",
+      "R",
+      "S",
+      "SH",
+      "T",
+      "TH",
+      "UH",
+      "UW",
+      "V",
+      "W",
+      "Y",
+      "Z",
+      "ZH",
+    ];
+    const vocab: Record<string, number> = {};
+    arpabet.forEach((label, idx) => {
+      vocab[label] = idx;
+    });
+    vocab["[UNK]"] = 39;
+    vocab["[PAD]"] = 40;
+    fs.writeFileSync(path.join(dir, modelId, "vocab.json"), JSON.stringify(vocab));
+
+    const bundle = loadAcousticBundle(dir);
+    expect(bundle).not.toBeNull();
+    // The blank must land on the real pad slot (40), not be dropped — otherwise
+    // the worker falls back to blankIndex 0 (= "AA") and every detected phoneme
+    // collapses to <unk>.
+    expect(bundle?.labels["40"]).toBe("<blank>");
+    expect(bundle?.labels["39"]).toBeUndefined();
+    expect(bundle?.coverage.ok).toBe(true);
+  });
+
   it("caches the manifest + vocab + architecture across calls", () => {
     writeManifest();
     writeFullVocab();

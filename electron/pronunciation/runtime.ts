@@ -248,12 +248,15 @@ function baseRuntimeStatus(): PronunciationRuntimeStatus {
 }
 
 function defaultProvider(): PronunciationExecutionProvider {
-  // macOS used to default to CoreML, but onnxruntime-node crashes natively
-  // when compiling the bundled HuBERT model with `device: "coreml"`
-  // ("Failed to create a working directory appropriate for URL: file:///tmp/").
-  // CPU runs the same bundle cleanly, so we stay on CPU until we add an
-  // isolated provider probe that can blacklist CoreML for the session.
-  if (process.platform === "win32") return "directml";
+  // Both desktop targets default to CPU. macOS CoreML crashes natively when
+  // compiling the bundled HuBERT model ("Failed to create a working directory
+  // appropriate for URL: file:///tmp/"); on Windows DirectML adds a GPU/driver
+  // dependency surface and a first-attempt init failure on machines without a
+  // DX12 device. CPU runs the same offline bundle cleanly on every machine and
+  // is fast enough for the short clips we score, so we stay on CPU on both
+  // platforms until an isolated provider probe can safely opt into an
+  // accelerator per session. The DirectML runtime libraries still ship (see
+  // forge.config.ts) so re-enabling it later needs no repackaging.
   return "cpu";
 }
 

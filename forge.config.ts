@@ -152,8 +152,12 @@ async function installTargetBetterSqlitePrebuild(
   platform: string,
   arch: string,
 ): Promise<void> {
-  if (platform !== "win32") return;
-
+  // Runs for every desktop target. `copyRuntimeNativeDependencies` (called from
+  // packageAfterPrune) re-copies the dev better-sqlite3 and strips its build/
+  // directory on all platforms, which wipes the binary @electron-forge rebuilt
+  // during packaging. We must restore a target-correct prebuilt `.node` here for
+  // macOS as well as Windows — otherwise the packaged app has no SQLite native
+  // module and fails to open its database on launch.
   const modulePath = path.join(buildPath, "node_modules", "better-sqlite3");
   if (!fs.existsSync(modulePath)) return;
 
@@ -231,7 +235,16 @@ const config: ForgeConfig = {
     },
   },
   packagerConfig: {
-    asar: true,
+    // `onnxruntime_binding.node` dynamically loads its sibling runtime
+    // libraries (onnxruntime.dll + DirectML/dxil/dxcompiler on Windows,
+    // libonnxruntime.*.dylib on macOS) by file path at load time. The OS
+    // loader cannot read those out of an asar archive, so they MUST sit on
+    // disk next to the unpacked `.node`. AutoUnpackNatives only unpacks
+    // `*.node`; without this the binding falls back to a stale system
+    // onnxruntime.dll on Windows ("Failed to initialize ONNX Runtime API …
+    // lower version DLL"). AutoUnpackNatives composes this with its own
+    // `.node` glob, so both end up unpacked together.
+    asar: { unpack: "**/onnxruntime-node/bin/**" },
     name: "Vocab App",
     executableName: "vocab-app",
     appBundleId: "dev.mhd-quan.vocab-app",
