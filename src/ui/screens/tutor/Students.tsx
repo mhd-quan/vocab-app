@@ -9,6 +9,7 @@ import { EmptyState } from "@/ui/components/EmptyState";
 import { Field, useFieldId } from "@/ui/components/Field";
 import { Modal } from "@/ui/components/Modal";
 import { PageHeader } from "@/ui/components/PageHeader";
+import { StudentHistoryImportButton } from "@/ui/components/StudentHistoryImportButton";
 import {
   TutorSegmentedControl,
   TutorTextAreaField,
@@ -43,6 +44,9 @@ export function TutorStudents() {
   const [tab, setTab] = useState<Tab>("active");
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<Student | null>(null);
+  const [lastImport, setLastImport] = useState<Awaited<
+    ReturnType<typeof api.evidence.importStudentData>
+  > | null>(null);
 
   const allQ = useQuery({
     queryKey: queryKeys.students.listAll(),
@@ -72,7 +76,12 @@ export function TutorStudents() {
         eyebrow="Tutor"
         title="Students"
         subtitle="Profiles your learners use in student practice mode. Create one per child you tutor."
-        actions={<Button onClick={openCreate}>+ Add student</Button>}
+        actions={
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <StudentHistoryImportButton onImported={setLastImport} />
+            <Button onClick={openCreate}>+ Add student</Button>
+          </div>
+        }
       />
 
       <div className="border-b border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] px-8 py-3">
@@ -86,6 +95,25 @@ export function TutorStudents() {
           className="max-w-xs"
         />
       </div>
+
+      {lastImport?.imported && lastImport.studentId && lastImport.stats ? (
+        <div className="border-b border-success/25 bg-success/10 px-8 py-3">
+          <div className="flex flex-col gap-2 text-sm text-success sm:flex-row sm:items-center sm:justify-between">
+            <p>
+              Imported student history: {lastImport.stats.sessionsInserted} new sessions,{" "}
+              {lastImport.stats.sessionsUpdated} updated, {lastImport.stats.learningEventsInserted}{" "}
+              answers.
+            </p>
+            <Link
+              to="/tutor/students/$studentId"
+              params={{ studentId: String(lastImport.studentId) }}
+              className="text-xs font-semibold uppercase text-success hover:text-app"
+            >
+              Open student
+            </Link>
+          </div>
+        </div>
+      ) : null}
 
       <section className="px-8 py-6">
         {allQ.isLoading ? (

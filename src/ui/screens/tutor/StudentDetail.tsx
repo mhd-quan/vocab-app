@@ -10,6 +10,7 @@ import { EmptyState } from "@/ui/components/EmptyState";
 import { Heatmap } from "@/ui/components/Heatmap";
 import { Modal } from "@/ui/components/Modal";
 import { PageHeader } from "@/ui/components/PageHeader";
+import { StudentHistoryImportButton } from "@/ui/components/StudentHistoryImportButton";
 import { AchievementIcon } from "@/ui/components/rewards";
 import { TutorMetricCard, TutorPanel, TutorSelectField } from "@/ui/tutor/components/Material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -719,7 +720,6 @@ function EvidencePanel({
   const [includeSnapshots, setIncludeSnapshots] = useState(true);
   const [passphrase, setPassphrase] = useState("");
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
-  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (selectedSessionId !== null) return;
@@ -735,33 +735,64 @@ function EvidencePanel({
         passphrase: passphrase.trim() || undefined,
       }),
   });
-  const importReport = useMutation({
-    mutationFn: () =>
-      api.evidence.importStudentData({ passphrase: passphrase.trim() || undefined }),
-    onSuccess: async (result) => {
-      if (!result.imported || !result.studentId) return;
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["progress"] }),
-        queryClient.invalidateQueries({ queryKey: ["evidence"] }),
-        queryClient.invalidateQueries({ queryKey: ["students"] }),
-        queryClient.invalidateQueries({ queryKey: ["dictionaryLearning"] }),
-        queryClient.invalidateQueries({ queryKey: ["rewards"] }),
-      ]);
-    },
-  });
+
+  const historyTransfer = (
+    <div className="rounded-[var(--shape-corner-lg)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-3">
+      <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto_auto] md:items-end">
+        <label className="flex flex-col gap-1 text-xs text-muted">
+          <span className="font-semibold uppercase text-muted-2">Export passphrase</span>
+          <input
+            type="password"
+            value={passphrase}
+            onChange={(event) => setPassphrase(event.currentTarget.value)}
+            placeholder="Optional AES export key"
+            className="h-10 rounded-[var(--shape-corner-md)] border border-border-subtle bg-surface-0 px-3 text-sm text-app outline-none focus:border-accent"
+          />
+        </label>
+        <label className="flex min-h-10 items-center gap-2 rounded-[var(--shape-corner-md)] border border-border-subtle bg-surface-0 px-3 text-xs text-muted">
+          <input
+            type="checkbox"
+            checked={includeSnapshots}
+            onChange={(event) => setIncludeSnapshots(event.currentTarget.checked)}
+            className="h-4 w-4 accent-[rgb(var(--color-accent))]"
+          />
+          Include camera snapshots
+        </label>
+        <Button onClick={() => exportReport.mutate()} disabled={exportReport.isPending}>
+          {exportReport.isPending ? "Exporting…" : "Export history"}
+        </Button>
+        <StudentHistoryImportButton />
+      </div>
+      {exportReport.data && !exportReport.data.canceled ? (
+        <p className="mt-2 text-xs text-success">
+          Full student data exported{exportReport.data.encrypted ? " encrypted" : ""}.
+        </p>
+      ) : null}
+      {exportReport.isError ? (
+        <p className="mt-2 text-xs text-danger">
+          {exportReport.error instanceof Error
+            ? exportReport.error.message
+            : "Could not export report."}
+        </p>
+      ) : null}
+    </div>
+  );
 
   return (
     <Panel
       title="Session evidence"
-      caption="Timing, focus breaks, consented camera check-ins, and encrypted report export"
+      caption="Timing, focus breaks, consented camera check-ins, and portable history export/import"
     >
       {loading ? (
         <p className="text-xs text-muted">Loading…</p>
       ) : !overview || overview.sessionCount === 0 ? (
-        <EmptyState
-          title="No evidence logs yet"
-          body="Student sessions will appear here after the learner starts a practice round."
-        />
+        <div className="flex flex-col gap-5">
+          <EmptyState
+            title="No evidence logs yet"
+            body="Student sessions will appear here after the learner starts a practice round."
+          />
+          {historyTransfer}
+        </div>
       ) : (
         <div className="flex flex-col gap-5">
           <dl className="grid gap-3 sm:grid-cols-4">
@@ -831,65 +862,7 @@ function EvidencePanel({
 
           {selectedSessionId !== null ? <SessionDetailPanel sessionId={selectedSessionId} /> : null}
 
-          <div className="rounded-[var(--shape-corner-lg)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-3">
-            <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto_auto] md:items-end">
-              <label className="flex flex-col gap-1 text-xs text-muted">
-                <span className="font-semibold uppercase text-muted-2">Report passphrase</span>
-                <input
-                  type="password"
-                  value={passphrase}
-                  onChange={(event) => setPassphrase(event.currentTarget.value)}
-                  placeholder="Optional AES export key"
-                  className="h-10 rounded-[var(--shape-corner-md)] border border-border-subtle bg-surface-0 px-3 text-sm text-app outline-none focus:border-accent"
-                />
-              </label>
-              <label className="flex min-h-10 items-center gap-2 rounded-[var(--shape-corner-md)] border border-border-subtle bg-surface-0 px-3 text-xs text-muted">
-                <input
-                  type="checkbox"
-                  checked={includeSnapshots}
-                  onChange={(event) => setIncludeSnapshots(event.currentTarget.checked)}
-                  className="h-4 w-4 accent-[rgb(var(--color-accent))]"
-                />
-                Include camera snapshots
-              </label>
-              <Button onClick={() => exportReport.mutate()} disabled={exportReport.isPending}>
-                {exportReport.isPending ? "Exporting…" : "Export report"}
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() => importReport.mutate()}
-                disabled={importReport.isPending}
-              >
-                {importReport.isPending ? "Importing…" : "Import data"}
-              </Button>
-            </div>
-            {exportReport.data && !exportReport.data.canceled ? (
-              <p className="mt-2 text-xs text-success">
-                Full student data exported{exportReport.data.encrypted ? " encrypted" : ""}.
-              </p>
-            ) : null}
-            {importReport.data?.imported && importReport.data.stats ? (
-              <p className="mt-2 text-xs text-success">
-                Data imported: {importReport.data.stats.sessionsInserted} new sessions,{" "}
-                {importReport.data.stats.sessionsUpdated} updated,{" "}
-                {importReport.data.stats.learningEventsInserted} learning events.
-              </p>
-            ) : null}
-            {exportReport.isError ? (
-              <p className="mt-2 text-xs text-danger">
-                {exportReport.error instanceof Error
-                  ? exportReport.error.message
-                  : "Could not export report."}
-              </p>
-            ) : null}
-            {importReport.isError ? (
-              <p className="mt-2 text-xs text-danger">
-                {importReport.error instanceof Error
-                  ? importReport.error.message
-                  : "Could not import data."}
-              </p>
-            ) : null}
-          </div>
+          {historyTransfer}
         </div>
       )}
     </Panel>
