@@ -1,6 +1,6 @@
 {
   "name": "vocab-app",
-  "version": "0.17.6",
+  "version": "0.17.7",
   "description": "Interactive vocabulary & grammar tutoring platform for Destination B1/B2",
   "main": ".vite/build/main.js",
   "private": true,

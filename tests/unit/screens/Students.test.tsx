@@ -29,6 +29,29 @@ function renderScreen() {
   });
 }
 
+function importStats(
+  overrides: Partial<
+    NonNullable<Awaited<ReturnType<typeof window.api.evidence.importStudentData>>["stats"]>
+  > = {},
+) {
+  return {
+    studentId: 42,
+    sessionsInserted: 2,
+    sessionsUpdated: 0,
+    learningEventsInserted: 5,
+    learningEventsSkipped: 0,
+    evidenceEventsInserted: 3,
+    evidenceEventsSkipped: 0,
+    progressUpserted: 4,
+    achievementsUpserted: 1,
+    dictionaryItemsUpserted: 2,
+    dictionarySearchesInserted: 1,
+    dictionarySearchesSkipped: 0,
+    assignmentsUpserted: 1,
+    ...overrides,
+  };
+}
+
 describe("TutorStudents", () => {
   beforeEach(() => {
     vi.spyOn(window.api.students, "listAll").mockResolvedValue([]);
@@ -106,6 +129,41 @@ describe("TutorStudents", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     await waitFor(() => expect(screen.getByText("Bob")).toBeInTheDocument());
     expect(listSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it("imports exported student history from the students page", async () => {
+    const listSpy = vi
+      .spyOn(window.api.students, "listAll")
+      .mockResolvedValueOnce([])
+      .mockResolvedValue([makeStudent({ id: 42, name: "Imported Alice" })]);
+    vi.spyOn(window.api.evidence, "importStudentData").mockResolvedValue({
+      canceled: false,
+      imported: true,
+      studentId: 42,
+      stats: importStats(),
+    });
+
+    renderScreen();
+    await waitFor(() => screen.getByText(/No active students/i));
+
+    fireEvent.click(screen.getByRole("button", { name: /import history/i }));
+    const dialog = await screen.findByRole("dialog", { name: /import student history/i });
+    fireEvent.change(within(dialog).getByLabelText(/passphrase/i), {
+      target: { value: "secret123" },
+    });
+    fireEvent.click(within(dialog).getByRole("button", { name: /choose json and import/i }));
+
+    await waitFor(() =>
+      expect(window.api.evidence.importStudentData).toHaveBeenCalledWith({
+        passphrase: "secret123",
+      }),
+    );
+    await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(2));
+    expect(screen.getByText(/Imported student history: 2 new sessions/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /open student/i })).toHaveAttribute(
+      "href",
+      "/tutor/students/42",
+    );
   });
 
   it("archive button calls api.students.archive and refetches the list", async () => {
