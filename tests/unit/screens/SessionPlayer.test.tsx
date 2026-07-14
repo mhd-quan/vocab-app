@@ -205,5 +205,23 @@ describe("SessionPlayer — multiple-choice flow", () => {
     fireEvent.click(screen.getByRole("button", { name: /^Option 1:/ }));
     expect(screen.getByRole("button", { name: /^Option 2:/ })).toBeDisabled();
     expect(screen.getByRole("button", { name: /^Option 3:/ })).toBeDisabled();
+    const exerciseStage = screen.getByTestId("session-exercise-stage");
+    const exerciseActions = screen.getByTestId("session-exercise-actions");
+    expect(exerciseStage).toContainElement(exerciseActions);
+    expect(exerciseActions).toHaveClass("mt-2");
+    expect(exerciseActions).toContainElement(screen.getByRole("button", { name: "Next" }));
+  });
+
+  it("keeps graded feedback visible by default until the learner continues", () => {
+    const onExit = vi.fn();
+    const deck = buildDeck({
+      entries: makeEntries(5),
+      kinds: ["multiple_choice"],
+      sessionSeed: "manual-advance",
+    }).exercises;
+    render(withQueryClient(<SessionPlayer deck={deck} onExit={onExit} />));
+    fireEvent.click(screen.getByRole("button", { name: /^Option 1:/ }));
+    expect(screen.getByRole("button", { name: "Next" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Option 2:/ })).toBeDisabled();
   });
 });

@@ -8,17 +8,14 @@ import {
   gradeExercise,
 } from "@/modules/exercises";
 import { type AchievementDefinition, getAchievement } from "@/modules/rewards";
-import { Badge } from "@/ui/components/Badge";
-import { BentoCard } from "@/ui/components/BentoCard";
-import { StreakFlame } from "@/ui/components/LearningIcons";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
+import { useWindowBackAction } from "@/ui/components/WindowNavigation";
 import { AchievementIcon } from "@/ui/components/rewards";
 import {
   CelebrationOverlay,
   type CelebrationToast,
 } from "@/ui/student/components/CelebrationOverlay";
 import { PressButton } from "@/ui/student/components/PressButton";
-import { ProgressBubble } from "@/ui/student/components/ProgressBubble";
 import { AudioRecallCard } from "@/ui/student/exercises/AudioRecallCard";
 import { DefinitionMatchCard } from "@/ui/student/exercises/DefinitionMatchCard";
 import { PronunciationCard } from "@/ui/student/exercises/PronunciationCard";
@@ -51,11 +48,13 @@ export interface SessionPlayerProps {
   onExit: () => void;
   /** Visible label, e.g. "Family & Friends · 12 entries". */
   contextLabel?: string;
+  /** Destination named by the persistent toolbar Back control. */
+  backLabel?: string;
   /**
-   * Pause after auto-graded exercises so the student sees the right
-   * answer highlighted. Tests pass `0` to advance instantly.
+   * Optional delay after auto-graded exercises. Omit it to keep feedback
+   * visible until the learner presses Next; tests pass `0` to advance instantly.
    */
-  autoAdvanceDelayMs?: number;
+  autoAdvanceDelayMs?: number | null;
   /**
    * Side-effect hook called once per answered exercise, fired before the
    * card advances. The route screen uses it to persist a learning_event
@@ -91,7 +90,7 @@ interface SessionDeckSlot {
   exercise: Exercise;
 }
 
-const DEFAULT_AUTO_ADVANCE_MS = 4_000;
+const DEFAULT_AUTO_ADVANCE_MS: number | null = null;
 /** In-session correct runs that fire confetti + a chime. */
 const CONFETTI_THRESHOLDS = new Set([5, 10]);
 
@@ -139,6 +138,7 @@ export function SessionPlayer({
   deck,
   onExit,
   contextLabel,
+  backLabel = "Lessons",
   autoAdvanceDelayMs = DEFAULT_AUTO_ADVANCE_MS,
   onResult,
   onEvidence,
@@ -163,6 +163,9 @@ export function SessionPlayer({
    */
   const [retryAttempt, setRetryAttempt] = useState(0);
   const advancedExerciseIds = useRef(new Set<string>());
+  const submittedAttemptRef = useRef<{ exerciseId: string; retryAttempt: number } | null>(null);
+  const advanceTimerRef = useRef<number | null>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
 
   const total = deckSize(deck);
   const currentSlot = useMemo(() => findNextDeckSlot(deck, index), [deck, index]);
@@ -226,8 +229,25 @@ export function SessionPlayer({
   useAudioPrefetch(upcomingAudioRefs);
   usePronunciationLookupPrefetch(upcomingPronunciationTerms, preferredAccent);
 
+  useEffect(() => {
+    if (!current) return;
+    const frame = requestAnimationFrame(() => stageRef.current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [current]);
+
+  useEffect(
+    () => () => {
+      if (advanceTimerRef.current !== null) window.clearTimeout(advanceTimerRef.current);
+    },
+    [],
+  );
+
   const advance = useCallback((result: SessionResult) => {
     if (advancedExerciseIds.current.has(result.exerciseId)) return;
+    if (advanceTimerRef.current !== null) {
+      window.clearTimeout(advanceTimerRef.current);
+      advanceTimerRef.current = null;
+    }
     advancedExerciseIds.current.add(result.exerciseId);
     setResults((prev) => [...prev, result]);
     setPendingOutcome(null);
@@ -268,6 +288,18 @@ export function SessionPlayer({
   const handleAnswer = useCallback(
     (answer: Answer) => {
       if (!current) return;
+      const submittedAttempt = submittedAttemptRef.current;
+      if (
+        submittedAttempt?.exerciseId === current.id &&
+        submittedAttempt.retryAttempt === retryAttempt
+      ) {
+        return;
+      }
+      // State updates do not lock the card until React commits. Mark this
+      // attempt synchronously so two submits in the same event loop cannot
+      // persist the same answer twice. A pronunciation retry increments
+      // `retryAttempt`, intentionally opening a fresh attempt for this card.
+      submittedAttemptRef.current = { exerciseId: current.id, retryAttempt };
       const outcome = gradeExercise(current, answer);
       const responseMs = Math.max(0, Math.round(nowMs() - promptShownAt.current));
       const newRun = outcome.correct ? correctRun + 1 : 0;
@@ -323,18 +355,28 @@ export function SessionPlayer({
         return;
       }
 
-      // Auto-graded: hold on the result so the student sees the green/red
-      // marks, then advance after a short pause. `autoAdvanceDelayMs=0`
-      // (used in tests) collapses this into the next tick.
+      // Auto-graded exercises hold on feedback until the learner continues.
+      // Tests and explicitly timed contexts can still request automatic
+      // advance by passing a numeric delay; the default is learner-paced.
       setPendingOutcome(outcome);
       setPendingResult(result);
+      if (autoAdvanceDelayMs === null) return;
       if (autoAdvanceDelayMs <= 0) {
         advance(result);
       } else {
-        window.setTimeout(() => advance(result), autoAdvanceDelayMs);
+        advanceTimerRef.current = window.setTimeout(() => advance(result), autoAdvanceDelayMs);
       }
     },
-    [current, advance, autoAdvanceDelayMs, onResult, onEvidence, correctRun, enqueueUnlocks],
+    [
+      current,
+      retryAttempt,
+      advance,
+      autoAdvanceDelayMs,
+      onResult,
+      onEvidence,
+      correctRun,
+      enqueueUnlocks,
+    ],
   );
 
   const summary = useMemo<SessionSummaryStats | null>(() => {
@@ -344,22 +386,21 @@ export function SessionPlayer({
 
   if (noExercises) {
     return (
-      <PlayerShell contextLabel={contextLabel} onExit={onExit}>
-        <BentoCard className="border-dashed px-6 py-10 text-center">
+      <PlayerShell contextLabel={contextLabel} backLabel={backLabel} onExit={onExit}>
+        <section className="ui-group bg-surface-1 px-6 py-10 text-center">
           <h2 className="text-base font-medium">No exercises in this deck</h2>
           <p className="mt-1 text-xs text-muted">
-            This lesson needs vocabulary entries with at least one definition. New words start as
-            flashcards first; multiple-choice review appears when there are enough peer headwords
-            for answer options. Re-run `npm run import` after editing the YAML.
+            There is no practice material in this lesson yet. Ask your tutor to check the lesson
+            content, then try again.
           </p>
-        </BentoCard>
+        </section>
       </PlayerShell>
     );
   }
 
   if (done && summary) {
     return (
-      <PlayerShell contextLabel={contextLabel} onExit={onExit}>
+      <PlayerShell contextLabel={contextLabel} backLabel={backLabel} onExit={onExit}>
         <SessionSummary
           stats={summary}
           studentId={studentId}
@@ -370,6 +411,7 @@ export function SessionPlayer({
             setPendingOutcome(null);
             setPendingResult(null);
             setRetryAttempt(0);
+            submittedAttemptRef.current = null;
             advancedExerciseIds.current.clear();
           }}
           onExit={onExit}
@@ -387,40 +429,79 @@ export function SessionPlayer({
   if (!current) return null;
 
   return (
-    <PlayerShell contextLabel={contextLabel} onExit={onExit}>
+    <PlayerShell contextLabel={contextLabel} backLabel={backLabel} onExit={onExit}>
       <CelebrationOverlay
         burstKey={confettiKey}
         chimeEnabled={soundEnabled}
         toasts={toasts.map(toCelebrationToast)}
         onDismiss={dismissToast}
       />
-      <div className="flex flex-col gap-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-4">
         <SessionStatus
           current={results.length}
           total={total}
           correctRun={correctRun}
-          tier={cardTier(current, correctRun)}
+          exerciseKind={current.kind}
         />
-        <ExerciseCard
-          exercise={current}
-          onAnswer={handleAnswer}
-          outcome={pendingOutcome}
-          autoplay={autoplay}
-          preferredAccent={preferredAccent}
-          studentId={studentId}
-          sessionId={sessionId}
-          retryAttempt={retryAttempt}
-        />
-        {pendingResult ? (
-          <div className="flex justify-end">
-            <PressButton onClick={advancePending} variant="primary" size="md">
-              Next
-            </PressButton>
-          </div>
-        ) : null}
+        <div
+          ref={stageRef}
+          tabIndex={-1}
+          aria-label={`Card ${Math.min(results.length + 1, total)} of ${total}`}
+          data-testid="session-exercise-stage"
+          className={`session-exercise-stage mx-auto w-full focus:outline-none ${exerciseStageWidth(current.kind)}`}
+        >
+          <p className="sr-only" aria-live="polite">
+            {pendingOutcome
+              ? pendingOutcome.correct
+                ? "Answer correct. Review the feedback, then continue."
+                : "Answer needs review. Review the feedback, then continue."
+              : `Card ${Math.min(results.length + 1, total)} of ${total}.`}
+          </p>
+          <ExerciseCard
+            exercise={current}
+            onAnswer={handleAnswer}
+            outcome={pendingOutcome}
+            autoplay={autoplay}
+            preferredAccent={preferredAccent}
+            studentId={studentId}
+            sessionId={sessionId}
+            retryAttempt={retryAttempt}
+            answerLocked={pendingResult !== null}
+          />
+          {pendingResult ? (
+            <div
+              className="mt-2 flex items-center justify-between gap-4 px-1 pt-2"
+              data-testid="session-exercise-actions"
+              data-content-action-bar
+            >
+              <p className="text-xs text-muted">
+                {pendingOutcome?.correct ? "Ready for the next card." : "Take a moment to review."}
+              </p>
+              <PressButton onClick={advancePending} variant="primary" size="md">
+                Next
+              </PressButton>
+            </div>
+          ) : null}
+        </div>
       </div>
     </PlayerShell>
   );
+}
+
+function exerciseStageWidth(kind: Exercise["kind"]): string {
+  switch (kind) {
+    case "audio_recall":
+      return "max-w-xl";
+    case "pronunciation":
+    case "sentence_rebuild":
+      return "max-w-2xl";
+    case "definition_match":
+      return "max-w-4xl";
+    case "flashcard":
+      return "max-w-3xl";
+    case "multiple_choice":
+      return "max-w-4xl";
+  }
 }
 
 let _toastKeyCounter = 0;
@@ -438,6 +519,7 @@ function ExerciseCard({
   studentId,
   sessionId,
   retryAttempt,
+  answerLocked,
 }: {
   exercise: Exercise;
   onAnswer: (answer: Answer) => void;
@@ -447,6 +529,7 @@ function ExerciseCard({
   studentId?: number | string | null;
   sessionId: number | null;
   retryAttempt: number;
+  answerLocked: boolean;
 }) {
   // `key={exercise.id}` re-mounts the per-kind component on each new
   // exercise so internal state (revealed flag, picked option) resets
@@ -480,6 +563,7 @@ function ExerciseCard({
           exercise={exercise}
           autoplay={autoplay}
           preferredAccent={preferredAccent}
+          locked={answerLocked}
           onAnswer={(spelling) => onAnswer({ kind: "audio_recall", spelling })}
         />
       );
@@ -518,6 +602,7 @@ function ExerciseCard({
           studentId={numericStudentId}
           sessionId={sessionId}
           preferredAccent={preferredAccent}
+          locked={answerLocked}
           onAnswer={(attempt) => onAnswer({ kind: "pronunciation", attempt })}
         />
       );
@@ -525,78 +610,91 @@ function ExerciseCard({
   }
 }
 
-type CardTier = { label: string; tone: "rare" | "epic" | "mastery" | "accent" };
-
 function SessionStatus({
   current,
   total,
   correctRun,
-  tier,
+  exerciseKind,
 }: {
   current: number;
   total: number;
   correctRun: number;
-  tier: CardTier;
+  exerciseKind: Exercise["kind"];
 }) {
   return (
-    <BentoCard
-      as="section"
-      className="grid gap-4 border-accent/20 bg-accent/5 p-4 sm:grid-cols-[auto_1fr_auto_auto] sm:items-center"
-    >
-      <ProgressBubble current={current} total={total} label="Session progress" />
+    <section className="grid gap-2 border-b border-border-subtle pb-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
       <div className="min-w-0">
-        <div className="mb-2 flex items-center justify-between gap-3">
-          <span className="text-xs font-semibold uppercase text-muted-2">Session progress</span>
-          <span className="font-mono text-xs text-muted">
-            {current} / {total}
+        <div className="mb-2 flex items-baseline justify-between gap-3">
+          <span data-tabular className="text-[13px] font-medium text-app">
+            Card {Math.min(current + 1, total)} of {total}
           </span>
+          <span className="text-xs text-muted">{exerciseKindLabel(exerciseKind)}</span>
         </div>
-        <ProgressMeter value={current} max={total} label="Session progress" tone="accent" />
+        <ProgressMeter
+          value={current}
+          max={total}
+          label={`${current} of ${total} session cards`}
+          tone="accent"
+        />
       </div>
-      <div className="flex items-center gap-2 rounded-2xl border border-warning/30 bg-warning/10 px-3 py-2">
-        <StreakFlame streak={correctRun} className="h-5 w-5" />
-        <span className="font-mono text-sm text-app">{correctRun}</span>
-        <span className="text-xs text-muted">streak</span>
+      <div className="flex items-baseline justify-end gap-1.5 text-xs text-muted">
+        <span data-tabular className="font-semibold text-app">
+          {correctRun}
+        </span>
+        <span>{correctRun === 1 ? "correct answer in a row" : "correct answers in a row"}</span>
       </div>
-      <Badge tone={tier.tone} uppercase className="h-9 justify-center px-3">
-        {tier.label}
-      </Badge>
-    </BentoCard>
+    </section>
   );
 }
 
-function cardTier(exercise: Exercise, correctRun: number): CardTier {
-  if (correctRun >= 10) return { label: "Mastery card", tone: "mastery" };
-  if (correctRun >= 5) return { label: "Epic card", tone: "epic" };
-  if (exercise.kind === "multiple_choice") return { label: "Rare card", tone: "rare" };
-  return { label: "Core card", tone: "accent" };
+function exerciseKindLabel(kind: Exercise["kind"]): string {
+  switch (kind) {
+    case "flashcard":
+      return "Flashcard";
+    case "multiple_choice":
+      return "Multiple choice";
+    case "audio_recall":
+      return "Listening recall";
+    case "definition_match":
+      return "Match definitions";
+    case "sentence_rebuild":
+      return "Build the sentence";
+    case "pronunciation":
+      return "Pronunciation";
+  }
 }
 
 function PlayerShell({
   children,
   contextLabel,
+  backLabel,
   onExit,
 }: {
   children: React.ReactNode;
   contextLabel?: string;
+  backLabel: string;
   onExit: () => void;
 }) {
+  const hasWindowBack = useWindowBackAction(backLabel, onExit);
+
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-8">
-      <header className="flex min-w-0 flex-wrap items-center justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-3">
-          <Badge tone="accent" uppercase>
-            Practice
-          </Badge>
-          {contextLabel ? (
-            <span className="truncate text-sm text-muted">{contextLabel}</span>
-          ) : null}
-        </div>
-        <PressButton variant="secondary" size="sm" onClick={onExit} className="text-muted">
-          End session
-        </PressButton>
+    <div className="mx-auto flex min-h-full w-full max-w-5xl flex-col gap-4 px-6 py-5">
+      <header className="flex min-h-8 min-w-0 items-center gap-3">
+        {contextLabel ? (
+          <span className="truncate text-[13px] font-medium text-muted">{contextLabel}</span>
+        ) : null}
+        {!hasWindowBack ? (
+          <PressButton
+            variant="secondary"
+            size="sm"
+            onClick={onExit}
+            className="ml-auto text-muted"
+          >
+            End session
+          </PressButton>
+        ) : null}
       </header>
-      <div className="flex min-w-0 flex-col gap-5">{children}</div>
+      <div className="flex min-w-0 flex-1 flex-col gap-5">{children}</div>
     </div>
   );
 }

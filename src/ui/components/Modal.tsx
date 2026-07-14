@@ -1,6 +1,7 @@
 import { cn } from "@/lib/cn";
-import { type ReactNode, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
+import { AppGlyph } from "@/ui/components/AppGlyph";
+import { DialogSurface } from "@/ui/components/DialogSurface";
+import { type ReactNode, useId } from "react";
 
 export interface ModalProps {
   open: boolean;
@@ -30,9 +31,8 @@ const SIZE: Record<NonNullable<ModalProps["size"]>, string> = {
  * after mount so keyboard users land on the form rather than the page
  * they came from.
  *
- * Backdrop click closes; Escape closes. Tab focus is NOT trapped — for the
- * forms we use here, native tabbing through a small set of fields plus the
- * close button is enough and keeps a11y predictable.
+ * Backdrop click and Escape close the sheet. Tab and Shift+Tab stay within
+ * the dialog, and focus returns to the invoking control when the sheet closes.
  */
 export function Modal({
   open,
@@ -44,68 +44,49 @@ export function Modal({
   size = "md",
   initialFocusId,
 }: ModalProps) {
-  const dialogRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
-
-  useEffect(() => {
-    if (!open) return;
-    const id = window.requestAnimationFrame(() => {
-      if (initialFocusId) {
-        const el = document.getElementById(initialFocusId) as HTMLElement | null;
-        if (el) {
-          el.focus();
-          return;
-        }
-      }
-      const firstFocusable = dialogRef.current?.querySelector<HTMLElement>(
-        "input, textarea, select, button:not([data-modal-skip-focus])",
-      );
-      firstFocusable?.focus();
-    });
-    return () => window.cancelAnimationFrame(id);
-  }, [open, initialFocusId]);
-
-  if (!open) return null;
-
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-      <button
-        type="button"
-        aria-label="Close dialog"
-        data-modal-skip-focus
-        className="absolute inset-0 bg-surface-0/70 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        className={cn(
-          "relative w-full overflow-hidden rounded-bento border border-border-subtle bg-surface-1 shadow-2xl",
-          SIZE[size],
-        )}
-      >
-        <header className="border-b border-border-subtle px-6 py-4">
-          <h2 className="text-lg font-semibold">{title}</h2>
-          {description ? <p className="mt-1 text-sm text-muted">{description}</p> : null}
-        </header>
-        <div className="px-6 py-5">{children}</div>
-        {footer ? (
-          <footer className="flex items-center justify-end gap-2 border-t border-border-subtle bg-surface-0/40 px-6 py-3">
-            {footer}
-          </footer>
+  const titleId = useId();
+  const descriptionId = useId();
+  return (
+    <DialogSurface
+      open={open}
+      onClose={onClose}
+      closeLabel="Close dialog"
+      ariaLabelledBy={titleId}
+      ariaDescribedBy={description ? descriptionId : undefined}
+      initialFocusSelector={initialFocusId ? `#${initialFocusId}` : undefined}
+      className={cn("w-full", SIZE[size])}
+    >
+      <header className="flex shrink-0 items-start gap-4 px-5 pb-2 pt-5">
+        <div className="min-w-0 flex-1">
+          <h2 id={titleId} className="text-base font-semibold tracking-[-0.01em]">
+            {title}
+          </h2>
+          {description ? (
+            <p id={descriptionId} className="mt-1 text-[13px] leading-5 text-muted">
+              {description}
+            </p>
+          ) : null}
+        </div>
+        {!footer ? (
+          <button
+            type="button"
+            data-modal-skip-focus
+            aria-label="Close"
+            onClick={onClose}
+            className="ui-focus-ring grid h-7 w-7 place-items-center rounded-control text-muted transition-colors hover:bg-surface-2 hover:text-app"
+          >
+            <AppGlyph name="x" className="h-4 w-4" />
+          </button>
         ) : null}
+      </header>
+      <div data-modal-body className="min-h-0 overflow-y-auto px-5 pb-5 pt-3">
+        {children}
       </div>
-    </div>,
-    document.body,
+      {footer ? (
+        <footer className="flex shrink-0 items-center justify-end gap-2 border-t border-border-subtle bg-surface-2/45 px-5 py-3">
+          {footer}
+        </footer>
+      ) : null}
+    </DialogSurface>
   );
 }

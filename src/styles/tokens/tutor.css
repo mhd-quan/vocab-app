@@ -1,213 +1,58 @@
-/**
- * Tutor-mode token overrides. Activated when
- * `<html data-app-mode="tutor">` (set by RoleStyleProvider).
- *
- * Material Design 3 inspired palette — productivity-grade, tonal,
- * and expressive enough for a focused tutor workspace. These tokens
- * intentionally keep both the generic app roles (`--color-*`) and
- * MD3 system roles (`--md-sys-color-*`) in sync; tutor components use
- * both utility families, so dark mode must redefine the complete set.
- */
-
 @layer base {
   [data-app-mode="tutor"]:root,
   [data-app-mode="tutor"] {
-    --font-family-sans: "Aptos", "Inter", "Atkinson Hyperlegible", ui-sans-serif, system-ui,
-      -apple-system, "Segoe UI", sans-serif;
-    --font-family-display: "Aptos Display", "Inter", "Atkinson Hyperlegible", ui-sans-serif,
-      system-ui, -apple-system, "Segoe UI", sans-serif;
+    /* Compatibility aliases for screens still migrating off Material names. */
+    --shape-corner-xs: var(--radius-control);
+    --shape-corner-sm: var(--radius-control);
+    --shape-corner-md: var(--radius-control);
+    --shape-corner-lg: var(--radius-object);
+    --shape-corner-xl: var(--radius-overlay);
+    --shape-corner-full: var(--radius-circular);
 
-    /* Tutor mode is productivity-first: softer than raw tables, denser than student mode. */
-    --radius-button: 0.625rem;
-    --radius-chip: 0.5rem;
-    --radius-bento: 0.75rem;
-    --shape-corner-xs: 0.25rem;
-    --shape-corner-sm: 0.375rem;
-    --shape-corner-md: 0.5rem;
-    --shape-corner-lg: 0.75rem;
-    --shape-corner-xl: 0.875rem;
-    --shape-corner-full: 9999px;
-
-    /* MD3 sys-color roles, tuned for an English-tutor productivity surface. */
-    --md-sys-color-primary: rgb(25 91 111);
-    --md-sys-color-on-primary: rgb(255 255 255);
-    --md-sys-color-primary-container: rgb(207 238 246);
-    --md-sys-color-on-primary-container: rgb(10 65 82);
-    --md-sys-color-secondary: rgb(85 90 102);
-    --md-sys-color-on-secondary: rgb(255 255 255);
-    --md-sys-color-secondary-container: rgb(225 229 239);
-    --md-sys-color-on-secondary-container: rgb(45 51 64);
-    --md-sys-color-tertiary: rgb(150 91 20);
-    --md-sys-color-on-tertiary: rgb(255 255 255);
-    --md-sys-color-tertiary-container: rgb(255 232 194);
-    --md-sys-color-on-tertiary-container: rgb(86 53 13);
-    --md-sys-color-surface: rgb(246 248 248);
-    --md-sys-color-surface-dim: rgb(219 226 226);
-    --md-sys-color-surface-bright: rgb(255 255 255);
-    --md-sys-color-surface-container-lowest: rgb(255 255 255);
-    --md-sys-color-surface-container-low: rgb(241 246 246);
-    --md-sys-color-surface-container: rgb(233 241 241);
-    --md-sys-color-surface-container-high: rgb(224 235 235);
-    --md-sys-color-surface-container-highest: rgb(214 226 227);
+    --md-sys-color-primary: rgb(var(--color-accent));
+    --md-sys-color-on-primary: rgb(var(--color-accent-fg));
+    --md-sys-color-primary-container: rgb(var(--color-accent-fill) / 0.1);
+    --md-sys-color-on-primary-container: rgb(var(--color-accent));
+    --md-sys-color-secondary: rgb(var(--color-muted));
+    --md-sys-color-on-secondary: rgb(var(--color-paper));
+    --md-sys-color-secondary-container: rgb(var(--color-surface-2));
+    --md-sys-color-on-secondary-container: rgb(var(--color-fg));
+    --md-sys-color-tertiary: rgb(var(--color-warning));
+    --md-sys-color-on-tertiary: rgb(var(--color-paper));
+    --md-sys-color-tertiary-container: rgb(var(--color-warning-fill) / 0.12);
+    --md-sys-color-on-tertiary-container: rgb(var(--color-warning));
+    --md-sys-color-surface: rgb(var(--color-ground));
+    --md-sys-color-surface-dim: rgb(var(--color-surface-3));
+    --md-sys-color-surface-bright: rgb(var(--color-paper));
+    --md-sys-color-surface-container-lowest: rgb(var(--color-paper));
+    --md-sys-color-surface-container-low: rgb(var(--color-ground));
+    --md-sys-color-surface-container: rgb(var(--color-surface-2));
+    --md-sys-color-surface-container-high: rgb(var(--color-surface-2));
+    --md-sys-color-surface-container-highest: rgb(var(--color-surface-3));
     --md-sys-color-on-surface: rgb(var(--color-fg));
     --md-sys-color-on-surface-variant: rgb(var(--color-muted));
-    --md-sys-color-outline: rgb(111 124 134);
-    --md-sys-color-outline-variant: rgb(196 209 217);
-    --md-sys-color-error: rgb(186 26 26);
-    --md-sys-color-on-error: rgb(255 255 255);
+    --md-sys-color-outline: rgb(var(--color-border-strong));
+    --md-sys-color-outline-variant: rgb(var(--color-border-subtle));
+    --md-sys-color-error: rgb(var(--color-danger));
+    --md-sys-color-on-error: rgb(var(--color-danger-fg));
+    --md-sys-elevation-1: none;
+    --md-sys-elevation-2: none;
+    --md-sys-elevation-3: var(--shadow-lift);
+    --md-sys-elevation-4: var(--shadow-lift);
 
-    --color-fg: 22 30 35;
-    --color-muted: 72 87 93;
-    --color-muted-2: 109 123 128;
-    --color-surface-0: 246 248 248;
-    --color-surface-1: 255 255 255;
-    --color-surface-2: 233 241 241;
-    --color-surface-3: 214 226 227;
-    --color-border-subtle: 199 214 216;
-    --color-border-strong: 103 121 126;
-    --color-accent: 25 91 111;
-    --color-accent-fg: 255 255 255;
-    --color-focus: 0 121 112;
-    --color-success: 18 129 91;
-    --color-warning: 173 107 24;
-    --color-danger: 186 26 26;
-    --color-xp: 0 132 158;
-    --color-rare: 86 102 210;
-    --color-epic: 157 83 184;
-    --color-mastery: 178 123 22;
-    --color-sky: 35 132 204;
-    --color-coral: 196 87 75;
-    --color-lime: 93 145 50;
-    --color-pink: 191 83 145;
-    --color-ember: 206 94 34;
-
-    /* MD3 elevation tier shadows */
-    --md-sys-elevation-1: 0 1px 2px rgb(15 23 42 / 0.06);
-    --md-sys-elevation-2: 0 1px 2px rgb(15 23 42 / 0.08), 0 8px 18px rgb(15 23 42 / 0.06);
-    --md-sys-elevation-3: 0 14px 28px rgb(15 23 42 / 0.1), 0 2px 6px rgb(15 23 42 / 0.08);
-    --md-sys-elevation-4: 0 18px 40px rgb(15 23 42 / 0.14), 0 3px 8px rgb(15 23 42 / 0.1);
-    --shadow-card: var(--md-sys-elevation-2);
-    --shadow-lift: var(--md-sys-elevation-3);
-
-    --tutor-nav-width: 16.5rem;
-    --tutor-header-height: 6.25rem;
-    --tutor-state-layer: rgb(var(--color-accent) / var(--state-hover));
-    --tutor-workspace-bg: linear-gradient(
-      135deg,
-      rgb(246 248 248) 0%,
-      rgb(237 246 244) 48%,
-      rgb(248 247 242) 100%
-    );
-  }
-
-  [data-app-mode="tutor"].dark {
-    --md-sys-color-primary: rgb(132 216 232);
-    --md-sys-color-on-primary: rgb(0 54 68);
-    --md-sys-color-primary-container: rgb(20 78 94);
-    --md-sys-color-on-primary-container: rgb(207 238 246);
-    --md-sys-color-secondary: rgb(184 205 196);
-    --md-sys-color-on-secondary: rgb(27 50 43);
-    --md-sys-color-secondary-container: rgb(50 72 64);
-    --md-sys-color-on-secondary-container: rgb(218 235 227);
-    --md-sys-color-tertiary: rgb(255 181 169);
-    --md-sys-color-on-tertiary: rgb(86 43 36);
-    --md-sys-color-tertiary-container: rgb(114 58 50);
-    --md-sys-color-on-tertiary-container: rgb(255 221 214);
-    --md-sys-color-surface: rgb(15 19 23);
-    --md-sys-color-surface-dim: rgb(12 15 18);
-    --md-sys-color-surface-bright: rgb(49 58 64);
-    --md-sys-color-surface-container-lowest: rgb(9 12 15);
-    --md-sys-color-surface-container-low: rgb(18 23 28);
-    --md-sys-color-surface-container: rgb(24 30 36);
-    --md-sys-color-surface-container-high: rgb(33 40 47);
-    --md-sys-color-surface-container-highest: rgb(44 53 61);
-    --md-sys-color-on-surface: rgb(var(--color-fg));
-    --md-sys-color-on-surface-variant: rgb(var(--color-muted));
-    --md-sys-color-outline: rgb(137 151 161);
-    --md-sys-color-outline-variant: rgb(62 74 83);
-    --md-sys-color-error: rgb(255 180 171);
-    --md-sys-color-on-error: rgb(105 0 5);
-    --color-fg: 235 241 246;
-    --color-muted: 178 190 199;
-    --color-muted-2: 133 148 159;
-    --color-surface-0: 12 16 20;
-    --color-surface-1: 20 25 30;
-    --color-surface-2: 28 35 41;
-    --color-surface-3: 41 50 58;
-    --color-border-subtle: 57 70 80;
-    --color-border-strong: 137 151 161;
-    --color-accent: 132 216 232;
-    --color-accent-fg: 0 54 68;
-    --color-focus: 112 221 207;
-    --color-success: 129 216 175;
-    --color-warning: 255 198 118;
-    --color-danger: 255 180 171;
-    --color-xp: 116 214 235;
-    --color-rare: 181 194 255;
-    --color-epic: 229 177 242;
-    --color-mastery: 240 196 100;
-    --color-sky: 126 203 255;
-    --color-coral: 255 181 169;
-    --color-lime: 177 224 121;
-    --color-pink: 244 183 220;
-    --color-ember: 255 182 114;
-    --md-sys-elevation-1: 0 1px 2px rgb(0 0 0 / 0.32);
-    --md-sys-elevation-2: 0 8px 20px rgb(0 0 0 / 0.28), 0 1px 2px rgb(0 0 0 / 0.32);
-    --md-sys-elevation-3: 0 16px 34px rgb(0 0 0 / 0.34), 0 2px 6px rgb(0 0 0 / 0.32);
-    --md-sys-elevation-4: 0 24px 48px rgb(0 0 0 / 0.38), 0 4px 10px rgb(0 0 0 / 0.34);
-    --tutor-workspace-bg: linear-gradient(
-      135deg,
-      rgb(12 16 20) 0%,
-      rgb(16 23 27) 48%,
-      rgb(18 22 31) 100%
-    );
+    --tutor-nav-width: 13.5rem;
+    --tutor-toolbar-height: var(--size-toolbar);
+    --tutor-workspace-bg: rgb(var(--color-ground));
   }
 }
 
 @layer components {
-  [data-app-mode="tutor"] .tutor-workspace-shell {
+  [data-app-mode="tutor"] .tutor-workspace-shell,
+  [data-app-mode="tutor"] .tutor-main-surface {
     background: var(--tutor-workspace-bg);
   }
 
   [data-app-mode="tutor"] .tutor-main-surface {
-    background: linear-gradient(
-        180deg,
-        rgb(var(--color-surface-1) / 0.66) 0%,
-        rgb(var(--color-surface-0) / 0) 18rem
-      ), linear-gradient(rgb(var(--color-border-subtle) / 0.18) 1px, transparent 1px),
-      linear-gradient(90deg, rgb(var(--color-border-subtle) / 0.14) 1px, transparent 1px),
-      rgb(var(--color-surface-0));
-    background-size: auto, 32px 32px, 32px 32px, auto;
-  }
-
-  [data-app-mode="tutor"].dark .tutor-main-surface {
-    background: linear-gradient(
-        180deg,
-        rgb(var(--color-surface-2) / 0.38) 0%,
-        rgb(var(--color-surface-0) / 0) 18rem
-      ), linear-gradient(rgb(var(--color-border-subtle) / 0.16) 1px, transparent 1px),
-      linear-gradient(90deg, rgb(var(--color-border-subtle) / 0.12) 1px, transparent 1px),
-      rgb(var(--color-surface-0));
-    background-size: auto, 32px 32px, 32px 32px, auto;
-  }
-
-  [data-app-mode="tutor"] .tutor-scrollbar {
-    scrollbar-color: rgb(var(--color-border-strong) / 0.72) transparent;
-  }
-
-  [data-app-mode="tutor"] .tutor-scrollbar::-webkit-scrollbar {
-    height: 0.75rem;
-    width: 0.75rem;
-  }
-
-  [data-app-mode="tutor"] .tutor-scrollbar::-webkit-scrollbar-thumb {
-    background: rgb(var(--color-border-strong) / 0.58);
-    border: 3px solid transparent;
-    border-radius: 9999px;
-    background-clip: content-box;
-  }
-
-  [data-app-mode="tutor"] .tutor-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
+    container-type: inline-size;
   }
 }

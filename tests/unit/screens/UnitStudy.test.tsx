@@ -10,7 +10,7 @@ import {
   createRouter,
   useRouterState,
 } from "@tanstack/react-router";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const epoch = new Date(0);
@@ -143,8 +143,9 @@ describe("StudentUnitStudy", () => {
   it("keeps vocabulary-only units on the section picker before starting a session", async () => {
     renderUnitStudy();
 
-    await waitFor(() => expect(screen.getByText(/Study plan/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/Choose the sections/i)).toBeInTheDocument());
     expect(screen.queryByTestId("session-route")).toBeNull();
+    expect(screen.queryByText(/Study plan/i)).not.toBeInTheDocument();
     expect(window.api.vocab.listByLesson).toHaveBeenCalledWith({ lessonId: vocabLesson.id });
     await waitFor(() =>
       expect(screen.getByRole("button", { name: /Vocabulary/i })).toHaveAttribute(
@@ -164,7 +165,7 @@ describe("StudentUnitStudy", () => {
     const vocabularySection = await screen.findByRole("button", { name: /Vocabulary/i });
     await waitFor(() => expect(vocabularySection).toHaveAttribute("aria-pressed", "true"));
     fireEvent.click(vocabularySection);
-    fireEvent.click(screen.getByRole("button", { name: /Start 1 cards/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Start 1 card$/i }));
 
     await waitFor(() => expect(screen.getByTestId("session-route")).toBeInTheDocument());
     expect(screen.getByTestId("session-route")).toHaveTextContent('"sections":"phrasal_verbs"');
@@ -189,8 +190,24 @@ describe("StudentUnitStudy", () => {
 
     renderUnitStudy();
 
-    await waitFor(() => expect(screen.getByText(/Study plan/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/Choose the sections/i)).toBeInTheDocument());
+    expect(screen.getByRole("heading", { name: /Grammar practice/i })).toBeInTheDocument();
     expect(screen.getByText(/Start grammar/i)).toBeInTheDocument();
     expect(window.api.vocab.listByLesson).toHaveBeenCalledWith({ lessonId: vocabLesson.id });
+  });
+
+  it("keeps the selection controls and start action in one study object", async () => {
+    renderUnitStudy();
+
+    await screen.findByRole("button", { name: /Vocabulary/i });
+    const studyObject = screen.getByTestId("vocabulary-study-object");
+    const sectionList = within(studyObject).getByTestId("vocabulary-section-list");
+    const actionRow = within(studyObject).getByTestId("vocabulary-study-actions");
+
+    expect(within(actionRow).getByRole("checkbox", { name: /Skip speaking/i })).toBeInTheDocument();
+    expect(within(actionRow).getByRole("button", { name: /Start 2 cards/i })).toBeInTheDocument();
+    expect(
+      sectionList.compareDocumentPosition(actionRow) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 });

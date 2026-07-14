@@ -10,12 +10,12 @@ import {
   summarizeStudentProgress,
 } from "@/modules/rewards";
 import { Avatar } from "@/ui/components/Avatar";
-import { Badge } from "@/ui/components/Badge";
-import { BentoCard } from "@/ui/components/BentoCard";
+import { Button } from "@/ui/components/Button";
+import { EmptyState } from "@/ui/components/EmptyState";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
 import { AchievementIcon } from "@/ui/components/rewards";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useParams } from "@tanstack/react-router";
+import { useParams } from "@tanstack/react-router";
 
 export function StudentAchievements() {
   const { studentId } = useParams({ from: "/student/profile/$studentId/achievements" });
@@ -70,145 +70,204 @@ export function StudentAchievements() {
     .map((achievementId) => getAchievement(achievementId))
     .filter((a): a is AchievementDefinition => a !== null);
   const locked = nextAchievementQuests(ACHIEVEMENTS, achievedIds, stats);
+  const studentName = studentQ.data?.displayName ?? studentQ.data?.name ?? "Student";
+  const recordLoading =
+    studentQ.isLoading ||
+    summaryQ.isLoading ||
+    streakQ.isLoading ||
+    statsQ.isLoading ||
+    unlockedQ.isLoading;
+  const recordUnavailable =
+    studentQ.isError || summaryQ.isError || streakQ.isError || statsQ.isError || unlockedQ.isError;
+
+  if (recordLoading || recordUnavailable) {
+    return (
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-6 py-6">
+        <header>
+          <h1 className="text-title font-semibold">Achievements</h1>
+          <p className="mt-0.5 text-sm text-muted">Learning record and milestones</p>
+        </header>
+        {recordLoading ? (
+          <p role="status" className="grouped-list px-5 py-8 text-sm text-muted">
+            Loading achievements…
+          </p>
+        ) : (
+          <section role="alert" className="grouped-list px-5 py-6">
+            <h2 className="text-base font-semibold">Achievements are temporarily unavailable</h2>
+            <p className="mt-1 text-sm text-muted">No learning record has been changed.</p>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="mt-3"
+              onClick={() => {
+                void studentQ.refetch();
+                void summaryQ.refetch();
+                void streakQ.refetch();
+                void statsQ.refetch();
+                void unlockedQ.refetch();
+              }}
+            >
+              Retry
+            </Button>
+          </section>
+        )}
+      </div>
+    );
+  }
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-7 px-8 py-10">
-      <Link
-        to="/student/profile/$studentId"
-        params={{ studentId: String(id) }}
-        className="self-start text-xs font-medium text-muted hover:text-app"
-      >
-        Back to lessons
-      </Link>
-      <header className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
-        <BentoCard tone="mastery" className="flex items-center gap-5 p-6" interactive>
-          <Avatar
-            name={studentQ.data?.displayName ?? studentQ.data?.name ?? "?"}
-            avatarSeed={studentQ.data?.avatarSeed}
-            color={studentQ.data?.color}
-            size="lg"
-          />
-          <div className="min-w-0 flex-1">
-            <Badge tone="mastery" uppercase>
-              Achievement hall
-            </Badge>
-            <h1 className="mt-2 font-display text-4xl font-semibold">
-              {studentQ.data?.displayName ?? studentQ.data?.name ?? "Student"}
-            </h1>
-            <p className="mt-1 text-sm text-muted">
-              Learning summary and trophy progress in one place.
-            </p>
-          </div>
-        </BentoCard>
-        <BentoCard tone="xp" className="p-5">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-xs font-semibold uppercase text-muted-2">Learning summary</span>
-            <Badge tone="xp" uppercase>
-              {progress.xp} XP
-            </Badge>
-          </div>
-          <p className="mt-3 font-display text-xl font-semibold">{progress.headline}</p>
-          <p className="mt-1 text-sm text-muted">{progress.note}</p>
-          <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-            <Mini label="Words" value={progress.wordsLabel} />
-            <Mini label="Accuracy" value={`${progress.accuracyPct}%`} />
-            <Mini label="Due" value={String(summary?.totalDue ?? 0)} />
-            <Mini label="Streak" value={`${streak}d`} />
-          </div>
-        </BentoCard>
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-6 py-6">
+      <header className="flex items-center gap-3">
+        <Avatar
+          name={studentName}
+          avatarSeed={studentQ.data?.avatarSeed}
+          color={studentQ.data?.color}
+          size="md"
+        />
+        <div className="min-w-0">
+          <h1 className="truncate text-title font-semibold">Achievements</h1>
+          <p className="mt-0.5 text-sm text-muted">{studentName}&rsquo;s learning record</p>
+        </div>
       </header>
 
-      <section className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-        <BentoCard className="p-5" tone="warning">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <h2 className="font-display text-2xl font-semibold">Unlocked trophies</h2>
-              <p className="text-sm text-muted">
-                {unlocked.length} / {ACHIEVEMENTS.length} collected
-              </p>
-            </div>
-            <Badge tone="warning" uppercase>
-              Vault
-            </Badge>
-          </div>
-          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-            {unlocked.slice(0, 24).map((achievement) => (
-              <AchievementCard key={achievement.id} achievement={achievement} unlocked />
-            ))}
-          </ul>
-        </BentoCard>
-        <BentoCard className="p-5" tone="focus">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <h2 className="font-display text-2xl font-semibold">Almost there</h2>
-              <p className="text-sm text-muted">Closest unfinished quest per achievement group.</p>
-            </div>
-            <Badge tone="focus" uppercase>
-              Next quests
-            </Badge>
-          </div>
-          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-            {locked.map(({ achievement, progress }) => (
-              <li key={achievement.id}>
-                <AchievementCard achievement={achievement} unlocked={false} />
-                <ProgressMeter
-                  value={progress.value}
-                  max={progress.max}
-                  label={progress.label}
-                  tone="accent"
-                  className="mt-2"
-                  showValue
-                />
-                <p className="mt-1 text-[11px] text-muted-2">{progress.label}</p>
-              </li>
-            ))}
-          </ul>
-        </BentoCard>
+      <section className="grouped-list learning-trace" aria-labelledby="learning-summary-title">
+        <div className="px-5 py-4">
+          <h2 id="learning-summary-title" className="text-base font-semibold">
+            {progress.headline}
+          </h2>
+          <p className="mt-1 text-sm text-muted">{progress.note}</p>
+        </div>
+        <dl className="grid grid-cols-2 gap-px border-t border-border-subtle bg-border-subtle sm:grid-cols-3 lg:grid-cols-6">
+          <SummaryMetric label="Words" value={progress.wordsLabel} />
+          <SummaryMetric label="Accuracy" value={`${progress.accuracyPct}%`} />
+          <SummaryMetric
+            label="Due"
+            value={summary?.totalDue ?? 0}
+            warning={(summary?.totalDue ?? 0) > 0}
+          />
+          <SummaryMetric label="Streak" value={`${streak}d`} />
+          <SummaryMetric label="XP" value={progress.xp} />
+          <SummaryMetric label="Collected" value={`${unlocked.length}/${ACHIEVEMENTS.length}`} />
+        </dl>
       </section>
+
+      <div className="grid min-h-0 gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(20rem,0.95fr)]">
+        <section className="grouped-list self-start" aria-labelledby="unlocked-title">
+          <header className="border-b border-border-subtle px-4 py-3">
+            <h2 id="unlocked-title" className="font-semibold">
+              Collected
+            </h2>
+            <p className="mt-0.5 text-xs text-muted">Milestones already earned through practice.</p>
+          </header>
+          {unlocked.length === 0 ? (
+            <EmptyState
+              title="Your first milestone is close"
+              body="Complete a practice session to begin this collection."
+            />
+          ) : (
+            <ul className="divide-y divide-border-subtle">
+              {unlocked.slice(0, 24).map((achievement) => (
+                <li key={achievement.id}>
+                  <AchievementRow achievement={achievement} unlocked />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="grouped-list self-start" aria-labelledby="next-quests-title">
+          <header className="border-b border-border-subtle px-4 py-3">
+            <h2 id="next-quests-title" className="font-semibold">
+              Next milestones
+            </h2>
+            <p className="mt-0.5 text-xs text-muted">
+              The closest unfinished goal in each collection.
+            </p>
+          </header>
+          {locked.length === 0 ? (
+            <EmptyState title="Collection complete" body="Every current milestone is unlocked." />
+          ) : (
+            <ul className="divide-y divide-border-subtle">
+              {locked.map(({ achievement, progress: questProgress }) => (
+                <li key={achievement.id} className="px-4 py-3.5">
+                  <AchievementRow achievement={achievement} unlocked={false} compact />
+                  <ProgressMeter
+                    value={questProgress.value}
+                    max={questProgress.max}
+                    label={questProgress.label}
+                    tone="accent"
+                    className="mt-3"
+                    showValue
+                  />
+                  <p className="mt-1.5 text-xs text-muted">{questProgress.label}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
 
-function AchievementCard({
+function SummaryMetric({
+  label,
+  value,
+  warning = false,
+}: {
+  label: string;
+  value: number | string;
+  warning?: boolean;
+}) {
+  return (
+    <div className="bg-paper px-4 py-3">
+      <dt className="text-xs text-muted">{label}</dt>
+      <dd
+        className={cn(
+          "tabular-figure mt-0.5 text-lg font-semibold",
+          warning ? "text-warning" : "text-app",
+        )}
+      >
+        {value}
+      </dd>
+    </div>
+  );
+}
+
+function AchievementRow({
   achievement,
   unlocked,
-}: { achievement: AchievementDefinition; unlocked: boolean }) {
+  compact = false,
+}: {
+  achievement: AchievementDefinition;
+  unlocked: boolean;
+  compact?: boolean;
+}) {
   return (
-    <div
-      className={cn(
-        "flex min-h-20 gap-3 rounded-2xl border p-3",
-        unlocked
-          ? tierClass(achievement.tier)
-          : "border-border-subtle bg-surface-0/60 text-muted grayscale",
-      )}
-    >
-      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-current/20 bg-current/10">
-        <AchievementIcon icon={achievement.icon} className="h-6 w-6" />
+    <div className={cn("flex gap-3", !compact && "px-4 py-3.5")}>
+      <span
+        className={cn(
+          "grid h-10 w-10 shrink-0 place-items-center rounded-control bg-surface-2",
+          unlocked ? tierInkClass(achievement.tier) : "text-muted-2 grayscale",
+        )}
+      >
+        <AchievementIcon icon={achievement.icon} className="h-5 w-5" />
       </span>
-      <span className="min-w-0">
-        <span className="block text-[10px] font-bold uppercase tracking-[0.18em] opacity-70">
-          {achievement.tier}
+      <span className="min-w-0 flex-1">
+        <span className="flex items-baseline justify-between gap-3">
+          <span className="font-semibold text-app">{achievement.title}</span>
+          <span className="shrink-0 text-xs capitalize text-muted">{achievement.tier}</span>
         </span>
-        <span className="block font-semibold text-app">{achievement.title}</span>
-        <span className="line-clamp-2 text-xs text-muted">{achievement.description}</span>
+        <span className="mt-0.5 block text-sm leading-5 text-muted">{achievement.description}</span>
       </span>
     </div>
   );
 }
 
-function Mini({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-border-subtle bg-surface-0/60 p-3">
-      <div className="text-[10px] font-semibold uppercase text-muted-2">{label}</div>
-      <div className="mt-1 font-mono text-xl text-app">{value}</div>
-    </div>
-  );
-}
-
-function tierClass(tier: AchievementDefinition["tier"]): string {
-  if (tier === "mythic") return "border-mastery/50 bg-mastery/15 text-mastery shadow-lift";
-  if (tier === "platinum") return "border-sky/45 bg-sky/10 text-sky";
-  if (tier === "gold") return "border-warning/45 bg-warning/10 text-warning";
-  if (tier === "silver") return "border-accent/35 bg-accent/10 text-accent";
-  return "border-success/35 bg-success/10 text-success";
+function tierInkClass(tier: AchievementDefinition["tier"]): string {
+  if (tier === "mythic") return "text-mastery";
+  if (tier === "platinum") return "text-iris";
+  if (tier === "gold") return "text-warning";
+  if (tier === "silver") return "text-muted";
+  return "text-success";
 }

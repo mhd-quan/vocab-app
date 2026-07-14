@@ -19,7 +19,7 @@ export function TutorDictionary() {
   }
 
   return (
-    <>
+    <div className="flex h-full min-h-0 flex-col">
       <PageHeader
         eyebrow="Tutor"
         title="Dictionary"
@@ -31,7 +31,7 @@ export function TutorDictionary() {
         }
       />
       {statusQ.data?.active ? (
-        <DictionaryLookupPanel showYamlAction />
+        <DictionaryLookupPanel showYamlAction className="min-h-0 flex-1" />
       ) : (
         <section className="px-8 py-6">
           <TutorPanel title="No dictionary pack" className="p-6">
@@ -46,6 +46,6 @@ export function TutorDictionary() {
           </TutorPanel>
         </section>
       )}
-    </>
+    </div>
   );
 }

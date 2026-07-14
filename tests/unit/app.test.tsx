@@ -8,7 +8,7 @@ describe("App shell smoke test", () => {
     // the mode picker before the tutor chooses PIN setup.
     render(<App />);
     await waitFor(() =>
-      expect(screen.getByRole("heading", { level: 1, name: /vocab app/i })).toBeInTheDocument(),
+      expect(screen.getByRole("heading", { level: 1, name: /^vocab$/i })).toBeInTheDocument(),
     );
 
     fireEvent.click(screen.getByRole("button", { name: /tutor/i }));

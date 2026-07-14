@@ -145,6 +145,16 @@ export interface DailyActivityCell {
   count: number;
 }
 
+export interface CohortActivityCell {
+  /** Local-day timestamp at midnight in the app's current timezone. */
+  bucketStart: Date;
+  /** Correct + wrong answers from active students on this day. */
+  answerCount: number;
+  correctCount: number;
+  /** Distinct active students who answered at least once on this day. */
+  activeStudentCount: number;
+}
+
 export interface RecentSessionRow {
   sessionId: number;
   mode: PracticeMode;
@@ -157,6 +167,7 @@ export interface RecentSessionRow {
 export interface TutorOverviewRow {
   student: Student;
   totalSeen: number;
+  totalAttempts: number;
   totalDue: number;
   accuracy: number;
   lastPracticedAt: Date | null;
@@ -688,6 +699,80 @@ export function createProgressRepository(db: AppDatabase) {
     },
 
     /**
+     * Dense cohort rhythm for the tutor overview. Only answer events from
+     * currently active students are included: viewed/skipped/imported events
+     * would inflate practice volume, while archived profiles should not move
+     * the live workspace's baseline.
+     */
+    cohortActivity({
+      since,
+      until,
+    }: {
+      since: Date;
+      until: Date;
+    }): CohortActivityCell[] {
+      if (until.getTime() < since.getTime()) return [];
+
+      const studentIds = db
+        .select({ id: students.id })
+        .from(students)
+        .where(isNull(students.archivedAt))
+        .all()
+        .map((row) => row.id);
+      const rows =
+        studentIds.length === 0
+          ? []
+          : db
+              .select({
+                studentId: learningEvents.studentId,
+                kind: learningEvents.kind,
+                occurredAt: learningEvents.occurredAt,
+              })
+              .from(learningEvents)
+              .where(
+                and(
+                  inArray(learningEvents.studentId, studentIds),
+                  inArray(learningEvents.kind, ["answered_correct", "answered_wrong"]),
+                  gte(learningEvents.occurredAt, since),
+                  lte(learningEvents.occurredAt, until),
+                ),
+              )
+              .all();
+
+      const buckets = new Map<
+        number,
+        { answerCount: number; correctCount: number; studentIds: Set<number> }
+      >();
+      for (const row of rows) {
+        const key = startOfLocalDay(row.occurredAt).getTime();
+        const bucket = buckets.get(key) ?? {
+          answerCount: 0,
+          correctCount: 0,
+          studentIds: new Set<number>(),
+        };
+        bucket.answerCount += 1;
+        if (row.kind === "answered_correct") bucket.correctCount += 1;
+        bucket.studentIds.add(row.studentId);
+        buckets.set(key, bucket);
+      }
+
+      const cells: CohortActivityCell[] = [];
+      const cursor = startOfLocalDay(since);
+      const end = startOfLocalDay(until);
+      while (cursor.getTime() <= end.getTime()) {
+        const bucket = buckets.get(cursor.getTime());
+        cells.push({
+          bucketStart: new Date(cursor),
+          answerCount: bucket?.answerCount ?? 0,
+          correctCount: bucket?.correctCount ?? 0,
+          activeStudentCount: bucket?.studentIds.size ?? 0,
+        });
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      return cells;
+    },
+
+    /**
      * Last N sessions for a student, with answered/correct totals
      * derived from the event log. We use a separate aggregation query
      * + a JS join because Drizzle's typed `groupBy` interaction with
@@ -1042,6 +1127,7 @@ export function createProgressRepository(db: AppDatabase) {
         return {
           student,
           totalSeen: s?.totalSeen ?? 0,
+          totalAttempts,
           totalDue: s?.totalDue ?? 0,
           accuracy: totalAttempts === 0 ? 0 : totalCorrect / totalAttempts,
           lastPracticedAt: s?.lastPracticedAt ?? null,
@@ -1252,6 +1338,10 @@ export interface FleetSnapshot {
   totalDue: number;
   topXp: (FleetSnapshotProfile & { xp: number }) | null;
   topStreak: (FleetSnapshotProfile & { streak: number }) | null;
+}
+
+function startOfLocalDay(value: Date): Date {
+  return new Date(value.getFullYear(), value.getMonth(), value.getDate());
 }
 
 function payloadNumber(payload: Record<string, unknown> | null, key: string): number | null {

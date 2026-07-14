@@ -7,6 +7,7 @@ import {
   BookOpenText,
   Calendar,
   CaretDown,
+  CaretLeft,
   Check,
   CircleNotch,
   Crosshair,
@@ -21,10 +22,12 @@ import {
   type Icon,
   Keyboard,
   Lock,
+  MagnifyingGlass,
   Microphone,
   Monitor,
   PencilSimple,
   PlayCircle,
+  SidebarSimple,
   SlidersHorizontal,
   Sparkle,
   SpeakerHigh,
@@ -44,6 +47,7 @@ export type AppGlyphName =
   | "accuracy"
   | "app"
   | "arrowRight"
+  | "back"
   | "book"
   | "calendar"
   | "check"
@@ -63,9 +67,11 @@ export type AppGlyphName =
   | "lesson"
   | "lock"
   | "microphone"
+  | "search"
   | "person"
   | "playAudio"
   | "settings"
+  | "sidebar"
   | "spark"
   | "spinner"
   | "star"
@@ -83,7 +89,14 @@ export interface AppGlyphProps {
   name: AppGlyphName;
   className?: string;
   filled?: boolean;
+  size?: "sm" | "md" | "lg";
 }
+
+const GLYPH_SIZES: Record<NonNullable<AppGlyphProps["size"]>, string> = {
+  sm: "h-4 w-4",
+  md: "h-[18px] w-[18px]",
+  lg: "h-5 w-5",
+};
 
 // Phosphor's `regular` weight is the SF-Symbol-style stroke look used across
 // the app. `filled` opts in to Phosphor's `fill` variant for emphasis (hearts,
@@ -92,6 +105,7 @@ const GLYPHS: Record<AppGlyphName, Icon> = {
   accuracy: Target,
   app: AppWindow,
   arrowRight: ArrowRight,
+  back: CaretLeft,
   book: BookOpen,
   calendar: Calendar,
   check: Check,
@@ -111,9 +125,11 @@ const GLYPHS: Record<AppGlyphName, Icon> = {
   lesson: BookOpenText,
   lock: Lock,
   microphone: Microphone,
+  search: MagnifyingGlass,
   person: User,
   playAudio: PlayCircle,
   settings: SlidersHorizontal,
+  sidebar: SidebarSimple,
   spark: Sparkle,
   spinner: CircleNotch,
   star: Star,
@@ -128,14 +144,14 @@ const GLYPHS: Record<AppGlyphName, Icon> = {
   x: X,
 };
 
-export function AppGlyph({ name, className, filled = false }: AppGlyphProps) {
+export function AppGlyph({ name, className, filled = false, size = "md" }: AppGlyphProps) {
   const Icon = GLYPHS[name];
   return (
     <Icon
       aria-hidden="true"
       focusable="false"
       weight={filled ? "fill" : "regular"}
-      className={cn("h-5 w-5 shrink-0", className)}
+      className={cn("shrink-0", GLYPH_SIZES[size], className)}
     />
   );
 }

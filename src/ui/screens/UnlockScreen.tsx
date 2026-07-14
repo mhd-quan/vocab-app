@@ -1,8 +1,8 @@
 import { cn } from "@/lib/cn";
 import { useAppMode } from "@/providers/AppModeProvider";
 import { AppGlyph } from "@/ui/components/AppGlyph";
-import { Badge } from "@/ui/components/Badge";
 import { Button } from "@/ui/components/Button";
+import { WindowBackButton } from "@/ui/components/DesktopChrome";
 import { PinInput } from "@/ui/components/PinInput";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 
@@ -10,15 +10,20 @@ const MIN_PIN_LENGTH = 4;
 const MAX_PIN_LENGTH = 12;
 
 export function UnlockScreen() {
-  const { hasPin, pinReady } = useAppMode();
-  if (!pinReady) {
-    return (
-      <FullScreen>
-        <p className="text-sm text-muted">Loading…</p>
-      </FullScreen>
-    );
-  }
-  return hasPin ? <VerifyPinForm /> : <SetupPinForm />;
+  const { hasPin, pinReady, lock } = useAppMode();
+  return (
+    <WindowFrame onBack={lock}>
+      {!pinReady ? (
+        <p role="status" className="text-ui text-muted">
+          Loading…
+        </p>
+      ) : hasPin ? (
+        <VerifyPinForm />
+      ) : (
+        <SetupPinForm />
+      )}
+    </WindowFrame>
+  );
 }
 
 function VerifyPinForm() {
@@ -27,6 +32,7 @@ function VerifyPinForm() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const errorId = "tutor-pin-error";
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -35,7 +41,7 @@ function VerifyPinForm() {
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (pin.length < MIN_PIN_LENGTH) {
-      setError(`PIN must be at least ${MIN_PIN_LENGTH} digits`);
+      setError(`PIN must be at least ${MIN_PIN_LENGTH} characters`);
       return;
     }
     setBusy(true);
@@ -55,13 +61,9 @@ function VerifyPinForm() {
   }
 
   return (
-    <FullScreen>
-      <Header
-        eyebrow="Tutor mode"
-        title="Welcome back"
-        subtitle="Enter your PIN to unlock the tutor dashboard."
-      />
-      <form className="flex w-full max-w-sm flex-col gap-4" onSubmit={onSubmit}>
+    <section className="object-surface w-full max-w-sm overflow-hidden">
+      <Header title="Welcome back" subtitle="Enter your PIN to unlock the tutor dashboard." />
+      <form className="flex flex-col gap-4 px-5 pb-5" onSubmit={onSubmit} aria-busy={busy}>
         <PinInput
           ref={inputRef}
           value={pin}
@@ -72,34 +74,42 @@ function VerifyPinForm() {
           maxLength={MAX_PIN_LENGTH}
           aria-label="Tutor PIN"
           aria-invalid={Boolean(error)}
+          aria-describedby={error ? errorId : undefined}
           invalid={Boolean(error)}
           disabled={busy}
+          autoComplete="current-password"
+          enterKeyHint="done"
         />
         {error ? (
           <p
+            id={errorId}
             role="alert"
-            className="rounded-xl border border-danger/40 bg-danger/10 px-3 py-2 text-center text-xs text-danger"
+            className="rounded-control bg-danger/10 px-3 py-2 text-center text-xs text-danger"
           >
             {error}
           </p>
         ) : null}
-        <Button type="submit" size="lg" disabled={busy || pin.length < MIN_PIN_LENGTH}>
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full"
+          disabled={busy || pin.length < MIN_PIN_LENGTH}
+        >
           {busy ? "Verifying…" : "Unlock tutor mode"}
         </Button>
       </form>
-      <Divider />
-      <Button
-        variant="ghost"
-        onClick={enterStudent}
-        className="text-muted hover:text-app"
-        size="sm"
-      >
-        <span className="inline-flex items-center gap-1.5">
+      <footer className="border-t border-border-subtle px-3 py-2">
+        <Button
+          variant="ghost"
+          onClick={enterStudent}
+          className="w-full text-muted hover:text-app"
+          size="md"
+        >
           <span>Continue to student practice</span>
           <AppGlyph name="arrowRight" className="h-4 w-4" />
-        </span>
-      </Button>
-    </FullScreen>
+        </Button>
+      </footer>
+    </section>
   );
 }
 
@@ -110,6 +120,7 @@ function SetupPinForm() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const errorId = "setup-pin-error";
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -136,13 +147,12 @@ function SetupPinForm() {
   }
 
   return (
-    <FullScreen>
+    <section className="object-surface w-full max-w-sm overflow-hidden">
       <Header
-        eyebrow="First time setup"
         title="Set your tutor PIN"
-        subtitle="This PIN protects the tutor dashboard. Pick something memorable — it can't be recovered, only reset by clearing the local DB."
+        subtitle="This PIN protects tutor tools and student records. Keep it somewhere safe."
       />
-      <form className="flex w-full max-w-sm flex-col gap-4" onSubmit={onSubmit}>
+      <form className="flex flex-col gap-4 px-5 pb-5" onSubmit={onSubmit} aria-busy={busy}>
         <PinInput
           ref={inputRef}
           value={pin}
@@ -151,9 +161,12 @@ function SetupPinForm() {
             if (error) setError(null);
           }}
           aria-label="New PIN"
+          aria-describedby={error ? errorId : undefined}
           maxLength={MAX_PIN_LENGTH}
           invalid={Boolean(error)}
           disabled={busy}
+          autoComplete="new-password"
+          enterKeyHint="next"
         />
         <PinInput
           value={confirm}
@@ -162,69 +175,66 @@ function SetupPinForm() {
             if (error) setError(null);
           }}
           aria-label="Confirm PIN"
+          aria-describedby={error ? errorId : undefined}
           maxLength={MAX_PIN_LENGTH}
           invalid={Boolean(error)}
           disabled={busy}
           placeholder="Confirm"
+          autoComplete="new-password"
+          enterKeyHint="done"
         />
         {error ? (
           <p
+            id={errorId}
             role="alert"
-            className="rounded-xl border border-danger/40 bg-danger/10 px-3 py-2 text-center text-xs text-danger"
+            className="rounded-control bg-danger/10 px-3 py-2 text-center text-xs text-danger"
           >
             {error}
           </p>
         ) : null}
-        <Button type="submit" size="lg" disabled={busy || pin.length < MIN_PIN_LENGTH}>
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full"
+          disabled={busy || pin.length < MIN_PIN_LENGTH}
+        >
           {busy ? "Saving…" : "Set PIN & continue"}
         </Button>
       </form>
-    </FullScreen>
+    </section>
   );
 }
 
-function FullScreen({ children }: { children: React.ReactNode }) {
+function WindowFrame({ onBack, children }: { onBack: () => void; children: React.ReactNode }) {
   const isMac = window.api.app.platform === "darwin";
   return (
     <div
-      className={cn(
-        "flex h-screen w-screen items-center justify-center px-6 [-webkit-app-region:drag]",
-        isMac ? "pt-10" : "",
-      )}
+      data-app-window
+      className="flex h-screen w-screen flex-col overflow-hidden bg-app text-app"
     >
-      <div className="flex w-full max-w-md flex-col items-center gap-7 [-webkit-app-region:no-drag]">
+      <header
+        data-window-chrome
+        className={cn(
+          "window-material flex h-[var(--size-toolbar)] shrink-0 items-center gap-1 border-b border-border-subtle pr-3 [-webkit-app-region:drag]",
+          isMac ? "pl-[4.5rem]" : "pl-3",
+        )}
+      >
+        <WindowBackButton label="Choose mode" onClick={onBack} />
+        <span aria-hidden="true" className="mx-1 h-4 w-px bg-border-subtle" />
+        <span className="truncate text-ui font-medium">Tutor access</span>
+      </header>
+      <main className="flex min-h-0 flex-1 items-center justify-center px-6 py-6 [-webkit-app-region:no-drag]">
         {children}
-      </div>
+      </main>
     </div>
   );
 }
 
-function Header({
-  eyebrow,
-  title,
-  subtitle,
-}: {
-  eyebrow: string;
-  title: string;
-  subtitle: string;
-}) {
+function Header({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <div className="flex flex-col items-center gap-2 text-center">
-      <Badge tone="focus" uppercase>
-        {eyebrow}
-      </Badge>
-      <h1 className="text-4xl font-semibold leading-tight">{title}</h1>
-      <p className="max-w-sm text-balance text-sm text-muted">{subtitle}</p>
-    </div>
-  );
-}
-
-function Divider() {
-  return (
-    <div className="flex w-full max-w-sm items-center gap-3 text-xs text-muted-2">
-      <span className="h-px flex-1 bg-border-subtle" />
-      <span>or</span>
-      <span className="h-px flex-1 bg-border-subtle" />
-    </div>
+    <header className="px-5 pb-4 pt-5 text-center">
+      <h1 className="text-title font-semibold">{title}</h1>
+      <p className="mt-1 text-ui leading-5 text-muted">{subtitle}</p>
+    </header>
   );
 }

@@ -67,10 +67,16 @@ describe("StudentLayout", () => {
     renderStudentLayout();
 
     expect(await screen.findByTestId("student-background-tint")).toHaveClass(
-      "backdrop-brightness-75",
-      "backdrop-saturate-75",
+      "bg-surface-0/20",
+      "backdrop-brightness-90",
+      "backdrop-saturate-125",
     );
-    expect(await screen.findByRole("main")).toHaveClass("relative", "z-10", "bg-transparent");
+    expect(await screen.findByRole("main")).toHaveClass(
+      "relative",
+      "z-10",
+      "bg-paper/90",
+      "backdrop-blur-[2px]",
+    );
   });
 
   it("keeps preset gradient study backgrounds untinted", async () => {
@@ -78,8 +84,18 @@ describe("StudentLayout", () => {
     vi.spyOn(window.api.settings, "get").mockResolvedValue("linear-gradient(135deg,#fff,#eef)");
     renderStudentLayout();
 
-    await waitFor(() => expect(screen.getByRole("main")).toHaveClass("bg-transparent"));
+    await waitFor(() => expect(screen.getByRole("main")).toHaveClass("bg-paper/80"));
     expect(screen.queryByTestId("student-background-tint")).toBeNull();
+  });
+
+  it("keeps hierarchical Back navigation in the window toolbar", async () => {
+    vi.spyOn(window.api.students, "hasPin").mockResolvedValue(false);
+    renderStudentLayout();
+
+    const backButton = await screen.findByRole("button", { name: "Back to Lessons" });
+    expect(backButton).toBeInTheDocument();
+    expect(backButton.closest("[data-window-chrome]")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Student settings" })).toHaveClass("ui-focus-ring");
   });
 
   it("blocks deep links to protected profiles until the profile is unlocked", async () => {

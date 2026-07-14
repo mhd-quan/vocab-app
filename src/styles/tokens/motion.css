@@ -1,71 +1,56 @@
 /**
- * Motion primitives — keyframes + utility classes shared across surfaces.
- *
- * Extracted from `globals.css` so token files stay focused on color/space
- * and motion can be tuned independently. The animations referenced by
- * existing components (`motion-card`, `motion-enter`, `answer-pop`,
- * `answer-shake`, `streak-pulse`, `progress-shimmer`) keep their public
- * class names — moving the source did not change the API.
+ * Motion explains a state change; it does not decorate persistent surfaces.
+ * Public utility names remain stable while legacy 3D/glow behaviour is retired.
  */
 
 @layer utilities {
   .motion-card {
-    --glow-rgb: var(--color-accent);
     position: relative;
   }
 
-  .motion-card::after {
-    content: none;
+  /* Cards that still carry the old pair should not animate independently. */
+  .motion-card.motion-enter {
+    animation: none;
   }
 
   .motion-enter {
-    animation: panel-in var(--motion-base) var(--motion-spring) both;
+    animation: panel-in var(--motion-base) var(--motion-emphasized-decelerate) both;
   }
 
   .progress-shimmer {
-    background-image: linear-gradient(
-      110deg,
-      rgb(255 255 255 / 0) 0%,
-      rgb(255 255 255 / 0.32) 46%,
-      rgb(255 255 255 / 0) 72%
-    );
-    background-size: 100% 100%;
+    background-image: none;
   }
 
   .answer-correct {
-    animation: answer-pop 420ms var(--motion-bounce) both;
+    animation: answer-resolve var(--motion-base) var(--motion-emphasized-decelerate) both;
   }
 
   .answer-wrong {
-    animation: answer-shake 360ms ease both;
+    animation: answer-corrective var(--motion-slow) ease-out both;
   }
 
   .streak-glow {
-    filter: drop-shadow(0 0 8px rgb(var(--color-ember) / 0.24));
+    filter: none;
   }
 
-  /* New: 3D press feedback. Used by PressButton (Phase 6) and any
-     button that wants a Duolingo-style spring on click. */
+  /* Compatibility name: feedback is now a restrained press edge, not a 3D stack. */
   .press-bounce {
-    transition: transform var(--motion-fast) var(--motion-spring), box-shadow var(--motion-fast)
-      var(--motion-spring);
     box-shadow: var(--shadow-press);
+    transition-property: background-color, border-color, color, box-shadow, filter;
+    transition-duration: var(--motion-fast);
+    transition-timing-function: ease-out;
   }
 
   .press-bounce:active,
   .press-bounce[data-pressed="true"] {
-    transform: translateY(3px);
     box-shadow: var(--shadow-press-active);
+    filter: brightness(0.96) saturate(0.96);
   }
 
-  /* New: chip pop — for dnd-kit drop targets confirming a placement. */
   .chip-pop {
-    animation: chip-pop 240ms var(--motion-bounce) both;
+    animation: state-confirm var(--motion-base) var(--motion-emphasized-decelerate) both;
   }
 
-  /* Apple-style squircle mask — for app-icon-shaped mascot art in the
-     Settings profile picker. The inline SVG path is a two-control-point
-     superellipse approximation of the iOS 7+ icon contour. */
   .mask-squircle {
     -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath fill='black' d='M50,0 C72.92,0 84.39,0 92.2,7.8 C100,15.6 100,27.07 100,50 C100,72.92 100,84.39 92.2,92.2 C84.39,100 72.92,100 50,100 C27.07,100 15.6,100 7.8,92.2 C0,84.39 0,72.92 0,50 C0,27.07 0,15.6 7.8,7.8 C15.6,0 27.07,0 50,0 Z'/%3E%3C/svg%3E");
     mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath fill='black' d='M50,0 C72.92,0 84.39,0 92.2,7.8 C100,15.6 100,27.07 100,50 C100,72.92 100,84.39 92.2,92.2 C84.39,100 72.92,100 50,100 C27.07,100 15.6,100 7.8,92.2 C0,84.39 0,72.92 0,50 C0,27.07 0,15.6 7.8,7.8 C15.6,0 27.07,0 50,0 Z'/%3E%3C/svg%3E");
@@ -75,6 +60,14 @@
     mask-size: 100% 100%;
     -webkit-mask-position: center;
     mask-position: center;
+  }
+
+  .motion-scrim-in {
+    animation: scrim-in var(--motion-base) ease-out both;
+  }
+
+  .motion-sheet-in {
+    animation: sheet-in var(--motion-slow) var(--motion-emphasized-decelerate) both;
   }
 }
 
@@ -87,72 +80,63 @@
   }
 }
 
-@keyframes progress-shimmer {
+@keyframes answer-resolve {
   from {
-    background-position: 120% 0;
+    opacity: 0.78;
   }
   to {
-    background-position: -120% 0;
+    opacity: 1;
   }
 }
 
-@keyframes answer-pop {
-  0% {
-    transform: scale(0.985);
-  }
-  52% {
-    transform: scale(1.025);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-@keyframes answer-shake {
+@keyframes answer-corrective {
   0%,
   100% {
     transform: translateX(0);
   }
-  24% {
-    transform: translateX(-4px);
+  35% {
+    transform: translateX(-3px);
   }
-  48% {
-    transform: translateX(4px);
-  }
-  72% {
-    transform: translateX(-2px);
+  70% {
+    transform: translateX(2px);
   }
 }
 
-@keyframes streak-pulse {
-  0%,
-  100% {
-    filter: drop-shadow(0 0 0 rgb(var(--color-ember) / 0));
-    transform: scale(1);
+@keyframes state-confirm {
+  from {
+    opacity: 0.72;
   }
-  50% {
-    filter: drop-shadow(0 0 12px rgb(var(--color-ember) / 0.35));
-    transform: scale(1.06);
+  to {
+    opacity: 1;
   }
 }
 
-@keyframes chip-pop {
-  0% {
-    transform: scale(0.86);
+@keyframes scrim-in {
+  from {
+    opacity: 0;
   }
-  60% {
-    transform: scale(1.06);
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.995);
   }
-  100% {
-    transform: scale(1);
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .motion-enter,
+  .motion-scrim-in,
+  .motion-sheet-in,
   .answer-correct,
   .answer-wrong,
-  .chip-pop {
+  .chip-pop,
+  .animate-ping,
+  .animate-pulse {
     animation: none !important;
   }
 

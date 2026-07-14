@@ -172,7 +172,7 @@ export function Mascot({
       src={mascotImage(id, chosen)}
       alt={alt ?? `${MASCOT_NAMES[id].name} mascot`}
       draggable={false}
-      className={cn("object-contain drop-shadow-[0_12px_18px_rgb(15_23_42/0.18)]", className)}
+      className={cn("object-contain", className)}
     />
   );
 }

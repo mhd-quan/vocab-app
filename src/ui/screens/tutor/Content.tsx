@@ -6,6 +6,7 @@ import { Badge } from "@/ui/components/Badge";
 import { ClozeText } from "@/ui/components/ClozeText";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { PageHeader } from "@/ui/components/PageHeader";
+import { SplitView } from "@/ui/components/SplitView";
 import { EditIcon } from "@/ui/shell/icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearch } from "@tanstack/react-router";
@@ -45,14 +46,21 @@ export function TutorContent() {
   }, [booksQ.data, selectedBookId]);
 
   return (
-    <>
+    <div className="flex h-full min-h-0 flex-col">
       <PageHeader
-        eyebrow="Tutor"
-        title="Content browser"
-        subtitle="Books → units → lessons → vocab entries and grammar topics. Read-only — author content via YAML and `npm run import`."
+        title="Library"
+        subtitle="Inspect the exact books, lessons, vocabulary, and grammar available to learners."
       />
 
-      <div className="grid h-[calc(100vh_-_var(--tutor-header-height))] grid-cols-[16rem_minmax(0,1fr)_minmax(22rem,28rem)] border-t border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)]">
+      <SplitView
+        initialSize={216}
+        minSize={176}
+        maxSize={304}
+        contentMinSize={609}
+        label="Resize books sidebar"
+        storageKey="vocab.content.books-pane"
+        className="min-h-0 flex-1 border-t border-border-subtle bg-surface-0"
+      >
         <BooksPane
           books={booksQ.data ?? []}
           loading={booksQ.isLoading}
@@ -62,12 +70,25 @@ export function TutorContent() {
             setSelection(null);
           }}
         />
-
-        <LessonsPane bookId={selectedBookId} selection={selection} onSelectContent={setSelection} />
-
-        <DetailPane selection={selection} />
-      </div>
-    </>
+        <SplitView
+          side="trailing"
+          initialSize={360}
+          minSize={304}
+          maxSize={480}
+          contentMinSize={304}
+          label="Resize entry inspector"
+          storageKey="vocab.content.detail-pane"
+          className="h-full"
+        >
+          <LessonsPane
+            bookId={selectedBookId}
+            selection={selection}
+            onSelectContent={setSelection}
+          />
+          <DetailPane selection={selection} />
+        </SplitView>
+      </SplitView>
+    </div>
   );
 }
 
@@ -83,9 +104,9 @@ function BooksPane({
   onSelect: (id: number) => void;
 }) {
   return (
-    <aside className="tutor-scrollbar flex h-full flex-col overflow-y-auto border-r border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)]">
-      <div className="border-b border-border-subtle bg-[color:var(--md-sys-color-surface-container)] px-4 py-3">
-        <h2 className="text-[10px] font-medium uppercase text-muted">Books</h2>
+    <aside className="flex h-full flex-col overflow-y-auto bg-surface-1">
+      <div className="ui-pane-header">
+        <h2 className="text-xs font-medium text-muted">Books</h2>
       </div>
       {loading ? (
         <p className="px-4 py-3 text-xs text-muted">Loading…</p>
@@ -93,7 +114,7 @@ function BooksPane({
         <div className="p-4">
           <EmptyState
             title="No books yet"
-            body="Add a YAML file in content/books/ and run npm run import."
+            body="Open Imports to add a curriculum file to this library."
           />
         </div>
       ) : (
@@ -173,10 +194,8 @@ function BookRow({
       <li>
         <form
           className={cn(
-            "rounded-[var(--shape-corner-lg)] border px-2 py-2",
-            selected
-              ? "border-accent bg-accent/10"
-              : "border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)]",
+            "rounded-control bg-surface-2 px-2 py-2",
+            selected ? "bg-accent/10" : "bg-surface-2",
           )}
           onSubmit={onSubmit}
         >
@@ -197,7 +216,7 @@ function BookRow({
               }
             }}
             aria-label={`Edit title for ${book.code}`}
-            className="w-full rounded-[var(--shape-corner-sm)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)] px-2 py-1 text-sm font-medium text-app outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/30"
+            className="ui-focus-ring w-full rounded-control border border-border-subtle bg-surface-1 px-2 py-1 text-sm font-medium text-app outline-none focus-visible:border-accent"
           />
           <span className="mt-1 block truncate font-mono text-[10px] text-muted-2">
             {book.code}
@@ -212,17 +231,18 @@ function BookRow({
     <li>
       <div
         className={cn(
-          "group grid grid-cols-[1fr_auto] items-center rounded-[var(--shape-corner-lg)] border transition-colors",
+          "group grid min-h-[var(--size-row)] grid-cols-[1fr_auto] items-center rounded-control transition-colors",
           selected
-            ? "border-transparent bg-[color:var(--md-sys-color-secondary-container)] text-[color:var(--md-sys-color-on-secondary-container)]"
-            : "border-transparent text-muted hover:border-border-subtle hover:bg-accent/[var(--state-hover)] hover:text-app",
+            ? "learning-trace bg-accent/10 text-app"
+            : "text-muted hover:bg-surface-2 hover:text-app",
         )}
       >
         <button
           type="button"
+          aria-pressed={selected}
           onClick={onSelect}
           onDoubleClick={() => setEditing(true)}
-          className="min-w-0 px-3 py-2 text-left text-sm"
+          className="ui-focus-ring min-w-0 rounded-control px-3 py-1.5 text-left text-[13px]"
         >
           <span className="block truncate font-medium">{book.title}</span>
           <span className="block truncate font-mono text-[10px] text-muted-2">{book.code}</span>
@@ -231,7 +251,7 @@ function BookRow({
           type="button"
           aria-label={`Edit ${book.title}`}
           onClick={() => setEditing(true)}
-          className="mr-1 inline-flex h-7 w-7 items-center justify-center rounded-full text-muted-2 opacity-70 transition hover:bg-[color:var(--md-sys-color-surface-container-lowest)] hover:text-app group-hover:opacity-100"
+          className="ui-focus-ring mr-1 inline-flex h-7 w-7 items-center justify-center rounded-control text-muted-2 opacity-70 transition hover:bg-surface-1 hover:text-app group-hover:opacity-100"
         >
           <EditIcon />
         </button>
@@ -273,14 +293,14 @@ function LessonsPane({
       <div className="p-6">
         <EmptyState
           title="No units in this book"
-          body="Vocab and grammar YAML files create unit + lesson rows on import."
+          body="Import a vocabulary or grammar lesson for this book to create its first unit."
         />
       </div>
     );
   }
 
   return (
-    <div className="tutor-scrollbar flex h-full flex-col overflow-y-auto bg-[color:var(--md-sys-color-surface)]">
+    <div className="tutor-scrollbar flex h-full flex-col overflow-y-auto bg-surface-0">
       <ul className="flex flex-col">
         {units.map((unit) => (
           <UnitGroupRow
@@ -311,11 +331,11 @@ function UnitGroupRow({
   const lessons = lessonsQ.data ?? [];
   return (
     <li className="border-b border-border-subtle last:border-b-0">
-      <header className="flex items-baseline gap-2 px-6 py-3">
-        <span className="font-mono text-[11px] text-muted-2">{unit.code}</span>
+      <header className="flex min-h-[var(--size-pane-header)] items-center gap-2 px-5">
+        <span className="text-[11px] font-medium tabular-nums text-muted-2">{unit.code}</span>
         <h3 className="text-sm font-semibold">{unit.title}</h3>
       </header>
-      <div className="flex flex-col gap-3 pb-4">
+      <div className="flex flex-col gap-3 pb-5">
         {lessons.length === 0 ? (
           <p className="px-6 text-xs text-muted-2">No lessons in this unit.</p>
         ) : (
@@ -356,13 +376,12 @@ function LessonRow({
   const topics = topicsQ.data ?? [];
   const count = lesson.kind === "grammar" ? topics.length : entries.length;
   return (
-    <section className="px-6">
-      <header className="mb-2 flex items-center gap-2">
-        <Badge tone={lesson.kind === "vocabulary" ? "accent" : "focus"} uppercase>
-          {lesson.kind}
-        </Badge>
-        <h4 className="text-xs font-medium text-app">{lesson.title}</h4>
-        <span className="text-[10px] text-muted-2">({count})</span>
+    <section className="px-5">
+      <header className="mb-2 flex items-baseline justify-between gap-3">
+        <h4 className="min-w-0 truncate text-xs font-medium text-app">{lesson.title}</h4>
+        <span className="shrink-0 text-[11px] text-muted-2">
+          {lesson.kind === "vocabulary" ? "Vocabulary" : "Grammar"} · {count}
+        </span>
       </header>
       {lesson.kind === "vocabulary" && entriesQ.isLoading ? (
         <p className="text-xs text-muted">Loading…</p>
@@ -373,7 +392,7 @@ function LessonRow({
       ) : lesson.kind === "grammar" && topics.length === 0 ? (
         <p className="text-xs text-muted-2">No grammar topics imported for this lesson yet.</p>
       ) : lesson.kind === "vocabulary" ? (
-        <ul className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+        <ul className="grouped-list divide-y divide-border-subtle">
           {entries.map((entry) => (
             <li key={entry.id}>
               <EntryButton
@@ -385,7 +404,7 @@ function LessonRow({
           ))}
         </ul>
       ) : (
-        <ul className="grid grid-cols-1 gap-1">
+        <ul className="grouped-list divide-y divide-border-subtle">
           {topics.map((topic) => (
             <li key={topic.id}>
               <TopicButton
@@ -413,23 +432,22 @@ function EntryButton({
   const ref = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (selected && typeof ref.current?.scrollIntoView === "function") {
-      ref.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      ref.current.scrollIntoView({ behavior: preferredScrollBehavior(), block: "nearest" });
     }
   }, [selected]);
   return (
     <button
       ref={ref}
       type="button"
+      aria-pressed={selected}
       onClick={onClick}
       className={cn(
-        "flex w-full items-baseline gap-2 rounded-[var(--shape-corner-lg)] border px-3 py-2 text-left transition-[background-color,border-color,box-shadow]",
-        selected
-          ? "border-accent bg-accent/10 shadow-[var(--md-sys-elevation-1)]"
-          : "border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)] hover:border-accent/40 hover:bg-accent/[var(--state-hover)]",
+        "ui-focus-ring flex min-h-[var(--size-row)] w-full items-baseline gap-2 rounded-none px-3 py-2 text-left transition-colors",
+        selected ? "bg-accent/12 text-app" : "text-muted hover:bg-surface-2 hover:text-app",
       )}
     >
-      <span className="truncate text-sm font-medium">{entry.headword}</span>
-      <span className="font-mono text-[10px] text-muted-2">{entry.pos}</span>
+      <span className="ui-lexical truncate text-[15px] font-medium">{entry.headword}</span>
+      <span className="text-[11px] text-muted-2">{entry.pos}</span>
     </button>
   );
 }
@@ -446,27 +464,30 @@ function TopicButton({
   const ref = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (selected && typeof ref.current?.scrollIntoView === "function") {
-      ref.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      ref.current.scrollIntoView({ behavior: preferredScrollBehavior(), block: "nearest" });
     }
   }, [selected]);
   return (
     <button
       ref={ref}
       type="button"
+      aria-pressed={selected}
       onClick={onClick}
       className={cn(
-        "flex w-full items-baseline gap-2 rounded-[var(--shape-corner-lg)] border px-3 py-2 text-left transition-[background-color,border-color,box-shadow]",
-        selected
-          ? "border-focus bg-focus/10 shadow-[var(--md-sys-elevation-1)]"
-          : "border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)] hover:border-focus/40 hover:bg-focus/[var(--state-hover)]",
+        "ui-focus-ring flex min-h-[var(--size-row)] w-full items-baseline gap-2 rounded-none px-3 py-2 text-left transition-colors",
+        selected ? "bg-focus/12 text-app" : "text-muted hover:bg-surface-2 hover:text-app",
       )}
     >
       <span className="truncate text-sm font-medium">{topic.title}</span>
       {topic.difficulty ? (
-        <span className="font-mono text-[10px] text-muted-2">L{topic.difficulty}</span>
+        <span className="text-[11px] tabular-nums text-muted-2">Level {topic.difficulty}</span>
       ) : null}
     </button>
   );
+}
+
+function preferredScrollBehavior(): ScrollBehavior {
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
 }
 
 function DetailPane({ selection }: { selection: ContentSelection }) {
@@ -484,7 +505,7 @@ function DetailPane({ selection }: { selection: ContentSelection }) {
   });
 
   return (
-    <aside className="tutor-scrollbar h-full overflow-y-auto border-l border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)]">
+    <aside className="tutor-scrollbar h-full overflow-y-auto bg-surface-1">
       {selection === null ? (
         <div className="flex h-full items-center justify-center px-6 text-center">
           <p className="text-xs text-muted">Pick a vocab entry or grammar topic to see details.</p>
@@ -511,33 +532,31 @@ function EntryDetail({ entry }: { entry: VocabEntryFull }) {
     <article className="flex flex-col gap-5 px-5 py-5">
       <header className="flex flex-col gap-1">
         <div className="flex flex-wrap items-baseline gap-2">
-          <h3 className="text-2xl font-semibold">{entry.headword}</h3>
-          <span className="font-mono text-xs text-muted">{entry.pos}</span>
+          <h3 className="ui-lexical text-[25px] font-semibold tracking-[-0.015em]">
+            {entry.headword}
+          </h3>
+          <span className="text-xs text-muted">{entry.pos}</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {entry.ipa ? <span className="font-mono text-xs text-muted">{entry.ipa}</span> : null}
-          {entry.cefrLevel ? (
-            <Badge tone="accent" uppercase>
-              {entry.cefrLevel}
-            </Badge>
+          {entry.cefrLevel ? <Badge tone="accent">{entry.cefrLevel}</Badge> : null}
+          {(entry.tags ?? []).length > 0 ? (
+            <span className="text-xs text-muted-2">
+              {entry.tags?.map((tag) => `#${tag}`).join(" · ")}
+            </span>
           ) : null}
-          {(entry.tags ?? []).map((tag) => (
-            <Badge key={tag} tone="muted">
-              #{tag}
-            </Badge>
-          ))}
         </div>
       </header>
 
       {entry.senses.length > 0 ? (
         <Section title="Senses">
-          <ol className="flex flex-col gap-2">
+          <ol className="grouped-list divide-y divide-border-subtle">
             {entry.senses
               .slice()
               .sort((a, b) => a.ordinal - b.ordinal)
               .map((sense, i) => (
-                <li key={sense.id} className="flex gap-3 text-sm">
-                  <span className="font-mono text-xs text-muted-2">{i + 1}.</span>
+                <li key={sense.id} className="flex gap-3 px-3 py-2.5 text-sm">
+                  <span className="text-xs tabular-nums text-muted-2">{i + 1}.</span>
                   <div className="flex flex-1 flex-col gap-0.5">
                     {sense.definitionEn ? (
                       <span className="text-app">{sense.definitionEn}</span>
@@ -546,7 +565,7 @@ function EntryDetail({ entry }: { entry: VocabEntryFull }) {
                       <span className="text-xs text-muted">{sense.definitionVi}</span>
                     ) : null}
                     {sense.register ? (
-                      <span className="text-[10px] uppercase text-muted-2">{sense.register}</span>
+                      <span className="text-[10px] text-muted-2">{sense.register}</span>
                     ) : null}
                   </div>
                 </li>
@@ -557,21 +576,18 @@ function EntryDetail({ entry }: { entry: VocabEntryFull }) {
 
       {entry.examples.length > 0 ? (
         <Section title="Examples">
-          <ul className="flex flex-col gap-3">
+          <ul className="grouped-list divide-y divide-border-subtle">
             {entry.examples
               .slice()
               .sort((a, b) => a.ordinal - b.ordinal)
               .map((ex) => (
-                <li
-                  key={ex.id}
-                  className="rounded-xl border border-border-subtle bg-surface-0/50 px-3 py-2"
-                >
+                <li key={ex.id} className="px-3 py-2.5">
                   <ClozeText text={ex.text} className="text-sm" />
                   {ex.translation ? (
                     <p className="mt-1 text-xs text-muted">{ex.translation}</p>
                   ) : null}
                   {ex.clozeHint ? (
-                    <p className="mt-1 font-mono text-[10px] text-muted-2">hint: {ex.clozeHint}</p>
+                    <p className="mt-1 text-[11px] text-muted-2">Hint: {ex.clozeHint}</p>
                   ) : null}
                 </li>
               ))}
@@ -581,15 +597,13 @@ function EntryDetail({ entry }: { entry: VocabEntryFull }) {
 
       {entry.forms.length > 0 ? (
         <Section title="Forms">
-          <ul className="flex flex-wrap gap-2">
+          <ul className="grouped-list divide-y divide-border-subtle">
             {entry.forms.map((form) => (
               <li
                 key={form.id}
-                className="flex flex-col rounded-xl border border-border-subtle bg-surface-0/50 px-3 py-1.5 text-xs"
+                className="flex flex-row items-baseline justify-between gap-3 px-3 py-2 text-xs"
               >
-                <span className="text-[10px] uppercase text-muted-2">
-                  {form.kind.replace(/_/g, " ")}
-                </span>
+                <span className="text-[11px] text-muted-2">{form.kind.replace(/_/g, " ")}</span>
                 <span className="font-medium">{form.formText}</span>
               </li>
             ))}
@@ -603,9 +617,7 @@ function EntryDetail({ entry }: { entry: VocabEntryFull }) {
             {entry.collocations.map((c) => (
               <li key={c.id} className="flex flex-wrap items-baseline gap-2 text-sm">
                 <span className="text-app">{c.collocation}</span>
-                {c.pattern ? (
-                  <span className="font-mono text-[10px] text-muted-2">{c.pattern}</span>
-                ) : null}
+                {c.pattern ? <span className="text-[11px] text-muted-2">{c.pattern}</span> : null}
               </li>
             ))}
           </ul>
@@ -616,11 +628,11 @@ function EntryDetail({ entry }: { entry: VocabEntryFull }) {
         <Section title="Related">
           <ul className="flex flex-wrap gap-1.5">
             {entry.relations.map((r) => (
-              <li key={r.id}>
-                <Badge tone={r.relation === "antonym" ? "warning" : "accent"} uppercase>
+              <li key={r.id} className="flex items-baseline gap-2 text-xs">
+                <span className={r.relation === "antonym" ? "text-warning" : "text-muted-2"}>
                   {r.relation}
-                </Badge>{" "}
-                <span className="text-xs text-app">{r.relatedText}</span>
+                </span>
+                <span className="text-app">{r.relatedText}</span>
               </li>
             ))}
           </ul>
@@ -646,15 +658,13 @@ function GrammarTopicDetail({ topic }: { topic: GrammarTopic }) {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {topic.difficulty ? (
-            <Badge tone="focus" uppercase>
-              Level {topic.difficulty}
-            </Badge>
+            <span className="text-xs tabular-nums text-muted">Level {topic.difficulty}</span>
           ) : null}
-          {(topic.tags ?? []).map((tag) => (
-            <Badge key={tag} tone="muted">
-              #{tag}
-            </Badge>
-          ))}
+          {(topic.tags ?? []).length > 0 ? (
+            <span className="text-xs text-muted-2">
+              {topic.tags?.map((tag) => `#${tag}`).join(" · ")}
+            </span>
+          ) : null}
         </div>
       </header>
 
@@ -674,19 +684,14 @@ function GrammarTopicDetail({ topic }: { topic: GrammarTopic }) {
 
       {patterns.length > 0 ? (
         <Section title="Patterns">
-          <ul className="flex flex-col gap-2">
+          <ul className="grouped-list divide-y divide-border-subtle">
             {patterns.map((pattern, i) => (
-              <li
-                key={`${pattern.form}-${i}`}
-                className="rounded-xl border border-border-subtle bg-surface-0/50 px-3 py-2 text-sm"
-              >
+              <li key={`${pattern.form}-${i}`} className="px-3 py-2.5 text-sm">
                 <div className="flex flex-wrap items-baseline gap-2">
                   {pattern.label ? (
-                    <span className="text-[10px] font-semibold uppercase text-muted-2">
-                      {pattern.label}
-                    </span>
+                    <span className="text-[10px] font-semibold text-muted-2">{pattern.label}</span>
                   ) : null}
-                  <span className="font-mono text-app">{pattern.form}</span>
+                  <span className="font-medium text-app">{pattern.form}</span>
                 </div>
                 {pattern.use ? <p className="mt-1 text-xs text-muted">{pattern.use}</p> : null}
                 {pattern.examples.length > 0 ? (
@@ -706,12 +711,9 @@ function GrammarTopicDetail({ topic }: { topic: GrammarTopic }) {
 
       {examples.length > 0 ? (
         <Section title="Examples">
-          <ul className="flex flex-col gap-2">
+          <ul className="grouped-list divide-y divide-border-subtle">
             {examples.map((example, i) => (
-              <li
-                key={`${example.text}-${i}`}
-                className="rounded-xl border border-border-subtle bg-surface-0/50 px-3 py-2"
-              >
+              <li key={`${example.text}-${i}`} className="px-3 py-2.5">
                 <p className="text-sm text-app">{example.text}</p>
                 {example.translation ? (
                   <p className="mt-1 text-xs text-muted">{example.translation}</p>
@@ -727,9 +729,9 @@ function GrammarTopicDetail({ topic }: { topic: GrammarTopic }) {
 
       {mistakes.length > 0 ? (
         <Section title="Common Mistakes">
-          <ul className="flex flex-col gap-2">
+          <ul className="grouped-list divide-y divide-border-subtle">
             {mistakes.map((mistake, i) => (
-              <li key={`${mistake.wrong}-${i}`} className="text-sm">
+              <li key={`${mistake.wrong}-${i}`} className="px-3 py-2.5 text-sm">
                 <p className="text-danger">{mistake.wrong}</p>
                 <p className="text-success">{mistake.correct}</p>
                 {mistake.note ? <p className="text-xs text-muted">{mistake.note}</p> : null}
@@ -741,9 +743,9 @@ function GrammarTopicDetail({ topic }: { topic: GrammarTopic }) {
 
       {checks.length > 0 ? (
         <Section title="Checks">
-          <ul className="flex flex-col gap-2">
+          <ul className="grouped-list divide-y divide-border-subtle">
             {checks.map((check, i) => (
-              <li key={`${check.prompt}-${i}`} className="rounded-xl bg-surface-0/50 px-3 py-2">
+              <li key={`${check.prompt}-${i}`} className="px-3 py-2.5">
                 <p className="text-sm text-app">{check.prompt}</p>
                 <p className="mt-1 text-xs text-success">{check.answer}</p>
                 {check.explanation ? (
@@ -760,8 +762,8 @@ function GrammarTopicDetail({ topic }: { topic: GrammarTopic }) {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-2">
-      <h4 className="text-[10px] font-medium uppercase text-muted">{title}</h4>
+    <section className="flex flex-col gap-2 border-t border-border-subtle pt-4 first:border-t-0 first:pt-0">
+      <h4 className="text-xs font-semibold text-muted">{title}</h4>
       {children}
     </section>
   );

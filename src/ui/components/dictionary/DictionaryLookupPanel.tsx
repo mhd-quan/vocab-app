@@ -2,6 +2,7 @@ import type { DictionaryEntry, DictionaryLessonEntry } from "@/data/dictionary";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
+import { AppGlyph } from "@/ui/components/AppGlyph";
 import { Badge } from "@/ui/components/Badge";
 import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
@@ -131,24 +132,25 @@ export function DictionaryLookupPanel({
   return (
     <div
       className={cn(
-        "grid min-h-0 gap-0 overflow-hidden border border-border-subtle bg-surface-1",
+        "grid min-h-0 gap-0 overflow-hidden border border-border-subtle bg-paper",
         density === "page"
-          ? "h-[calc(100vh-9rem)] grid-cols-[18rem_1fr] rounded-none border-x-0"
-          : "h-[min(74vh,46rem)] grid-cols-[15rem_1fr] rounded-bento",
+          ? "h-full flex-1 grid-cols-[18rem_minmax(0,1fr)] rounded-none border-x-0"
+          : "h-full grid-cols-[17rem_minmax(0,1fr)] border-0",
         className,
       )}
     >
-      <aside className="flex min-h-0 flex-col border-r border-border-subtle bg-surface-0/65">
-        <form onSubmit={onSubmit} className="border-b border-border-subtle p-4">
+      <aside className="flex min-h-0 flex-col border-r border-border-subtle bg-ground/70">
+        <form onSubmit={onSubmit} className="border-b border-border-subtle p-3">
           <label className="flex flex-col gap-2">
-            <span className="text-xs font-semibold uppercase text-muted-2">Search word</span>
+            <span className="text-xs font-medium text-muted">Search word</span>
             <div className="relative">
               <input
+                data-dictionary-search
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="achievement"
+                placeholder="Search the dictionary"
                 spellCheck={false}
-                className="h-11 w-full rounded-xl border border-border-strong bg-surface-1 px-3 pr-10 text-base text-app outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/25"
+                className="ui-focus-ring h-9 w-full rounded-control border border-border-strong/70 bg-paper px-3 pr-9 text-[13px] text-app transition-[border-color,box-shadow] focus:border-accent"
               />
               {query.trim().length > 0 ? (
                 <button
@@ -159,9 +161,9 @@ export function DictionaryLookupPanel({
                     setCopied(false);
                   }}
                   aria-label="Clear search"
-                  className="absolute right-2 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full border border-border-subtle bg-surface-2 text-base leading-none text-muted transition hover:border-border-strong hover:bg-surface-1 hover:text-app"
+                  className="ui-focus-ring absolute right-1.5 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-control text-base leading-none text-muted transition-colors hover:bg-surface-2 hover:text-app"
                 >
-                  ×
+                  <AppGlyph name="x" className="h-3.5 w-3.5" />
                 </button>
               ) : null}
             </div>
@@ -199,7 +201,7 @@ export function DictionaryLookupPanel({
                       setCopied(false);
                     }}
                     className={cn(
-                      "w-full rounded-xl px-3 py-2 text-left text-sm transition",
+                      "ui-focus-ring w-full rounded-control px-2.5 py-2 text-left text-sm transition-colors",
                       selectedTerm === item.key
                         ? "bg-accent text-accent-fg"
                         : "text-muted hover:bg-surface-2 hover:text-app",
@@ -207,10 +209,10 @@ export function DictionaryLookupPanel({
                   >
                     <span className="flex min-w-0 items-center justify-between gap-2">
                       <span className="min-w-0 truncate font-medium">{item.label}</span>
-                      <PosPill active={selectedTerm === item.key} label={posLabel(item)} />
+                      <PosMeta active={selectedTerm === item.key} label={posLabel(item)} />
                     </span>
                     {item.exact ? (
-                      <span className="block text-[10px] uppercase opacity-75">Exact</span>
+                      <span className="block text-[10px] opacity-75">Exact</span>
                     ) : null}
                   </button>
                 </li>
@@ -220,7 +222,7 @@ export function DictionaryLookupPanel({
         </div>
       </aside>
 
-      <main className="min-h-0 overflow-y-auto bg-app">
+      <section aria-label="Dictionary entry" className="min-h-0 overflow-y-auto bg-paper">
         {entryQ.isFetching && !entry ? (
           <p className="p-6 text-sm text-muted">Loading entry...</p>
         ) : entry ? (
@@ -231,14 +233,54 @@ export function DictionaryLookupPanel({
             onCopy={copyYaml}
           />
         ) : (
-          <div className="flex h-full items-center justify-center p-6">
-            <EmptyState
-              title="No word selected"
-              body="Search and select an entry to inspect definitions, examples, IPA, CEFR, and audio."
-            />
-          </div>
+          <DictionaryEmptyPrompt
+            hasQuery={debouncedQuery.length > 0}
+            onLookup={(term) => {
+              setQuery(term);
+              setSelectedTerm(term);
+              setCopied(false);
+            }}
+          />
         )}
-      </main>
+      </section>
+    </div>
+  );
+}
+
+function DictionaryEmptyPrompt({
+  hasQuery,
+  onLookup,
+}: {
+  hasQuery: boolean;
+  onLookup: (term: string) => void;
+}) {
+  return (
+    <div className="flex h-full items-center justify-center px-8 py-12 text-center">
+      <div className="max-w-sm">
+        <AppGlyph name="dictionary" className="mx-auto h-8 w-8 text-muted-2" />
+        <h2 className="mt-4 text-base font-semibold">
+          {hasQuery ? "Choose a result" : "Look up any word"}
+        </h2>
+        <p className="mt-1.5 text-[13px] leading-5 text-muted">
+          {hasQuery
+            ? "Select a match on the left to see pronunciation, definitions, examples, and level."
+            : "Search by a word or phrase. The dictionary includes pronunciation, usage, CEFR level, and audio."}
+        </p>
+        {!hasQuery ? (
+          <div className="mt-5 flex flex-wrap justify-center gap-2" aria-label="Suggested words">
+            {["achievement", "practice", "focus"].map((term) => (
+              <button
+                key={term}
+                type="button"
+                onClick={() => onLookup(term)}
+                className="ui-focus-ring h-8 rounded-control border border-border-subtle bg-paper px-3 text-xs text-muted transition-colors hover:border-border-strong hover:bg-surface-2 hover:text-app"
+              >
+                {term}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -253,23 +295,23 @@ function WordFamilyList({
   onSelect: (item: DictionaryEntry["related"][number]) => void;
 }) {
   return (
-    <section className="mb-3 rounded-xl border border-border-subtle bg-surface-1 p-2">
-      <p className="px-1 pb-2 text-[10px] font-semibold uppercase text-muted-2">Word family</p>
-      <ul className="flex flex-col gap-1">
+    <section className="mb-2 border-b border-border-subtle pb-2">
+      <p className="px-2 pb-1.5 pt-1 text-[11px] font-medium text-muted">Word family</p>
+      <ul className="flex flex-col gap-0.5">
         {items.map((item) => (
           <li key={item.key}>
             <button
               type="button"
               onClick={() => onSelect(item)}
               className={cn(
-                "flex w-full min-w-0 items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left text-xs transition",
+                "ui-focus-ring flex w-full min-w-0 items-center justify-between gap-2 rounded-control px-2 py-1.5 text-left text-xs transition-colors",
                 selectedKey === item.key
                   ? "bg-accent text-accent-fg"
                   : "text-muted hover:bg-surface-2 hover:text-app",
               )}
             >
               <span className="min-w-0 truncate font-medium">{item.label}</span>
-              <PosPill active={selectedKey === item.key} label={posLabel(item)} />
+              <PosMeta active={selectedKey === item.key} label={posLabel(item)} />
             </button>
           </li>
         ))}
@@ -278,12 +320,12 @@ function WordFamilyList({
   );
 }
 
-function PosPill({ label, active }: { label: string; active?: boolean }) {
+function PosMeta({ label, active }: { label: string; active?: boolean }) {
   return (
     <span
       className={cn(
-        "shrink-0 rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase",
-        active ? "border-white/40 text-current opacity-90" : "border-border-subtle text-muted-2",
+        "shrink-0 text-right text-[10px]",
+        active ? "text-current opacity-80" : "text-muted-2",
       )}
     >
       {label}
@@ -316,32 +358,24 @@ function EntryDetail({
   const curriculumBadges = useMemo(() => curriculumTags(entry), [entry]);
 
   return (
-    <article className="mx-auto flex max-w-4xl flex-col gap-5 px-6 py-6">
-      <header className="rounded-bento border border-border-subtle bg-surface-1 p-5 shadow-card">
+    <article className="mx-auto flex max-w-3xl flex-col gap-6 px-6 py-6">
+      <header className="learning-trace pl-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge tone="muted" uppercase>
-                {entry.posLabel ?? entry.posKey}
-              </Badge>
-              {entry.cefr ? (
-                <Badge tone="focus" uppercase>
-                  {entry.cefr}
-                </Badge>
-              ) : null}
-              {curriculumBadges.map((tag) => (
-                <Badge key={tag} tone="xp" uppercase>
-                  {tag}
-                </Badge>
-              ))}
+              <Badge tone="muted">{entry.posLabel ?? entry.posKey}</Badge>
+              {entry.cefr ? <Badge tone="focus">{entry.cefr}</Badge> : null}
             </div>
-            <h2 className="mt-3 break-words text-4xl font-semibold leading-tight">
+            <h2 className="ui-lexical mt-3 break-words text-[34px] font-semibold leading-tight">
               {entry.headword}
             </h2>
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-sm text-muted">
               {entry.ipaUk ? <span>UK {entry.ipaUk}</span> : null}
               {entry.ipaUs ? <span>US {entry.ipaUs}</span> : null}
             </div>
+            {curriculumBadges.length > 0 ? (
+              <p className="mt-3 text-xs text-muted">Appears in {curriculumBadges.join(" · ")}</p>
+            ) : null}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <PronunciationControls audioRefs={entry.audio} size="sm" />
@@ -354,59 +388,57 @@ function EntryDetail({
         </div>
       </header>
 
-      {entry.lessonEntries.length > 0 ? <LessonEntries entries={entry.lessonEntries} /> : null}
-
-      {entry.images.length > 0 ? (
-        <EntryImages images={entry.images} assets={imageQueries.map((query) => query.data)} />
-      ) : null}
-
-      <section className="rounded-bento border border-border-subtle bg-surface-1 p-5">
-        <h3 className="text-sm font-semibold uppercase text-muted-2">Definitions</h3>
+      <section className="border-t border-border-subtle pt-5" aria-labelledby="definitions-title">
+        <h3 id="definitions-title" className="text-sm font-semibold">
+          Definitions
+        </h3>
         {definitions.length === 0 ? (
           <p className="mt-3 text-sm text-muted">No parsed definitions.</p>
         ) : (
-          <ol className="mt-4 flex flex-col gap-4">
+          <ol className="mt-3 divide-y divide-border-subtle">
             {definitions.map((sense, index) => (
-              <li key={`${sense.definitionEn}-${index}`} className="grid gap-2">
-                <p className="text-base leading-7 text-app">
-                  <span className="mr-2 font-mono text-xs text-muted-2">{index + 1}</span>
-                  {sense.definitionEn}
-                </p>
-                {sense.labels.length > 0 ? (
-                  <div className="flex flex-wrap gap-1.5">
-                    {sense.labels.map((label) => (
-                      <span
-                        key={label}
-                        className="rounded-full border border-border-subtle bg-surface-0 px-2 py-0.5 text-[11px] text-muted"
-                      >
-                        {label}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
-                {sense.examples.length > 0 ? (
-                  <ul className="ml-6 list-disc text-sm leading-6 text-muted">
-                    {sense.examples.map((example) => (
-                      <li key={example}>{example}</li>
-                    ))}
-                  </ul>
-                ) : null}
+              <li
+                key={`${sense.definitionEn}-${index}`}
+                className="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-2 py-3 first:pt-0 last:pb-0"
+              >
+                <span className="tabular-figure pt-0.5 text-xs text-muted-2">{index + 1}</span>
+                <div>
+                  <p className="ui-lexical text-base leading-7 text-app">{sense.definitionEn}</p>
+                  {sense.labels.length > 0 ? (
+                    <p className="mt-1.5 text-xs text-muted">{sense.labels.join(" · ")}</p>
+                  ) : null}
+                  {sense.examples.length > 0 ? (
+                    <ul className="ui-lexical mt-2 border-l-2 border-border-subtle pl-3 text-sm leading-6 text-muted">
+                      {sense.examples.map((example) => (
+                        <li key={example}>{example}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
               </li>
             ))}
           </ol>
         )}
       </section>
 
-      <section className="rounded-bento border border-border-subtle bg-surface-1 p-5">
-        <h3 className="text-sm font-semibold uppercase text-muted-2">Examples</h3>
+      {entry.lessonEntries.length > 0 ? <LessonEntries entries={entry.lessonEntries} /> : null}
+
+      {entry.images.length > 0 ? (
+        <EntryImages images={entry.images} assets={imageQueries.map((query) => query.data)} />
+      ) : null}
+
+      <section className="border-t border-border-subtle pt-5" aria-labelledby="examples-title">
+        <h3 id="examples-title" className="text-sm font-semibold">
+          Examples
+        </h3>
         {entry.examples.length === 0 ? (
           <p className="mt-3 text-sm text-muted">No parsed examples.</p>
         ) : (
-          <ul className="mt-4 grid gap-2">
+          <ul className="mt-3 divide-y divide-border-subtle">
             {entry.examples.map((example) => (
               <li
                 key={example}
-                className="rounded-xl border border-border-subtle bg-surface-0/75 px-3 py-2 text-sm leading-6 text-app"
+                className="ui-lexical py-2.5 text-sm leading-6 text-app first:pt-0 last:pb-0"
               >
                 {example}
               </li>
@@ -431,14 +463,13 @@ function EntryImages({
   if (ready.length === 0) return null;
 
   return (
-    <section className="rounded-bento border border-border-subtle bg-surface-1 p-5">
-      <h3 className="text-sm font-semibold uppercase text-muted-2">Visuals</h3>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+    <section className="border-t border-border-subtle pt-5" aria-labelledby="visuals-title">
+      <h3 id="visuals-title" className="text-sm font-semibold">
+        Visuals
+      </h3>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
         {ready.map(({ image, asset }) => (
-          <figure
-            key={image.ref}
-            className="overflow-hidden rounded-xl border border-border-subtle bg-surface-0"
-          >
+          <figure key={image.ref} className="object-surface overflow-hidden bg-ground">
             <img
               src={asset?.dataUrl}
               alt={image.alt ?? ""}
@@ -458,9 +489,11 @@ function EntryImages({
 
 function LessonEntries({ entries }: { entries: DictionaryLessonEntry[] }) {
   return (
-    <section className="rounded-bento border border-border-subtle bg-surface-1 p-5">
-      <h3 className="text-sm font-semibold uppercase text-muted-2">Lesson entries</h3>
-      <div className="mt-4 grid gap-3">
+    <section className="border-t border-border-subtle pt-5" aria-labelledby="lesson-entries-title">
+      <h3 id="lesson-entries-title" className="text-sm font-semibold">
+        In your lessons
+      </h3>
+      <div className="grouped-list mt-3 divide-y divide-border-subtle bg-ground/70">
         {entries.map((entry) => {
           const viDefinitions = entry.senses
             .map((sense) => sense.definitionVi)
@@ -469,32 +502,18 @@ function LessonEntries({ entries }: { entries: DictionaryLessonEntry[] }) {
             .map((example) => example.translation)
             .filter((text): text is string => Boolean(text?.trim()));
           return (
-            <article
-              key={entry.id}
-              className="rounded-xl border border-border-subtle bg-surface-0/75 p-4"
-            >
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge tone="xp" uppercase>
-                  {entry.bookTitle}
-                </Badge>
-                <Badge tone="focus" uppercase>
-                  Unit {entry.unitOrdinal}
-                </Badge>
-                <Badge tone="muted" uppercase>
-                  {entry.pos}
-                </Badge>
-                {entry.cefrLevel ? (
-                  <Badge tone="focus" uppercase>
-                    {entry.cefrLevel}
-                  </Badge>
-                ) : null}
-              </div>
-              <div className="mt-3 flex flex-col gap-1">
-                <p className="text-lg font-semibold text-app">{entry.headword}</p>
+            <article key={entry.id} className="px-4 py-3.5">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <p className="ui-lexical text-lg font-semibold text-app">{entry.headword}</p>
                 <p className="text-xs text-muted">
-                  {entry.unitTitle} / {entry.lessonTitle}
+                  {entry.pos}
+                  {entry.cefrLevel ? ` · ${entry.cefrLevel}` : ""}
                 </p>
               </div>
+              <p className="mt-0.5 text-xs text-muted">
+                {entry.bookTitle} · Unit {entry.unitOrdinal} · {entry.unitTitle} /{" "}
+                {entry.lessonTitle}
+              </p>
               {viDefinitions.length > 0 ? (
                 <ul className="mt-3 grid gap-1 text-sm leading-6 text-app">
                   {viDefinitions.map((definition) => (

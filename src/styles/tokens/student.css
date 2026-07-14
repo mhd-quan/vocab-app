@@ -1,102 +1,18 @@
-/**
- * Student-mode token overrides. Activated when
- * `<html data-app-mode="student">` (set by RoleStyleProvider).
- *
- * Duolingo-inspired palette: brighter accents, generous radii, 3D press
- * shadows. Only redefine tokens that differ from `base.css` — anything
- * unset inherits.
- */
-
 @layer base {
   [data-app-mode="student"]:root,
   [data-app-mode="student"] {
-    --font-family-sans: "Atkinson Hyperlegible", "Lexend", "Inter", ui-sans-serif, system-ui,
-      -apple-system, "Segoe UI", sans-serif;
-    --font-family-display: "Lexend", "Atkinson Hyperlegible", "Inter", ui-sans-serif, system-ui,
-      -apple-system, "Segoe UI", sans-serif;
-
-    /* Duolingo-style accents — friendly green primary, warm yellow */
-    --color-accent: 88 204 2; /* #58CC02 */
-    --color-accent-fg: 255 255 255;
-    --color-success: 88 204 2; /* unify success with primary */
-    --color-warning: 255 200 0; /* #FFC800 */
-    --color-danger: 255 75 75; /* #FF4B4B */
-
-    /* Reward palette popped one notch toward saturation */
-    --color-xp: 28 176 246; /* #1CB0F6 */
-    --color-rare: 134 144 255;
-    --color-epic: 206 130 255; /* #CE82FF */
-    --color-mastery: 255 200 0;
-    --color-focus: 28 176 246;
-
-    --color-sky: 28 176 246;
-    --color-coral: 255 75 75;
-    --color-lime: 88 204 2;
-    --color-pink: 255 134 191;
-    --color-ember: 255 158 74;
-
-    /* Bigger radii for tap-friendly chips */
-    --radius-button: 1.25rem;
-    --radius-chip: 1.125rem;
-    --radius-bento: 1.75rem;
-    --student-header-height: 4.75rem;
-
-    /* 3D press shadow uses the saturated success channel */
-    --shadow-press-rgb: 68 168 0;
-    --shadow-press: 0 5px 0 0 rgb(var(--shadow-press-rgb) / 0.55);
-    --shadow-press-active: 0 1px 0 0 rgb(var(--shadow-press-rgb) / 0.6);
-    --student-card-border: 0 2px 0 rgb(0 0 0 / 0.04);
-    --student-reward-glow: 0 12px 32px rgb(var(--color-warning) / 0.2);
+    --student-header-height: var(--size-toolbar);
   }
+}
 
-  [data-app-mode="student"] [data-student-bg="custom"] {
-    --student-readable-surface-opacity: 0.75;
-  }
-
+@layer components {
+  /*
+   * A wallpaper never rewrites utility classes or interaction states.
+   * Only named content surfaces opt into an opaque reading plane.
+   */
   [data-app-mode="student"]
     [data-student-bg="custom"]
-    :is(
-      .motion-card,
-      .bg-surface-1,
-      .bg-surface-0\/30,
-      .bg-surface-0\/40,
-      .bg-surface-0\/50,
-      .bg-surface-0\/60,
-      .bg-surface-0\/65,
-      .bg-surface-0\/70,
-      .bg-surface-0\/75,
-      .bg-surface-1\/95,
-      .bg-surface-2,
-      .bg-surface-2\/70,
-      .bg-surface-3\/80,
-      .bg-mastery\/10,
-      .bg-mastery\/15,
-      .bg-focus\/10,
-      .bg-warning\/10,
-      .bg-rare\/10,
-      .bg-epic\/10,
-      .bg-xp\/10,
-      .bg-sky\/10,
-      .bg-coral\/10,
-      .bg-lime\/10,
-      .bg-pink\/10,
-      .bg-ember\/10,
-      .bg-success\/10,
-      .bg-accent\/10
-    ) {
-    background-color: rgb(var(--color-surface-1) / var(--student-readable-surface-opacity)) !important;
-  }
-
-  [data-app-mode="student"] [data-student-bg="custom"] .border-border-subtle {
-    border-color: rgb(var(--color-border-strong) / 0.7);
-  }
-
-  [data-app-mode="student"].dark {
-    --color-accent: 134 224 76;
-    --color-success: 134 224 76;
-    --color-danger: 255 117 117;
-    --color-warning: 255 217 96;
-    --shadow-press-rgb: 34 88 0;
-    --shadow-press: 0 5px 0 0 rgb(var(--shadow-press-rgb) / 0.7);
+    :is(.object-surface, .grouped-list, .ui-group) {
+    background-color: rgb(var(--color-paper));
   }
 }

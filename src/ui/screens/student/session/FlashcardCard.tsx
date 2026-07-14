@@ -1,6 +1,5 @@
 import { cn } from "@/lib/cn";
 import { type FlashcardExercise, type SelfGrade, selfGrades } from "@/modules/exercises";
-import { Badge } from "@/ui/components/Badge";
 import { Button } from "@/ui/components/Button";
 import { ClozeText } from "@/ui/components/ClozeText";
 import { VocabularyPronunciation } from "@/ui/components/VocabularyPronunciation";
@@ -76,25 +75,42 @@ export function FlashcardCard({
     <article
       data-exercise-kind="flashcard"
       data-revealed={revealed}
-      className="flex flex-col gap-7 rounded-bento border border-border-subtle bg-surface-1 p-8 shadow-card dark:shadow-card-dark"
+      className="object-surface motion-enter flex min-h-[22rem] flex-col gap-6 bg-surface-1 p-6 sm:p-8"
     >
       <header className="flex items-center justify-between">
-        <Badge tone="accent" uppercase>
-          Flashcard
-        </Badge>
-        <span className="text-xs font-semibold uppercase text-muted-2">
+        <span className="learning-trace-label text-xs font-semibold text-accent">Flashcard</span>
+        <span className="text-xs font-medium text-muted-2">
           {revealed ? "Rate your recall" : "Tap to reveal"}
         </span>
       </header>
 
-      <div className="flex min-h-44 flex-col items-center justify-center gap-3 text-center">
-        <h2 className="max-w-full break-words text-5xl font-semibold leading-none sm:text-6xl">
-          {front.headword}
-        </h2>
-        <div className="flex items-baseline gap-3 text-muted">
-          <span className="font-mono text-base">{front.pos}</span>
-          {front.ipa ? <span className="font-mono text-base">{front.ipa}</span> : null}
-        </div>
+      <div className="flex min-h-52 flex-1 flex-col items-center justify-center gap-3 text-center">
+        {revealed ? (
+          <div>
+            <h2 className="ui-lexical max-w-full break-words text-5xl font-semibold leading-none sm:text-6xl">
+              {front.headword}
+            </h2>
+            <div className="mt-3 flex items-baseline justify-center gap-3 text-muted">
+              <span className="font-mono text-base">{front.pos}</span>
+              {front.ipa ? <span className="font-mono text-base">{front.ipa}</span> : null}
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setRevealed(true)}
+            aria-label="Reveal flashcard"
+            className="ui-focus-ring rounded-control px-8 py-6 transition-colors hover:bg-surface-2/60 active:bg-surface-3/60"
+          >
+            <h2 className="ui-lexical max-w-full break-words text-5xl font-semibold leading-none sm:text-6xl">
+              {front.headword}
+            </h2>
+            <div className="mt-3 flex items-baseline justify-center gap-3 text-muted">
+              <span className="font-mono text-base">{front.pos}</span>
+              {front.ipa ? <span className="font-mono text-base">{front.ipa}</span> : null}
+            </div>
+          </button>
+        )}
         <VocabularyPronunciation
           headword={front.headword}
           fallbackRefs={front.audioRefs}
@@ -107,17 +123,22 @@ export function FlashcardCard({
           hotkeys={{ uk: "k", us: "u" }}
           className="justify-center"
         />
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase text-muted-2">
-          <span className="rounded-full border border-border-subtle px-2 py-0.5 font-mono">K</span>
+        <div className="flex items-center gap-2 text-[11px] font-semibold text-muted-2">
+          <span className="rounded-md bg-surface-2 px-1.5 py-0.5 font-mono">K</span>
           <span>UK audio</span>
-          <span className="rounded-full border border-border-subtle px-2 py-0.5 font-mono">U</span>
+          <span className="rounded-md bg-surface-2 px-1.5 py-0.5 font-mono">U</span>
           <span>US audio</span>
         </div>
       </div>
 
       {!revealed ? (
         <div className="flex justify-center">
-          <PressButton size="lg" onClick={() => setRevealed(true)} aria-label="Reveal answer">
+          <PressButton
+            size="lg"
+            onClick={() => setRevealed(true)}
+            aria-label="Reveal answer"
+            className="h-11 min-w-44"
+          >
             Reveal &nbsp; <span className="font-mono text-[10px] text-accent-fg/70">space</span>
           </PressButton>
         </div>
@@ -140,17 +161,17 @@ function FlashcardBack({
       <ol className="flex flex-col gap-2 text-base leading-relaxed text-muted">
         {back.definitionsEn.map((def, i) => (
           <li key={`${i}-${def}`} className="flex gap-2">
-            <span className="font-mono text-sm text-muted-2">{i + 1}.</span>
-            <span>{def}</span>
+            <span className="tabular-figure text-sm text-muted-2">{i + 1}.</span>
+            <span className="ui-lexical">{def}</span>
           </li>
         ))}
       </ol>
     ) : null;
   const vietnameseBlock = back.definitionVi ? (
-    <p className="text-xl font-semibold leading-relaxed text-app">{back.definitionVi}</p>
+    <p className="ui-lexical text-xl font-semibold leading-relaxed text-app">{back.definitionVi}</p>
   ) : null;
   return (
-    <div className="flex flex-col gap-5">
+    <div className="motion-enter flex flex-col gap-5">
       <section className="flex flex-col gap-2 border-t border-border-subtle pt-5">
         {back.definitionPriority === "vi_first" ? (
           <>
@@ -166,13 +187,17 @@ function FlashcardBack({
       </section>
 
       {back.exampleText ? (
-        <section className="rounded-2xl border border-border-subtle bg-surface-0/70 px-5 py-4">
-          <p className="mb-1.5 text-xs font-semibold uppercase text-muted-2">Example</p>
+        <section className="rounded-md bg-surface-2 px-5 py-4">
+          <p className="mb-1.5 text-xs font-semibold text-muted-2">Example</p>
           <ClozeText text={back.exampleText} className="text-base" />
         </section>
       ) : null}
 
-      <div role="group" aria-label="Rate your recall" className="grid grid-cols-4 gap-3">
+      <div
+        role="group"
+        aria-label="Rate your recall"
+        className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+      >
         {selfGrades.map((grade) => {
           const meta = GRADE_LABELS[grade];
           return (
@@ -181,11 +206,7 @@ function FlashcardBack({
               variant="secondary"
               onClick={() => onAnswer(grade)}
               className={cn(
-                // Duolingo-style grade chip — 2px coloured border + the
-                // press-bounce shadow stack collapses on tap. Tone colour
-                // gives each grade a strong identity.
-                "press-bounce min-h-14 rounded-button border-2 py-4 text-base font-semibold uppercase tracking-wide",
-                "hover:translate-y-0 active:translate-y-[3px]",
+                "min-h-11 border border-transparent py-2.5 text-sm font-semibold",
                 meta.tone === "danger" &&
                   "border-danger bg-danger/5 text-danger hover:bg-danger/15",
                 meta.tone === "warning" &&

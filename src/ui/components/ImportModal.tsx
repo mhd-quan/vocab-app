@@ -2,7 +2,7 @@ import type { ImportFileResult } from "@/application/import";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { ImportsIcon } from "@/ui/shell/icons";
-import { type DragEvent, useRef, useState } from "react";
+import { type DragEvent, useId, useRef, useState } from "react";
 import { Button } from "./Button";
 import { Modal } from "./Modal";
 
@@ -16,6 +16,7 @@ const MAX_FILE_BYTES = 5 * 1024 * 1024;
 
 export function ImportModal({ open, onClose, onImported }: ImportModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const chooseFileButtonId = useId();
   const [dragging, setDragging] = useState(false);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ImportFileResult | null>(null);
@@ -52,6 +53,7 @@ export function ImportModal({ open, onClose, onImported }: ImportModalProps) {
       title="Import YAML"
       description="Add a vocabulary or grammar YAML file to the local content library."
       size="lg"
+      initialFocusId={chooseFileButtonId}
       footer={
         <>
           {result ? (
@@ -83,6 +85,9 @@ export function ImportModal({ open, onClose, onImported }: ImportModalProps) {
           }}
         />
         <div
+          role="group"
+          aria-label="YAML file drop area"
+          aria-busy={busy}
           onDragEnter={(e) => {
             e.preventDefault();
             setDragging(true);
@@ -94,29 +99,31 @@ export function ImportModal({ open, onClose, onImported }: ImportModalProps) {
           }}
           onDrop={handleDrop}
           className={cn(
-            "flex min-h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed px-6 py-8 text-center transition-colors",
+            "flex min-h-36 flex-col items-center justify-center gap-3 rounded-object border border-dashed px-5 py-6 text-center transition-colors duration-fast",
             dragging
               ? "border-accent bg-accent/10"
-              : "border-border-strong bg-surface-0 hover:border-accent/70",
+              : "border-border-strong bg-ground/70 hover:border-accent/70",
           )}
         >
-          <span className="flex h-10 w-10 items-center justify-center rounded-full border border-border-subtle bg-surface-1 text-muted">
+          <span className="grid h-7 w-7 place-items-center text-muted [&_svg]:h-6 [&_svg]:w-6">
             <ImportsIcon />
           </span>
           <div className="flex flex-col gap-1">
             <p className="text-sm font-medium">Drop a .yaml or .yml file here</p>
             <p className="text-xs text-muted">Maximum file size: 5MB</p>
           </div>
-          <Button variant="secondary" disabled={busy} onClick={() => inputRef.current?.click()}>
+          <Button
+            id={chooseFileButtonId}
+            variant="secondary"
+            disabled={busy}
+            onClick={() => inputRef.current?.click()}
+          >
             {busy ? "Importing..." : "Choose file"}
           </Button>
         </div>
 
         {error ? (
-          <p
-            role="alert"
-            className="rounded-xl border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger"
-          >
+          <p role="alert" className="rounded-control bg-danger/10 px-3 py-2 text-ui text-danger">
             {error}
           </p>
         ) : null}
@@ -129,24 +136,26 @@ export function ImportModal({ open, onClose, onImported }: ImportModalProps) {
 function ImportResult({ result }: { result: ImportFileResult }) {
   const stats = result.stats;
   return (
-    <section className="rounded-2xl border border-border-subtle bg-surface-0 p-4">
-      <header className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold">{shortenPath(result.filePath)}</p>
-          <p className="font-mono text-[10px] uppercase text-muted-2">{result.status}</p>
-        </div>
-        <div className="grid grid-cols-4 gap-2 font-mono text-xs">
-          <ResultStat label="+" value={stats.inserted} />
-          <ResultStat label="~" value={stats.updated} />
-          <ResultStat label="=" value={stats.skipped} />
-          <ResultStat label="!" value={stats.failed} />
-        </div>
+    <section
+      aria-label="Import result"
+      aria-live="polite"
+      className="object-surface overflow-hidden border border-border-subtle"
+    >
+      <header className="min-w-0 px-4 py-3">
+        <p className="truncate text-ui font-semibold">{shortenPath(result.filePath)}</p>
+        <p className="mt-0.5 text-caption text-muted">{formatStatus(result.status)}</p>
       </header>
+      <dl className="grid grid-cols-4 divide-x divide-border-subtle border-t border-border-subtle">
+        <ResultStat label="Inserted" value={stats.inserted} />
+        <ResultStat label="Updated" value={stats.updated} />
+        <ResultStat label="Skipped" value={stats.skipped} />
+        <ResultStat label="Failed" value={stats.failed} danger={stats.failed > 0} />
+      </dl>
       {result.errors.length > 0 ? (
-        <ul className="mt-3 flex flex-col gap-1 text-xs text-danger">
+        <ul className="flex flex-col gap-1 border-t border-border-subtle px-4 py-3 text-xs text-danger">
           {result.errors.map((err) => (
             <li key={`${err.sourceId ?? "file"}-${err.message}`}>
-              {err.sourceId ? `[${err.sourceId}] ` : null}
+              {err.sourceId ? <span className="font-mono">[{err.sourceId}] </span> : null}
               {err.message}
             </li>
           ))}
@@ -156,13 +165,24 @@ function ImportResult({ result }: { result: ImportFileResult }) {
   );
 }
 
-function ResultStat({ label, value }: { label: string; value: number }) {
+function ResultStat({
+  label,
+  value,
+  danger = false,
+}: { label: string; value: number; danger?: boolean }) {
   return (
-    <span className="inline-flex min-w-12 items-center justify-center rounded-xl border border-border-subtle bg-surface-1 px-2 py-1">
-      <span className="mr-1 text-muted-2">{label}</span>
-      <span>{value}</span>
-    </span>
+    <div className="px-3 py-2">
+      <dt className="text-caption text-muted">{label}</dt>
+      <dd className={cn("tabular-figure mt-0.5 text-ui font-semibold", danger && "text-danger")}>
+        {value}
+      </dd>
+    </div>
   );
+}
+
+function formatStatus(status: string): string {
+  const normalized = status.trim().replaceAll("_", " ");
+  return normalized ? `${normalized.charAt(0).toUpperCase()}${normalized.slice(1)}` : "Complete";
 }
 
 function validateFile(file: File) {

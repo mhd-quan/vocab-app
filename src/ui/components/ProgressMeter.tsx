@@ -24,18 +24,18 @@ export interface ProgressMeterProps {
 }
 
 const TONES: Record<ProgressTone, string> = {
-  accent: "bg-accent",
-  success: "bg-success",
-  warning: "bg-warning",
-  xp: "bg-xp",
-  rare: "bg-rare",
-  epic: "bg-epic",
-  mastery: "bg-mastery",
-  sky: "bg-sky",
-  coral: "bg-coral",
-  lime: "bg-lime",
-  pink: "bg-pink",
-  ember: "bg-ember",
+  accent: "bg-iris",
+  success: "bg-moss",
+  warning: "bg-ochre",
+  xp: "bg-iris",
+  rare: "bg-iris",
+  epic: "bg-iris",
+  mastery: "bg-ochre",
+  sky: "bg-iris",
+  coral: "bg-danger-fill",
+  lime: "bg-moss",
+  pink: "bg-iris",
+  ember: "bg-ochre",
 };
 
 export function ProgressMeter({
@@ -53,16 +53,16 @@ export function ProgressMeter({
   return (
     <div className={cn("flex items-center gap-3", className)}>
       <progress className="sr-only" value={clampedValue} max={safeMax} aria-label={label} />
-      <div aria-hidden className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface-3/80">
+      <div aria-hidden className="h-1 flex-1 overflow-hidden rounded-full bg-surface-3/80">
         <div
           className={cn(
-            "progress-shimmer h-full rounded-full transition-[width] duration-200 ease-out",
+            "progress-shimmer h-full rounded-full transition-[width] duration-base ease-out",
             TONES[tone],
           )}
           style={{ width: `${pct}%` }}
         />
       </div>
-      {showValue ? <span className="font-mono text-xs text-muted">{pct}%</span> : null}
+      {showValue ? <span className="tabular-figure text-xs text-muted">{pct}%</span> : null}
     </div>
   );
 }

@@ -97,32 +97,33 @@ export function StudentHistoryImportButton({
       >
         <div className="flex flex-col gap-4">
           <label className="flex flex-col gap-1 text-xs text-muted" htmlFor={passphraseId}>
-            <span className="font-semibold uppercase text-muted-2">Passphrase</span>
+            <span className="font-semibold text-muted-2">Passphrase</span>
             <input
               id={passphraseId}
               type="password"
               value={passphrase}
               onChange={(event) => setPassphrase(event.currentTarget.value)}
               placeholder="Only needed for encrypted exports"
-              className="h-10 rounded-[var(--shape-corner-md)] border border-border-subtle bg-surface-0 px-3 text-sm text-app outline-none focus:border-accent"
+              className="ui-focus-ring h-10 rounded-control border border-border-subtle bg-paper px-3 text-sm text-app focus:border-accent"
             />
           </label>
 
           {importHistory.data?.canceled ? (
-            <p className="rounded-[var(--shape-corner-md)] border border-border-subtle bg-surface-0 px-3 py-2 text-xs text-muted">
+            <p
+              role="status"
+              className="border-l-2 border-border-strong bg-surface-2 px-3 py-2 text-xs text-muted"
+            >
               No file selected.
             </p>
           ) : null}
 
           {stats ? (
-            <div className="rounded-[var(--shape-corner-lg)] border border-success/25 bg-success/10 p-3">
-              <div className="flex items-center justify-between gap-3">
+            <div className="learning-trace overflow-hidden border-y border-border-subtle bg-success/5">
+              <div className="flex items-center justify-between gap-3 px-4 py-3">
                 <p className="text-sm font-semibold text-success">Student history imported.</p>
-                <Badge tone="success" uppercase>
-                  #{stats.studentId}
-                </Badge>
+                <Badge tone="success">#{stats.studentId}</Badge>
               </div>
-              <dl className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
+              <dl className="grid grid-cols-2 gap-px border-t border-border-subtle bg-border-subtle text-xs sm:grid-cols-3">
                 <ImportStat
                   label="Sessions"
                   value={stats.sessionsInserted + stats.sessionsUpdated}
@@ -137,10 +138,7 @@ export function StudentHistoryImportButton({
           ) : null}
 
           {importHistory.isError ? (
-            <p
-              role="alert"
-              className="rounded-[var(--shape-corner-md)] bg-danger/10 px-3 py-2 text-xs text-danger"
-            >
+            <p role="alert" className="rounded-control bg-danger/10 px-3 py-2 text-xs text-danger">
               {importHistory.error instanceof Error
                 ? importHistory.error.message
                 : "Could not import student history."}
@@ -154,9 +152,9 @@ export function StudentHistoryImportButton({
 
 function ImportStat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-[var(--shape-corner-md)] border border-border-subtle bg-surface-0 px-3 py-2">
-      <dt className="text-[10px] font-semibold uppercase text-muted-2">{label}</dt>
-      <dd className="mt-1 font-mono text-base text-app">{value}</dd>
+    <div className="bg-paper px-3 py-2">
+      <dt className="text-[10px] font-semibold text-muted-2">{label}</dt>
+      <dd className="tabular-figure mt-1 text-base text-app">{value}</dd>
     </div>
   );
 }

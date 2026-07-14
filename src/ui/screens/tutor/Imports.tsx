@@ -8,8 +8,8 @@ import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { ImportModal } from "@/ui/components/ImportModal";
 import { PageHeader } from "@/ui/components/PageHeader";
+import { SplitView } from "@/ui/components/SplitView";
 import {
-  TutorPanel,
   TutorSegmentedControl,
   TutorTextAreaField,
   TutorTextField,
@@ -51,11 +51,10 @@ export function TutorImports() {
   }
 
   return (
-    <>
+    <div className="flex h-full min-h-0 flex-col">
       <PageHeader
-        eyebrow="Tutor"
-        title="Import history"
-        subtitle="Every CLI or in-app import is logged. Click a row to inspect per-entry outcomes."
+        title="Imports"
+        subtitle="Draft curriculum YAML and audit exactly what each import changed."
         actions={
           <>
             <Button variant="secondary" onClick={openNativeDialog} disabled={dialogBusy}>
@@ -65,39 +64,58 @@ export function TutorImports() {
           </>
         }
       />
-      <section className="px-8 py-6">
-        <AuthoringPanel onImported={refetchHistory} />
-        {dialogMessage ? (
-          <p className="mb-4 rounded-xl border border-border-subtle bg-surface-1 px-3 py-2 text-sm text-muted">
-            {dialogMessage}
-          </p>
-        ) : null}
-        {runsQ.isLoading ? (
-          <p className="text-sm text-muted">Loading…</p>
-        ) : runs.length === 0 ? (
-          <EmptyState
-            title="No imports yet"
-            body="Run `npm run import` from a terminal — completed runs appear here automatically."
-          />
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {runs.map((run) => (
-              <RunRow
-                key={run.id}
-                run={run}
-                expanded={expandedId === run.id}
-                onToggle={() => setExpandedId(expandedId === run.id ? null : run.id)}
-              />
-            ))}
-          </ul>
-        )}
-      </section>
+      <SplitView
+        initialSize={376}
+        minSize={320}
+        maxSize={480}
+        contentMinSize={400}
+        label="Resize import history"
+        storageKey="vocab.imports.history-pane"
+        className="min-h-0 flex-1 border-t border-border-subtle bg-surface-0"
+      >
+        <div className="min-w-0 overflow-y-auto bg-surface-1 px-4 py-4">
+          <header className="mb-3 px-1">
+            <h2 className="text-sm font-semibold">History</h2>
+            <p className="mt-1 text-xs text-muted">{runs.length} recorded runs</p>
+          </header>
+          {dialogMessage ? (
+            <p
+              role="status"
+              className="mb-3 border-l-2 border-accent bg-accent/5 px-3 py-2 text-xs text-muted"
+            >
+              {dialogMessage}
+            </p>
+          ) : null}
+          {runsQ.isLoading ? (
+            <p className="text-sm text-muted">Loading…</p>
+          ) : runs.length === 0 ? (
+            <EmptyState
+              title="No imports yet"
+              body="Imported files and validation results will appear here."
+            />
+          ) : (
+            <ul className="grouped-list divide-y divide-border-subtle">
+              {runs.map((run) => (
+                <RunRow
+                  key={run.id}
+                  run={run}
+                  expanded={expandedId === run.id}
+                  onToggle={() => setExpandedId(expandedId === run.id ? null : run.id)}
+                />
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="min-w-0 overflow-y-auto bg-surface-0 px-6 py-5">
+          <AuthoringPanel onImported={refetchHistory} />
+        </div>
+      </SplitView>
       <ImportModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onImported={refetchHistory}
       />
-    </>
+    </div>
   );
 }
 
@@ -123,17 +141,14 @@ function AuthoringPanel({ onImported }: { onImported: () => Promise<void> }) {
   };
 
   return (
-    <TutorPanel
-      title="Draft and import YAML in app"
-      description="Use this editor for quick lessons; full syntax remains documented in the templates."
-      className="mb-6 flex flex-col gap-4"
-      actions={
-        <Badge tone="focus" uppercase>
-          Authoring
-        </Badge>
-      }
-    >
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <section className="mx-auto flex w-full max-w-4xl flex-col gap-4">
+      <header className="flex flex-col gap-3 border-b border-border-subtle pb-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-base font-semibold text-app">YAML authoring</h2>
+          <p className="mt-1 text-xs leading-5 text-muted">
+            Validate a focused lesson draft before it enters the local library.
+          </p>
+        </div>
         <TutorSegmentedControl
           value={kind}
           options={[
@@ -141,7 +156,7 @@ function AuthoringPanel({ onImported }: { onImported: () => Promise<void> }) {
             { value: "grammar", label: "Grammar" },
           ]}
           onChange={(value) => switchKind(value as AuthoringKind)}
-          className="w-full sm:w-[18rem]"
+          className="w-full shrink-0 sm:w-[18rem]"
         />
       </header>
 
@@ -160,8 +175,8 @@ function AuthoringPanel({ onImported }: { onImported: () => Promise<void> }) {
         className="min-h-[22rem] font-mono text-xs leading-6"
       />
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="text-xs text-muted">
+      <div className="flex flex-col gap-3 border-t border-border-subtle pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <div role="status" aria-live="polite" className="text-xs text-muted">
           {importDraft.data
             ? formatAuthoringResult(importDraft.data)
             : "Imports are saved into the local content library."}
@@ -171,16 +186,16 @@ function AuthoringPanel({ onImported }: { onImported: () => Promise<void> }) {
         </Button>
       </div>
       {importDraft.isError ? (
-        <p className="text-xs text-danger">
+        <p role="alert" className="text-xs text-danger">
           {importDraft.error instanceof Error ? importDraft.error.message : "Import failed."}
         </p>
       ) : null}
       {importDraft.data?.errors.length ? (
-        <pre className="max-h-40 overflow-auto rounded-xl border border-danger/30 bg-danger/5 p-3 whitespace-pre-wrap font-mono text-[10px] text-danger">
+        <pre className="max-h-40 overflow-auto rounded-object border border-danger/30 bg-danger/5 p-3 whitespace-pre-wrap font-mono text-[10px] text-danger">
           {importDraft.data.errors.map((err) => err.message).join("\n")}
         </pre>
       ) : null}
-    </TutorPanel>
+    </section>
   );
 }
 
@@ -211,66 +226,53 @@ function RunRow({
       : null;
 
   return (
-    <li className="overflow-hidden rounded-[var(--shape-corner-xl)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)] shadow-[var(--md-sys-elevation-1)]">
+    <li className="overflow-hidden bg-surface-1">
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={expanded}
-        className="flex w-full items-center gap-4 px-4 py-3 text-left transition-colors hover:bg-[color:var(--md-sys-color-surface-container-low)]"
+        className="ui-focus-ring grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 rounded-none px-3 py-3 text-left outline-offset-[-2px] transition-colors hover:bg-surface-2"
       >
-        <Badge tone={STATUS_TONE[run.status]} uppercase>
-          {run.status}
-        </Badge>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-app">{shortenPath(run.sourcePath)}</p>
-          <p className="truncate font-mono text-[10px] text-muted-2">
-            {formatTimestamp(run.startedAt)}
-            {duration !== null ? ` · ${duration}ms` : null}
-          </p>
-        </div>
-        <div className="flex shrink-0 gap-2 font-mono text-xs">
-          <Stat label="+" value={inserted} tone={inserted > 0 ? "success" : "muted"} />
-          <Stat label="~" value={updated} tone={updated > 0 ? "warning" : "muted"} />
-          <Stat label="=" value={skipped} tone="muted" />
-          <Stat label="!" value={failed} tone={failed > 0 ? "danger" : "muted"} />
-        </div>
+        <Badge tone={STATUS_TONE[run.status]}>{run.status}</Badge>
+        <p className="min-w-0 truncate text-sm font-medium text-app">
+          {shortenPath(run.sourcePath)}
+        </p>
         <span
           aria-hidden
           className={cn(
-            "ml-2 text-muted-2 transition-transform",
+            "row-span-2 text-muted-2 transition-transform",
             expanded ? "rotate-90" : "rotate-0",
           )}
         >
           ▸
         </span>
+        <div className="col-start-2 flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] text-muted-2">
+          <span className="min-w-0 truncate tabular-nums">
+            {formatTimestamp(run.startedAt)}
+            {duration !== null ? ` · ${duration}ms` : null}
+          </span>
+          <span className="flex shrink-0 gap-x-3">
+            <span>
+              <span className={inserted > 0 ? "tabular-nums text-success" : "tabular-nums"}>
+                {inserted}
+              </span>{" "}
+              new
+            </span>
+            <span>
+              <span className={updated > 0 ? "tabular-nums text-warning" : "tabular-nums"}>
+                {updated}
+              </span>{" "}
+              updated
+            </span>
+            {skipped > 0 ? <span className="tabular-nums">{skipped} skipped</span> : null}
+            <span className={failed > 0 ? "text-danger" : undefined}>
+              <span className="tabular-nums">{failed}</span> failed
+            </span>
+          </span>
+        </div>
       </button>
       {expanded ? <RunItems runId={run.id} errorLog={run.errorLog} /> : null}
     </li>
-  );
-}
-
-function Stat({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: number;
-  tone: "success" | "warning" | "danger" | "muted";
-}) {
-  return (
-    <span
-      className={cn(
-        "inline-flex w-12 items-center justify-center rounded-xl border px-1.5 py-0.5",
-        tone === "success" && "border-success/40 bg-success/10 text-success",
-        tone === "warning" && "border-warning/40 bg-warning/10 text-warning",
-        tone === "danger" && "border-danger/40 bg-danger/10 text-danger",
-        tone === "muted" && "border-border-subtle bg-surface-0/50 text-muted-2",
-      )}
-    >
-      <span className="mr-1 text-muted-2">{label}</span>
-      <span>{value}</span>
-    </span>
   );
 }
 
@@ -282,25 +284,33 @@ function RunItems({ runId, errorLog }: { runId: number; errorLog: string | null 
   const items = itemsQ.data ?? [];
 
   return (
-    <div className="border-t border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] px-4 py-3">
+    <div className="border-t border-border-subtle bg-surface-0 px-3 py-3">
       {itemsQ.isLoading ? (
         <p className="text-xs text-muted">Loading items…</p>
+      ) : itemsQ.isError ? (
+        <p role="alert" className="text-xs text-warning">
+          Import items are unavailable.
+        </p>
       ) : items.length === 0 ? (
         <p className="text-xs text-muted-2">No item rows recorded for this run.</p>
       ) : (
-        <ul className="grid grid-cols-1 gap-1 text-xs sm:grid-cols-2">
+        <ul className="grouped-list divide-y divide-border-subtle text-xs">
           {items.map((item) => (
-            <li key={item.id} className="flex items-baseline gap-2">
+            <li
+              key={item.id}
+              className="grid grid-cols-[auto_minmax(7rem,0.8fr)_1fr] items-baseline gap-2 px-3 py-2"
+            >
               <ItemActionBadge action={item.action} />
               <span className="truncate font-mono text-[11px] text-app">{item.targetTable}</span>
-              <span className="truncate text-muted">{item.sourceId ?? "—"}</span>
-              {item.error ? <span className="text-danger">— {item.error}</span> : null}
+              <span className={item.error ? "truncate text-danger" : "truncate text-muted"}>
+                {item.error ?? item.sourceId ?? "—"}
+              </span>
             </li>
           ))}
         </ul>
       )}
       {errorLog ? (
-        <details className="mt-3 rounded-xl border border-danger/40 bg-danger/5 p-3">
+        <details className="mt-3 rounded-object border border-danger/40 bg-danger/5 p-3">
           <summary className="cursor-pointer text-xs text-danger">Error log</summary>
           <pre className="mt-2 whitespace-pre-wrap font-mono text-[10px] text-danger">
             {errorLog}
@@ -320,11 +330,7 @@ const ITEM_ACTION_TONE: Record<string, BadgeTone> = {
 };
 
 function ItemActionBadge({ action }: { action: string }) {
-  return (
-    <Badge tone={ITEM_ACTION_TONE[action] ?? "muted"} uppercase>
-      {action}
-    </Badge>
-  );
+  return <Badge tone={ITEM_ACTION_TONE[action] ?? "muted"}>{action}</Badge>;
 }
 
 function numStat(v: unknown): number {

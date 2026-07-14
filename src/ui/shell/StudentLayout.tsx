@@ -3,7 +3,13 @@ import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
 import { computeStudentXp } from "@/modules/rewards";
 import { useAppMode } from "@/providers/AppModeProvider";
-import { Button } from "@/ui/components/Button";
+import { AppGlyph } from "@/ui/components/AppGlyph";
+import { BrandMark } from "@/ui/components/Brand";
+import { WindowBackButton, WindowIconButton } from "@/ui/components/DesktopChrome";
+import {
+  type WindowBackRegistration,
+  WindowNavigationProvider,
+} from "@/ui/components/WindowNavigation";
 import { StudentDictionaryPopup } from "@/ui/components/dictionary/StudentDictionaryPopup";
 import {
   getStudentAccessVersion,
@@ -13,17 +19,20 @@ import {
 import { StreakBanner } from "@/ui/student/components/StreakBanner";
 import { XPBadge } from "@/ui/student/components/XPBadge";
 import { useQuery } from "@tanstack/react-query";
-import { Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { LockIcon } from "./icons";
 
 const loadedStudyBackgrounds = new Set<string>();
 
 export function StudentLayout() {
   const { lock } = useAppMode();
+  const navigate = useNavigate();
   const isMac = window.api.app.platform === "darwin";
   const [dictionaryOpen, setDictionaryOpen] = useState(false);
+  const [registeredBack, setRegisteredBack] = useState<WindowBackRegistration | null>(null);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const chrome = useMemo(() => studentChromeForPath(pathname), [pathname]);
   const activeStudentId = studentIdFromPath(pathname);
   const studentAccessVersion = useSyncExternalStore(
     subscribeStudentAccess,
@@ -79,125 +88,224 @@ export function StudentLayout() {
       })
     : 0;
 
-  return (
-    <div
-      className="relative isolate flex h-screen w-screen flex-col overflow-hidden bg-app"
-      data-student-bg={hasCustomBackground ? "custom" : "default"}
-      style={
-        hasCustomBackground
-          ? {
-              background: customBackground || "rgb(var(--color-surface-0))",
-              colorScheme: "light",
-            }
-          : undefined
+  const registerBack = useCallback((registration: WindowBackRegistration) => {
+    setRegisteredBack(registration);
+    return () => setRegisteredBack((current) => (current === registration ? null : current));
+  }, []);
+
+  const defaultBack = useCallback(() => {
+    const studentId = studentIdFromPath(pathname);
+    if (studentId === null) return;
+    if (/\/personal-vocabulary\/session$/.test(pathname)) {
+      void navigate({
+        to: "/student/profile/$studentId/personal-vocabulary",
+        params: { studentId: String(studentId) },
+      });
+      return;
+    }
+    if (pathname === `/student/profile/${studentId}`) {
+      void navigate({ to: "/student" });
+      return;
+    }
+    void navigate({
+      to: "/student/profile/$studentId",
+      params: { studentId: String(studentId) },
+    });
+  }, [navigate, pathname]);
+
+  const backAction =
+    registeredBack?.pathname === pathname
+      ? { label: registeredBack.label, onBack: registeredBack.onBack }
+      : chrome.backLabel
+        ? { label: chrome.backLabel, onBack: defaultBack }
+        : null;
+
+  useEffect(() => {
+    if (!dictionaryQ.data?.active) return;
+    function onKeyDown(event: KeyboardEvent) {
+      if (document.querySelector("[data-dialog-surface]")) return;
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setDictionaryOpen(true);
       }
-    >
-      {hasUploadedBackground ? (
-        <div
-          aria-hidden="true"
-          data-testid="student-background-tint"
-          className="pointer-events-none absolute inset-0 z-0 bg-surface-0/35 backdrop-brightness-75 backdrop-saturate-75"
-        />
-      ) : null}
-      <header
-        className={cn(
-          "relative z-10 flex min-h-[var(--student-header-height)] items-center justify-between gap-4 border-b border-border-subtle bg-surface-1/95 py-3 pr-6 shadow-sm [-webkit-app-region:drag]",
-          isMac ? "pl-20" : "pl-6",
-        )}
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [dictionaryQ.data?.active]);
+
+  useEffect(() => {
+    if (!backAction || dictionaryOpen) return;
+    function onNavigateBack(event: KeyboardEvent) {
+      if (document.querySelector("[data-dialog-surface]")) return;
+      const systemBack =
+        (event.altKey && event.key === "ArrowLeft") ||
+        (isMac && event.metaKey && event.key === "[");
+      if (!systemBack) return;
+      event.preventDefault();
+      backAction?.onBack();
+    }
+    document.addEventListener("keydown", onNavigateBack);
+    return () => document.removeEventListener("keydown", onNavigateBack);
+  }, [backAction, dictionaryOpen, isMac]);
+
+  return (
+    <WindowNavigationProvider register={registerBack} pathname={pathname}>
+      <div
+        data-app-window
+        className="relative isolate flex h-screen w-screen flex-col overflow-hidden bg-app"
+        data-student-bg={hasCustomBackground ? "custom" : "default"}
+        style={
+          hasCustomBackground
+            ? {
+                background: customBackground || "rgb(var(--color-surface-0))",
+              }
+            : undefined
+        }
       >
-        <Link to="/student" className="flex items-center [-webkit-app-region:no-drag]">
-          <span className="flex flex-col leading-none">
-            <span className="font-display text-base font-semibold">Vocab App</span>
-            <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-success">
-              Student
-            </span>
-          </span>
-        </Link>
-        <div className="flex min-w-0 flex-1 items-center justify-end gap-2 [-webkit-app-region:no-drag]">
-          {activeStudentId !== null ? (
-            <div className="hidden items-center gap-2 md:flex">
-              <XPBadge xp={xp} />
-              <StreakBanner stats={streakQ.data} />
+        {hasUploadedBackground ? (
+          <div
+            aria-hidden="true"
+            data-testid="student-background-tint"
+            className="pointer-events-none absolute inset-0 z-0 bg-surface-0/20 backdrop-brightness-90 backdrop-saturate-125"
+          />
+        ) : null}
+        <header
+          data-window-chrome
+          className={cn(
+            "window-material relative z-20 flex h-[var(--student-header-height)] shrink-0 items-center justify-between gap-2 border-b border-border-subtle pr-3 [-webkit-app-region:drag]",
+            isMac ? "pl-[4.5rem]" : "pl-3",
+          )}
+        >
+          <div className="flex min-w-0 items-center gap-1 [-webkit-app-region:no-drag]">
+            {backAction ? (
+              <WindowBackButton label={backAction.label} onClick={backAction.onBack} />
+            ) : (
+              <Link
+                to="/student"
+                title="Profiles"
+                className="ui-focus-ring grid h-[var(--size-control-md)] w-[var(--size-control-md)] place-items-center rounded-control text-accent transition-colors duration-fast hover:bg-surface-2"
+                aria-label="Profiles"
+              >
+                <BrandMark className="h-5 w-5" />
+              </Link>
+            )}
+            <span aria-hidden className="mx-1 h-4 w-px bg-border-subtle" />
+            <span className="truncate text-ui font-medium text-app">{chrome.title}</span>
+          </div>
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-2 [-webkit-app-region:no-drag]">
+            {activeStudentId !== null ? (
+              <div className="hidden items-center gap-2 md:flex">
+                <XPBadge xp={xp} />
+                <StreakBanner stats={streakQ.data} />
+              </div>
+            ) : null}
+            {dictionaryQ.data?.active ? (
+              <button
+                type="button"
+                onClick={() => setDictionaryOpen(true)}
+                className="ui-focus-ring hidden h-[var(--size-control-md)] min-w-36 items-center gap-2 rounded-control border border-border-strong/60 bg-paper/74 px-2.5 text-xs text-muted transition-colors duration-fast hover:bg-paper hover:text-app md:inline-flex"
+              >
+                <AppGlyph name="search" className="h-4 w-4" />
+                <span className="flex-1 text-left">Look up a word</span>
+                <kbd className="font-mono text-[10px] text-muted-2">{isMac ? "⌘K" : "Ctrl K"}</kbd>
+              </button>
+            ) : null}
+            {activeStudentId !== null ? (
+              <Link
+                to="/student/profile/$studentId/settings"
+                params={{ studentId: String(activeStudentId) }}
+                title="Student settings"
+                aria-label="Student settings"
+                className="ui-focus-ring inline-grid h-[var(--size-control-md)] w-[var(--size-control-md)] place-items-center rounded-control text-muted transition-colors duration-fast hover:bg-surface-2 hover:text-app"
+              >
+                <AppGlyph name="settings" className="h-[18px] w-[18px]" />
+              </Link>
+            ) : null}
+            <WindowIconButton label="Switch to tutor" onClick={lock}>
+              <LockIcon className="h-[18px] w-[18px]" />
+            </WindowIconButton>
+          </div>
+        </header>
+        <main
+          data-student-workplane
+          className={cn(
+            "relative z-10 min-w-0 flex-1 overflow-y-auto",
+            hasUploadedBackground
+              ? "bg-paper/90 backdrop-blur-[2px]"
+              : hasCustomBackground
+                ? "bg-paper/80"
+                : "bg-app",
+          )}
+        >
+          {checkingStudentPin ? (
+            <StudentProfileChecking />
+          ) : lockedByStudentPin ? (
+            <StudentProfileLocked />
+          ) : (
+            <div
+              key={`${pathname}:${studentAccessVersion}`}
+              className="motion-enter h-full min-h-0"
+            >
+              <Outlet />
             </div>
-          ) : null}
-          {dictionaryQ.data?.active ? (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setDictionaryOpen(true)}
-              className="text-muted hover:text-app"
-            >
-              Search word
-            </Button>
-          ) : null}
-          {activeStudentId !== null ? (
-            <Link
-              to="/student/profile/$studentId/settings"
-              params={{ studentId: String(activeStudentId) }}
-              className="inline-flex h-8 items-center rounded-button border border-border-strong bg-surface-1 px-3 text-xs font-semibold text-muted hover:bg-surface-2 hover:text-app"
-            >
-              Fun settings
-            </Link>
-          ) : null}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={lock}
-            className="text-muted hover:text-app"
-            aria-label="Switch to tutor"
-          >
-            <LockIcon className="h-[22px] w-[22px]" />
-            <span>Tutor mode</span>
-          </Button>
-        </div>
-      </header>
-      <main
-        className={cn(
-          "relative z-10 min-w-0 flex-1 overflow-y-auto",
-          hasCustomBackground ? "bg-transparent" : "bg-app/85",
-        )}
-      >
-        {checkingStudentPin ? (
-          <StudentProfileChecking />
-        ) : lockedByStudentPin ? (
-          <StudentProfileLocked />
-        ) : (
-          <Outlet key={studentAccessVersion} />
-        )}
-      </main>
-      <StudentDictionaryPopup
-        open={dictionaryOpen}
-        onClose={() => setDictionaryOpen(false)}
-        studentId={activeStudentId}
-      />
-    </div>
+          )}
+        </main>
+        <StudentDictionaryPopup
+          open={dictionaryOpen}
+          onClose={() => setDictionaryOpen(false)}
+          studentId={activeStudentId}
+        />
+      </div>
+    </WindowNavigationProvider>
   );
+}
+
+function studentChromeForPath(pathname: string): { title: string; backLabel: string | null } {
+  if (pathname === "/student" || pathname === "/student/") {
+    return { title: "Profiles", backLabel: null };
+  }
+  if (/\/personal-vocabulary\/session$/.test(pathname)) {
+    return { title: "Practice", backLabel: "Personal vocabulary" };
+  }
+  if (/\/session\/\d+$/.test(pathname)) return { title: "Practice", backLabel: "Lessons" };
+  if (/\/unit\/\d+$/.test(pathname)) return { title: "Unit study", backLabel: "Lessons" };
+  if (/\/achievements$/.test(pathname)) return { title: "Achievements", backLabel: "Lessons" };
+  if (/\/personal-vocabulary$/.test(pathname)) {
+    return { title: "Personal vocabulary", backLabel: "Lessons" };
+  }
+  if (/\/pronunciation$/.test(pathname)) {
+    return { title: "Pronunciation", backLabel: "Lessons" };
+  }
+  if (/\/settings$/.test(pathname)) return { title: "Profile settings", backLabel: "Lessons" };
+  return { title: "Lessons", backLabel: "Profiles" };
 }
 
 function StudentProfileChecking() {
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-xl flex-col items-center justify-center gap-3 px-8 py-12 text-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-border-subtle border-t-accent" />
-      <p className="text-sm font-medium text-muted">Checking profile…</p>
+    <div
+      role="status"
+      className="mx-auto flex min-h-full w-full max-w-xl flex-col items-center justify-center gap-3 px-6 py-10 text-center"
+    >
+      <div
+        aria-hidden="true"
+        className="h-7 w-7 animate-spin rounded-full border-2 border-border-subtle border-t-accent motion-reduce:animate-none"
+      />
+      <p className="text-ui font-medium text-muted">Checking profile…</p>
     </div>
   );
 }
 
 function StudentProfileLocked() {
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-xl flex-col items-center justify-center gap-4 px-8 py-12 text-center">
-      <div className="grid h-16 w-16 place-items-center rounded-full border border-border-subtle bg-surface-1 text-muted shadow-card">
-        <LockIcon className="h-8 w-8" />
-      </div>
+    <div className="mx-auto flex min-h-full w-full max-w-xl flex-col items-center justify-center gap-4 px-6 py-10 text-center">
+      <LockIcon className="h-7 w-7 text-muted" />
       <div>
-        <h1 className="font-display text-3xl font-semibold">Profile locked</h1>
-        <p className="mt-2 text-sm text-muted">
-          Enter this student's password from the profile picker.
-        </p>
+        <h1 className="text-title font-semibold">Profile locked</h1>
+        <p className="mt-1 text-ui text-muted">Enter this student's PIN from the profile picker.</p>
       </div>
       <Link
         to="/student"
-        className="inline-flex h-10 items-center justify-center rounded-button bg-accent px-4 text-sm font-semibold text-accent-fg shadow-sm shadow-accent/20 hover:bg-accent/90"
+        className="ui-focus-ring inline-flex h-[var(--size-control-lg)] items-center justify-center rounded-control bg-accent px-4 text-ui font-medium text-accent-fg transition-colors duration-fast hover:bg-accent/90 active:bg-accent/80"
       >
         Choose profile
       </Link>

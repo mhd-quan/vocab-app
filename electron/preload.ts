@@ -41,12 +41,13 @@ import type {
 } from "./db/repositories/evidence";
 import type { GrammarTopicForPractice } from "./db/repositories/grammar";
 import type {
+  CohortActivityCell,
+  FleetSnapshot,
   SessionLearningReport,
+  StudyTargetsResult,
   UnitReportRow,
   UnitSessionReportRow,
 } from "./db/repositories/progress";
-import type { FleetSnapshot } from "./db/repositories/progress";
-import type { StudyTargetsResult } from "./db/repositories/progress";
 import type { VocabEntryFull } from "./db/repositories/vocab";
 import type { PronunciationPhraseExample } from "./db/repositories/vocab";
 import type { MicrophonePermissionState } from "./permissions/microphone";
@@ -113,6 +114,7 @@ interface RecentSessionRow {
 interface TutorOverviewRow {
   student: Student;
   totalSeen: number;
+  totalAttempts: number;
   totalDue: number;
   accuracy: number;
   lastPracticedAt: Date | null;
@@ -470,6 +472,8 @@ const api = {
       invoke<WeakItem[]>("progress.weakItems", input),
     dailyActivity: (input: { studentId: number; sinceIso: string; untilIso: string }) =>
       invoke<DailyActivityCell[]>("progress.dailyActivity", input),
+    cohortActivity: (input: { sinceIso: string; untilIso: string }) =>
+      invoke<CohortActivityCell[]>("progress.cohortActivity", input),
     recentSessions: (input: { studentId: number; limit?: number }) =>
       invoke<RecentSessionRow[]>("progress.recentSessions", input),
     unitReport: (input: { studentId: number }) =>

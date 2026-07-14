@@ -10,6 +10,7 @@ import { Field, useFieldId } from "@/ui/components/Field";
 import { Modal } from "@/ui/components/Modal";
 import { PageHeader } from "@/ui/components/PageHeader";
 import { StudentHistoryImportButton } from "@/ui/components/StudentHistoryImportButton";
+import { PROFILE_COLORS } from "@/ui/design/profileColors";
 import {
   TutorSegmentedControl,
   TutorTextAreaField,
@@ -20,19 +21,6 @@ import { Link } from "@tanstack/react-router";
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 type Tab = "active" | "archived";
-
-const COLOR_OPTIONS = [
-  "#7c9cff", // accent
-  "#41cadc", // xp
-  "#ff9e4a", // ember
-  "#f584c2", // pink
-  "#9dd85c", // lime
-  "#db82ee", // epic
-  "#57b5ff", // sky
-  "#ff8079", // coral
-  "#f8c852", // mastery
-  "#2dd4b7", // focus
-];
 
 const EMOJI_OPTIONS = ["⭐", "🔥", "⚡", "🚀", "🎯", "🧠", "📚", "🌈", "🍀", "💎", "🎮", "🏆"];
 const MAX_AVATAR_FILE_BYTES = 5 * 1024 * 1024;
@@ -73,18 +61,17 @@ export function TutorStudents() {
   return (
     <>
       <PageHeader
-        eyebrow="Tutor"
         title="Students"
-        subtitle="Profiles your learners use in student practice mode. Create one per child you tutor."
+        subtitle="Manage the learner profiles, histories, and access used in practice mode."
         actions={
           <div className="flex flex-wrap items-center justify-end gap-2">
             <StudentHistoryImportButton onImported={setLastImport} />
-            <Button onClick={openCreate}>+ Add student</Button>
+            <Button onClick={openCreate}>Add student</Button>
           </div>
         }
       />
 
-      <div className="border-b border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] px-8 py-3">
+      <div className="flex items-center justify-between gap-4 px-6 pb-4">
         <TutorSegmentedControl
           value={tab}
           options={[
@@ -92,13 +79,19 @@ export function TutorStudents() {
             { value: "archived", label: "Archived" },
           ]}
           onChange={(value) => setTab(value as Tab)}
-          className="max-w-xs"
+          className="max-w-[15rem]"
         />
+        <p className="text-xs tabular-nums text-muted">
+          {filtered.length} {tab === "active" ? "active" : "archived"}
+        </p>
       </div>
 
       {lastImport?.imported && lastImport.studentId && lastImport.stats ? (
-        <div className="border-b border-success/25 bg-success/10 px-8 py-3">
-          <div className="flex flex-col gap-2 text-sm text-success sm:flex-row sm:items-center sm:justify-between">
+        <div
+          role="status"
+          className="learning-trace mx-6 mb-4 flex min-h-[var(--size-row)] items-center border-y border-border-subtle bg-success/5 px-4 py-2.5"
+        >
+          <div className="flex w-full flex-col gap-2 text-sm text-success sm:flex-row sm:items-center sm:justify-between">
             <p>
               Imported student history: {lastImport.stats.sessionsInserted} new sessions,{" "}
               {lastImport.stats.sessionsUpdated} updated, {lastImport.stats.learningEventsInserted}{" "}
@@ -107,7 +100,7 @@ export function TutorStudents() {
             <Link
               to="/tutor/students/$studentId"
               params={{ studentId: String(lastImport.studentId) }}
-              className="text-xs font-semibold uppercase text-success hover:text-app"
+              className="ui-focus-ring rounded-control text-xs font-semibold text-success hover:text-app"
             >
               Open student
             </Link>
@@ -115,7 +108,7 @@ export function TutorStudents() {
         </div>
       ) : null}
 
-      <section className="px-8 py-6">
+      <section className="max-w-5xl px-6 pb-10">
         {allQ.isLoading ? (
           <p className="text-sm text-muted">Loading…</p>
         ) : filtered.length === 0 ? (
@@ -129,13 +122,13 @@ export function TutorStudents() {
             action={
               tab === "active" ? (
                 <Button size="sm" onClick={openCreate}>
-                  + Add student
+                  Add student
                 </Button>
               ) : null
             }
           />
         ) : (
-          <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <ul className="grouped-list">
             {filtered.map((student) => (
               <StudentRow key={student.id} student={student} onEdit={() => openEdit(student)} />
             ))}
@@ -167,12 +160,12 @@ function StudentRow({ student, onEdit }: { student: Student; onEdit: () => void 
   );
 
   return (
-    <li className="motion-card motion-enter flex items-center gap-4 rounded-[var(--shape-corner-xl)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-lowest)] p-4 shadow-card transition-[background-color,border-color,box-shadow,transform] hover:-translate-y-1 hover:border-accent/30 hover:bg-[color:var(--md-sys-color-surface-container-low)] hover:shadow-lift">
+    <li className="motion-enter flex min-h-[var(--size-row-comfortable)] items-center gap-3 border-b border-border-subtle px-4 py-2.5 transition-colors last:border-b-0 hover:bg-surface-2/55">
       <Avatar
         name={student.displayName ?? student.name}
         avatarSeed={student.avatarSeed}
         color={student.color}
-        size="lg"
+        size="md"
       />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
@@ -182,16 +175,12 @@ function StudentRow({ student, onEdit }: { student: Student; onEdit: () => void 
             <Link
               to="/tutor/students/$studentId"
               params={{ studentId: String(student.id) }}
-              className="truncate text-sm font-semibold transition-colors hover:text-accent"
+              className="ui-focus-ring truncate rounded-control text-sm font-semibold transition-colors hover:text-accent"
             >
               {student.displayName ?? student.name}
             </Link>
           )}
-          {archived ? (
-            <Badge tone="muted" uppercase>
-              archived
-            </Badge>
-          ) : null}
+          {archived ? <Badge tone="muted">archived</Badge> : null}
         </div>
         {student.displayName && student.displayName !== student.name ? (
           <p className="truncate text-xs text-muted-2">{student.name}</p>
@@ -200,7 +189,7 @@ function StudentRow({ student, onEdit }: { student: Student; onEdit: () => void 
           <p className="mt-1 line-clamp-2 text-xs text-muted">{student.notes}</p>
         ) : null}
       </div>
-      <div className="flex flex-col gap-1.5">
+      <div className="flex items-center gap-1.5">
         {archived ? (
           <Button
             size="sm"
@@ -265,7 +254,7 @@ function StudentEditor({ open, onClose, editing }: StudentEditorProps) {
       setName("");
       setDisplayName("");
       setAvatarSeed(null);
-      setColor(COLOR_OPTIONS[0] ?? null);
+      setColor(PROFILE_COLORS[0]?.value ?? null);
       setNotes("");
     }
     setError(null);
@@ -373,7 +362,7 @@ function StudentEditor({ open, onClose, editing }: StudentEditorProps) {
     >
       <form id="student-form" className="flex flex-col gap-4" onSubmit={onSubmit}>
         <Field label="Avatar">
-          <div className="flex flex-col gap-3 rounded-2xl border border-border-subtle bg-surface-0/70 p-4">
+          <div className="object-surface flex flex-col gap-3 p-4">
             <div className="flex items-center gap-4">
               <Avatar
                 name={displayName.trim() || name.trim() || "Student"}
@@ -416,10 +405,10 @@ function StudentEditor({ open, onClose, editing }: StudentEditorProps) {
                     aria-pressed={selected}
                     onClick={() => setAvatarSeed(seed)}
                     className={cn(
-                      "grid h-9 w-9 place-items-center rounded-full border text-lg leading-none transition-[background-color,border-color,box-shadow,transform]",
+                      "ui-focus-ring grid h-9 w-9 place-items-center rounded-full border text-lg leading-none transition-[background-color,border-color]",
                       selected
-                        ? "border-accent bg-accent/10 shadow-[0_0_0_4px_rgb(var(--color-accent)/0.12)]"
-                        : "border-border-subtle bg-surface-1 hover:-translate-y-0.5 hover:border-accent/40",
+                        ? "border-accent bg-accent/10 ring-2 ring-accent/15"
+                        : "border-border-subtle bg-surface-1 hover:border-accent/40",
                     )}
                   >
                     {emoji}
@@ -462,7 +451,7 @@ function StudentEditor({ open, onClose, editing }: StudentEditorProps) {
         />
         {error ? (
           <p
-            className="rounded-xl border border-danger/40 bg-danger/10 px-3 py-2 text-xs text-danger"
+            className="border-l-2 border-danger bg-danger/8 px-3 py-2 text-xs text-danger"
             role="alert"
           >
             {error}
@@ -488,24 +477,24 @@ function ColorSwatches({
         aria-label="No color"
         aria-pressed={value === null}
         className={cn(
-          "h-8 w-8 rounded-full border-2 bg-surface-2 text-xs text-muted-2",
+          "ui-focus-ring h-8 w-8 rounded-full border-2 bg-surface-2 text-[9px] text-muted-2",
           value === null ? "border-accent" : "border-border-subtle hover:border-border-strong",
         )}
       >
         None
       </button>
-      {COLOR_OPTIONS.map((c) => (
+      {PROFILE_COLORS.map((color) => (
         <button
-          key={c}
+          key={color.value}
           type="button"
-          aria-label={`Color ${c}`}
-          aria-pressed={value === c}
-          onClick={() => onChange(c)}
+          aria-label={color.name}
+          aria-pressed={value === color.value}
+          onClick={() => onChange(color.value)}
           className={cn(
-            "h-8 w-8 rounded-full border-2",
-            value === c ? "border-app" : "border-transparent hover:border-border-strong",
+            "ui-focus-ring h-8 w-8 rounded-full border-2",
+            value === color.value ? "border-app" : "border-transparent hover:border-border-strong",
           )}
-          style={{ backgroundColor: c }}
+          style={{ backgroundColor: color.value }}
         />
       ))}
     </div>

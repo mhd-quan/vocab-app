@@ -33,7 +33,7 @@ export function ProgressBubble({ current, total, label, className }: ProgressBub
       aria-valuemax={safeTotal}
       aria-label={label ?? `${safeCurrent} of ${safeTotal}`}
       className={cn(
-        "relative inline-flex h-10 min-w-32 items-center overflow-hidden rounded-pill border border-border-subtle bg-surface-1 px-4 text-sm font-semibold text-app shadow-sm",
+        "relative inline-flex h-8 min-w-24 items-center overflow-hidden rounded-md bg-surface-2 px-3 text-sm font-medium text-app",
         className,
       )}
     >

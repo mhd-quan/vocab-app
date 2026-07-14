@@ -105,7 +105,7 @@ describe("TutorStudents", () => {
     await waitFor(() => screen.getByText(/No active students/i));
     // Both the header and the empty state expose an "Add student" button —
     // click the first one (the page header action).
-    const addButtons = screen.getAllByRole("button", { name: /\+ add student/i });
+    const addButtons = screen.getAllByRole("button", { name: /add student/i });
     const headerAdd = addButtons[0];
     if (!headerAdd) throw new Error("expected an Add student button");
     fireEvent.click(headerAdd);

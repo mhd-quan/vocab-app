@@ -1,5 +1,4 @@
 import { api } from "@/lib/api";
-import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
 import {
   ACHIEVEMENTS,
@@ -9,16 +8,11 @@ import {
   summarizeStudentProgress,
 } from "@/modules/rewards";
 import { AppGlyph } from "@/ui/components/AppGlyph";
-import { Badge } from "@/ui/components/Badge";
 import { AchievementIcon } from "@/ui/components/rewards";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 
-/**
- * Compact achievement summary shown in a corner of the student hero card.
- * Surfaces XP + trophy count + a glance of the most recent unlocks, then
- * deep-links into the full trophy hall.
- */
+/** Compact, inspectable link from the learning inspector into the collection. */
 export function AchievementStrip({ studentId }: { studentId: number }) {
   const summaryQ = useQuery({
     queryKey: queryKeys.progress.summary(studentId),
@@ -47,14 +41,17 @@ export function AchievementStrip({ studentId }: { studentId: number }) {
   };
 
   const baseClass =
-    "group inline-flex items-center gap-2 rounded-full border border-mastery/30 bg-mastery/10 px-3 py-1.5 text-[11px] font-semibold text-mastery shadow-sm transition hover:border-mastery/55 hover:bg-mastery/15";
+    "ui-focus-ring group flex min-h-[var(--size-row)] w-full items-center gap-3 rounded-control px-3 py-2.5 text-left transition-colors hover:bg-surface-2";
 
   if (summaryQ.isLoading || streakQ.isLoading || statsQ.isLoading || unlockedQ.isLoading) {
     return (
       <Link {...linkProps} className={baseClass}>
-        <AppGlyph name="trophy" className="h-3.5 w-3.5" />
-        Trophy hall
-        <AppGlyph name="arrowRight" className="h-3.5 w-3.5" />
+        <AppGlyph name="trophy" className="h-5 w-5 text-warning" />
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-medium text-app">Achievement collection</span>
+          <span className="mt-0.5 block text-xs text-muted">Loading progress…</span>
+        </span>
+        <AppGlyph name="arrowRight" className="h-4 w-4 text-muted-2" />
       </Link>
     );
   }
@@ -81,45 +78,33 @@ export function AchievementStrip({ studentId }: { studentId: number }) {
   const achievedIds = new Set([...unlockedIds, ...evaluateAchievements(stats)]);
   const unlocked = [...achievedIds]
     .map((id) => getAchievement(id))
-    .filter((a): a is AchievementDefinition => a !== null);
+    .filter((achievement): achievement is AchievementDefinition => achievement !== null);
   const featured = unlocked.slice(0, 3);
 
   return (
-    <Link
-      {...linkProps}
-      className={cn(
-        "group flex w-fit max-w-[16rem] flex-col gap-1.5 rounded-2xl border border-mastery/30 bg-mastery/10 px-3 py-2 text-[11px] shadow-sm transition",
-        "hover:border-mastery/55 hover:bg-mastery/15 hover:shadow-lift",
-      )}
-    >
-      <div className="flex items-center justify-between gap-2">
-        <Badge tone="xp" uppercase>
-          {progress.xp} XP
-        </Badge>
-        <span className="inline-flex items-center gap-1 font-semibold text-mastery group-hover:underline">
-          Trophy hall
-          <AppGlyph name="arrowRight" className="h-3 w-3" />
+    <Link {...linkProps} className={baseClass}>
+      <AppGlyph name="trophy" className="h-5 w-5 text-warning" />
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-medium text-app">Achievement collection</span>
+        <span className="mt-0.5 block text-xs text-muted">
+          <span className="tabular-figure font-medium text-app">{unlocked.length}</span> of{" "}
+          {ACHIEVEMENTS.length} collected · {progress.xp} XP
         </span>
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="font-mono text-xs font-semibold text-mastery">
-          {unlocked.length}/{ACHIEVEMENTS.length}
+      </span>
+      {featured.length > 0 ? (
+        <span className="flex shrink-0 items-center gap-0.5" aria-label="Featured achievements">
+          {featured.map((achievement) => (
+            <span
+              key={achievement.id}
+              title={achievement.title}
+              className="grid h-5 w-5 place-items-center text-mastery"
+            >
+              <AchievementIcon icon={achievement.icon} className="h-3.5 w-3.5" />
+            </span>
+          ))}
         </span>
-        <span className="text-[10px] uppercase tracking-wide text-muted-2">trophies</span>
-        {featured.length > 0 ? (
-          <span className="ml-auto flex items-center gap-1">
-            {featured.map((achievement) => (
-              <span
-                key={achievement.id}
-                title={achievement.title}
-                className="grid h-5 w-5 place-items-center rounded-full border border-mastery/30 bg-mastery/10 text-mastery"
-              >
-                <AchievementIcon icon={achievement.icon} className="h-3 w-3" />
-              </span>
-            ))}
-          </span>
-        ) : null}
-      </div>
+      ) : null}
+      <AppGlyph name="arrowRight" className="h-4 w-4 text-muted-2 group-hover:text-app" />
     </Link>
   );
 }
