@@ -89,6 +89,8 @@ export const queryKeys = {
   progress: {
     dueByLesson: (studentId: number, lessonId: number) =>
       ["progress", "dueByLesson", studentId, lessonId] as const,
+    assignedUnitProgress: (studentId: number) =>
+      ["progress", "assignedUnitProgress", studentId] as const,
     seenEntryIdsByLesson: (studentId: number, lessonId: number) =>
       ["progress", "seenEntryIdsByLesson", studentId, lessonId] as const,
     dueByStudent: (studentId: number) => ["progress", "dueByStudent", studentId] as const,

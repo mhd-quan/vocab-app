@@ -146,8 +146,8 @@ describe("TutorStudents", () => {
     renderScreen();
     await waitFor(() => screen.getByText(/No active students/i));
 
-    fireEvent.click(screen.getByRole("button", { name: /import history/i }));
-    const dialog = await screen.findByRole("dialog", { name: /import student history/i });
+    fireEvent.click(screen.getByRole("button", { name: /import data/i }));
+    const dialog = await screen.findByRole("dialog", { name: /import learner data/i });
     fireEvent.change(within(dialog).getByLabelText(/passphrase/i), {
       target: { value: "secret123" },
     });

@@ -76,6 +76,9 @@ export {
 } from "./grammar";
 export { type ImportRepository, createImportRepository } from "./import";
 export {
+  type AssignedLessonProgressRow,
+  type AssignedProgressCounts,
+  type AssignedUnitProgressRow,
   type DailyActivityCell,
   type DueItem,
   type DueLessonStats,

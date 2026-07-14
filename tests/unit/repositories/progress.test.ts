@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { type AppDatabase, closeDatabase } from "../../../electron/db";
 import type { Repositories } from "../../../electron/db/repositories";
+import { itemProgress, lessons, units } from "../../../src/data/schema";
 import type { GradeOutcome } from "../../../src/modules/exercises";
-import { freshDb, seedCurriculum } from "../../helpers";
+import { first, freshDb, seedCurriculum } from "../../helpers";
 
 const T0 = new Date("2026-01-01T00:00:00Z");
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -38,6 +39,49 @@ function seedEntries(repos: Repositories, lessonId: number, headwords: string[])
       relations: [],
     }),
   );
+}
+
+function insertProgress(
+  db: AppDatabase,
+  input: {
+    studentId: number;
+    contentItemId: number;
+    state: "new" | "learning" | "short_term" | "long_term";
+    nextDueAt: Date | null;
+    track?: "curated" | "personal";
+  },
+) {
+  db.insert(itemProgress)
+    .values({
+      studentId: input.studentId,
+      contentItemId: input.contentItemId,
+      track: input.track ?? "curated",
+      state: input.state,
+      nextDueAt: input.nextDueAt,
+    })
+    .run();
+}
+
+function expectAssignedProgressInvariants(row: {
+  totalCount: number;
+  introducedCount: number;
+  newCount: number;
+  learningCount: number;
+  secureCount: number;
+  dueCount: number;
+  currentCount: number;
+  dueLearningCount: number;
+  dueSecureCount: number;
+  learningCurrentCount: number;
+  secureCurrentCount: number;
+}) {
+  expect(row.newCount + row.introducedCount).toBe(row.totalCount);
+  expect(row.learningCount + row.secureCount).toBe(row.introducedCount);
+  expect(row.dueCount + row.currentCount).toBe(row.introducedCount);
+  expect(row.dueLearningCount + row.dueSecureCount).toBe(row.dueCount);
+  expect(row.learningCurrentCount + row.secureCurrentCount).toBe(row.currentCount);
+  expect(row.dueLearningCount + row.learningCurrentCount).toBe(row.learningCount);
+  expect(row.dueSecureCount + row.secureCurrentCount).toBe(row.secureCount);
 }
 
 describe("ProgressRepository", () => {
@@ -259,6 +303,361 @@ describe("ProgressRepository", () => {
       });
 
       expect(stats).toEqual({ totalCount: 1, dueCount: 0, newCount: 1 });
+    });
+  });
+
+  describe("assignedUnitProgress", () => {
+    it("batches vocab + grammar into truthful mastery and due/current dimensions", () => {
+      const { book, unit, lesson: vocabLesson } = seedCurriculum(db);
+      const grammarLesson = first(
+        db
+          .insert(lessons)
+          .values({
+            unitId: unit.id,
+            ordinal: 2,
+            kind: "grammar",
+            title: "Grammar",
+            slug: "grammar",
+          })
+          .returning()
+          .all(),
+      );
+      const [, explicitNew, learningDue, shortTermCurrent, secureDue] = seedEntries(
+        repos,
+        vocabLesson.id,
+        ["unseen", "explicit-new", "learning-due", "short-current", "secure-due"],
+      );
+      if (!explicitNew || !learningDue || !shortTermCurrent || !secureDue) {
+        throw new Error("seed mismatch");
+      }
+      const grammar = repos.grammar.upsertTopic({
+        lessonId: grammarLesson.id,
+        sourceId: "present-simple",
+        slug: "present-simple",
+        title: "Present simple",
+        contentHash: "grammar-hash",
+      });
+      const student = repos.students.create({ name: "Alice" });
+      repos.students.replaceUnitAssignments({
+        studentId: student.id,
+        bookId: book.id,
+        unitIds: [unit.id],
+      });
+
+      const contentIdFor = (entryId: number) => {
+        const item = repos.progress.contentItemForEntry(entryId);
+        if (!item) throw new Error(`missing content item for ${entryId}`);
+        return item.id;
+      };
+      const grammarItem = repos.progress.contentItemForGrammarTopic(grammar.topicId);
+      if (!grammarItem) throw new Error("missing grammar content item");
+
+      insertProgress(db, {
+        studentId: student.id,
+        contentItemId: contentIdFor(explicitNew.entryId),
+        state: "new",
+        nextDueAt: null,
+      });
+      insertProgress(db, {
+        studentId: student.id,
+        contentItemId: contentIdFor(learningDue.entryId),
+        state: "learning",
+        nextDueAt: new Date(T0.getTime() - 2 * DAY_MS),
+      });
+      insertProgress(db, {
+        studentId: student.id,
+        contentItemId: contentIdFor(shortTermCurrent.entryId),
+        state: "short_term",
+        nextDueAt: new Date(T0.getTime() + DAY_MS),
+      });
+      insertProgress(db, {
+        studentId: student.id,
+        contentItemId: contentIdFor(secureDue.entryId),
+        state: "long_term",
+        nextDueAt: T0,
+      });
+      insertProgress(db, {
+        studentId: student.id,
+        contentItemId: grammarItem.id,
+        state: "long_term",
+        nextDueAt: new Date(T0.getTime() + 30 * DAY_MS),
+      });
+
+      const [row] = repos.progress.assignedUnitProgress({ studentId: student.id, now: T0 });
+      expect(row).toMatchObject({
+        bookId: book.id,
+        unitId: unit.id,
+        totalCount: 6,
+        introducedCount: 4,
+        newCount: 2,
+        learningCount: 2,
+        secureCount: 2,
+        dueCount: 2,
+        currentCount: 2,
+        dueLearningCount: 1,
+        dueSecureCount: 1,
+        learningCurrentCount: 1,
+        secureCurrentCount: 1,
+      });
+      expect(row?.oldestDueAt?.getTime()).toBe(T0.getTime() - 2 * DAY_MS);
+      expect(row?.lessons).toHaveLength(2);
+      if (!row) throw new Error("assigned unit progress missing");
+      expectAssignedProgressInvariants(row);
+      row.lessons.forEach(expectAssignedProgressInvariants);
+
+      const vocab = row.lessons.find((lesson) => lesson.lessonId === vocabLesson.id);
+      const grammarRow = row.lessons.find((lesson) => lesson.lessonId === grammarLesson.id);
+      expect(vocab).toMatchObject({
+        totalCount: 5,
+        introducedCount: 3,
+        newCount: 2,
+        learningCount: 2,
+        secureCount: 1,
+        dueCount: 2,
+        currentCount: 1,
+      });
+      expect(grammarRow).toMatchObject({
+        totalCount: 1,
+        introducedCount: 1,
+        newCount: 0,
+        learningCount: 0,
+        secureCount: 1,
+        dueCount: 0,
+        currentCount: 1,
+      });
+    });
+
+    it("returns assigned lessons with zero content as an all-zero row", () => {
+      const { book, unit, lesson } = seedCurriculum(db);
+      const student = repos.students.create({ name: "Alice" });
+      repos.students.replaceUnitAssignments({
+        studentId: student.id,
+        bookId: book.id,
+        unitIds: [unit.id],
+      });
+
+      const rows = repos.progress.assignedUnitProgress({ studentId: student.id, now: T0 });
+      expect(rows).toEqual([
+        {
+          bookId: book.id,
+          unitId: unit.id,
+          totalCount: 0,
+          introducedCount: 0,
+          newCount: 0,
+          learningCount: 0,
+          secureCount: 0,
+          dueCount: 0,
+          currentCount: 0,
+          dueLearningCount: 0,
+          dueSecureCount: 0,
+          learningCurrentCount: 0,
+          secureCurrentCount: 0,
+          oldestDueAt: null,
+          lessons: [
+            {
+              lessonId: lesson.id,
+              totalCount: 0,
+              introducedCount: 0,
+              newCount: 0,
+              learningCount: 0,
+              secureCount: 0,
+              dueCount: 0,
+              currentCount: 0,
+              dueLearningCount: 0,
+              dueSecureCount: 0,
+              learningCurrentCount: 0,
+              secureCurrentCount: 0,
+              oldestDueAt: null,
+            },
+          ],
+        },
+      ]);
+    });
+
+    it("moves a future learning item to due at the inclusive cutoff", () => {
+      const { book, unit, lesson } = seedCurriculum(db);
+      const [entry] = seedEntries(repos, lesson.id, ["scheduled"]);
+      if (!entry) throw new Error("seed mismatch");
+      const student = repos.students.create({ name: "Alice" });
+      repos.students.replaceUnitAssignments({
+        studentId: student.id,
+        bookId: book.id,
+        unitIds: [unit.id],
+      });
+      const item = repos.progress.contentItemForEntry(entry.entryId);
+      if (!item) throw new Error("missing content item");
+      const dueAt = new Date(T0.getTime() + DAY_MS);
+      insertProgress(db, {
+        studentId: student.id,
+        contentItemId: item.id,
+        state: "learning",
+        nextDueAt: dueAt,
+      });
+
+      const before = repos.progress.assignedUnitProgress({ studentId: student.id, now: T0 })[0];
+      expect(before).toMatchObject({
+        learningCount: 1,
+        dueCount: 0,
+        currentCount: 1,
+        dueLearningCount: 0,
+        learningCurrentCount: 1,
+        oldestDueAt: null,
+      });
+
+      const atCutoff = repos.progress.assignedUnitProgress({
+        studentId: student.id,
+        now: dueAt,
+      })[0];
+      expect(atCutoff).toMatchObject({
+        learningCount: 1,
+        dueCount: 1,
+        currentCount: 0,
+        dueLearningCount: 1,
+        learningCurrentCount: 0,
+      });
+      expect(atCutoff?.oldestDueAt?.getTime()).toBe(dueAt.getTime());
+    });
+
+    it("treats an introduced item without a schedule timestamp as due now", () => {
+      const { book, unit, lesson } = seedCurriculum(db);
+      const [entry] = seedEntries(repos, lesson.id, ["unscheduled"]);
+      if (!entry) throw new Error("seed mismatch");
+      const student = repos.students.create({ name: "Alice" });
+      repos.students.replaceUnitAssignments({
+        studentId: student.id,
+        bookId: book.id,
+        unitIds: [unit.id],
+      });
+      const item = repos.progress.contentItemForEntry(entry.entryId);
+      if (!item) throw new Error("missing content item");
+      insertProgress(db, {
+        studentId: student.id,
+        contentItemId: item.id,
+        state: "short_term",
+        nextDueAt: null,
+      });
+
+      const [row] = repos.progress.assignedUnitProgress({ studentId: student.id, now: T0 });
+      expect(row).toMatchObject({
+        introducedCount: 1,
+        learningCount: 1,
+        dueCount: 1,
+        currentCount: 0,
+        dueLearningCount: 1,
+        learningCurrentCount: 0,
+        oldestDueAt: null,
+      });
+      if (!row) throw new Error("assigned unit progress missing");
+      expectAssignedProgressInvariants(row);
+    });
+
+    it("keeps status partitions complete when an imported snapshot has an unknown state", () => {
+      const { book, unit, lesson } = seedCurriculum(db);
+      const [entry] = seedEntries(repos, lesson.id, ["future-state"]);
+      if (!entry) throw new Error("seed mismatch");
+      const student = repos.students.create({ name: "Alice" });
+      repos.students.replaceUnitAssignments({
+        studentId: student.id,
+        bookId: book.id,
+        unitIds: [unit.id],
+      });
+      const item = repos.progress.contentItemForEntry(entry.entryId);
+      if (!item) throw new Error("missing content item");
+
+      db.insert(itemProgress)
+        .values({
+          studentId: student.id,
+          contentItemId: item.id,
+          track: "curated",
+          // Report imports can contain a forward-version string before the
+          // importer knows its semantics. The status UI must still partition
+          // every item instead of rendering an underfilled composition.
+          state: "future_state" as "new",
+          nextDueAt: T0,
+        })
+        .run();
+
+      const [row] = repos.progress.assignedUnitProgress({ studentId: student.id, now: T0 });
+      expect(row).toMatchObject({
+        totalCount: 1,
+        introducedCount: 0,
+        newCount: 1,
+        learningCount: 0,
+        secureCount: 0,
+        dueCount: 0,
+        currentCount: 0,
+      });
+      if (!row) throw new Error("assigned unit progress missing");
+      expectAssignedProgressInvariants(row);
+    });
+
+    it("returns assigned units only and ignores personal-track snapshots", () => {
+      const { book, unit: assignedUnit, lesson: assignedLesson } = seedCurriculum(db);
+      const unassignedUnit = first(
+        db
+          .insert(units)
+          .values({ bookId: book.id, ordinal: 2, code: "U02", title: "Unit 2" })
+          .returning()
+          .all(),
+      );
+      const unassignedLesson = first(
+        db
+          .insert(lessons)
+          .values({
+            unitId: unassignedUnit.id,
+            ordinal: 1,
+            kind: "vocabulary",
+            title: "Outside",
+            slug: "outside",
+          })
+          .returning()
+          .all(),
+      );
+      const [assignedEntry] = seedEntries(repos, assignedLesson.id, ["assigned"]);
+      const [outsideEntry] = seedEntries(repos, unassignedLesson.id, ["outside"]);
+      if (!assignedEntry || !outsideEntry) throw new Error("seed mismatch");
+      const student = repos.students.create({ name: "Alice" });
+      const otherStudent = repos.students.create({ name: "Bob" });
+      repos.students.replaceUnitAssignments({
+        studentId: student.id,
+        bookId: book.id,
+        unitIds: [assignedUnit.id],
+      });
+      const assignedItem = repos.progress.contentItemForEntry(assignedEntry.entryId);
+      const outsideItem = repos.progress.contentItemForEntry(outsideEntry.entryId);
+      if (!assignedItem || !outsideItem) throw new Error("missing content item");
+      insertProgress(db, {
+        studentId: student.id,
+        contentItemId: assignedItem.id,
+        track: "personal",
+        state: "long_term",
+        nextDueAt: T0,
+      });
+      insertProgress(db, {
+        studentId: student.id,
+        contentItemId: outsideItem.id,
+        state: "long_term",
+        nextDueAt: T0,
+      });
+      insertProgress(db, {
+        studentId: otherStudent.id,
+        contentItemId: assignedItem.id,
+        state: "long_term",
+        nextDueAt: T0,
+      });
+
+      const rows = repos.progress.assignedUnitProgress({ studentId: student.id, now: T0 });
+      expect(rows).toHaveLength(1);
+      expect(rows[0]).toMatchObject({
+        bookId: book.id,
+        unitId: assignedUnit.id,
+        totalCount: 1,
+        introducedCount: 0,
+        newCount: 1,
+        learningCount: 0,
+        secureCount: 0,
+        dueCount: 0,
+      });
     });
   });
 

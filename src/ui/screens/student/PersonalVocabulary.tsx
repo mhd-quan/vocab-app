@@ -46,7 +46,7 @@ export function StudentPersonalVocabulary() {
         </p>
       </header>
 
-      <section className="grouped-list learning-trace" aria-labelledby="vocabulary-summary-title">
+      <section className="grouped-list" aria-labelledby="vocabulary-summary-title">
         {summaryQ.isLoading ? (
           <p id="vocabulary-summary-title" role="status" className="px-5 py-6 text-sm text-muted">
             Loading vocabulary progress…

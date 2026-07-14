@@ -158,11 +158,7 @@ export function StudentUnitStudy() {
 
       {vocabLesson ? (
         <section data-testid="vocabulary-study-object" className="ui-group bg-surface-1">
-          <header className="relative overflow-hidden border-b border-border-subtle px-5 py-4 pl-6">
-            <span
-              aria-hidden
-              className="absolute inset-y-4 left-0 w-[3px] rounded-r-sm bg-accent"
-            />
+          <header className="border-b border-border-subtle px-5 py-4">
             <h2 className="text-[17px] font-semibold tracking-[-0.012em]">{vocabLesson.title}</h2>
             <p className="mt-1 text-[13px] leading-5 text-muted">
               Choose the sections you want in this practice round.
@@ -276,12 +272,8 @@ export function StudentUnitStudy() {
                 key={lesson.id}
                 to="/student/profile/$studentId/session/$lessonId"
                 params={{ studentId: String(studentIdNum), lessonId: String(lesson.id) }}
-                className="ui-focus-ring group relative grid min-h-24 gap-4 overflow-hidden border-b border-border-subtle px-5 py-4 pl-6 outline-offset-[-2px] transition-colors last:border-b-0 hover:bg-surface-2/65 active:bg-surface-3/60 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+                className="ui-focus-ring group grid min-h-24 gap-4 border-b border-border-subtle px-5 py-4 outline-offset-[-2px] transition-colors last:border-b-0 hover:bg-surface-2/65 active:bg-surface-3/60 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
               >
-                <span
-                  aria-hidden
-                  className="absolute inset-y-4 left-0 w-[3px] rounded-r-sm bg-accent"
-                />
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <LessonIcon className="h-[18px] w-[18px] text-accent" />

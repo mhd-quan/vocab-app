@@ -232,9 +232,7 @@ function BookRow({
       <div
         className={cn(
           "group grid min-h-[var(--size-row)] grid-cols-[1fr_auto] items-center rounded-control transition-colors",
-          selected
-            ? "learning-trace bg-accent/10 text-app"
-            : "text-muted hover:bg-surface-2 hover:text-app",
+          selected ? "bg-accent/10 text-app" : "text-muted hover:bg-surface-2 hover:text-app",
         )}
       >
         <button

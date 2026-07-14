@@ -57,9 +57,7 @@ export function MultipleChoiceCard({
       className="object-surface flex flex-col gap-6 bg-surface-1 p-6 sm:p-7"
     >
       <header className="flex items-center justify-between">
-        <span className="learning-trace-label text-xs font-semibold text-accent">
-          Multiple choice
-        </span>
+        <span className="text-xs font-semibold text-accent">Multiple choice</span>
         <span className="text-xs font-semibold text-muted-2">
           {locked ? (outcome.correct ? "Correct" : "Review") : "Pick the headword"}
         </span>

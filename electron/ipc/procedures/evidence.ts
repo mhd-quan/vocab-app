@@ -161,46 +161,13 @@ export const evidenceProcedures = [
     name: "evidence.exportStudentReport",
     input: exportReportInput,
     handler: async ({ studentId, includeSnapshots, passphrase }, ctx) => {
-      const student = ctx.repos.students.getById(studentId);
-      if (!student) throw new Error(`Student ${studentId} not found`);
-
       const generatedAt = new Date();
-      const evidence = ctx.repos.evidence.studentOverview({ studentId, limit: 100 });
-      const timelines = evidence.recentSessions
-        .map((session) => ctx.repos.evidence.sessionTimeline({ sessionId: session.sessionId }))
-        .filter((timeline): timeline is NonNullable<typeof timeline> => timeline !== null)
-        .map((timeline) => serializeTimeline(timeline, includeSnapshots === true));
-      const sessionReports = evidence.recentSessions
-        .map((session) => ctx.repos.progress.sessionReport({ sessionId: session.sessionId }))
-        .filter((session): session is NonNullable<typeof session> => session !== null);
-      const progressSummary = ctx.repos.progress.studentSummary({
+      const { student, payload, data, counts } = buildStudentHistoryExport(
+        ctx,
         studentId,
-        now: generatedAt,
-      });
-
-      const payload = {
-        schemaVersion: "vocab.session-report.v2",
-        generatedAt: generatedAt.toISOString(),
-        app: { name: "vocab-app" },
-        student,
-        data: buildStudentDataExport(ctx, studentId, includeSnapshots === true),
-        progress: {
-          summary: progressSummary,
-          units: ctx.repos.progress.unitReport({ studentId }),
-          weakItems: ctx.repos.progress.weakItems({ studentId, minAttempts: 3, limit: 25 }),
-          recentSessions: ctx.repos.progress.recentSessions({ studentId, limit: 100 }),
-          sessions: sessionReports,
-        },
-        evidence: {
-          overview: evidence,
-          sessions: timelines,
-          safeguards: {
-            cameraSnapshotsIncluded: includeSnapshots === true,
-            cameraMode: "tutor-enabled consent ledger with visible check-in indicator",
-            verdictPolicy: "review signals only; no hidden surveillance or biometric inference",
-          },
-        },
-      };
+        includeSnapshots === true,
+        generatedAt,
+      );
 
       const payloadJson = JSON.stringify(payload, jsonDateReplacer, 2);
       const sha256 = crypto.createHash("sha256").update(payloadJson).digest("hex");
@@ -211,20 +178,23 @@ export const evidenceProcedures = [
           reportSha256: sha256,
           encrypted: Boolean(passphrase),
           cameraSnapshotsIncluded: includeSnapshots === true,
-          sessionCount: timelines.length,
-          snapshotCount: timelines.reduce((sum, timeline) => sum + timeline.snapshots.length, 0),
+          sessionCount: counts.sessionCount,
+          learningEventCount: counts.learningEventCount,
+          evidenceEventCount: counts.evidenceEventCount,
+          snapshotCount: data.evidenceEvents.filter((event) => event.kind === "camera_snapshot")
+            .length,
         },
         report: passphrase
-          ? encryptReport(payloadJson, passphrase, sha256)
+          ? encryptReport(payloadJson, passphrase, sha256, generatedAt)
           : { ...payload, integrity: { sha256 } },
       };
       const body = JSON.stringify(bundle, jsonDateReplacer, 2);
 
-      const defaultPath = `${safeFilename(student.displayName ?? student.name)}-session-report-${formatStamp(
+      const defaultPath = `${safeFilename(student.displayName ?? student.name)}-student-history-${formatStamp(
         generatedAt,
       )}${passphrase ? ".vocab-report-bundle.enc.json" : ".vocab-report-bundle.json"}`;
       const dialogOptions = {
-        title: "Export student session report",
+        title: "Export complete student history",
         defaultPath,
         filters: [
           {
@@ -238,7 +208,13 @@ export const evidenceProcedures = [
         ? await dialog.showSaveDialog(parent, dialogOptions)
         : await dialog.showSaveDialog(dialogOptions);
       if (result.canceled || !result.filePath) {
-        return { canceled: true, filePath: null, encrypted: Boolean(passphrase), sha256 } as const;
+        return {
+          canceled: true,
+          filePath: null,
+          encrypted: Boolean(passphrase),
+          sha256,
+          ...counts,
+        } as const;
       }
 
       fs.writeFileSync(result.filePath, body, "utf8");
@@ -247,6 +223,7 @@ export const evidenceProcedures = [
         filePath: result.filePath,
         encrypted: Boolean(passphrase),
         sha256,
+        ...counts,
       } as const;
     },
   }),
@@ -302,6 +279,87 @@ interface StudentDataExport {
   };
 }
 
+interface StudentHistoryExportCounts {
+  sessionCount: number;
+  learningEventCount: number;
+  evidenceEventCount: number;
+}
+
+function buildStudentHistoryExport(
+  ctx: ProcedureContext,
+  studentId: number,
+  includeSnapshots: boolean,
+  generatedAt: Date,
+) {
+  const sourceStudent = ctx.repos.students.getById(studentId);
+  if (!sourceStudent) throw new Error(`Student ${studentId} not found`);
+  const student = studentWithoutPin(sourceStudent);
+  const data = buildStudentDataExport(ctx, studentId, includeSnapshots, generatedAt);
+
+  // These are full-history repository reads, intentionally separate from the
+  // UI's recent-session APIs and their display limits.
+  const evidenceTimelines = ctx.repos.evidence.studentSessionTimelines({ studentId });
+  const progressSessions = ctx.repos.progress.studentSessionReports({ studentId });
+  const serializedTimelines = evidenceTimelines.map((timeline) =>
+    serializeTimeline(timeline, includeSnapshots),
+  );
+  const overview = ctx.repos.evidence.studentOverview({ studentId, limit: 0 });
+  const counts: StudentHistoryExportCounts = {
+    sessionCount: data.sessions.length,
+    learningEventCount: data.learningEvents.length,
+    evidenceEventCount: data.evidenceEvents.length,
+  };
+
+  const payload = {
+    // Keep this schema identifier stable so previously released importers can
+    // continue to consume the universal bundle's `data` section.
+    schemaVersion: "vocab.session-report.v2",
+    generatedAt: generatedAt.toISOString(),
+    app: { name: "vocab-app" },
+    student,
+    data,
+    progress: {
+      summary: ctx.repos.progress.studentSummary({ studentId, now: generatedAt }),
+      units: ctx.repos.progress.unitReport({ studentId }),
+      weakItems: ctx.repos.progress.weakItems({ studentId, minAttempts: 3, limit: 25 }),
+      // The property name is retained for bundle compatibility; an exported
+      // history now contains every session rather than a recent-only slice.
+      recentSessions: progressSessions.map((report) => ({
+        sessionId: report.session.id,
+        mode: report.session.mode,
+        startedAt: report.session.startedAt,
+        endedAt: report.session.endedAt,
+        totalAnswered: report.totalAnswered,
+        totalCorrect: report.totalCorrect,
+      })),
+      sessions: progressSessions,
+    },
+    evidence: {
+      overview: {
+        ...overview,
+        recentSessions: evidenceTimelines.map((timeline) => ({
+          sessionId: timeline.session.id,
+          studentId: timeline.session.studentId,
+          mode: timeline.session.mode,
+          startedAt: timeline.session.startedAt,
+          endedAt: timeline.session.endedAt,
+          eventCount: timeline.events.length,
+          lastEventAt: timeline.events.at(-1)?.occurredAt ?? null,
+          metrics: timeline.metrics,
+        })),
+      },
+      sessions: serializedTimelines,
+      safeguards: {
+        cameraSnapshotsIncluded: includeSnapshots,
+        cameraMode: "tutor-enabled consent ledger with visible check-in indicator",
+        verdictPolicy: "review signals only; no hidden surveillance or biometric inference",
+      },
+    },
+  };
+
+  return { student, data, payload, counts };
+}
+
 interface ContentRef {
   refTable: string;
   refId: number;
@@ -319,6 +377,7 @@ function buildStudentDataExport(
   ctx: ProcedureContext,
   studentId: number,
   includeSnapshots: boolean,
+  exportedAt = new Date(),
 ): StudentDataExport {
   const db = requireDb(ctx);
   const student = ctx.repos.students.getById(studentId);
@@ -346,8 +405,8 @@ function buildStudentDataExport(
     schemaVersion: "vocab.student-data.v1",
     sourceFingerprint,
     sourceStudentId: studentId,
-    exportedAt: new Date().toISOString(),
-    student,
+    exportedAt: exportedAt.toISOString(),
+    student: studentWithoutPin(student),
     assignments: exportAssignments(db, studentId),
     sessions,
     learningEvents: learningRows.map((event) => ({
@@ -1040,7 +1099,7 @@ function readSnapshotDataUrl(relativePath: string): string | null {
   return `data:${mimeType};base64,${fs.readFileSync(fullPath).toString("base64")}`;
 }
 
-function encryptReport(payloadJson: string, passphrase: string, sha256: string) {
+function encryptReport(payloadJson: string, passphrase: string, sha256: string, generatedAt: Date) {
   const salt = crypto.randomBytes(16);
   const iv = crypto.randomBytes(12);
   const iterations = 210_000;
@@ -1051,7 +1110,7 @@ function encryptReport(payloadJson: string, passphrase: string, sha256: string) 
 
   return {
     schemaVersion: "vocab.encrypted-report.v1",
-    generatedAt: new Date().toISOString(),
+    generatedAt: generatedAt.toISOString(),
     encryption: {
       algorithm: "aes-256-gcm",
       kdf: "pbkdf2-sha256",
@@ -1104,6 +1163,15 @@ export const __studentDataImportTest = {
   buildStudentDataExport,
   importStudentDataBundle,
 };
+
+export const __studentDataExportTest = {
+  buildStudentHistoryExport,
+};
+
+function studentWithoutPin<T extends { pinHash: unknown }>(student: T): Omit<T, "pinHash"> {
+  const { pinHash: _pinHash, ...safeStudent } = student;
+  return safeStudent;
+}
 
 function contentRefForItem(db: AppDatabase, contentItemId: number): ContentRef | null {
   const row = db

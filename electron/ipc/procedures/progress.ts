@@ -52,6 +52,12 @@ const dueByLessonInput = z.object({
   nowIso: z.string().datetime().optional(),
 });
 
+const assignedUnitProgressInput = z.object({
+  studentId: z.number().int().positive(),
+  /** ISO 8601 — defaults to server `now`. */
+  nowIso: z.string().datetime().optional(),
+});
+
 const seenEntryIdsByLessonInput = z.object({
   studentId: z.number().int().positive(),
   lessonId: z.number().int().positive(),
@@ -169,6 +175,16 @@ export const progressProcedures = [
       const now = nowIso ? new Date(nowIso) : new Date();
       return ctx.repos.progress.dueByLesson({ studentId, lessonId, now });
     },
+  }),
+
+  defineProcedure({
+    name: "progress.assignedUnitProgress",
+    input: assignedUnitProgressInput,
+    handler: ({ studentId, nowIso }, ctx) =>
+      ctx.repos.progress.assignedUnitProgress({
+        studentId,
+        now: nowIso ? new Date(nowIso) : new Date(),
+      }),
   }),
 
   defineProcedure({

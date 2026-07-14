@@ -27,7 +27,7 @@ export function SrsArchiveBanner() {
       role="region"
       aria-labelledby="srs-archive-title"
       aria-busy={dismiss.isPending}
-      className="object-surface learning-trace motion-enter mx-[var(--space-window-x)] mt-3 flex shrink-0 items-start gap-4 px-4 py-3 [--trace-rgb:var(--color-ochre)]"
+      className="object-surface motion-enter mx-[var(--space-window-x)] mt-3 flex shrink-0 items-start gap-4 bg-warning/5 px-4 py-3"
     >
       <div role="status" className="min-w-0 flex-1">
         <h2 id="srs-archive-title" className="text-ui font-semibold text-app">

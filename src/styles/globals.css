@@ -133,25 +133,6 @@
     background: rgb(var(--color-paper));
   }
 
-  .learning-trace {
-    --trace-rgb: var(--color-iris);
-    border-inline-start: 2px solid rgb(var(--trace-rgb));
-  }
-
-  .learning-trace-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .learning-trace-label::before {
-    width: 1.5rem;
-    height: 2px;
-    border-radius: var(--radius-circular);
-    background: rgb(var(--color-iris));
-    content: "";
-  }
-
   .ui-pane-header {
     display: flex;
     min-height: var(--size-pane-header);
@@ -199,13 +180,5 @@
   :focus-visible,
   .ui-focus-ring:focus-visible {
     outline-color: Highlight;
-  }
-
-  .learning-trace {
-    border-inline-start-color: Highlight;
-  }
-
-  .learning-trace-label::before {
-    background: Highlight;
   }
 }

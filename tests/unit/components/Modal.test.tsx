@@ -24,6 +24,15 @@ describe("Modal", () => {
     expect(dialog).toHaveAttribute("aria-labelledby");
   });
 
+  it("supports an extra-wide size for two-pane records", () => {
+    render(
+      <Modal open onClose={() => undefined} title="Two-pane record" size="xl">
+        <p>body</p>
+      </Modal>,
+    );
+    expect(screen.getByRole("dialog", { name: "Two-pane record" })).toHaveClass("max-w-4xl");
+  });
+
   it("calls onClose when Escape is pressed", () => {
     const onClose = vi.fn();
     render(

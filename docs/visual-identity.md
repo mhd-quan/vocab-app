@@ -6,19 +6,19 @@ Vocab is a desktop study workspace, not a gamified web dashboard. Its identity c
 rhythm of reading, practising, and reviewing: clear context, one next action, useful feedback, and
 enough information to make progress visible without turning learning into a wall of metrics.
 
-The signature is the **learning trace**: a thin, continuous mark that represents position and
-progress. It appears as the selected-navigation rail, curriculum progress, session progress, chart
-series, and focus state. It is never a decorative gradient or glow.
+The signature is the **learning composition**: a compact, labelled view of what needs review, what
+is still being learned, what is secure, and what has not been introduced. It appears where that
+breakdown is real and inspectable; it is never a decorative stripe, gradient, or glow.
 
 ## Aesthetic direction
 
 **Quiet editorial utility.** The product combines a precise desktop workspace with the warmth of a
 well-kept study folio. It should feel authored, not themed: calm neutral planes, compact controls,
-strong typography, a sparse iris trace, and motion that only explains change.
+strong typography, sparse iris state colour, and motion that only explains change.
 
-The deliberate visual risk is asymmetry. Important study objects may use a narrow trace margin on
-the leading edge instead of centring every element inside another card. This gives the product a
-recognisable silhouette while preserving clarity and density.
+The deliberate visual risk is an open curriculum grid: study objects use typography, aligned
+status composition, and shared dividers instead of repeating card shells. This gives negative
+space a clear owner while preserving clarity and density.
 
 ## Identity palette
 
@@ -30,7 +30,7 @@ states, but it is not a brand colour.
 | Ground | `#F3F3F0` | Window canvas and quiet negative space |
 | Paper | `#FCFCFA` | Reading and object surfaces |
 | Graphite | `#222220` | Primary ink |
-| Iris | `#6258D9` | Learning trace, selection, primary action, keyboard focus |
+| Iris | `#6258D9` | Learning composition, selection, primary action, keyboard focus |
 | Moss | `#2F8B62` | Correct, healthy, completed |
 | Ochre | `#B66D1D` | Due, needs attention, incomplete |
 
@@ -41,6 +41,9 @@ ordinary navigation, metrics, or lesson taxonomy.
 ## Typography
 
 - UI family: the operating-system sans stack (SF Pro on macOS, Segoe UI Variable on Windows).
+- Student display family: SF Pro Rounded / Avenir Next Rounded with a system rounded fallback,
+  reserved for the learner name and primary learning prompts. Tutor and data views stay on the UI
+  family.
 - Lexical family: New York / Iowan Old Style / Palatino, reserved for headwords, definitions, and
   example language.
 - Desktop baseline: 13 px; reading instructions: 14–15 px; page title: 22–24 px.
@@ -60,9 +63,9 @@ The interface uses a 4 px base and an 8 px working rhythm.
 | Compact/default/comfortable row | 32 / 44 / 56 px |
 | Window content inset | 24 px horizontal, 20 px vertical |
 | Section / group / inline gap | 24 / 16 / 8 px |
-| Control and row selection radius | 7 px |
-| Standalone object / grouped list radius | 11 px |
-| Floating sheet / popover radius | 13 px |
+| Control and row selection radius | 8 px |
+| Standalone object / grouped list radius | 12 px |
+| Floating sheet / popover radius | 14 px |
 
 Rounded geometry describes containment, not decoration:
 
@@ -101,7 +104,7 @@ Student home:
 ┌──────────────────────── unified toolbar ─────────────────────────┐
 │ profile + current direction                                      │
 │ learning path / assigned material             │ today inspector   │
-│ one grouped book surface; trace marks progress │ tools + progress  │
+│ open two-column curriculum; status composition │ today + tools     │
 └───────────────────────────────────────────────────────────────────┘
 ```
 
@@ -109,7 +112,7 @@ Study session:
 
 ```text
 ┌──────────────────────── unified toolbar ─────────────────────────┐
-│ context + continuous session trace                               │
+│ context + continuous session progress                            │
 │          ┌──────────── one exercise object ────────────┐          │
 │          │ prompt → response → feedback → next action  │          │
 │          └─────────────────────────────────────────────┘          │
@@ -134,7 +137,7 @@ viewport corner or left floating in unused canvas.
 
 - Hover changes surface or ink only; it does not lift, translate, or scale persistent UI.
 - Press states tighten contrast and may use an inset edge; no simulated 3D button stack.
-- Selection crossfades in place. Progress animates along the learning trace.
+- Selection crossfades in place. Status composition updates with a short width/colour transition.
 - Correct feedback resolves with a restrained colour/opacity change; wrong feedback may use one
   short horizontal correction. Nothing repeatedly pulses outside an active recording state.
 - View changes use a 160–200 ms opacity transition. Sheets originate near the toolbar; popovers stay
@@ -154,10 +157,15 @@ viewport corner or left floating in unused canvas.
 | Segmented control | Two to four mutually exclusive views only |
 | Popover | Small anchored task or information |
 | Window-scoped sheet | Short modal create/import/confirm task |
+| Wide record sheet | Bounded two-column report drill-down; 896 px at desktop width |
 | Toast | Brief nonblocking confirmation |
 | Badge | Count or terse status only; not taxonomy decoration on every row |
 | Card grid | Rejected as page structure |
 | Global glass | Rejected; material is structural and localized |
+
+Learner-level import and export are neutral utility actions in the Student Detail header. Report
+and evidence views remain focused on inspection; they do not own transport controls or imply that
+an export is limited to the currently selected record.
 
 ## Quality gate
 
@@ -172,12 +180,22 @@ Before a view is considered complete:
 6. The same state is communicated by label/icon/shape as well as colour.
 7. Keyboard focus, full keyboard navigation, 200% text, dark mode, increased contrast, and reduced
    motion remain usable.
-8. The view still reads as Vocab after removing the logo because the learning trace, typography,
-   density, and interaction grammar remain.
+8. The view still reads as Vocab after removing the logo because the learning composition,
+   typography, density, and interaction grammar remain.
 
 ## Reference rationale
 
-- Apple HIG informs desktop hierarchy, materials, legibility, motion, and accessible chart context.
+- [Apple HIG: Designing for macOS](https://developer.apple.com/design/human-interface-guidelines/designing-for-macos/)
+  informs information density, resizable layouts, keyboard access, and desktop hierarchy.
+- [Disclosure controls](https://developer.apple.com/design/human-interface-guidelines/disclosure-controls)
+  and [Popovers](https://developer.apple.com/design/human-interface-guidelines/popovers/) inform
+  the summary-first overview, on-demand reports, and bounded achievement details.
+- [Materials](https://developer.apple.com/design/human-interface-guidelines/materials) and
+  [Motion](https://developer.apple.com/design/human-interface-guidelines/motion) keep blur and
+  animation structural, accessible, and limited to chrome, overlays, and state change.
+- The [2026 Apple Design Awards](https://www.apple.com/newsroom/2026/06/apple-reveals-winners-of-the-2026-apple-design-awards/)
+  reinforce platform-tailored interaction, legibility without colour dependence, and a cohesive
+  visual theme over surface-level decoration.
 - NameThat UI supplies precise desktop pattern vocabulary so Electron equivalents are selected by
   behaviour rather than visual imitation.
 - Claude, ChatGPT, Notion, and Perplexity are references for calm working surfaces, side-by-side

@@ -25,7 +25,7 @@ export function SessionSummary({
   const variant = accuracy >= 80 ? "cheer" : accuracy < 50 ? "concern" : "idle";
 
   return (
-    <article className="object-surface learning-trace overflow-hidden bg-surface-1">
+    <article className="object-surface overflow-hidden bg-surface-1">
       <header className="grid gap-4 px-6 py-6 text-center sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center sm:text-left">
         <Mascot variant={variant} studentId={studentId} className="mx-auto h-20 w-20 sm:mx-0" />
         <div className="min-w-0">

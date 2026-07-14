@@ -275,11 +275,11 @@ export function StudentPronunciationPractice() {
       </header>
 
       {entriesIsLoading || booksQ.isLoading ? (
-        <section className="object-surface learning-trace px-5 py-10" aria-live="polite">
+        <section className="object-surface px-5 py-10" aria-live="polite">
           <p className="text-sm text-muted">Loading practice targets…</p>
         </section>
       ) : entries.length === 0 ? (
-        <section className="object-surface learning-trace">
+        <section className="object-surface">
           <EmptyState
             title="No vocabulary targets"
             body="Complete a vocabulary practice first and your current words will appear here."
@@ -287,7 +287,7 @@ export function StudentPronunciationPractice() {
         </section>
       ) : (
         <section
-          className="object-surface learning-trace overflow-hidden lg:h-[calc(100dvh-9.5rem)] lg:min-h-[34rem]"
+          className="object-surface overflow-hidden lg:h-[calc(100dvh-9.5rem)] lg:min-h-[34rem]"
           aria-label="Pronunciation practice workspace"
         >
           <div className="grid h-full min-h-0 lg:grid-cols-[17rem_minmax(0,1fr)]">

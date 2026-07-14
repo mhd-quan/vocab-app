@@ -41,6 +41,7 @@ import type {
 } from "./db/repositories/evidence";
 import type { GrammarTopicForPractice } from "./db/repositories/grammar";
 import type {
+  AssignedUnitProgressRow,
   CohortActivityCell,
   FleetSnapshot,
   SessionLearningReport,
@@ -148,6 +149,9 @@ interface EvidenceExportResult {
   filePath: string | null;
   encrypted: boolean;
   sha256: string;
+  sessionCount: number;
+  learningEventCount: number;
+  evidenceEventCount: number;
 }
 
 interface EvidenceImportResult {
@@ -460,6 +464,8 @@ const api = {
       }>("progress.recordContentAnswer", input),
     dueByLesson: (input: { studentId: number; lessonId: number; nowIso?: string }) =>
       invoke<DueLessonStats>("progress.dueByLesson", input),
+    assignedUnitProgress: (input: { studentId: number; nowIso?: string }) =>
+      invoke<AssignedUnitProgressRow[]>("progress.assignedUnitProgress", input),
     seenEntryIdsByLesson: (input: { studentId: number; lessonId: number }) =>
       invoke<number[]>("progress.seenEntryIdsByLesson", input),
     dueByStudent: (input: { studentId: number; nowIso?: string; limit?: number }) =>

@@ -130,7 +130,7 @@ export function StudentAchievements() {
         </div>
       </header>
 
-      <section className="grouped-list learning-trace" aria-labelledby="learning-summary-title">
+      <section className="grouped-list" aria-labelledby="learning-summary-title">
         <div className="px-5 py-4">
           <h2 id="learning-summary-title" className="text-base font-semibold">
             {progress.headline}

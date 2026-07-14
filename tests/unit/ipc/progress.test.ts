@@ -116,6 +116,57 @@ describe("progress.* procedures", () => {
     expect(stats).toEqual({ totalCount: 3, dueCount: 1, newCount: 2 });
   });
 
+  it("assignedUnitProgress returns the assigned-unit batch with lesson breakdown", async () => {
+    const { book, unit, lesson } = seedCurriculum(db);
+    const introduced = seedEntry(ctx.repos, lesson.id, "introduced");
+    seedEntry(ctx.repos, lesson.id, "new");
+    const student = ctx.repos.students.create({ name: "Alice" });
+    ctx.repos.students.replaceUnitAssignments({
+      studentId: student.id,
+      bookId: book.id,
+      unitIds: [unit.id],
+    });
+    const session = ctx.repos.progress.startSession({ studentId: student.id, mode: "mixed" });
+    ctx.repos.progress.recordAnswer({
+      studentId: student.id,
+      sessionId: session.id,
+      entryId: introduced.entryId,
+      outcome: correctOutcome,
+      now: new Date("2026-01-01T00:00:00.000Z"),
+    });
+
+    const rows = await call<
+      Array<{
+        bookId: number;
+        unitId: number;
+        totalCount: number;
+        introducedCount: number;
+        newCount: number;
+        learningCount: number;
+        dueCount: number;
+        dueLearningCount: number;
+        lessons: Array<{ lessonId: number; totalCount: number }>;
+      }>
+    >(
+      "progress.assignedUnitProgress",
+      { studentId: student.id, nowIso: "2026-01-02T00:00:00.000Z" },
+      ctx,
+    );
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      bookId: book.id,
+      unitId: unit.id,
+      totalCount: 2,
+      introducedCount: 1,
+      newCount: 1,
+      learningCount: 1,
+      dueCount: 1,
+      dueLearningCount: 1,
+      lessons: [{ lessonId: lesson.id, totalCount: 2 }],
+    });
+  });
+
   it("seenEntryIdsByLesson returns seen vocab ids for flashcard-first routing", async () => {
     const { lesson } = seedCurriculum(db);
     const alpha = seedEntry(ctx.repos, lesson.id, "alpha");

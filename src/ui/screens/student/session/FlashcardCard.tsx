@@ -78,7 +78,7 @@ export function FlashcardCard({
       className="object-surface motion-enter flex min-h-[22rem] flex-col gap-6 bg-surface-1 p-6 sm:p-8"
     >
       <header className="flex items-center justify-between">
-        <span className="learning-trace-label text-xs font-semibold text-accent">Flashcard</span>
+        <span className="text-xs font-semibold text-accent">Flashcard</span>
         <span className="text-xs font-medium text-muted-2">
           {revealed ? "Rate your recall" : "Tap to reveal"}
         </span>

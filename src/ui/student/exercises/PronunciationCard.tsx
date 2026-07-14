@@ -93,9 +93,7 @@ export function PronunciationCard({
   return (
     <section className="object-surface motion-enter mx-auto flex max-w-2xl flex-col gap-5 bg-surface-1 p-6">
       <header className="flex flex-col items-center gap-3 text-center">
-        <span className="learning-trace-label text-xs font-semibold text-accent">
-          Pronunciation
-        </span>
+        <span className="text-xs font-semibold text-accent">Pronunciation</span>
         <h2 className="ui-lexical text-4xl font-semibold leading-tight">{headword}</h2>
         {ipa ? <p className="font-mono text-sm text-muted">{ipa}</p> : null}
         <VocabularyPronunciation

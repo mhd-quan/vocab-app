@@ -21,7 +21,7 @@ interface StudentHistoryImportButtonProps {
 }
 
 export function StudentHistoryImportButton({
-  buttonLabel = "Import history",
+  buttonLabel = "Import data",
   buttonVariant = "secondary",
   buttonSize = "md",
   className,
@@ -76,8 +76,8 @@ export function StudentHistoryImportButton({
       <Modal
         open={open}
         onClose={close}
-        title="Import student history"
-        description="Import an exported Vocab report bundle into this tutor workspace."
+        title="Import learner data"
+        description="Import a portable Vocab bundle; the file identifies which learner is created or updated."
         initialFocusId={passphraseId}
         footer={
           <>
@@ -118,9 +118,9 @@ export function StudentHistoryImportButton({
           ) : null}
 
           {stats ? (
-            <div className="learning-trace overflow-hidden border-y border-border-subtle bg-success/5">
+            <div className="overflow-hidden border-y border-border-subtle bg-success/5">
               <div className="flex items-center justify-between gap-3 px-4 py-3">
-                <p className="text-sm font-semibold text-success">Student history imported.</p>
+                <p className="text-sm font-semibold text-success">Learner data imported.</p>
                 <Badge tone="success">#{stats.studentId}</Badge>
               </div>
               <dl className="grid grid-cols-2 gap-px border-t border-border-subtle bg-border-subtle text-xs sm:grid-cols-3">
@@ -141,7 +141,7 @@ export function StudentHistoryImportButton({
             <p role="alert" className="rounded-control bg-danger/10 px-3 py-2 text-xs text-danger">
               {importHistory.error instanceof Error
                 ? importHistory.error.message
-                : "Could not import student history."}
+                : "Could not import learner data."}
             </p>
           ) : null}
         </div>

@@ -359,7 +359,7 @@ function EntryDetail({
 
   return (
     <article className="mx-auto flex max-w-3xl flex-col gap-6 px-6 py-6">
-      <header className="learning-trace pl-4">
+      <header>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">

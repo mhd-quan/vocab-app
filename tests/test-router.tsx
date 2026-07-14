@@ -35,7 +35,7 @@ export function mountTutorScreen({
   screen: Screen,
   initialEntry,
   siblings = [],
-}: MountTutorOptions): { unmount: () => void; client: QueryClient } {
+}: MountTutorOptions) {
   const rootRoute = createRootRoute({ component: () => <Outlet /> });
   const tutorRoute = createRoute({
     getParentRoute: () => rootRoute,
@@ -66,7 +66,7 @@ export function mountTutorScreen({
       <RouterProvider router={router} />
     </QueryClientProvider>,
   );
-  return { unmount: result.unmount, client };
+  return { unmount: result.unmount, client, router };
 }
 
 function NullScreen(): ReactNode {
