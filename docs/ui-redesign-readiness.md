@@ -1,8 +1,9 @@
-# v0.18.0 UI Redesign
+# v0.18.1 UI Refinement
 
-Version 0.18.0 completes the visual-system redesign prepared by the native-core and renderer
-boundary work. Domain logic, persistence, and expensive runtime work remain outside screen
-components; the release changes presentation and interaction without changing those contracts.
+Version 0.18.1 refines the visual-system redesign established in v0.18.0 after the native-core and
+renderer boundary work. Domain logic, persistence, and expensive runtime work remain outside
+screen components; the release changes presentation and interaction without changing those
+contracts.
 
 ## Principles
 
@@ -12,7 +13,7 @@ components; the release changes presentation and interaction without changing th
 - Use hierarchy, spacing, and typography before adding containers or decorative color.
 - Keep radius, elevation, and motion restrained across both roles.
 
-## v0.18.0 Coverage
+## v0.18.1 Coverage
 
 - Rebuilt the shared neutral surface, typography, spacing, radius, elevation, and motion tokens.
 - Reworked tutor navigation, page headers, data tables, fields, dashboard summary, and panels.
