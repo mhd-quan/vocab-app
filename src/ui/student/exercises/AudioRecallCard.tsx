@@ -15,7 +15,6 @@
 import type { DictionaryAudioRef } from "@/data/dictionary";
 import { cn } from "@/lib/cn";
 import type { AudioRecallExercise } from "@/modules/exercises";
-import { Badge } from "@/ui/components/Badge";
 import { Button } from "@/ui/components/Button";
 import { PronunciationControls } from "@/ui/components/PronunciationControls";
 import { type FormEvent, useState } from "react";
@@ -26,6 +25,8 @@ export interface AudioRecallCardProps {
   /** Disable input + autoplay (used by tests). */
   autoplay?: boolean;
   preferredAccent?: "uk" | "us" | "any";
+  /** The submitted answer is being reviewed and must not be sent again. */
+  locked?: boolean;
 }
 
 export function AudioRecallCard({
@@ -33,6 +34,7 @@ export function AudioRecallCard({
   onAnswer,
   autoplay = true,
   preferredAccent = "uk",
+  locked = false,
 }: AudioRecallCardProps) {
   const [spelling, setSpelling] = useState("");
   const [hintRevealed, setHintRevealed] = useState(false);
@@ -43,21 +45,20 @@ export function AudioRecallCard({
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!spelling.trim()) return;
+    if (locked || !spelling.trim()) return;
     onAnswer(spelling);
   }
 
   const hint = exercise.payload.hint;
+  const inputId = `audio-recall-${exercise.id}`;
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="motion-enter mx-auto flex max-w-xl flex-col gap-5 rounded-bento border border-border-subtle bg-surface-1 p-6 shadow-card"
+      className="object-surface motion-enter mx-auto flex max-w-xl flex-col gap-5 bg-surface-1 p-6"
     >
       <header className="flex flex-col items-center gap-3 text-center">
-        <Badge tone="accent" uppercase>
-          Audio recall
-        </Badge>
+        <span className="learning-trace-label text-xs font-semibold text-accent">Audio recall</span>
         <p className="text-sm text-muted">Listen to the word, then type the spelling.</p>
         <PronunciationControls
           audioRefs={audioRefs}
@@ -68,16 +69,22 @@ export function AudioRecallCard({
         />
       </header>
 
+      <label htmlFor={inputId} className="sr-only">
+        Spelling
+      </label>
       <input
+        id={inputId}
         type="text"
         // biome-ignore lint/a11y/noAutofocus: focus is the kid-friendly affordance for a recall card
         autoFocus
         value={spelling}
         onChange={(e) => setSpelling(e.target.value)}
+        disabled={locked}
         placeholder="Type the word…"
         className={cn(
-          "w-full rounded-button border border-border-strong bg-surface-0 px-4 py-3 text-center text-2xl font-semibold tracking-wide outline-none",
+          "ui-focus-ring w-full rounded-control border border-border-strong bg-surface-0 px-4 py-3 text-center text-2xl font-semibold",
           "focus:border-accent",
+          "disabled:cursor-not-allowed disabled:opacity-60",
         )}
       />
 
@@ -98,7 +105,7 @@ export function AudioRecallCard({
             </button>
           )
         ) : null}
-        <Button type="submit" variant="primary" size="lg" disabled={!spelling.trim()}>
+        <Button type="submit" variant="primary" size="lg" disabled={locked || !spelling.trim()}>
           Check
         </Button>
       </div>

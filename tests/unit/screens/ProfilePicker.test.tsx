@@ -76,14 +76,18 @@ describe("StudentProfilePicker", () => {
 
     renderPicker();
 
-    await screen.findByText(/Ready to practise/i);
-    fireEvent.click(screen.getByRole("button", { name: /Alice/i }));
+    expect(
+      await screen.findByText(/Choose a profile to open its learning path/i),
+    ).toBeInTheDocument();
+    const profile = await screen.findByRole("button", { name: /Alice.*Open learning path/i });
+    expect(profile).toHaveAttribute("data-state", "ready");
+    fireEvent.click(profile);
 
     await waitFor(() => expect(screen.getByText("Unlocked profile")).toBeInTheDocument());
     expect(isStudentUnlocked(1)).toBe(true);
   });
 
-  it("requires the student password for protected profiles", async () => {
+  it("requires the student PIN for protected profiles", async () => {
     vi.spyOn(window.api.students, "hasPin").mockResolvedValue(true);
     vi.spyOn(window.api.students, "verifyPin")
       .mockResolvedValueOnce({ ok: false, reason: "invalid" })
@@ -91,10 +95,12 @@ describe("StudentProfilePicker", () => {
 
     renderPicker();
 
-    await screen.findByText(/Password required/i);
-    fireEvent.click(screen.getByRole("button", { name: /Alice/i }));
-    const dialog = await screen.findByRole("dialog", { name: "Alice" });
-    const input = within(dialog).getByLabelText(/Alice password/i);
+    await screen.findByText(/PIN required/i);
+    const profile = screen.getByRole("button", { name: /Alice/i });
+    expect(profile).toHaveAttribute("data-state", "locked");
+    fireEvent.click(profile);
+    const dialog = await screen.findByRole("dialog", { name: "Unlock Alice" });
+    const input = within(dialog).getByLabelText(/Alice PIN/i);
 
     fireEvent.change(input, { target: { value: "0000" } });
     fireEvent.click(within(dialog).getByRole("button", { name: /unlock/i }));

@@ -9,12 +9,11 @@ import {
   filterVocabEntriesBySections,
   vocabStudySections,
 } from "@/modules/studySections";
-import { Badge } from "@/ui/components/Badge";
-import { BentoCard } from "@/ui/components/BentoCard";
+import { AppGlyph } from "@/ui/components/AppGlyph";
+import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { LessonIcon } from "@/ui/components/LearningIcons";
 import { PressButton } from "@/ui/student/components/PressButton";
-import { Mascot } from "@/ui/student/mascot";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
@@ -107,48 +106,48 @@ export function StudentUnitStudy() {
     return <p className="px-6 py-10 text-sm text-muted">Loading unit…</p>;
   }
 
+  if (unitQ.isError || lessonsQ.isError) {
+    return (
+      <section role="alert" className="mx-auto max-w-md px-6 py-10 text-center">
+        <h1 className="text-base font-semibold text-app">This unit is temporarily unavailable</h1>
+        <p className="mt-2 text-sm leading-6 text-muted">
+          The learning path is still safe. Try loading this unit again.
+        </p>
+        <Button
+          className="mt-4"
+          onClick={() => {
+            void unitQ.refetch();
+            void lessonsQ.refetch();
+          }}
+        >
+          Retry
+        </Button>
+      </section>
+    );
+  }
+
   const unit = unitQ.data;
 
-  return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-8 py-10">
-      <Link
-        to="/student/profile/$studentId"
-        params={{ studentId: String(studentIdNum) }}
-        className="self-start text-xs font-medium text-muted hover:text-app"
-      >
-        Back to units
-      </Link>
+  if (!unit) {
+    return (
+      <EmptyState
+        title="Unit not found"
+        body="It may have been removed or is no longer assigned to this learning path."
+      />
+    );
+  }
 
-      <BentoCard
-        tone="focus"
-        className="grid gap-5 p-6 lg:grid-cols-[1.2fr_auto_auto] lg:items-center"
-      >
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge tone="focus" uppercase>
-              {unit?.code ?? "Unit"}
-            </Badge>
-            <Badge tone="muted" uppercase>
-              Study plan
-            </Badge>
-          </div>
-          <h1 className="mt-3 text-3xl font-semibold leading-tight">
-            {unit?.title ?? "Unknown unit"}
-          </h1>
-          {unit?.summaryMd ? (
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">{unit.summaryMd}</p>
-          ) : null}
-        </div>
-        <Mascot
-          variant="focus"
-          studentId={studentIdNum}
-          className="hidden h-24 w-24 shrink-0 lg:block"
-        />
-        <div className="rounded-bento border border-border-subtle bg-surface-0/70 p-4">
-          <p className="text-xs font-semibold uppercase text-muted-2">Selected cards</p>
-          <p className="mt-1 font-mono text-3xl text-app">{selectedEntries.length}</p>
-        </div>
-      </BentoCard>
+  return (
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-7">
+      <header className="max-w-3xl pb-1">
+        <p className="text-xs font-medium text-accent">{unit?.code ?? "Unit"}</p>
+        <h1 className="mt-1.5 text-[24px] font-semibold leading-tight tracking-[-0.025em]">
+          {unit?.title ?? "Unknown unit"}
+        </h1>
+        {unit?.summaryMd ? (
+          <p className="mt-2 text-sm leading-6 text-muted">{unit.summaryMd}</p>
+        ) : null}
+      </header>
 
       {lessons.length === 0 ? (
         <EmptyState
@@ -158,50 +157,40 @@ export function StudentUnitStudy() {
       ) : null}
 
       {vocabLesson ? (
-        <BentoCard className="flex flex-col gap-5 p-6">
-          <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <Badge tone="xp" uppercase>
-                Vocabulary
-              </Badge>
-              <h2 className="mt-2 text-2xl font-semibold">{vocabLesson.title}</h2>
-              <p className="mt-1 text-sm text-muted">
-                Pick one or more sections. Practice will only use matching cards.
-              </p>
-            </div>
-            <div className="flex flex-col gap-3 sm:min-w-56 sm:items-end">
-              <label className="flex w-full items-start gap-3 rounded-bento border border-border-subtle bg-surface-1 px-3 py-2 sm:max-w-64">
-                <input
-                  type="checkbox"
-                  className="mt-1 h-4 w-4 accent-accent"
-                  checked={effectiveSkipSpeaking}
-                  disabled={tutorExcludesSpeaking || excludeSpeakingQ.isLoading}
-                  onChange={(event) => setSkipSpeaking(event.currentTarget.checked)}
-                />
-                <span className="min-w-0">
-                  <span className="block text-sm font-semibold text-app">Skip speaking</span>
-                  <span className="block text-xs leading-5 text-muted">
-                    {tutorExcludesSpeaking
-                      ? "Tutor setting excludes pronunciation cards."
-                      : "Review with written and listening cards."}
-                  </span>
-                </span>
-              </label>
-              <PressButton size="md" onClick={startVocab} disabled={selectedEntries.length === 0}>
-                Start {selectedEntries.length} cards
-              </PressButton>
-            </div>
+        <section data-testid="vocabulary-study-object" className="ui-group bg-surface-1">
+          <header className="relative overflow-hidden border-b border-border-subtle px-5 py-4 pl-6">
+            <span
+              aria-hidden
+              className="absolute inset-y-4 left-0 w-[3px] rounded-r-sm bg-accent"
+            />
+            <h2 className="text-[17px] font-semibold tracking-[-0.012em]">{vocabLesson.title}</h2>
+            <p className="mt-1 text-[13px] leading-5 text-muted">
+              Choose the sections you want in this practice round.
+            </p>
           </header>
 
           {entriesQ.isLoading ? (
-            <p className="text-sm text-muted">Loading sections…</p>
+            <p className="px-5 py-6 text-sm text-muted">Loading sections…</p>
+          ) : entriesQ.isError ? (
+            <div role="alert" className="px-5 py-6">
+              <p className="text-sm font-medium text-app">Vocabulary cards are unavailable</p>
+              <p className="mt-1 text-xs text-muted">Try loading this section again.</p>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="mt-3"
+                onClick={() => entriesQ.refetch()}
+              >
+                Retry
+              </Button>
+            </div>
           ) : availableSections.length === 0 ? (
             <EmptyState
               title="No vocabulary cards"
               body="This vocabulary lesson has no imported entries yet."
             />
           ) : (
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            <div data-testid="vocabulary-section-list">
               {availableSections.map((section) => {
                 const active = selected.includes(section.id);
                 return (
@@ -211,53 +200,104 @@ export function StudentUnitStudy() {
                     aria-pressed={active}
                     onClick={() => toggleSection(section.id)}
                     className={cn(
-                      "motion-card rounded-bento border p-4 text-left transition-[background-color,border-color,box-shadow,transform]",
-                      active
-                        ? "border-accent/50 bg-accent/10 shadow-glow"
-                        : "border-border-subtle bg-surface-1 hover:-translate-y-1 hover:border-border-strong hover:bg-surface-2",
+                      "ui-focus-ring flex min-h-14 w-full items-center gap-3 border-b border-border-subtle px-5 py-3 text-left outline-offset-[-2px] transition-colors last:border-b-0",
+                      active ? "bg-accent/[0.07]" : "bg-surface-1 hover:bg-surface-2/70",
                     )}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <Badge tone={section.tone} uppercase>
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "grid h-4 w-4 shrink-0 place-items-center rounded-sm border text-[10px]",
+                        active
+                          ? "border-accent bg-accent text-accent-fg"
+                          : "border-border-strong bg-surface-1",
+                      )}
+                    >
+                      {active ? "✓" : null}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[13px] font-medium text-app">
                         {section.label}
-                      </Badge>
-                      <span className="font-mono text-sm text-muted">
-                        {sectionCounts[section.id]}
                       </span>
-                    </div>
-                    <p className="mt-3 text-sm leading-6 text-muted">{section.description}</p>
+                      <span className="mt-0.5 block text-xs leading-4 text-muted">
+                        {section.description}
+                      </span>
+                    </span>
+                    <span data-tabular className="shrink-0 text-xs text-muted">
+                      {sectionCounts[section.id]} cards
+                    </span>
                   </button>
                 );
               })}
             </div>
           )}
-        </BentoCard>
+
+          <footer
+            data-testid="vocabulary-study-actions"
+            className="flex flex-col gap-3 border-t border-border-subtle bg-surface-2/35 px-5 py-4 sm:flex-row sm:items-center"
+          >
+            <label className="flex min-w-0 items-start gap-2.5">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 shrink-0 accent-accent"
+                checked={effectiveSkipSpeaking}
+                disabled={tutorExcludesSpeaking || excludeSpeakingQ.isLoading}
+                onChange={(event) => setSkipSpeaking(event.currentTarget.checked)}
+              />
+              <span className="min-w-0">
+                <span className="block text-[13px] font-medium text-app">Skip speaking</span>
+                <span className="block text-xs leading-4 text-muted">
+                  {tutorExcludesSpeaking
+                    ? "Speaking is turned off by your tutor."
+                    : "Use written and listening exercises only."}
+                </span>
+              </span>
+            </label>
+            <div className="ml-auto flex items-center gap-3">
+              <span aria-live="polite" data-tabular className="text-xs text-muted">
+                {selectedEntries.length} {selectedEntries.length === 1 ? "card" : "cards"} selected
+              </span>
+              <PressButton size="md" onClick={startVocab} disabled={selectedEntries.length === 0}>
+                Start {selectedEntries.length} {selectedEntries.length === 1 ? "card" : "cards"}
+              </PressButton>
+            </div>
+          </footer>
+        </section>
       ) : null}
 
       {grammarLessons.length > 0 ? (
-        <section className="grid gap-4 lg:grid-cols-2">
-          {grammarLessons.map((lesson) => (
-            <Link
-              key={lesson.id}
-              to="/student/profile/$studentId/session/$lessonId"
-              params={{ studentId: String(studentIdNum), lessonId: String(lesson.id) }}
-              className="motion-card group rounded-bento border border-focus/30 bg-focus/10 p-5 shadow-card transition hover:-translate-y-1 hover:border-focus/50 hover:shadow-lift"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <Badge tone="focus" uppercase>
-                  Grammar
-                </Badge>
-                <LessonIcon className="h-8 w-8 text-focus" />
-              </div>
-              <h2 className="mt-4 text-xl font-semibold">{lesson.title}</h2>
-              <p className="mt-1 text-sm leading-6 text-muted">
-                Review the rule overview, then complete the interactive practice set.
-              </p>
-              <span className="mt-4 inline-flex text-xs font-semibold text-focus group-hover:text-app">
-                Start grammar
-              </span>
-            </Link>
-          ))}
+        <section aria-labelledby="grammar-practice-title">
+          <h2 id="grammar-practice-title" className="mb-3 text-[15px] font-semibold">
+            Grammar practice
+          </h2>
+          <div className="ui-group bg-surface-1">
+            {grammarLessons.map((lesson) => (
+              <Link
+                key={lesson.id}
+                to="/student/profile/$studentId/session/$lessonId"
+                params={{ studentId: String(studentIdNum), lessonId: String(lesson.id) }}
+                className="ui-focus-ring group relative grid min-h-24 gap-4 overflow-hidden border-b border-border-subtle px-5 py-4 pl-6 outline-offset-[-2px] transition-colors last:border-b-0 hover:bg-surface-2/65 active:bg-surface-3/60 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+              >
+                <span
+                  aria-hidden
+                  className="absolute inset-y-4 left-0 w-[3px] rounded-r-sm bg-accent"
+                />
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <LessonIcon className="h-[18px] w-[18px] text-accent" />
+                    <h3 className="truncate text-[15px] font-semibold">{lesson.title}</h3>
+                  </div>
+                  <p className="mt-1.5 text-[13px] leading-5 text-muted">
+                    Review the rule, then apply it in a focused practice set.
+                  </p>
+                </div>
+                <span className="inline-flex items-center gap-2 text-xs font-medium text-accent group-hover:text-app">
+                  Start grammar
+                  <AppGlyph name="arrowRight" className="h-4 w-4" />
+                </span>
+              </Link>
+            ))}
+          </div>
         </section>
       ) : null}
     </div>

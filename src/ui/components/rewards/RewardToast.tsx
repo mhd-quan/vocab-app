@@ -56,9 +56,7 @@ export function RewardToast({
   if (typeof document === "undefined") return null;
 
   const palette =
-    tone === "streak"
-      ? "border-warning/40 bg-warning/10 text-warning"
-      : "border-success/40 bg-success/10 text-success";
+    tone === "streak" ? "border-warning/45 text-warning" : "border-success/45 text-success";
 
   return createPortal(
     <div
@@ -66,16 +64,17 @@ export function RewardToast({
       aria-live="polite"
       data-testid={`reward-toast-${id}`}
       className={cn(
-        "pointer-events-none fixed left-1/2 top-6 z-50 -translate-x-1/2 transition-all duration-200",
+        "pointer-events-none fixed left-1/2 top-[calc(var(--size-toolbar)+0.75rem)] z-50 -translate-x-1/2 transition-all duration-200 motion-reduce:translate-y-0 motion-reduce:transition-none",
         visible ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0",
       )}
     >
       <div
         className={cn(
-          "pointer-events-auto flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-lg shadow-black/20 backdrop-blur",
+          "popover-material pointer-events-auto relative flex items-center gap-3 overflow-hidden rounded-overlay border py-3 pl-5 pr-4 shadow-lift",
           palette,
         )}
       >
+        <span aria-hidden className="absolute inset-y-2 left-0 w-[3px] rounded-r-sm bg-current" />
         {icon ? <span className="grid h-8 w-8 place-items-center">{icon}</span> : null}
         <div className="flex flex-col leading-tight">
           <span className="text-xs font-semibold text-app">{title}</span>

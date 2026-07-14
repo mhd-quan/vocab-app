@@ -43,6 +43,18 @@ describe("Heatmap", () => {
     expect(screen.getByText(/2026-05-10 · 2 practice reps/i)).toBeInTheDocument();
   });
 
+  it("keeps heatmap interaction in place instead of scaling cells", () => {
+    const cells = bucketByDay({
+      eventTimestamps: [new Date(2026, 4, 10)],
+      now: new Date(2026, 4, 10),
+      days: 1,
+    });
+    render(<Heatmap cells={cells} />);
+    const cell = screen.getByRole("button", { name: /2026-05-10/i });
+    expect(cell.className).not.toContain("scale-");
+    expect(cell.className).toContain("bg-iris/");
+  });
+
   it("uses roomy mode to surface activity summary stats", () => {
     const cells = bucketByDay({
       eventTimestamps: [new Date(2026, 4, 8), new Date(2026, 4, 10), new Date(2026, 4, 10)],
@@ -55,5 +67,20 @@ describe("Heatmap", () => {
     expect(screen.getByText("Best day")).toBeInTheDocument();
     expect(screen.getByText("Last active")).toBeInTheDocument();
     expect(screen.getByText("05/10")).toBeInTheDocument();
+  });
+
+  it("uses one keyboard stop and arrow navigation across the activity grid", () => {
+    const cells = bucketByDay({
+      eventTimestamps: [new Date(2026, 4, 9), new Date(2026, 4, 10)],
+      now: new Date(2026, 4, 10),
+      days: 2,
+    });
+    render(<Heatmap cells={cells} title="Activity" />);
+    const buttons = screen.getAllByRole("button");
+    expect(buttons.filter((button) => button.tabIndex === 0)).toHaveLength(1);
+    const active = buttons.find((button) => button.tabIndex === 0);
+    fireEvent.focus(active as HTMLButtonElement);
+    fireEvent.keyDown(active as HTMLButtonElement, { key: "ArrowUp" });
+    expect(buttons[0]).toHaveFocus();
   });
 });

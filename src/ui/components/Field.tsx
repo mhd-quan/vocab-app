@@ -24,13 +24,13 @@ export interface FieldProps {
  */
 export function Field({ label, hint, error, htmlFor, children }: FieldProps) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-1">
       {htmlFor ? (
-        <label htmlFor={htmlFor} className="text-xs font-semibold uppercase text-muted">
+        <label htmlFor={htmlFor} className="text-xs font-medium text-muted">
           {label}
         </label>
       ) : (
-        <span className="text-xs font-semibold uppercase text-muted">{label}</span>
+        <span className="text-xs font-medium text-muted">{label}</span>
       )}
       {children}
       {error ? (
@@ -45,13 +45,13 @@ export function Field({ label, hint, error, htmlFor, children }: FieldProps) {
 }
 
 const inputBase =
-  "w-full rounded-xl border bg-surface-0 px-3 py-2 text-sm text-app placeholder:text-muted-2 " +
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-1";
+  "ui-focus-ring h-[var(--size-control-md)] w-full rounded-control border bg-paper px-2.5 text-[13px] text-app placeholder:text-muted-2 " +
+  "transition-[background-color,border-color]";
 
 const inputTone = (invalid: boolean | undefined) =>
   invalid
     ? "border-danger/60 focus-visible:ring-danger/50"
-    : "border-border-subtle focus-visible:border-accent focus-visible:ring-accent/40";
+    : "border-border-subtle focus-visible:border-accent";
 
 export interface TextInputProps extends InputHTMLAttributes<HTMLInputElement> {
   invalid?: boolean;
@@ -83,7 +83,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
     <textarea
       ref={ref}
       rows={rows}
-      className={cn(inputBase, "resize-y", inputTone(invalid), className)}
+      className={cn(inputBase, "h-auto min-h-24 resize-y py-2", inputTone(invalid), className)}
       {...props}
     />
   );

@@ -1,7 +1,6 @@
 import { cn } from "@/lib/cn";
 import type { GradeOutcome, MultipleChoiceExercise } from "@/modules/exercises";
 import { AppGlyph } from "@/ui/components/AppGlyph";
-import { Badge } from "@/ui/components/Badge";
 import { VocabularyPronunciation } from "@/ui/components/VocabularyPronunciation";
 import { useEffect, useState } from "react";
 
@@ -55,18 +54,18 @@ export function MultipleChoiceCard({
   return (
     <article
       data-exercise-kind="multiple_choice"
-      className="flex flex-col gap-7 rounded-bento border border-border-subtle bg-surface-1 p-8 shadow-card dark:shadow-card-dark"
+      className="object-surface flex flex-col gap-6 bg-surface-1 p-6 sm:p-7"
     >
       <header className="flex items-center justify-between">
-        <Badge tone="rare" uppercase>
+        <span className="learning-trace-label text-xs font-semibold text-accent">
           Multiple choice
-        </Badge>
-        <span className="text-xs font-semibold uppercase text-muted-2">
+        </span>
+        <span className="text-xs font-semibold text-muted-2">
           {locked ? (outcome.correct ? "Correct" : "Review") : "Pick the headword"}
         </span>
       </header>
 
-      <p className="text-balance text-2xl font-semibold leading-relaxed text-app">
+      <p className="ui-lexical text-balance text-2xl font-semibold leading-relaxed text-app">
         {exercise.payload.prompt}
       </p>
       {correctOption ? (
@@ -84,6 +83,13 @@ export function MultipleChoiceCard({
         {exercise.payload.options.map((option, idx) => {
           const isPicked = picked === idx;
           const tone = optionTone({ option, locked, isPicked });
+          const answerState = locked
+            ? option.correct
+              ? "Correct answer"
+              : isPicked
+                ? "Your answer, incorrect"
+                : null
+            : null;
           return (
             <li key={`${idx}-${option.text}`}>
               <button
@@ -95,21 +101,17 @@ export function MultipleChoiceCard({
                   onAnswer(idx);
                 }}
                 aria-pressed={isPicked}
-                aria-label={`Option ${idx + 1}: ${option.text}`}
+                aria-label={`Option ${idx + 1}: ${option.text}${answerState ? `. ${answerState}` : ""}`}
                 className={cn(
-                  // Duolingo-style answer chip: 2px border, large radius
-                  // from student tokens, press-bounce shadow stack
-                  // collapses on tap. Disabled when answer locked.
-                  "flex min-h-16 w-full items-center gap-3 rounded-button border-2 px-5 py-4 text-left text-base transition-[background-color,border-color,color,box-shadow,transform]",
-                  !locked && "press-bounce hover:translate-y-0 active:translate-y-[3px]",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-1",
+                  "ui-focus-ring flex min-h-14 w-full items-center gap-3 rounded-control border px-4 py-3 text-left text-[15px] transition-[background-color,border-color,color,box-shadow]",
                   tone,
                 )}
               >
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-border-subtle font-mono text-xs text-muted-2">
+                <span className="tabular-figure grid h-7 w-7 shrink-0 place-items-center rounded-full border border-border-subtle text-xs text-muted-2">
                   {idx + 1}
                 </span>
                 <span className="flex-1 font-medium">{option.text}</span>
+                {answerState ? <span className="sr-only">{answerState}</span> : null}
                 {locked && option.correct ? (
                   <AppGlyph name="check" className="h-5 w-5 text-success" />
                 ) : null}
@@ -136,7 +138,7 @@ function optionTone({
 }): string {
   if (!locked) {
     return isPicked
-      ? "border-accent bg-accent/10 text-app shadow-[0_0_0_4px_rgb(var(--color-accent)/0.12)]"
+      ? "border-accent bg-accent/10 text-app ring-2 ring-accent/15"
       : "border-border-subtle bg-surface-0/50 text-app hover:border-border-strong hover:bg-surface-2";
   }
   if (option.correct) return "answer-correct border-success/60 bg-success/10 text-success";

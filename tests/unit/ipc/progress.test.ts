@@ -225,6 +225,74 @@ describe("progress.* procedures", () => {
     expect(cells.reduce((sum, c) => sum + c.count, 0)).toBe(1);
   });
 
+  it("cohortActivity counts answer events from active students and zero-fills days", async () => {
+    const { lesson } = seedCurriculum(db);
+    const seeded = seedEntry(ctx.repos, lesson.id);
+    const alice = ctx.repos.students.create({ name: "Alice" });
+    const archived = ctx.repos.students.create({ name: "Archived" });
+    const cara = ctx.repos.students.create({ name: "Cara" });
+    const aliceSession = ctx.repos.progress.startSession({ studentId: alice.id, mode: "mixed" });
+    const archivedSession = ctx.repos.progress.startSession({
+      studentId: archived.id,
+      mode: "mixed",
+    });
+    const caraSession = ctx.repos.progress.startSession({ studentId: cara.id, mode: "mixed" });
+
+    ctx.repos.progress.recordAnswer({
+      studentId: alice.id,
+      sessionId: aliceSession.id,
+      entryId: seeded.entryId,
+      outcome: correctOutcome,
+      now: new Date(2026, 0, 2, 8),
+    });
+    ctx.repos.progress.recordAnswer({
+      studentId: alice.id,
+      sessionId: aliceSession.id,
+      entryId: seeded.entryId,
+      outcome: { correct: false, feedback: "again", selfGrade: "again", selectedIndex: null },
+      now: new Date(2026, 0, 2, 9),
+    });
+    ctx.repos.progress.recordAnswer({
+      studentId: archived.id,
+      sessionId: archivedSession.id,
+      entryId: seeded.entryId,
+      outcome: correctOutcome,
+      now: new Date(2026, 0, 2, 10),
+    });
+    ctx.repos.students.archive(archived.id);
+    ctx.repos.progress.recordAnswer({
+      studentId: cara.id,
+      sessionId: caraSession.id,
+      entryId: seeded.entryId,
+      outcome: correctOutcome,
+      now: new Date(2026, 0, 3, 8),
+    });
+
+    const cells = await call<
+      Array<{ answerCount: number; correctCount: number; activeStudentCount: number }>
+    >(
+      "progress.cohortActivity",
+      {
+        sinceIso: new Date(2026, 0, 1, 0, 0, 0).toISOString(),
+        untilIso: new Date(2026, 0, 3, 23, 59, 59).toISOString(),
+      },
+      ctx,
+    );
+
+    expect(cells).toHaveLength(3);
+    expect(
+      cells.map(({ answerCount, correctCount, activeStudentCount }) => ({
+        answerCount,
+        correctCount,
+        activeStudentCount,
+      })),
+    ).toEqual([
+      { answerCount: 0, correctCount: 0, activeStudentCount: 0 },
+      { answerCount: 2, correctCount: 1, activeStudentCount: 1 },
+      { answerCount: 1, correctCount: 1, activeStudentCount: 1 },
+    ]);
+  });
+
   it("recentSessions returns sessions newest-first with totals", async () => {
     const { lesson } = seedCurriculum(db);
     const seeded = seedEntry(ctx.repos, lesson.id);
@@ -249,12 +317,11 @@ describe("progress.* procedures", () => {
     const alice = ctx.repos.students.create({ name: "Alice" });
     const bob = ctx.repos.students.create({ name: "Bob" });
     ctx.repos.students.archive(bob.id);
-    const rows = await call<Array<{ student: { id: number }; totalSeen: number }>>(
-      "progress.tutorOverview",
-      {},
-      ctx,
-    );
+    const rows = await call<
+      Array<{ student: { id: number }; totalSeen: number; totalAttempts: number }>
+    >("progress.tutorOverview", {}, ctx);
     expect(rows.map((r) => r.student.id)).toEqual([alice.id]);
+    expect(rows[0]?.totalAttempts).toBe(0);
   });
 
   it("Zod rejects malformed input shapes", () => {

@@ -17,7 +17,6 @@
  */
 import { cn } from "@/lib/cn";
 import type { DefinitionMatchExercise, GradeOutcome } from "@/modules/exercises";
-import { Badge } from "@/ui/components/Badge";
 import { Button } from "@/ui/components/Button";
 import { useMemo, useState } from "react";
 
@@ -102,11 +101,11 @@ export function DefinitionMatchCard({ exercise, onAnswer, outcome }: DefinitionM
   const allFilled = items.every((it) => assignments[it.pairId]);
 
   return (
-    <section className="motion-enter mx-auto flex max-w-4xl flex-col gap-5 rounded-bento border border-border-subtle bg-surface-1 p-6 shadow-card">
+    <section className="object-surface motion-enter mx-auto flex max-w-4xl flex-col gap-5 bg-surface-1 p-6">
       <header className="flex flex-col items-center gap-3 text-center">
-        <Badge tone="accent" uppercase>
+        <span className="learning-trace-label text-xs font-semibold text-accent">
           Match definitions
-        </Badge>
+        </span>
         <p className="text-sm text-muted">
           {locked
             ? outcome.correct
@@ -126,10 +125,11 @@ export function DefinitionMatchCard({ exercise, onAnswer, outcome }: DefinitionM
               type="button"
               onClick={() => selectHeadword(headword)}
               disabled={locked}
+              aria-pressed={isSelected}
               className={cn(
-                "press-bounce rounded-chip px-4 py-2 text-base font-semibold transition disabled:cursor-default",
+                "rounded-chip border px-4 py-2 text-base font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-focus/40 disabled:cursor-default",
                 isSelected
-                  ? "border-2 border-accent bg-accent text-accent-fg shadow-press-active"
+                  ? "border-accent bg-accent text-accent-fg"
                   : inUse
                     ? "border border-border-subtle bg-surface-2 text-muted line-through"
                     : "border border-border-strong bg-surface-1 hover:border-accent",
@@ -154,19 +154,19 @@ export function DefinitionMatchCard({ exercise, onAnswer, outcome }: DefinitionM
               onClick={() => dropOnSlot(item.pairId)}
               disabled={locked}
               className={cn(
-                "flex min-h-40 w-full flex-col items-start gap-2 rounded-bento border-2 border-dashed bg-surface-2 px-4 py-3 text-left transition disabled:cursor-default",
+                "ui-focus-ring flex min-h-36 w-full flex-col items-start gap-2 rounded-control border bg-surface-2 px-4 py-3 text-left transition-colors disabled:cursor-default",
                 !locked && assigned ? "border-accent" : "border-border-strong",
                 !selectedHeadword && !assigned && "opacity-90",
                 isCorrect && "answer-correct border-success/70 bg-success/10",
                 isWrong && "answer-wrong border-danger/70 bg-danger/10",
               )}
             >
-              <span className="flex w-full items-center justify-between gap-2 text-xs uppercase tracking-wide text-muted">
+              <span className="flex w-full items-center justify-between gap-2 text-xs text-muted">
                 <span>Definition</span>
                 {isCorrect ? <span className="text-success">Correct</span> : null}
                 {isWrong ? <span className="text-danger">Review</span> : null}
               </span>
-              <span className="text-sm">{item.definition}</span>
+              <span className="ui-lexical text-sm leading-6">{item.definition}</span>
               <span
                 className={cn(
                   "mt-1 text-base font-semibold",

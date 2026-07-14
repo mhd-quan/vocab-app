@@ -4,10 +4,10 @@ import { queryClient, queryKeys } from "@/lib/queryClient";
 import { AppGlyph } from "@/ui/components/AppGlyph";
 import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
-import { BentoCard } from "@/ui/components/BentoCard";
 import { Button } from "@/ui/components/Button";
-import { Field, TextInput } from "@/ui/components/Field";
+import { Field, TextInput, useFieldId } from "@/ui/components/Field";
 import { PinInput } from "@/ui/components/PinInput";
+import { PROFILE_COLORS } from "@/ui/design/profileColors";
 import {
   MASCOTS,
   type MascotId,
@@ -17,66 +17,17 @@ import {
   mascotSettingKey,
 } from "@/ui/student/mascot";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Link, useParams } from "@tanstack/react-router";
-import { type FormEvent, useState } from "react";
+import { useParams } from "@tanstack/react-router";
+import { type FormEvent, type ReactNode, useState } from "react";
 
-const COLORS = [
-  "#38bdf8",
-  "#22c55e",
-  "#f59e0b",
-  "#ef4444",
-  "#ec4899",
-  "#8b5cf6",
-  "#14b8a6",
-  "#f97316",
-  "#84cc16",
-  "#64748b",
-];
 const BG_PRESETS = [
-  { id: "none", label: "Clean light", value: "" },
-  { id: "sunrise", label: "Sunrise", value: "linear-gradient(135deg,#fff7ed,#fef3c7 45%,#ecfeff)" },
-  {
-    id: "mint",
-    label: "Mint field",
-    value:
-      "radial-gradient(circle at 20% 20%,#bbf7d0,transparent 35%),linear-gradient(135deg,#f0fdf4,#e0f2fe)",
-  },
-  {
-    id: "paper",
-    label: "Paper dots",
-    value: "radial-gradient(#cbd5e1 1px,transparent 1px),#f8fafc",
-  },
-  { id: "peach", label: "Peach pop", value: "linear-gradient(160deg,#ffedd5,#fce7f3 55%,#e0f2fe)" },
-  {
-    id: "ocean",
-    label: "Ocean glass",
-    value:
-      "radial-gradient(circle at 18% 18%,#bae6fd,transparent 33%),radial-gradient(circle at 82% 28%,#99f6e4,transparent 30%),linear-gradient(135deg,#f8fafc,#dbeafe 48%,#cffafe)",
-  },
-  {
-    id: "cosmic",
-    label: "Cosmic study",
-    value:
-      "radial-gradient(circle at 20% 22%,#c4b5fd 0 9%,transparent 10%),radial-gradient(circle at 78% 18%,#f0abfc 0 7%,transparent 8%),linear-gradient(135deg,#f8fafc,#e0e7ff 45%,#fdf2f8)",
-  },
-  {
-    id: "notebook",
-    label: "Notebook grid",
-    value:
-      "repeating-linear-gradient(0deg,#dbeafe 0 1px,transparent 1px 28px),repeating-linear-gradient(90deg,#dbeafe 0 1px,transparent 1px 28px),#f8fafc",
-  },
-  {
-    id: "forest",
-    label: "Forest calm",
-    value:
-      "radial-gradient(circle at 18% 20%,#bbf7d0,transparent 34%),linear-gradient(145deg,#f7fee7,#dcfce7 48%,#e0f2fe)",
-  },
-  {
-    id: "arcade",
-    label: "Arcade lights",
-    value:
-      "radial-gradient(circle at 18% 22%,#fef08a 0 9%,transparent 10%),radial-gradient(circle at 78% 24%,#f9a8d4 0 8%,transparent 9%),linear-gradient(135deg,#eef2ff,#cffafe 55%,#fae8ff)",
-  },
+  { id: "none", label: "Paper", value: "" },
+  { id: "parchment", label: "Parchment", value: "#eee9df" },
+  { id: "sage", label: "Sage", value: "#e2e9e1" },
+  { id: "sky", label: "Mist", value: "#e3ebef" },
+  { id: "lavender", label: "Lavender", value: "#e9e5ed" },
+  { id: "clay", label: "Clay", value: "#eee1dc" },
+  { id: "slate", label: "Slate", value: "#e5e7e8" },
 ];
 const BACKGROUND_MAX_EDGE = 1920;
 const BACKGROUND_INLINE_LIMIT_BYTES = 1_500_000;
@@ -110,16 +61,18 @@ export function StudentSettings() {
     queryFn: () => api.students.hasPin({ studentId: id }),
     enabled: Number.isFinite(id) && id > 0,
   });
-  const [nickname, setNickname] = useState("");
+  const [nickname, setNickname] = useState<string | null>(null);
   const [backgroundSize, setBackgroundSize] = useState<BackgroundSizeMode>("cover");
+  const nicknameId = useFieldId("student-nickname");
   const student = studentQ.data;
-  const display = nickname || student?.displayName || student?.name || "";
+  const display = nickname ?? student?.displayName ?? student?.name ?? "";
   const saveStudent = useMutation({
     mutationFn: (patch: { displayName?: string | null; color?: string | null }) =>
       api.students.update({ id, patch }),
-    onSuccess: (updated) => {
+    onSuccess: (updated, patch) => {
       queryClient.setQueryData(queryKeys.students.byId(id), updated);
       queryClient.invalidateQueries({ queryKey: ["students"] });
+      if (patch.displayName !== undefined) setNickname(null);
     },
   });
   const saveBg = useMutation({
@@ -129,84 +82,93 @@ export function StudentSettings() {
   });
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-8 py-10">
-      <Link
-        to="/student/profile/$studentId"
-        params={{ studentId: String(id) }}
-        className="self-start text-xs font-medium text-muted hover:text-app"
-      >
-        Back to lessons
-      </Link>
-      <BentoCard tone="focus" className="grid gap-5 p-6 sm:grid-cols-[auto_1fr] sm:items-center">
-        <Avatar name={display || "?"} avatarSeed={null} color={student?.color} size="lg" />
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 px-6 py-6">
+      <header className="flex items-center gap-3">
+        <Avatar
+          name={display || "?"}
+          avatarSeed={student?.avatarSeed ?? null}
+          color={student?.color}
+          size="md"
+        />
         <div>
-          <Badge tone="focus" uppercase>
-            Student settings
-          </Badge>
-          <h1 className="mt-2 font-display text-4xl font-semibold">Personal workspace</h1>
-          <p className="mt-1 text-sm text-muted">
-            Set your name, profile color, study background, and personal password.
-          </p>
+          <h1 className="text-title font-semibold">Profile settings</h1>
+          <p className="mt-0.5 text-sm text-muted">Identity, workspace, and profile access.</p>
         </div>
-      </BentoCard>
+      </header>
 
-      <section className="grid gap-5 lg:grid-cols-2">
-        <BentoCard className="p-5">
-          <h2 className="font-display text-2xl font-semibold">Nickname</h2>
-          <Field label="Nickname">
-            <TextInput
-              value={nickname || student?.displayName || ""}
-              onChange={(e) => setNickname(e.target.value)}
-              maxLength={80}
-            />
-          </Field>
-          <Button
-            className="mt-3"
-            onClick={() =>
-              saveStudent.mutate({
-                displayName: (nickname || student?.displayName || "").trim() || null,
-              })
-            }
-          >
-            Save nickname
-          </Button>
-        </BentoCard>
+      <div className="grouped-list divide-y divide-border-subtle">
+        <StudentSettingsSection title="Nickname">
+          <div className="flex max-w-xl items-end gap-2">
+            <div className="min-w-0 flex-1">
+              <Field label="Nickname" htmlFor={nicknameId}>
+                <TextInput
+                  id={nicknameId}
+                  value={nickname ?? student?.displayName ?? ""}
+                  onChange={(e) => setNickname(e.target.value)}
+                  maxLength={80}
+                />
+              </Field>
+            </div>
+            <Button
+              onClick={() =>
+                saveStudent.mutate({
+                  displayName: (nickname ?? student?.displayName ?? "").trim() || null,
+                })
+              }
+              disabled={saveStudent.isPending || nickname === null}
+            >
+              Save
+            </Button>
+          </div>
+        </StudentSettingsSection>
 
-        <BentoCard className="p-5">
-          <h2 className="font-display text-2xl font-semibold">Profile color</h2>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {COLORS.map((color) => (
+        <StudentSettingsSection title="Profile color">
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Profile color">
+            {PROFILE_COLORS.map((color) => (
               <button
-                key={color}
+                key={color.value}
                 type="button"
-                className="h-10 w-10 rounded-full border-2 border-white shadow-card"
-                style={{ backgroundColor: color }}
-                onClick={() => saveStudent.mutate({ color })}
-                aria-label={color}
+                className={cn(
+                  "ui-focus-ring h-9 w-9 rounded-full border-[3px] border-paper outline outline-1 transition-[outline-color]",
+                  student?.color === color.value
+                    ? "outline-2 outline-accent"
+                    : "outline-border-subtle hover:outline-border-strong",
+                )}
+                style={{ backgroundColor: color.value }}
+                onClick={() => saveStudent.mutate({ color: color.value })}
+                aria-label={color.name}
+                aria-pressed={student?.color === color.value}
               />
             ))}
           </div>
-        </BentoCard>
+        </StudentSettingsSection>
 
         <MascotCard studentId={id} />
 
         <PasswordCard studentId={id} hasPin={pinQ.data === true} />
 
-        <BentoCard className="p-5 lg:col-span-2">
-          <h2 className="font-display text-2xl font-semibold">Study background</h2>
+        <StudentSettingsSection title="Study background">
           <p className="mt-1 text-sm text-muted">
-            Student study screens default to light mode when a custom background is active.
+            Keep the reading surfaces clear while choosing the canvas around them.
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
             {BG_PRESETS.map((preset) => (
               <button
                 key={preset.id}
                 type="button"
-                className="h-24 rounded-2xl border border-border-subtle bg-surface-1 p-3 text-left text-sm font-semibold shadow-card transition hover:-translate-y-0.5 hover:border-accent/40"
-                style={{ background: preset.value || "#f8fafc" }}
+                aria-pressed={(bgQ.data ?? "") === preset.value}
+                className={cn(
+                  "ui-focus-ring h-20 rounded-object border bg-paper p-3 text-left text-xs font-semibold transition-colors",
+                  (bgQ.data ?? "") === preset.value
+                    ? "border-accent ring-1 ring-accent/20"
+                    : "border-border-subtle hover:border-border-strong",
+                )}
+                style={{ backgroundColor: preset.value || "rgb(var(--color-surface-1))" }}
                 onClick={() => saveBg.mutate(preset.value)}
               >
-                {preset.label}
+                <span className="inline-flex rounded-control border border-black/10 bg-[#fcfcfa]/90 px-2 py-1 text-[#222220]">
+                  {preset.label}
+                </span>
               </button>
             ))}
           </div>
@@ -217,7 +179,7 @@ export function StudentSettings() {
                 type="button"
                 aria-pressed={backgroundSize === option.value}
                 className={cn(
-                  "rounded-full border px-4 py-2 text-xs font-semibold transition-[background-color,border-color,color]",
+                  "ui-focus-ring rounded-control border px-3 py-2 text-xs font-medium transition-[background-color,border-color,color]",
                   backgroundSize === option.value
                     ? "border-accent bg-accent/10 text-app"
                     : "border-border-subtle bg-surface-1 text-muted hover:border-accent/40 hover:text-app",
@@ -228,7 +190,7 @@ export function StudentSettings() {
               </button>
             ))}
           </div>
-          <label className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-button border border-border-subtle px-4 py-2 text-sm font-semibold hover:bg-surface-2">
+          <label className="mt-4 inline-flex h-[var(--size-control-lg)] cursor-pointer items-center gap-2 rounded-control border border-border-subtle px-4 text-[13px] font-medium hover:bg-surface-2 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-focus">
             Upload background image
             <input
               type="file"
@@ -246,8 +208,8 @@ export function StudentSettings() {
               Reset background
             </Button>
           ) : null}
-        </BentoCard>
-      </section>
+        </StudentSettingsSection>
+      </div>
     </div>
   );
 }
@@ -258,15 +220,19 @@ function PasswordCard({ studentId, hasPin }: { studentId: number; hasPin: boolea
   const [confirmPin, setConfirmPin] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const currentPinId = useFieldId("student-current-pin");
+  const newPinId = useFieldId("student-new-pin");
+  const confirmPinId = useFieldId("student-confirm-pin");
+  const feedbackId = useFieldId("student-pin-feedback");
 
   const mutation = useMutation({
     mutationFn: async () => {
       if (newPin.length < MIN_PIN_LENGTH) {
-        throw new Error(`Password must be at least ${MIN_PIN_LENGTH} characters`);
+        throw new Error(`PIN must be at least ${MIN_PIN_LENGTH} characters`);
       }
-      if (newPin !== confirmPin) throw new Error("Passwords do not match");
+      if (newPin !== confirmPin) throw new Error("PINs do not match");
       if (hasPin) {
-        if (currentPin.length < MIN_PIN_LENGTH) throw new Error("Current password is required");
+        if (currentPin.length < MIN_PIN_LENGTH) throw new Error("Current PIN is required");
         return api.students.changePin({ studentId, currentPin, newPin });
       }
       return api.students.setupPin({ studentId, pin: newPin });
@@ -276,12 +242,12 @@ function PasswordCard({ studentId, hasPin }: { studentId: number; hasPin: boolea
       setNewPin("");
       setConfirmPin("");
       setError(null);
-      setMessage(hasPin ? "Password changed." : "Password enabled.");
+      setMessage(hasPin ? "PIN changed." : "PIN enabled.");
       queryClient.setQueryData(queryKeys.students.hasPin(studentId), true);
     },
     onError: (err) => {
       setMessage(null);
-      setError(err instanceof Error ? err.message : "Could not save password");
+      setError(err instanceof Error ? err.message : "Could not save PIN");
     },
   });
 
@@ -292,12 +258,12 @@ function PasswordCard({ studentId, hasPin }: { studentId: number; hasPin: boolea
       setNewPin("");
       setConfirmPin("");
       setError(null);
-      setMessage("Password removed.");
+      setMessage("PIN removed.");
       queryClient.setQueryData(queryKeys.students.hasPin(studentId), false);
     },
     onError: (err) => {
       setMessage(null);
-      setError(err instanceof Error ? err.message : "Could not remove password");
+      setError(err instanceof Error ? err.message : "Could not remove PIN");
     },
   });
 
@@ -307,42 +273,48 @@ function PasswordCard({ studentId, hasPin }: { studentId: number; hasPin: boolea
   }
 
   return (
-    <BentoCard className="p-5 lg:col-span-2">
+    <StudentSettingsSection title="Personal PIN">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="font-display text-2xl font-semibold">Personal password</h2>
           <p className="mt-1 text-sm text-muted">
             Protect this student profile when multiple learners share the same Windows laptop.
           </p>
         </div>
-        <Badge tone={hasPin ? "success" : "muted"} uppercase>
-          {hasPin ? "Enabled" : "Optional"}
-        </Badge>
+        <Badge tone={hasPin ? "success" : "muted"}>{hasPin ? "Enabled" : "Optional"}</Badge>
       </div>
       <form onSubmit={onSubmit} className="mt-4 grid gap-3 md:grid-cols-3">
         {hasPin ? (
-          <Field label="Current password">
+          <Field label="Current PIN" htmlFor={currentPinId}>
             <PinInput
+              id={currentPinId}
               density="compact"
               value={currentPin}
               maxLength={MAX_PIN_LENGTH}
+              aria-describedby={error || message ? feedbackId : undefined}
+              aria-invalid={Boolean(error)}
               onChange={(e) => setCurrentPin(e.target.value.slice(0, MAX_PIN_LENGTH))}
             />
           </Field>
         ) : null}
-        <Field label={hasPin ? "New password" : "Password"}>
+        <Field label={hasPin ? "New PIN" : "PIN"} htmlFor={newPinId}>
           <PinInput
+            id={newPinId}
             density="compact"
             value={newPin}
             maxLength={MAX_PIN_LENGTH}
+            aria-describedby={error || message ? feedbackId : undefined}
+            aria-invalid={Boolean(error)}
             onChange={(e) => setNewPin(e.target.value.slice(0, MAX_PIN_LENGTH))}
           />
         </Field>
-        <Field label="Confirm password">
+        <Field label="Confirm PIN" htmlFor={confirmPinId}>
           <PinInput
+            id={confirmPinId}
             density="compact"
             value={confirmPin}
             maxLength={MAX_PIN_LENGTH}
+            aria-describedby={error || message ? feedbackId : undefined}
+            aria-invalid={Boolean(error)}
             onChange={(e) => setConfirmPin(e.target.value.slice(0, MAX_PIN_LENGTH))}
           />
         </Field>
@@ -363,16 +335,21 @@ function PasswordCard({ studentId, hasPin }: { studentId: number; hasPin: boolea
           ) : null}
         </div>
       </form>
-      {message ? <p className="mt-3 text-sm text-success">{message}</p> : null}
+      {message ? (
+        <p id={feedbackId} role="status" className="mt-3 text-sm text-success">
+          {message}
+        </p>
+      ) : null}
       {error ? (
         <p
+          id={feedbackId}
           role="alert"
-          className="mt-3 rounded-xl border border-danger/40 bg-danger/10 px-3 py-2 text-xs text-danger"
+          className="mt-3 rounded-control bg-danger/10 px-3 py-2 text-xs text-danger"
         >
           {error}
         </p>
       ) : null}
-    </BentoCard>
+    </StudentSettingsSection>
   );
 }
 
@@ -399,15 +376,14 @@ function MascotCard({ studentId }: { studentId: number }) {
     : defaultMascotForSeed(studentId);
 
   return (
-    <BentoCard className="p-5 lg:col-span-2">
+    <StudentSettingsSection title="Study mascot">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="font-display text-2xl font-semibold">Study mascot</h2>
           <p className="mt-1 text-sm text-muted">
             Pick the buddy that cheers you on across every lesson and session summary.
           </p>
         </div>
-        <Badge tone="focus" uppercase>
+        <Badge tone="focus">
           {selected === defaultMascotForSeed(studentId) && !isMascotId(mascotQ.data)
             ? "Auto"
             : "Chosen"}
@@ -423,16 +399,14 @@ function MascotCard({ studentId }: { studentId: number }) {
                 onClick={() => save.mutate(mascot.id)}
                 aria-pressed={isSelected}
                 className={cn(
-                  "flex w-full flex-col items-center gap-2 rounded-2xl border bg-surface-1 p-3 text-center transition-[background-color,border-color,box-shadow,transform]",
-                  isSelected
-                    ? "border-accent bg-accent/10 shadow-[0_0_0_4px_rgb(var(--color-accent)/0.16)]"
-                    : "border-border-subtle hover:-translate-y-0.5 hover:border-accent/40 hover:bg-surface-2",
+                  "ui-focus-ring flex w-full flex-col items-center gap-2 rounded-object bg-surface-2 p-3 text-center transition-[background-color,box-shadow]",
+                  isSelected ? "bg-accent/10 ring-2 ring-accent/35" : "hover:bg-surface-3",
                 )}
               >
                 <div
                   className={cn(
-                    "mask-squircle grid h-20 w-20 place-items-center bg-gradient-to-br p-1",
-                    isSelected ? "from-accent/35 to-accent/10" : "from-surface-2 to-surface-3",
+                    "mask-squircle grid h-20 w-20 place-items-center p-1",
+                    isSelected ? "bg-accent/10" : "bg-surface-2",
                   )}
                 >
                   <MascotStill
@@ -450,7 +424,24 @@ function MascotCard({ studentId }: { studentId: number }) {
           );
         })}
       </ul>
-    </BentoCard>
+    </StudentSettingsSection>
+  );
+}
+
+function StudentSettingsSection({
+  title,
+  children,
+  className,
+}: {
+  title: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={cn("px-5 py-4", className)}>
+      <h2 className="text-base font-semibold tracking-[-0.01em]">{title}</h2>
+      <div className="mt-3">{children}</div>
+    </section>
   );
 }
 

@@ -106,7 +106,7 @@ export const studentsProcedures = [
       const student = ctx.repos.students.getById(studentId);
       if (!student) throw new Error(`Student ${studentId} not found`);
       if (isHashedPin(student.pinHash)) {
-        throw new Error("Student password already set; change it instead");
+        throw new Error("Student PIN already set; change it instead");
       }
       ctx.repos.students.updatePin(studentId, hashPin(pin));
       return { ok: true } as const;
@@ -131,7 +131,7 @@ export const studentsProcedures = [
     handler: ({ studentId, currentPin, newPin }, ctx) => {
       const student = ctx.repos.students.getById(studentId);
       if (!student || !isHashedPin(student.pinHash) || !verifyPin(currentPin, student.pinHash)) {
-        throw new Error("Current student password is incorrect");
+        throw new Error("Current student PIN is incorrect");
       }
       ctx.repos.students.updatePin(studentId, hashPin(newPin));
       return { ok: true } as const;

@@ -23,7 +23,7 @@ interface Segment {
 export function ClozeText({ text, mode = "highlight", className }: ClozeTextProps) {
   const segments = parseSegments(text);
   return (
-    <span className={cn("leading-relaxed", className)}>
+    <span className={cn("ui-lexical leading-relaxed", className)}>
       {segments.map((seg, i) =>
         seg.cloze ? (
           <span

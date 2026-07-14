@@ -39,6 +39,8 @@ describe("UnlockScreen", () => {
     fireEvent.change(screen.getByLabelText(/^confirm pin$/i), { target: { value: "9999" } });
     fireEvent.click(screen.getByRole("button", { name: /set pin/i }));
     await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent(/do not match/i));
+    expect(screen.getByLabelText(/^new pin$/i)).toHaveAccessibleDescription(/do not match/i);
+    expect(screen.getByLabelText(/^confirm pin$/i)).toHaveAttribute("aria-invalid", "true");
     expect(window.api.auth.setupPin).not.toHaveBeenCalled();
   });
 
@@ -73,5 +75,17 @@ describe("UnlockScreen", () => {
     expect(screen.getByTestId("mode")).toHaveTextContent("locked");
     fireEvent.click(screen.getByRole("button", { name: /continue to student practice/i }));
     await waitFor(() => expect(screen.getByTestId("mode")).toHaveTextContent("student"));
+  });
+
+  it("keeps the return action in the window toolbar", async () => {
+    vi.spyOn(window.api.auth, "hasPin").mockResolvedValue(true);
+    renderWithProvider({ initialMode: "locked", initialHasPin: true });
+    await waitFor(() => screen.getByRole("heading", { name: /welcome back/i }));
+
+    const backButton = screen.getByRole("button", { name: /back to choose mode/i });
+    expect(backButton.closest("[data-window-chrome]")).toBeInTheDocument();
+    fireEvent.click(backButton);
+
+    expect(screen.getByTestId("mode")).toHaveTextContent("welcome");
   });
 });

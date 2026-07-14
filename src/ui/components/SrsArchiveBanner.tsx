@@ -1,16 +1,4 @@
-/**
- * One-shot tutor banner for the v0.10 SRS migration.
- *
- * Behaviour:
- *   - Query `meta.srsArchiveStatus` on mount. Render nothing while
- *     loading or once the tutor has acknowledged.
- *   - On dismiss, flip `srs_archive_acknowledged` in app_settings and
- *     invalidate the query so the banner unmounts cleanly.
- *
- * Copy explains the trade-off in plain Vietnamese: SM-2 state is
- * archived (not deleted), FSRS-lite is the new scheduler, and students
- * start fresh. The `legacyRowCount` makes the change feel auditable.
- */
+/** One-shot tutor notice for the review-schedule migration. */
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryClient";
 import { Button } from "@/ui/components/Button";
@@ -36,18 +24,26 @@ export function SrsArchiveBanner() {
 
   return (
     <aside
-      role="status"
-      className="motion-enter mx-auto flex w-full max-w-screen-3xl items-start gap-4 rounded-bento border border-warning bg-surface-1 px-5 py-4 shadow-card"
+      role="region"
+      aria-labelledby="srs-archive-title"
+      aria-busy={dismiss.isPending}
+      className="object-surface learning-trace motion-enter mx-[var(--space-window-x)] mt-3 flex shrink-0 items-start gap-4 px-4 py-3 [--trace-rgb:var(--color-ochre)]"
     >
-      <div className="flex-1">
-        <h3 className="text-sm font-semibold text-app">Đã chuyển sang FSRS-lite (v0.10)</h3>
-        <p className="mt-1 text-sm text-muted">
-          Học sinh sẽ bắt đầu lại từ đầu với thuật toán mới.{" "}
+      <div role="status" className="min-w-0 flex-1">
+        <h2 id="srs-archive-title" className="text-ui font-semibold text-app">
+          Review schedule updated
+        </h2>
+        <p className="mt-0.5 max-w-4xl text-xs leading-5 text-muted">
+          Student reviews now use FSRS-lite.{" "}
           {legacyRowCount > 0
-            ? `${legacyRowCount} bản ghi tiến độ SM-2 cũ đã được archive vào item_progress_v1_archive — không bị xoá, có thể rollback nếu cần.`
-            : "Không có tiến độ SM-2 cũ để archive."}{" "}
-          Mức ngưỡng FSRS (1 / 21 ngày mặc định) chỉnh được trong Settings.
+            ? `${legacyRowCount} earlier progress records were archived for recovery; none were deleted.`
+            : "There was no earlier progress to archive."}
         </p>
+        {dismiss.isError ? (
+          <p role="alert" className="mt-1 text-xs text-danger">
+            Couldn't dismiss this notice. Try again.
+          </p>
+        ) : null}
       </div>
       <Button
         type="button"
@@ -56,7 +52,7 @@ export function SrsArchiveBanner() {
         onClick={() => dismiss.mutate()}
         disabled={dismiss.isPending}
       >
-        {dismiss.isPending ? "Saving…" : "Got it"}
+        {dismiss.isPending ? "Dismissing…" : "Dismiss"}
       </Button>
     </aside>
   );

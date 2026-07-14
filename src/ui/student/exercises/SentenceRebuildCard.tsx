@@ -17,7 +17,6 @@
  */
 import { cn } from "@/lib/cn";
 import type { GradeOutcome, SentenceRebuildExercise } from "@/modules/exercises";
-import { Badge } from "@/ui/components/Badge";
 import { Button } from "@/ui/components/Button";
 import { useMemo, useState } from "react";
 
@@ -58,12 +57,14 @@ export function SentenceRebuildCard({ exercise, onAnswer, outcome }: SentenceReb
     if (locked) return;
     setTray((prev) => prev.filter((c) => c.originIndex !== chip.originIndex));
     setAnswer((prev) => [...prev, chip]);
+    focusMovedChip(chip.originIndex, "answer");
   }
 
   function unplaceChip(chip: Chip) {
     if (locked) return;
     setAnswer((prev) => prev.filter((c) => c.originIndex !== chip.originIndex));
     setTray((prev) => [...prev, chip].sort((a, b) => a.originIndex - b.originIndex));
+    focusMovedChip(chip.originIndex, "tray");
   }
 
   function submit() {
@@ -72,11 +73,11 @@ export function SentenceRebuildCard({ exercise, onAnswer, outcome }: SentenceReb
   }
 
   return (
-    <section className="motion-enter mx-auto flex max-w-2xl flex-col gap-5 rounded-bento border border-border-subtle bg-surface-1 p-6 shadow-card">
+    <section className="object-surface motion-enter mx-auto flex max-w-2xl flex-col gap-5 bg-surface-1 p-6">
       <header className="flex flex-col items-center gap-3 text-center">
-        <Badge tone="accent" uppercase>
+        <span className="learning-trace-label text-xs font-semibold text-accent">
           Build the sentence
-        </Badge>
+        </span>
         <p className="text-sm text-muted">
           {locked
             ? outcome.correct
@@ -90,8 +91,9 @@ export function SentenceRebuildCard({ exercise, onAnswer, outcome }: SentenceReb
       </header>
 
       <div
+        role="group"
         className={cn(
-          "min-h-16 rounded-bento border-2 border-dashed border-border-strong bg-surface-2 p-3 transition",
+          "min-h-16 rounded-control border border-border-strong bg-surface-2 p-3 transition-colors",
           !locked && answer.length === targetLength && "border-accent",
           locked && outcome.correct && "answer-correct border-success/70 bg-success/10",
           locked && !outcome.correct && "answer-wrong border-danger/70 bg-danger/10",
@@ -106,10 +108,12 @@ export function SentenceRebuildCard({ exercise, onAnswer, outcome }: SentenceReb
               <button
                 key={chip.originIndex}
                 type="button"
+                data-chip-index={chip.originIndex}
+                data-chip-zone="answer"
                 onClick={() => unplaceChip(chip)}
                 disabled={locked}
                 className={cn(
-                  "rounded-chip border px-3 py-1.5 text-sm font-medium shadow-press-active disabled:cursor-default",
+                  "ui-focus-ring rounded-control border px-3 py-1.5 text-sm font-medium disabled:cursor-default",
                   locked && outcome.correct
                     ? "border-success bg-success/15 text-success"
                     : locked
@@ -124,14 +128,16 @@ export function SentenceRebuildCard({ exercise, onAnswer, outcome }: SentenceReb
         )}
       </div>
 
-      <div className="flex flex-wrap gap-2" aria-label="Word tray">
+      <div role="group" className="flex flex-wrap gap-2" aria-label="Word tray">
         {tray.map((chip) => (
           <button
             key={chip.originIndex}
             type="button"
+            data-chip-index={chip.originIndex}
+            data-chip-zone="tray"
             onClick={() => placeChip(chip)}
             disabled={locked}
-            className="press-bounce rounded-chip border border-border-strong bg-surface-1 px-3 py-1.5 text-sm font-medium hover:border-accent disabled:cursor-default disabled:opacity-50"
+            className="ui-focus-ring rounded-control border border-border-strong bg-surface-1 px-3 py-1.5 text-sm font-medium transition-colors hover:border-accent hover:bg-surface-2 disabled:cursor-default disabled:opacity-50"
           >
             {chip.token}
           </button>
@@ -140,10 +146,13 @@ export function SentenceRebuildCard({ exercise, onAnswer, outcome }: SentenceReb
           <p className="text-sm text-muted">All words placed — submit when you're ready.</p>
         )}
       </div>
+      <p className="sr-only" aria-live="polite">
+        Current sentence: {answerTokens.length > 0 ? answerTokens.join(" ") : "empty"}
+      </p>
 
       {locked && !outcome.correct ? (
-        <div className="rounded-bento border border-success/35 bg-success/10 p-4">
-          <p className="text-xs font-semibold uppercase text-success">Correct sentence</p>
+        <div className="rounded-md bg-success/10 p-4">
+          <p className="text-xs font-semibold text-success">Correct sentence</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {correctTokenChips.map(({ token, key }, index) => (
               <span
@@ -175,4 +184,12 @@ export function SentenceRebuildCard({ exercise, onAnswer, outcome }: SentenceReb
       </div>
     </section>
   );
+}
+
+function focusMovedChip(index: number, zone: "answer" | "tray") {
+  window.requestAnimationFrame(() => {
+    document
+      .querySelector<HTMLButtonElement>(`[data-chip-index="${index}"][data-chip-zone="${zone}"]`)
+      ?.focus();
+  });
 }

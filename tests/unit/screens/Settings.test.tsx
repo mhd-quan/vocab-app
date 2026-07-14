@@ -107,4 +107,49 @@ describe("TutorSettings", () => {
       }),
     );
   });
+
+  it("keeps active preferences until confirmation, then resets every provider-backed value", async () => {
+    vi.spyOn(window.api.settings, "get").mockImplementation(async ({ key }) => {
+      if (key === "theme") return "dark";
+      if (key === "display_font_size") return "large";
+      if (key === "pronunciation_autoplay") return false;
+      if (key === "pronunciation_default_accent") return "us";
+      return null;
+    });
+    const deleteSpy = vi.spyOn(window.api.settings, "delete").mockResolvedValue({ ok: true });
+    const setSpy = vi.spyOn(window.api.settings, "set").mockResolvedValue({ ok: true });
+
+    renderSettings();
+
+    const fontSize = await screen.findByLabelText("Font size");
+    const autoplay = screen.getByRole("switch", { name: /autoplay headword audio/i });
+    const accent = screen.getByLabelText("Default accent");
+    const darkTheme = screen.getByRole("button", { name: "Dark" });
+    const systemTheme = screen.getByRole("button", { name: "System" });
+    await waitFor(() => {
+      expect(fontSize).toHaveValue("large");
+      expect(autoplay).not.toBeChecked();
+      expect(accent).toHaveValue("us");
+      expect(darkTheme).toHaveClass("bg-paper");
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Reset preferences" }));
+
+    expect(deleteSpy).not.toHaveBeenCalled();
+    expect(fontSize).toHaveValue("large");
+    expect(autoplay).not.toBeChecked();
+    expect(accent).toHaveValue("us");
+    expect(darkTheme).toHaveClass("bg-paper");
+
+    fireEvent.click(screen.getByRole("button", { name: "Confirm reset" }));
+
+    await waitFor(() => expect(deleteSpy).toHaveBeenCalledWith({ key: "pronunciation_autoplay" }));
+    await waitFor(() => {
+      expect(fontSize).toHaveValue("medium");
+      expect(autoplay).toBeChecked();
+      expect(accent).toHaveValue("uk");
+      expect(systemTheme).toHaveClass("bg-paper");
+    });
+    expect(setSpy).not.toHaveBeenCalled();
+  });
 });

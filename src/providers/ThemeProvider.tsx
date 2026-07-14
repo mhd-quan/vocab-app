@@ -16,20 +16,23 @@ interface ThemeContextValue {
   theme: ThemePreference;
   resolvedTheme: ResolvedTheme;
   setTheme: (theme: ThemePreference) => void;
+  /** Apply the default after the persisted preference has been removed. */
+  resetTheme: () => void;
 }
 
-const THEME_KEY = "theme";
+export const THEME_SETTING_KEY = "theme";
+const DEFAULT_THEME: ThemePreference = "system";
 const THEME_VALUES = new Set<ThemePreference>(["light", "dark", "system"]);
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<ThemePreference>("system");
+  const [theme, setThemeState] = useState<ThemePreference>(DEFAULT_THEME);
   const [systemDark, setSystemDark] = useState(() => readSystemDark());
 
   useEffect(() => {
     let cancelled = false;
     api.settings
-      .get<unknown>({ key: THEME_KEY })
+      .get<unknown>({ key: THEME_SETTING_KEY })
       .then((stored) => {
         if (!cancelled) setThemeState(normalizeTheme(stored));
       })
@@ -59,14 +62,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const setTheme = useCallback((next: ThemePreference) => {
     setThemeState(next);
-    api.settings.set({ key: THEME_KEY, value: next }).catch((err) => {
+    api.settings.set({ key: THEME_SETTING_KEY, value: next }).catch((err) => {
       console.error("[ThemeProvider] failed to persist theme setting", err);
     });
   }, []);
 
+  const resetTheme = useCallback(() => setThemeState(DEFAULT_THEME), []);
+
   const value = useMemo(
-    () => ({ theme, resolvedTheme, setTheme }),
-    [theme, resolvedTheme, setTheme],
+    () => ({ theme, resolvedTheme, setTheme, resetTheme }),
+    [theme, resolvedTheme, setTheme, resetTheme],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
@@ -81,7 +86,7 @@ export function useTheme(): ThemeContextValue {
 function normalizeTheme(value: unknown): ThemePreference {
   return typeof value === "string" && THEME_VALUES.has(value as ThemePreference)
     ? (value as ThemePreference)
-    : "system";
+    : DEFAULT_THEME;
 }
 
 function readSystemDark(): boolean {

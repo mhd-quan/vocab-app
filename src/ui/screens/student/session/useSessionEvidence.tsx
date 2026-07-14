@@ -1,6 +1,7 @@
 import { api } from "@/lib/api";
-import { Badge } from "@/ui/components/Badge";
+import { AppGlyph } from "@/ui/components/AppGlyph";
 import { Button } from "@/ui/components/Button";
+import { DialogSurface } from "@/ui/components/DialogSurface";
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 const CAMERA_INTERVAL_MS = 2 * 60 * 1000;
@@ -346,31 +347,49 @@ export function SessionEvidenceFrame({
     <div className="relative min-h-full w-full min-w-0">
       {monitor.active ? <EvidenceBanner monitor={monitor} /> : null}
       {children}
-      {monitor.focusGuard ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-surface-0/80 px-6 backdrop-blur-md">
-          <div className="max-w-md rounded-bento border border-warning/35 bg-surface-1 p-6 text-center shadow-lift">
-            <Badge tone="warning" uppercase>
+      <DialogSurface
+        open={monitor.focusGuard !== null}
+        onClose={monitor.dismissFocusGuard}
+        closeLabel="Dismiss focus break notice"
+        ariaLabelledBy="focus-guard-title"
+        ariaDescribedBy="focus-guard-description"
+        initialFocusSelector="#focus-guard-continue"
+        viewportClassName="items-center py-8"
+        className="w-full max-w-sm"
+      >
+        <div className="flex items-start gap-3 px-5 py-4">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-control bg-warning/10 text-warning">
+            <AppGlyph name="warning" size="lg" />
+          </span>
+          <div>
+            <h2 id="focus-guard-title" className="text-base font-semibold text-app">
               Focus break recorded
-            </Badge>
-            <h2 className="mt-3 text-2xl font-semibold text-app">Return to the session</h2>
-            <p className="mt-2 text-sm leading-6 text-muted">
-              The app was out of focus for {formatDuration(monitor.focusGuard.durationMs)}.
+            </h2>
+            <p id="focus-guard-description" className="mt-1 text-sm leading-5 text-muted">
+              The session was out of focus for {formatDuration(monitor.focusGuard?.durationMs ?? 0)}
+              . Continue when you are ready to return.
             </p>
-            <Button className="mt-5" onClick={monitor.dismissFocusGuard}>
-              Continue
-            </Button>
           </div>
         </div>
-      ) : null}
+        <footer className="flex justify-end border-t border-border-subtle px-5 py-3">
+          <Button id="focus-guard-continue" onClick={monitor.dismissFocusGuard}>
+            Continue session
+          </Button>
+        </footer>
+      </DialogSurface>
     </div>
   );
 }
 
 function EvidenceBanner({ monitor }: { monitor: SessionEvidenceMonitor }) {
   return (
-    <div className="fixed left-1/2 top-3 z-40 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-3 rounded-full border border-border-subtle bg-surface-0/95 px-4 py-2 text-xs text-muted shadow-card backdrop-blur">
-      <span className="font-semibold text-app">Session evidence</span>
-      <span>Timing + focus active</span>
+    <div
+      className="flex min-h-9 w-full flex-wrap items-center justify-center gap-x-3 gap-y-1 border-b border-border-subtle bg-surface-1/65 px-4 py-1.5 text-xs text-muted"
+      role="status"
+      aria-live="polite"
+    >
+      <span className="font-medium text-app">Session record active</span>
+      <span>Timing and focus</span>
       <CameraStatus monitor={monitor} />
     </div>
   );

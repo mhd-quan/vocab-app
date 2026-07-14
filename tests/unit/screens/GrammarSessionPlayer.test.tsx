@@ -53,7 +53,7 @@ describe("GrammarSessionPlayer", () => {
     expect(screen.getByText(/Grammar overview/i)).toBeInTheDocument();
     expect(screen.getByText("Present simple")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /Start 1 questions/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Start practice/i }));
     const card = screen.getByText(/Complete the sentence/i).closest("section");
     if (!card) throw new Error("practice card not found");
     fireEvent.change(within(card).getByPlaceholderText(/missing words/i), {

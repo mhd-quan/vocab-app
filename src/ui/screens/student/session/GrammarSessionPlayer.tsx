@@ -9,12 +9,11 @@ import {
 } from "@/modules/grammarPractice";
 import { type AchievementDefinition, getAchievement } from "@/modules/rewards";
 import { Badge } from "@/ui/components/Badge";
-import { BentoCard } from "@/ui/components/BentoCard";
 import { Button } from "@/ui/components/Button";
-import { StreakFlame } from "@/ui/components/LearningIcons";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
+import { useWindowBackAction } from "@/ui/components/WindowNavigation";
 import { AchievementIcon, ConfettiBurst, RewardToast, useChime } from "@/ui/components/rewards";
-import { type ReactNode, useCallback, useMemo, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { GrammarTopicForPractice } from "../../../../../electron/db/repositories/grammar";
 import type { SessionResultPersistence } from "./SessionPlayer";
 import { SessionSummary } from "./SessionSummary";
@@ -152,7 +151,6 @@ export function GrammarSessionPlayer({
           topics={topics}
           exerciseCount={deck.length}
           onStart={() => setStarted(true)}
-          onExit={onExit}
         />
       </GrammarShell>
     );
@@ -161,12 +159,12 @@ export function GrammarSessionPlayer({
   if (deck.length === 0) {
     return (
       <GrammarShell contextLabel={contextLabel} onExit={onExit}>
-        <BentoCard className="border-dashed px-6 py-10 text-center">
+        <section className="object-surface px-6 py-10 text-center">
           <h2 className="text-base font-medium">No grammar practice yet</h2>
           <p className="mt-1 text-xs text-muted">
-            Add an activities block to this grammar YAML topic, then re-run import.
+            This lesson has no grammar questions yet. Ask your tutor to check the lesson content.
           </p>
-        </BentoCard>
+        </section>
       </GrammarShell>
     );
   }
@@ -221,44 +219,40 @@ function GrammarOverview({
   topics,
   exerciseCount,
   onStart,
-  onExit,
 }: {
   topics: GrammarTopicForPractice[];
   exerciseCount: number;
   onStart: () => void;
-  onExit: () => void;
 }) {
   return (
-    <div className="flex flex-col gap-5">
-      <BentoCard tone="focus" className="grid gap-5 p-6 lg:grid-cols-[1.25fr_auto] lg:items-center">
-        <div>
-          <Badge tone="focus" uppercase>
-            Grammar overview
-          </Badge>
-          <h1 className="mt-3 text-3xl font-semibold leading-tight">
-            Review the rule, then apply it.
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-            Start with the core patterns and common mistakes, then complete a mixed practice set
-            that asks you to choose, write, reorder, and correct sentences.
-          </p>
-        </div>
-        <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
-          <Button size="lg" onClick={onStart} disabled={exerciseCount === 0}>
-            Start {exerciseCount} questions
-          </Button>
-          <Button variant="secondary" size="lg" onClick={onExit}>
-            Back to lessons
-          </Button>
-        </div>
-      </BentoCard>
+    <section className="object-surface overflow-hidden bg-surface-1">
+      <header className="px-6 pb-5 pt-6">
+        <span className="learning-trace-label text-xs font-semibold text-accent">
+          Grammar overview
+        </span>
+        <h1 className="mt-3 text-[24px] font-semibold leading-tight">
+          Review the rule, then apply it.
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
+          Read the patterns and common mistakes first. The practice set then asks you to choose,
+          write, reorder, and correct sentences.
+        </p>
+      </header>
 
-      <ul className="grid gap-4 lg:grid-cols-2">
+      <ul className="divide-y divide-border-subtle border-y border-border-subtle">
         {topics.map((topic) => (
           <TopicOverviewCard key={topic.id} topic={topic} />
         ))}
       </ul>
-    </div>
+      <footer className="flex items-center justify-between gap-4 px-6 py-4" data-content-action-bar>
+        <p className="text-xs text-muted">
+          {topics.length} {topics.length === 1 ? "topic" : "topics"} · {exerciseCount} questions
+        </p>
+        <Button size="lg" onClick={onStart} disabled={exerciseCount === 0}>
+          Start practice
+        </Button>
+      </footer>
+    </section>
   );
 }
 
@@ -268,44 +262,39 @@ function TopicOverviewCard({ topic }: { topic: GrammarTopicForPractice }) {
   const mistakes = metadata.common_mistakes ?? [];
 
   return (
-    <BentoCard as="li" interactive className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge tone="rare" uppercase>
-          Topic
-        </Badge>
-        {topic.difficulty ? (
-          <Badge tone="muted" uppercase>
-            Level {topic.difficulty}
-          </Badge>
-        ) : null}
-      </div>
-      <div>
+    <li className="grid gap-4 px-6 py-5 lg:grid-cols-[minmax(12rem,0.75fr)_minmax(0,1.25fr)]">
+      <div className="min-w-0">
         <h2 className="text-lg font-semibold">{topic.title}</h2>
         {topic.summaryMd ? (
           <p className="mt-1 text-sm leading-6 text-muted">{topic.summaryMd}</p>
         ) : null}
+        {topic.difficulty ? (
+          <p className="mt-2 text-xs text-muted-2">Level {topic.difficulty}</p>
+        ) : null}
       </div>
-      {patterns.length > 0 ? (
-        <div className="rounded-2xl border border-border-subtle bg-surface-2/70 p-3">
-          <h3 className="text-xs font-semibold uppercase text-muted-2">Patterns</h3>
-          <ul className="mt-2 flex flex-col gap-2">
-            {patterns.slice(0, 3).map((pattern, index) => (
-              <li key={`${pattern.form}-${index}`} className="text-sm">
-                <span className="font-medium text-app">{pattern.form}</span>
-                {pattern.use ? <span className="text-muted"> - {pattern.use}</span> : null}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-      {mistakes.length > 0 ? (
-        <div className="rounded-2xl border border-warning/30 bg-warning/10 p-3">
-          <h3 className="text-xs font-semibold uppercase text-warning">Watch for</h3>
-          <p className="mt-2 text-sm text-app">{mistakes[0]?.wrong}</p>
-          <p className="mt-1 text-sm text-success">{mistakes[0]?.correct}</p>
-        </div>
-      ) : null}
-    </BentoCard>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {patterns.length > 0 ? (
+          <div className="rounded-md bg-surface-2 p-3">
+            <h3 className="text-xs font-semibold text-muted-2">Patterns</h3>
+            <ul className="mt-2 flex flex-col gap-2">
+              {patterns.slice(0, 3).map((pattern, index) => (
+                <li key={`${pattern.form}-${index}`} className="text-sm">
+                  <span className="font-medium text-app">{pattern.form}</span>
+                  {pattern.use ? <span className="text-muted"> — {pattern.use}</span> : null}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        {mistakes.length > 0 ? (
+          <div className="rounded-md bg-warning/10 p-3">
+            <h3 className="text-xs font-semibold text-warning">Watch for</h3>
+            <p className="mt-2 text-sm text-app">{mistakes[0]?.wrong}</p>
+            <p className="mt-1 text-sm text-success">{mistakes[0]?.correct}</p>
+          </div>
+        ) : null}
+      </div>
+    </li>
   );
 }
 
@@ -319,29 +308,28 @@ function GrammarStatus({
   correctRun: number;
 }) {
   return (
-    <BentoCard as="section" className="grid gap-4 p-4 sm:grid-cols-[1fr_auto_auto] sm:items-center">
+    <section className="grid gap-2 border-b border-border-subtle pb-4 sm:grid-cols-[1fr_auto] sm:items-end">
       <div className="min-w-0">
-        <div className="mb-2 flex items-center justify-between gap-3">
-          <span className="text-xs font-semibold uppercase text-muted-2">Grammar practice</span>
-          <span className="font-mono text-xs text-muted">
-            {current} / {total}
+        <div className="mb-2 flex items-baseline justify-between gap-3">
+          <span data-tabular className="text-[13px] font-medium text-app">
+            Question {Math.min(current + 1, total)} of {total}
           </span>
+          <span className="text-xs text-muted">Grammar practice</span>
         </div>
-        <ProgressMeter value={current} max={total} label="Grammar practice progress" tone="rare" />
+        <ProgressMeter
+          value={current}
+          max={total}
+          label="Grammar practice progress"
+          tone="accent"
+        />
       </div>
-      <div className="flex items-center gap-2 rounded-2xl border border-warning/30 bg-warning/10 px-3 py-2">
-        <StreakFlame streak={correctRun} className="h-5 w-5" />
-        <span className="font-mono text-sm text-app">{correctRun}</span>
-        <span className="text-xs text-muted">streak</span>
+      <div className="flex items-baseline justify-end gap-1.5 text-xs text-muted">
+        <span data-tabular className="font-semibold text-app">
+          {correctRun}
+        </span>
+        <span>{correctRun === 1 ? "correct answer in a row" : "correct answers in a row"}</span>
       </div>
-      <Badge
-        tone={correctRun >= 5 ? "mastery" : "focus"}
-        uppercase
-        className="h-9 justify-center px-3"
-      >
-        {correctRun >= 5 ? "Pattern lock" : "Rule drill"}
-      </Badge>
-    </BentoCard>
+    </section>
   );
 }
 
@@ -358,22 +346,36 @@ function GrammarExerciseCard({
 }) {
   const outcome = pendingResult?.outcome ?? null;
   const disabled = Boolean(outcome);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, []);
 
   return (
-    <BentoCard className="flex flex-col gap-5 p-6" tone={outcome?.correct ? "success" : "neutral"}>
+    <section
+      role="group"
+      aria-labelledby={`grammar-prompt-${exercise.id}`}
+      className="object-surface flex flex-col gap-5 bg-surface-1 p-6"
+    >
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <Badge tone="focus" uppercase>
+          <span className="learning-trace-label text-xs font-semibold text-accent">
             {formatExerciseKind(exercise.kind)}
-          </Badge>
-          <h2 className="mt-3 text-2xl font-semibold leading-snug">{exercise.prompt}</h2>
+          </span>
+          <h2
+            ref={headingRef}
+            id={`grammar-prompt-${exercise.id}`}
+            tabIndex={-1}
+            className="mt-3 text-2xl font-semibold leading-snug outline-none"
+          >
+            {exercise.prompt}
+          </h2>
           {exercise.instruction ? (
             <p className="mt-1 text-sm leading-6 text-muted">{exercise.instruction}</p>
           ) : null}
         </div>
-        <Badge tone="muted" uppercase>
-          {exercise.topicTitle}
-        </Badge>
+        <span className="text-xs text-muted">{exercise.topicTitle}</span>
       </header>
 
       {exercise.kind === "grammar_fill_blank" ? (
@@ -392,9 +394,7 @@ function GrammarExerciseCard({
       ) : null}
 
       {exercise.hint && !outcome ? (
-        <p className="rounded-2xl border border-sky/30 bg-sky/10 px-4 py-3 text-sm text-sky">
-          {exercise.hint}
-        </p>
+        <p className="rounded-md bg-accent/8 px-4 py-3 text-sm text-accent">{exercise.hint}</p>
       ) : null}
       {outcome ? (
         <FeedbackPanel
@@ -403,7 +403,7 @@ function GrammarExerciseCard({
           onContinue={onContinue}
         />
       ) : null}
-    </BentoCard>
+    </section>
   );
 }
 
@@ -417,6 +417,7 @@ function FillBlankCard({
   onAnswer: (answer: GrammarAnswer) => void;
 }) {
   const [value, setValue] = useState("");
+  const inputId = `grammar-fill-${exercise.id}`;
   return (
     <form
       className="flex flex-col gap-4"
@@ -425,12 +426,16 @@ function FillBlankCard({
         onAnswer({ kind: "grammar_fill_blank", text: value });
       }}
     >
-      <p className="rounded-2xl border border-border-subtle bg-surface-2 px-4 py-4 text-xl leading-8">
+      <p className="rounded-md bg-surface-2 px-4 py-4 text-xl leading-8">
         {exercise.payload.sentence}
       </p>
       <div className="flex flex-col gap-3 sm:flex-row">
+        <label htmlFor={inputId} className="sr-only">
+          Missing words
+        </label>
         <input
-          className="min-h-12 flex-1 rounded-2xl border border-border-strong bg-surface-0 px-4 text-base text-app outline-none transition focus:border-accent"
+          id={inputId}
+          className="ui-focus-ring min-h-12 flex-1 rounded-control border border-border-strong bg-surface-0 px-4 text-base text-app transition focus:border-accent"
           value={value}
           onChange={(event) => setValue(event.target.value)}
           disabled={disabled}
@@ -460,20 +465,28 @@ function ChoiceCard({
       {exercise.payload.options.map((option, index) => {
         const selected = outcome?.selectedIndex === index;
         const revealCorrect = Boolean(outcome) && option.correct;
+        const answerState = revealCorrect
+          ? "Correct answer"
+          : selected && outcome
+            ? "Your answer, incorrect"
+            : null;
         return (
           <button
             key={`${option.text}-${index}`}
             type="button"
             disabled={disabled}
+            aria-pressed={selected}
+            aria-label={`${option.text}${answerState ? `. ${answerState}` : ""}`}
             onClick={() => onAnswer({ kind: "grammar_choice", selectedIndex: index })}
             className={cn(
-              "rounded-2xl border border-border-subtle bg-surface-2 px-4 py-4 text-left text-base font-medium text-app transition",
-              "hover:-translate-y-0.5 hover:border-accent/40 hover:bg-surface-1 disabled:hover:translate-y-0",
+              "ui-focus-ring rounded-control border border-border-subtle bg-surface-2 px-4 py-4 text-left text-base font-medium text-app transition-colors",
+              "hover:border-accent/40 hover:bg-surface-1",
               selected && "border-danger/50 bg-danger/10 text-danger",
               revealCorrect && "border-success/50 bg-success/10 text-success",
             )}
           >
             {option.text}
+            {answerState ? <span className="sr-only">. {answerState}</span> : null}
           </button>
         );
       })}
@@ -494,18 +507,23 @@ function OrderCard({
     exercise.payload.tokens.map((token, position) => ({
       id: `${exercise.id}-token-${position}-${token}`,
       token,
+      position,
     })),
   );
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const selectedSet = new Set(selectedIds);
   const selectedItems = selectedIds
     .map((id) => tokenItems.find((item) => item.id === id))
-    .filter((item): item is { id: string; token: string } => Boolean(item));
+    .filter((item): item is { id: string; token: string; position: number } => Boolean(item));
   const selectedTokens = selectedItems.map((item) => item.token);
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="min-h-16 rounded-2xl border border-border-strong bg-surface-0 p-3">
+      <div
+        role="group"
+        aria-label="Your sentence"
+        className="min-h-16 rounded-control border border-border-strong bg-surface-0 p-3"
+      >
         <div className="flex flex-wrap gap-2">
           {selectedIds.length === 0 ? (
             <span className="px-2 py-2 text-sm text-muted">Build your sentence here.</span>
@@ -514,28 +532,41 @@ function OrderCard({
             <button
               key={item.id}
               type="button"
+              data-grammar-token={item.position}
+              data-grammar-zone="answer"
               disabled={disabled}
-              onClick={() => setSelectedIds((prev) => prev.filter((id) => id !== item.id))}
-              className="rounded-xl border border-accent/40 bg-accent/10 px-3 py-2 text-sm font-medium text-accent"
+              onClick={() => {
+                setSelectedIds((prev) => prev.filter((id) => id !== item.id));
+                focusGrammarToken(item.position, "tray");
+              }}
+              className="ui-focus-ring rounded-control border border-accent/40 bg-accent/10 px-3 py-2 text-sm font-medium text-accent"
             >
               {item.token}
             </button>
           ))}
         </div>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div role="group" aria-label="Word tray" className="flex flex-wrap gap-2">
         {tokenItems.map((item) => (
           <button
             key={item.id}
             type="button"
+            data-grammar-token={item.position}
+            data-grammar-zone="tray"
             disabled={disabled || selectedSet.has(item.id)}
-            onClick={() => setSelectedIds((prev) => [...prev, item.id])}
-            className="rounded-xl border border-border-subtle bg-surface-2 px-3 py-2 text-sm font-medium text-app transition hover:-translate-y-0.5 hover:border-focus/40 disabled:opacity-40 disabled:hover:translate-y-0"
+            onClick={() => {
+              setSelectedIds((prev) => [...prev, item.id]);
+              focusGrammarToken(item.position, "answer");
+            }}
+            className="ui-focus-ring rounded-control border border-border-subtle bg-surface-2 px-3 py-2 text-sm font-medium text-app transition hover:border-focus/40 disabled:opacity-40"
           >
             {item.token}
           </button>
         ))}
       </div>
+      <p className="sr-only" aria-live="polite">
+        Current sentence: {selectedTokens.length > 0 ? selectedTokens.join(" ") : "empty"}
+      </p>
       <div className="flex flex-wrap gap-2">
         <Button
           onClick={() => onAnswer({ kind: "grammar_order", tokens: selectedTokens })}
@@ -551,6 +582,16 @@ function OrderCard({
   );
 }
 
+function focusGrammarToken(position: number, zone: "answer" | "tray") {
+  window.requestAnimationFrame(() => {
+    document
+      .querySelector<HTMLButtonElement>(
+        `[data-grammar-token="${position}"][data-grammar-zone="${zone}"]`,
+      )
+      ?.focus();
+  });
+}
+
 function TextAnswerCard({
   exercise,
   disabled,
@@ -564,6 +605,7 @@ function TextAnswerCard({
   onAnswer: (answer: GrammarAnswer) => void;
 }) {
   const [value, setValue] = useState("");
+  const answerId = `grammar-answer-${exercise.id}`;
   const source =
     exercise.kind === "grammar_rewrite"
       ? exercise.payload.sourceSentence
@@ -579,11 +621,13 @@ function TextAnswerCard({
         onAnswer({ kind: exercise.kind, text: value } as GrammarAnswer);
       }}
     >
-      <p className="rounded-2xl border border-border-subtle bg-surface-2 px-4 py-4 text-lg leading-8">
-        {source}
-      </p>
+      <p className="rounded-md bg-surface-2 px-4 py-4 text-lg leading-8">{source}</p>
+      <label htmlFor={answerId} className="sr-only">
+        Written answer
+      </label>
       <textarea
-        className="min-h-28 rounded-2xl border border-border-strong bg-surface-0 px-4 py-3 text-base leading-7 text-app outline-none transition focus:border-accent"
+        id={answerId}
+        className="ui-focus-ring min-h-28 rounded-control border border-border-strong bg-surface-0 px-4 py-3 text-base leading-7 text-app transition focus:border-accent"
         value={value}
         onChange={(event) => setValue(event.target.value)}
         disabled={disabled}
@@ -607,14 +651,13 @@ function FeedbackPanel({
 }) {
   return (
     <div
-      className={cn(
-        "rounded-2xl border px-4 py-4",
-        outcome.correct ? "border-success/40 bg-success/10" : "border-warning/40 bg-warning/10",
-      )}
+      role="status"
+      aria-live="polite"
+      className={cn("rounded-md px-4 py-4", outcome.correct ? "bg-success/10" : "bg-warning/10")}
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <Badge tone={outcome.correct ? "success" : "warning"} uppercase>
+          <Badge tone={outcome.correct ? "success" : "warning"}>
             {outcome.correct ? "Correct" : "Review"}
           </Badge>
           <p className="mt-2 text-sm leading-6 text-app">{outcome.feedback}</p>
@@ -655,20 +698,19 @@ function GrammarShell({
   contextLabel?: string;
   onExit: () => void;
 }) {
+  const hasWindowBack = useWindowBackAction("Lessons", onExit);
+
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8">
-      <header className="flex min-w-0 flex-wrap items-center justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-3">
-          <Badge tone="focus" uppercase>
-            Grammar
-          </Badge>
-          {contextLabel ? (
-            <span className="truncate text-sm text-muted">{contextLabel}</span>
-          ) : null}
-        </div>
-        <Button variant="ghost" size="md" onClick={onExit} className="text-muted">
-          End session
-        </Button>
+    <div className="mx-auto flex min-h-full w-full max-w-5xl flex-col gap-5 px-6 py-5">
+      <header className="flex min-h-8 min-w-0 flex-wrap items-center justify-between gap-4">
+        {contextLabel ? (
+          <span className="truncate text-[13px] font-medium text-muted">{contextLabel}</span>
+        ) : null}
+        {!hasWindowBack ? (
+          <Button variant="ghost" size="md" onClick={onExit} className="text-muted">
+            End session
+          </Button>
+        ) : null}
       </header>
       <div className="flex min-w-0 flex-col gap-5">{children}</div>
     </div>

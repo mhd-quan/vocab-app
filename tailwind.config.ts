@@ -6,7 +6,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Lingvist-inspired neutral surface stack — dark by default, wide screen friendly
+        // Named identity palette. Semantic aliases below preserve the existing API.
+        ground: "rgb(var(--color-ground) / <alpha-value>)",
+        paper: "rgb(var(--color-paper) / <alpha-value>)",
+        graphite: "rgb(var(--color-graphite) / <alpha-value>)",
+        iris: "rgb(var(--color-iris) / <alpha-value>)",
+        moss: "rgb(var(--color-moss) / <alpha-value>)",
+        ochre: "rgb(var(--color-ochre) / <alpha-value>)",
         app: "rgb(var(--color-fg) / <alpha-value>)",
         muted: "rgb(var(--color-muted) / <alpha-value>)",
         "muted-2": "rgb(var(--color-muted-2) / <alpha-value>)",
@@ -17,10 +23,15 @@ const config: Config = {
         "border-subtle": "rgb(var(--color-border-subtle) / <alpha-value>)",
         "border-strong": "rgb(var(--color-border-strong) / <alpha-value>)",
         accent: "rgb(var(--color-accent) / <alpha-value>)",
+        "accent-fill": "rgb(var(--color-accent-fill) / <alpha-value>)",
         "accent-fg": "rgb(var(--color-accent-fg) / <alpha-value>)",
         success: "rgb(var(--color-success) / <alpha-value>)",
+        "success-fill": "rgb(var(--color-success-fill) / <alpha-value>)",
         warning: "rgb(var(--color-warning) / <alpha-value>)",
+        "warning-fill": "rgb(var(--color-warning-fill) / <alpha-value>)",
         danger: "rgb(var(--color-danger) / <alpha-value>)",
+        "danger-fill": "rgb(var(--color-danger-fill) / <alpha-value>)",
+        "danger-fg": "rgb(var(--color-danger-fg) / <alpha-value>)",
         xp: "rgb(var(--color-xp) / <alpha-value>)",
         rare: "rgb(var(--color-rare) / <alpha-value>)",
         epic: "rgb(var(--color-epic) / <alpha-value>)",
@@ -41,9 +52,25 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-family-sans)"],
         display: ["var(--font-family-display)"],
+        lexical: ["var(--font-family-lexical)"],
         mono: ["var(--font-family-mono)"],
       },
+      fontSize: {
+        caption: ["0.6875rem", { lineHeight: "1rem" }],
+        ui: ["0.8125rem", { lineHeight: "1.125rem" }],
+        reading: ["0.9375rem", { lineHeight: "1.375rem" }],
+        section: ["1rem", { lineHeight: "1.375rem" }],
+        title: ["1.375rem", { lineHeight: "1.75rem", letterSpacing: "-0.012em" }],
+      },
       borderRadius: {
+        control: "var(--radius-control)",
+        object: "var(--radius-object)",
+        overlay: "var(--radius-overlay)",
+        md: "var(--radius-control)",
+        lg: "var(--radius-object)",
+        xl: "var(--radius-overlay)",
+        "2xl": "var(--radius-object)",
+        "3xl": "var(--radius-overlay)",
         bento: "var(--radius-bento)",
         pill: "var(--radius-pill)",
         chip: "var(--radius-chip)",
@@ -51,10 +78,15 @@ const config: Config = {
       },
       boxShadow: {
         card: "var(--shadow-card)",
-        "card-dark": "0 18px 45px rgb(0 0 0 / 0.24)",
+        "card-dark": "var(--shadow-card)",
         lift: "var(--shadow-lift)",
         press: "var(--shadow-press)",
         "press-active": "var(--shadow-press-active)",
+      },
+      transitionDuration: {
+        fast: "var(--motion-fast)",
+        base: "var(--motion-base)",
+        slow: "var(--motion-slow)",
       },
       maxWidth: {
         "screen-3xl": "1920px",

@@ -5,20 +5,13 @@ import { queryKeys } from "@/lib/queryClient";
 import { summarizeStudentProgress } from "@/modules/rewards";
 import { AppGlyph } from "@/ui/components/AppGlyph";
 import { Avatar } from "@/ui/components/Avatar";
-import { Badge } from "@/ui/components/Badge";
-import { BentoCard } from "@/ui/components/BentoCard";
 import { EmptyState } from "@/ui/components/EmptyState";
-import {
-  AccuracyIcon,
-  DueIcon,
-  LessonIcon,
-  SeenIcon,
-  StreakFlame,
-} from "@/ui/components/LearningIcons";
+import { AccuracyIcon, DueIcon, LessonIcon, SeenIcon } from "@/ui/components/LearningIcons";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
-import { Mascot } from "@/ui/student/mascot";
+import { SplitView } from "@/ui/components/SplitView";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { AchievementStrip } from "./AchievementStrip";
 
 interface UnitWithLessons {
@@ -66,83 +59,115 @@ export function StudentHome() {
   });
 
   const studentName = studentQ.data?.displayName ?? studentQ.data?.name ?? "Unknown student";
+  const homePrompt = summaryQ.data
+    ? summaryQ.data.totalDue > 0
+      ? `${summaryQ.data.totalDue} items are ready for review. Your next unit is marked below.`
+      : "You are caught up. Start a new unit when you are ready."
+    : "Choose a unit from your learning path.";
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-7 px-8 py-10">
-      <Link to="/student" className="self-start text-xs font-medium text-muted hover:text-app">
-        Back to profiles
-      </Link>
-
-      <header className="grid gap-4 lg:grid-cols-[1.25fr_1fr]">
-        <BentoCard className="relative overflow-hidden p-6" interactive tone="focus">
-          <div className="absolute right-4 top-4 z-10">
-            <AchievementStrip studentId={id} />
-          </div>
-          <div className="flex items-start gap-5 pr-32 sm:pr-40">
-            <Avatar
-              name={studentQ.data?.displayName ?? studentQ.data?.name ?? "?"}
-              avatarSeed={studentQ.data?.avatarSeed ?? null}
-              color={studentQ.data?.color ?? null}
-              size="lg"
-            />
-            <div className="flex min-w-0 flex-1 flex-col">
-              <Badge tone="focus" uppercase className="w-fit">
-                Student
-              </Badge>
-              <h1 className="mt-2 truncate text-4xl font-semibold leading-tight">
-                {studentQ.isLoading ? "Loading..." : studentName}
-              </h1>
-              <p className="mt-1 text-sm text-muted">Choose a lesson and keep the run alive.</p>
-            </div>
-          </div>
-          <Mascot
-            variant="cheer"
-            studentId={id}
-            className="pointer-events-none absolute -bottom-4 right-2 hidden h-44 w-44 select-none sm:block lg:h-48 lg:w-48"
+    <SplitView
+      side="trailing"
+      initialSize={304}
+      minSize={272}
+      maxSize={384}
+      label="Resize learning progress inspector"
+      storageKey="vocab.student.today-pane"
+      className="h-full min-h-0"
+    >
+      <section
+        data-testid="student-learning-pane"
+        aria-label="Learning path"
+        className="h-full min-w-0 overflow-y-auto px-6 py-5"
+      >
+        <header className="mb-5 flex items-center gap-3">
+          <Avatar
+            name={studentQ.data?.displayName ?? studentQ.data?.name ?? "?"}
+            avatarSeed={studentQ.data?.avatarSeed ?? null}
+            color={studentQ.data?.color ?? null}
+            size="md"
           />
-        </BentoCard>
+          <div className="min-w-0">
+            <h1 className="truncate text-[22px] font-semibold leading-tight tracking-[-0.02em]">
+              {studentQ.isLoading ? "Loading…" : studentName}
+            </h1>
+            <p className="mt-1 text-[13px] text-muted">{homePrompt}</p>
+          </div>
+        </header>
+
+        {booksQ.isLoading ? (
+          <p className="text-sm text-muted">Loading assigned units…</p>
+        ) : booksQ.isError ? (
+          <div role="alert" className="learning-trace py-2 pl-4">
+            <p className="text-sm font-medium text-app">The learning path is unavailable</p>
+            <button
+              type="button"
+              className="ui-focus-ring mt-2 rounded-control text-xs font-semibold text-accent"
+              onClick={() => booksQ.refetch()}
+            >
+              Retry
+            </button>
+          </div>
+        ) : (booksQ.data ?? []).length === 0 ? (
+          <EmptyState
+            title="No assigned units yet"
+            body="Ask your tutor to assign a book unit before starting practice."
+          />
+        ) : (
+          <BookList studentId={id} books={booksQ.data ?? []} />
+        )}
+      </section>
+
+      <aside
+        data-testid="student-progress-inspector"
+        className="inspector-material h-full overflow-y-auto px-4 py-5"
+        aria-label="Learning progress"
+      >
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 className="text-sm font-semibold">Progress</h2>
+          <span className="text-[11px] text-muted-2">Across all practice</span>
+        </div>
         {summaryQ.data ? (
           <SummaryStats
             summary={summaryQ.data}
             streak={streakQ.data?.currentStreak ?? 0}
             practicedToday={streakQ.data?.practicedToday ?? false}
           />
+        ) : summaryQ.isError ? (
+          <p role="alert" className="py-4 text-xs text-warning">
+            Progress is temporarily unavailable.
+          </p>
         ) : (
-          <BentoCard className="flex items-center justify-center text-sm text-muted">
-            Loading progress...
-          </BentoCard>
+          <p className="py-4 text-xs text-muted">Loading progress…</p>
         )}
-      </header>
 
-      <section className="grid gap-4 lg:grid-cols-[3fr_1fr]">
-        <PersonalVocabularyCard
-          studentId={id}
-          summary={
-            dictionaryLearningQ.data ?? {
-              total: 0,
-              due: 0,
-              learning: 0,
-              shortTerm: 0,
-              longTerm: 0,
-              averageScore: 0,
-            }
-          }
-          loading={dictionaryLearningQ.isLoading}
-        />
-        <PronunciationLabCard studentId={id} />
-      </section>
+        <section className="mt-6 border-t border-border-subtle pt-5">
+          <h2 className="mb-2 text-xs font-semibold">Practice tools</h2>
+          <div className="ui-group bg-surface-2">
+            <PersonalVocabularyCard
+              studentId={id}
+              summary={
+                dictionaryLearningQ.data ?? {
+                  total: 0,
+                  due: 0,
+                  learning: 0,
+                  shortTerm: 0,
+                  longTerm: 0,
+                  averageScore: 0,
+                }
+              }
+              loading={dictionaryLearningQ.isLoading}
+            />
+            <PronunciationLabCard studentId={id} />
+          </div>
+        </section>
 
-      {booksQ.isLoading ? (
-        <p className="text-sm text-muted">Loading assigned units…</p>
-      ) : (booksQ.data ?? []).length === 0 ? (
-        <EmptyState
-          title="No assigned units yet"
-          body="Ask your tutor to assign a book unit before starting practice."
-        />
-      ) : (
-        <BookList studentId={id} books={booksQ.data ?? []} />
-      )}
-    </div>
+        <section className="mt-6 border-t border-border-subtle pt-5">
+          <h2 className="mb-3 text-xs font-semibold">Achievements</h2>
+          <AchievementStrip studentId={id} />
+        </section>
+      </aside>
+    </SplitView>
   );
 }
 
@@ -151,24 +176,14 @@ function PronunciationLabCard({ studentId }: { studentId: number }) {
     <Link
       to="/student/profile/$studentId/pronunciation"
       params={{ studentId: String(studentId) }}
-      className="motion-card flex min-h-48 flex-col justify-between gap-4 rounded-bento border border-sky/30 bg-sky/10 px-5 py-5 shadow-card transition hover:-translate-y-0.5 hover:border-sky/50 hover:shadow-lift"
+      className="ui-focus-ring group flex min-h-[var(--size-row)] items-center gap-3 border-t border-border-subtle px-3 py-2.5 outline-offset-[-2px] transition-colors hover:bg-surface-3/60"
     >
-      <div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge tone="sky" uppercase>
-            Pronunciation
-          </Badge>
-          <AppGlyph name="volume" className="h-7 w-7 text-sky" />
-        </div>
-        <h2 className="mt-3 font-display text-2xl font-semibold">Pronunciation lab</h2>
-        <p className="mt-1 text-sm leading-6 text-muted">
-          Compare IPA, sample audio, and CAPT scoring when the offline model bundle is installed.
-        </p>
+      <AppGlyph name="volume" className="h-5 w-5 text-accent" />
+      <div className="min-w-0 flex-1">
+        <h3 className="font-medium">Pronunciation lab</h3>
+        <p className="mt-0.5 text-xs leading-4 text-muted">IPA, audio, and scoring.</p>
       </div>
-      <span className="inline-flex items-center gap-1.5 font-semibold text-sky">
-        Open lab
-        <AppGlyph name="arrowRight" className="h-4 w-4" />
-      </span>
+      <AppGlyph name="arrowRight" className="h-4 w-4 text-muted-2 group-hover:text-app" />
     </Link>
   );
 }
@@ -195,31 +210,23 @@ function PersonalVocabularyCard({
       to="/student/profile/$studentId/personal-vocabulary"
       params={{ studentId: String(studentId) }}
       className={cn(
-        "motion-card group grid min-h-48 gap-4 rounded-bento border px-5 py-5 shadow-card transition-[background-color,border-color,box-shadow,transform] hover:-translate-y-1 hover:border-focus/45 hover:shadow-lift sm:grid-cols-[1fr_auto] sm:items-center lg:grid-cols-[1fr_auto] lg:items-center xl:grid-cols-[1fr_auto] xl:items-center",
-        hasDue ? "border-focus/35 bg-focus/10" : "border-border-subtle bg-surface-1",
+        "ui-focus-ring group block px-3 py-3 outline-offset-[-2px] transition-colors hover:bg-surface-3/60",
+        hasDue && "bg-accent/[0.04]",
       )}
     >
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge tone={hasDue ? "focus" : "muted"} uppercase>
-            Personal vocabulary
-          </Badge>
+          <AppGlyph name="dictionary" className="h-5 w-5 text-accent" />
+          <h3 className="font-medium">Personal vocabulary</h3>
           {hasDue ? (
-            <Badge tone="warning" uppercase>
-              {summary.due} due
-            </Badge>
+            <span className="text-[11px] font-medium text-warning">{summary.due} due</span>
           ) : null}
         </div>
-        <h2 className="mt-3 font-display text-2xl font-semibold">Words from dictionary searches</h2>
-        <p className="mt-1 max-w-2xl text-sm leading-6 text-muted">
-          New dictionary lookups become a separate review track with flashcards, choices, cloze, and
-          typing before they graduate to long-term memory.
-        </p>
+        <p className="mt-1 text-xs leading-4 text-muted">Words saved from dictionary searches.</p>
       </div>
-      <dl className="grid grid-cols-2 gap-3 sm:min-w-[14rem] xl:min-w-[17rem]">
+      <dl className="mt-3 flex items-center gap-4">
         <MiniStat label="Words" value={loading ? "..." : String(summary.total)} />
         <MiniStat label="Learning" value={loading ? "..." : String(summary.learning)} />
-        <MiniStat label="Short" value={loading ? "..." : String(summary.shortTerm)} />
         <MiniStat label="Score" value={loading ? "..." : `${summary.averageScore}%`} />
       </dl>
     </Link>
@@ -228,9 +235,11 @@ function PersonalVocabularyCard({
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-border-subtle bg-surface-0/65 px-3 py-2">
-      <dt className="text-[10px] font-semibold uppercase text-muted-2">{label}</dt>
-      <dd className="mt-1 font-mono text-lg text-app">{value}</dd>
+    <div>
+      <dt className="text-[10px] text-muted-2">{label}</dt>
+      <dd data-tabular className="text-xs font-medium text-app">
+        {value}
+      </dd>
     </div>
   );
 }
@@ -259,81 +268,113 @@ function SummaryStats({
     practicedToday,
   });
   return (
-    <dl className="grid grid-cols-2 gap-3">
-      <BentoCard as="div" tone="xp" className="col-span-2 p-4" interactive>
-        <dt className="flex items-center justify-between gap-3">
-          <span className="text-xs font-semibold uppercase text-muted-2">Learning summary</span>
-          <Badge tone="xp" uppercase>
-            {progress.xp} XP
-          </Badge>
-        </dt>
-        <dd className="mt-3">
-          <p className="font-display text-xl font-semibold text-app">{progress.headline}</p>
-          <p className="mt-1 text-sm leading-6 text-muted">{progress.note}</p>
-        </dd>
-      </BentoCard>
-      <BentoCard as="div" tone="sky" className="p-4" interactive>
-        <dt className="flex items-center justify-between gap-2 text-xs font-semibold uppercase text-muted-2">
-          <span>Studied</span>
-          <SeenIcon className="h-7 w-7 text-sky" />
-        </dt>
-        <dd className="mt-2 font-mono text-2xl text-app">{progress.wordsLabel}</dd>
-      </BentoCard>
-      <BentoCard as="div" tone={streak > 0 ? "ember" : "neutral"} className="p-4" interactive>
-        <dt className="flex items-center justify-between gap-2 text-xs font-semibold uppercase text-muted-2">
-          <span>Streak</span>
-          <StreakFlame streak={streak} className="h-7 w-7" />
-        </dt>
-        <dd className="mt-2 flex items-center gap-2 font-mono text-2xl text-app">
-          {streak > 0 ? `${streak}d` : "0d"}
-        </dd>
-      </BentoCard>
-      <BentoCard
-        as="div"
-        tone={summary.totalDue > 0 ? "coral" : "lime"}
-        className="p-4"
-        interactive
-      >
-        <dt className="flex items-center justify-between gap-2 text-xs font-semibold uppercase text-muted-2">
-          <span>Due</span>
-          <DueIcon className={summary.totalDue > 0 ? "h-7 w-7 text-coral" : "h-7 w-7 text-lime"} />
-        </dt>
-        <dd className="mt-2 font-mono text-2xl text-app">{summary.totalDue}</dd>
-      </BentoCard>
-      <BentoCard
-        as="div"
-        tone={progress.accuracyPct >= 80 ? "success" : "rare"}
-        className="p-4"
-        interactive
-      >
-        <dt className="flex items-center justify-between gap-2 text-xs font-semibold uppercase text-muted-2">
-          <span>Accuracy</span>
-          <AccuracyIcon className="h-7 w-7 text-rare" />
-        </dt>
-        <dd className="mt-2 font-mono text-2xl text-app">{progress.accuracyPct}%</dd>
-        <ProgressMeter
-          value={progress.accuracyPct}
-          max={100}
-          label="Accuracy progress"
-          tone={progress.accuracyPct >= 80 ? "success" : "rare"}
-          className="mt-3"
+    <section className="mt-3">
+      <div className="flex items-start justify-between gap-3 pb-4">
+        <div>
+          <h2 className="font-medium text-app">{progress.headline}</h2>
+          <p className="mt-1 text-xs leading-4 text-muted">{progress.note}</p>
+        </div>
+      </div>
+      <dl className="divide-y divide-border-subtle">
+        <SummaryMetric
+          label="Words seen"
+          value={progress.wordsLabel}
+          icon={<SeenIcon className="h-4 w-4 text-accent" />}
         />
-      </BentoCard>
-    </dl>
+        <SummaryMetric
+          label="Streak"
+          value={streak > 0 ? `${streak}d` : "0d"}
+          icon={<AppGlyph name="flame" className="h-4 w-4 text-warning" />}
+        />
+        <SummaryMetric
+          label="Due"
+          value={String(summary.totalDue)}
+          icon={
+            <DueIcon
+              className={summary.totalDue > 0 ? "h-4 w-4 text-warning" : "h-4 w-4 text-success"}
+            />
+          }
+        />
+        <SummaryMetric
+          label="Accuracy"
+          value={`${progress.accuracyPct}%`}
+          icon={<AccuracyIcon className="h-4 w-4 text-accent" />}
+        />
+      </dl>
+    </section>
+  );
+}
+
+function SummaryMetric({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: string;
+  icon: ReactNode;
+}) {
+  return (
+    <div className="grid grid-cols-[1fr_auto_auto] items-center gap-2 py-2.5">
+      <dt className="text-xs text-muted">{label}</dt>
+      <dd data-tabular className="text-sm font-semibold text-app">
+        {value}
+      </dd>
+      <span className="text-muted-2">{icon}</span>
+    </div>
   );
 }
 
 function BookList({ studentId, books }: { studentId: number; books: Book[] }) {
+  const [priorities, setPriorities] = useState<Record<number, { priority: number; order: number }>>(
+    {},
+  );
+  const reportPriority = useCallback(
+    (unitId: number, priority: number, order: number) =>
+      setPriorities((current) => {
+        const existing = current[unitId];
+        if (existing?.priority === priority && existing.order === order) return current;
+        return { ...current, [unitId]: { priority, order } };
+      }),
+    [],
+  );
+  const recommendedUnitId = useMemo(
+    () =>
+      Object.entries(priorities)
+        .sort(([, a], [, b]) => a.priority - b.priority || a.order - b.order)
+        .map(([unitId]) => Number(unitId))[0] ?? null,
+    [priorities],
+  );
+
   return (
     <ul className="flex flex-col gap-8">
-      {books.map((book) => (
-        <BookSection key={book.id} studentId={studentId} book={book} />
+      {books.map((book, bookIndex) => (
+        <BookSection
+          key={book.id}
+          studentId={studentId}
+          book={book}
+          bookIndex={bookIndex}
+          recommendedUnitId={recommendedUnitId}
+          onPriority={reportPriority}
+        />
       ))}
     </ul>
   );
 }
 
-function BookSection({ studentId, book }: { studentId: number; book: Book }) {
+function BookSection({
+  studentId,
+  book,
+  bookIndex,
+  recommendedUnitId,
+  onPriority,
+}: {
+  studentId: number;
+  book: Book;
+  bookIndex: number;
+  recommendedUnitId: number | null;
+  onPriority: (unitId: number, priority: number, order: number) => void;
+}) {
   const unitsQ = useQuery({
     queryKey: queryKeys.students.assignedUnits(studentId, book.id),
     queryFn: () => api.students.listAssignedUnits({ studentId, bookId: book.id }),
@@ -341,21 +382,32 @@ function BookSection({ studentId, book }: { studentId: number; book: Book }) {
   const units = unitsQ.data ?? [];
 
   return (
-    <li className="flex flex-col gap-4">
-      <header className="flex items-end justify-between gap-3 border-b border-border-subtle pb-3">
+    <li className="flex flex-col gap-3">
+      <header className="flex items-end justify-between gap-3 pb-1">
         <div>
-          <h2 className="text-xl font-semibold">{book.title}</h2>
+          <h2 className="text-[17px] font-semibold tracking-[-0.012em]">{book.title}</h2>
           <span className="font-mono text-xs text-muted-2">{book.code}</span>
         </div>
       </header>
       {unitsQ.isLoading ? (
         <p className="text-xs text-muted">Loading units…</p>
+      ) : unitsQ.isError ? (
+        <p role="alert" className="text-xs text-warning">
+          Assigned units are unavailable.
+        </p>
       ) : units.length === 0 ? (
         <p className="text-xs text-muted-2">No assigned units in this book.</p>
       ) : (
-        <ul className="grid grid-cols-1 gap-x-6 gap-y-7 xl:grid-cols-2">
-          {units.map((unit) => (
-            <AssignedUnitCard key={unit.id} studentId={studentId} unit={unit} />
+        <ul data-testid="book-unit-list" className="ui-group bg-surface-1">
+          {units.map((unit, unitIndex) => (
+            <AssignedUnitCard
+              key={unit.id}
+              studentId={studentId}
+              unit={unit}
+              order={bookIndex * 1_000 + unitIndex}
+              recommended={recommendedUnitId === unit.id}
+              onPriority={onPriority}
+            />
           ))}
         </ul>
       )}
@@ -363,7 +415,19 @@ function BookSection({ studentId, book }: { studentId: number; book: Book }) {
   );
 }
 
-function AssignedUnitCard({ studentId, unit }: { studentId: number; unit: Unit }) {
+function AssignedUnitCard({
+  studentId,
+  unit,
+  order,
+  recommended,
+  onPriority,
+}: {
+  studentId: number;
+  unit: Unit;
+  order: number;
+  recommended: boolean;
+  onPriority: (unitId: number, priority: number, order: number) => void;
+}) {
   const lessonsQ = useQuery({
     queryKey: queryKeys.curriculum.lessons(unit.id),
     queryFn: () => api.curriculum.listLessonsByUnit({ unitId: unit.id }),
@@ -379,10 +443,8 @@ function AssignedUnitCard({ studentId, unit }: { studentId: number; unit: Unit }
       queryFn: () => api.progress.dueByLesson({ studentId, lessonId: lesson.id }),
     })),
   });
-
-  if (lessonsQ.isLoading) {
-    return <p className="text-xs text-muted">Loading lessons…</p>;
-  }
+  const progressLoading = dueQs.some((query) => query.isLoading);
+  const progressUnavailable = lessonsQ.isError || dueQs.some((query) => query.isError);
 
   const totals = lessons.reduce(
     (acc, lesson, index) => {
@@ -399,106 +461,130 @@ function AssignedUnitCard({ studentId, unit }: { studentId: number; unit: Unit }
 
   const reviewCount = totals.dueCount + totals.newCount;
   const completedCount = Math.max(totals.totalCount - reviewCount, 0);
-  const tier = unitTier({
-    dueCount: totals.dueCount,
-    newCount: totals.newCount,
-    reviewCount,
-  });
+  const contentTypes = [totals.hasVocab ? "Vocabulary" : null, totals.hasGrammar ? "Grammar" : null]
+    .filter(Boolean)
+    .join(" + ");
 
-  const content = (
-    <>
-      <div className="flex min-w-0 flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge tone={tier.tone} uppercase>
-            {tier.label}
-          </Badge>
-          {totals.hasVocab ? (
-            <Badge tone="xp" uppercase>
-              Vocabulary
-            </Badge>
-          ) : null}
-          {totals.hasGrammar ? (
-            <Badge tone="focus" uppercase>
-              Grammar
-            </Badge>
-          ) : null}
-          <LessonIcon className={cn("h-8 w-8 text-accent")} />
-          <span className="truncate text-base font-semibold">
-            {unit.code}: {unit.title}
-          </span>
-        </div>
-        {unit.summaryMd ? (
-          <p className="line-clamp-2 max-w-2xl text-sm leading-6 text-muted">{unit.summaryMd}</p>
-        ) : null}
-        <ProgressMeter
-          value={completedCount}
-          max={totals.totalCount}
-          label={`${unit.title} progress`}
-          tone={
-            reviewCount === 0 && totals.totalCount > 0
-              ? "success"
-              : totals.dueCount > 0
-                ? "warning"
-                : "xp"
-          }
-        />
-      </div>
-      <div className="flex flex-wrap items-center gap-2 text-xs text-muted sm:justify-end">
-        {totals.dueCount > 0 ? (
-          <Badge tone="warning" uppercase>
-            {totals.dueCount} due
-          </Badge>
-        ) : null}
-        {totals.newCount > 0 ? (
-          <Badge tone="muted" uppercase>
-            {totals.newCount} new
-          </Badge>
-        ) : null}
-        {reviewCount === 0 && totals.totalCount > 0 ? (
-          <Badge tone="success" uppercase>
-            All caught up
-          </Badge>
-        ) : null}
-        {totals.totalCount === 0 ? (
-          <Badge tone="muted" uppercase>
-            No cards yet
-          </Badge>
-        ) : null}
-        <span className="font-mono text-xs text-muted-2">{totals.totalCount} items</span>
-        <span aria-hidden className="text-muted-2 transition-colors group-hover:text-accent">
-          &gt;
-        </span>
-      </div>
-    </>
-  );
+  const traceTone =
+    reviewCount === 0 && totals.totalCount > 0
+      ? "bg-success"
+      : totals.dueCount > 0
+        ? "bg-warning"
+        : "bg-accent";
+  const priority = progressUnavailable ? 99 : totals.dueCount > 0 ? 0 : totals.newCount > 0 ? 1 : 2;
 
-  const className =
-    "motion-card group grid min-h-48 gap-4 rounded-bento border border-border-subtle bg-surface-1 px-5 py-5 text-sm shadow-card shadow-press transition-[background-color,border-color,box-shadow,transform] [--glow-rgb:var(--color-accent)] hover:translate-y-0 hover:border-accent/40 hover:bg-surface-2 hover:shadow-lift active:translate-y-[3px] active:shadow-press-active sm:grid-cols-[1fr_auto]";
+  useEffect(() => {
+    if (lessonsQ.isLoading || progressLoading) return;
+    onPriority(unit.id, priority, order);
+  }, [lessonsQ.isLoading, onPriority, order, priority, progressLoading, unit.id]);
+
+  if (lessonsQ.isLoading) {
+    return (
+      <li className="border-b border-border-subtle px-5 py-6 text-xs text-muted last:border-b-0">
+        Loading lessons…
+      </li>
+    );
+  }
+
+  const actionLabel =
+    progressUnavailable || !recommended
+      ? "Open"
+      : totals.dueCount > 0
+        ? "Review next"
+        : totals.newCount > 0
+          ? "Start next"
+          : "Continue";
 
   return (
-    <Link
-      to="/student/profile/$studentId/unit/$unitId"
-      params={{ studentId: String(studentId), unitId: String(unit.id) }}
-      className={className}
+    <li
+      data-testid="unit-learning-object"
+      className="border-b border-border-subtle last:border-b-0"
     >
-      {content}
-    </Link>
+      <Link
+        to="/student/profile/$studentId/unit/$unitId"
+        params={{ studentId: String(studentId), unitId: String(unit.id) }}
+        className="ui-focus-ring group relative grid min-h-28 gap-4 overflow-hidden bg-surface-1 px-5 py-4 pl-6 text-sm outline-offset-[-2px] transition-colors hover:bg-surface-2/65 active:bg-surface-3/60 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+      >
+        <span
+          aria-hidden
+          className={cn("absolute inset-y-4 left-0 w-[3px] rounded-r-sm", traceTone)}
+        />
+        <div className="min-w-0">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+            <LessonIcon className="h-[18px] w-[18px] text-accent" />
+            <span className="truncate text-[15px] font-semibold">
+              {unit.code}: {unit.title}
+            </span>
+            {contentTypes ? <span className="text-xs text-muted-2">{contentTypes}</span> : null}
+          </div>
+          {unit.summaryMd ? (
+            <p className="mt-2 line-clamp-2 max-w-2xl text-[13px] leading-5 text-muted">
+              {unit.summaryMd}
+            </p>
+          ) : null}
+          {progressUnavailable ? (
+            <p className="mt-3 text-xs text-warning">
+              Progress is unavailable. Open the unit to retry.
+            </p>
+          ) : progressLoading ? (
+            <p role="status" className="mt-3 text-xs text-muted">
+              Loading progress…
+            </p>
+          ) : (
+            <ProgressMeter
+              value={completedCount}
+              max={totals.totalCount}
+              label={`${unit.title} progress`}
+              tone={
+                reviewCount === 0 && totals.totalCount > 0
+                  ? "success"
+                  : totals.dueCount > 0
+                    ? "warning"
+                    : "accent"
+              }
+              className="mt-3 max-w-xl"
+            />
+          )}
+        </div>
+        <div className="flex min-w-40 items-center gap-3 sm:justify-end">
+          <div className="flex flex-1 flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:justify-end">
+            {!progressLoading && !progressUnavailable && totals.dueCount > 0 ? (
+              <span className="font-medium text-warning">{totals.dueCount} due</span>
+            ) : null}
+            {!progressLoading && !progressUnavailable && totals.newCount > 0 ? (
+              <span className="text-muted">{totals.newCount} new</span>
+            ) : null}
+            {!progressLoading &&
+            !progressUnavailable &&
+            reviewCount === 0 &&
+            totals.totalCount > 0 ? (
+              <span className="font-medium text-success">All caught up</span>
+            ) : null}
+            {!progressLoading && !progressUnavailable && totals.totalCount === 0 ? (
+              <span className="text-muted">No cards yet</span>
+            ) : null}
+            {!progressLoading && !progressUnavailable ? (
+              <span data-tabular className="text-muted-2">
+                {totals.totalCount} items
+              </span>
+            ) : null}
+          </div>
+          <span
+            className={cn(
+              "text-xs font-semibold",
+              recommended && totals.dueCount > 0 ? "text-warning" : "text-accent",
+            )}
+          >
+            {actionLabel}
+          </span>
+          <AppGlyph
+            name="arrowRight"
+            className="h-4 w-4 text-muted-2 transition-colors group-hover:text-accent"
+          />
+        </div>
+      </Link>
+    </li>
   );
-}
-
-function unitTier({
-  dueCount,
-  newCount,
-  reviewCount,
-}: {
-  dueCount: number;
-  newCount: number;
-  reviewCount: number;
-}): { label: string; tone: "success" | "warning" | "xp" | "rare" } {
-  if (reviewCount === 0) return { label: "Mastery", tone: "success" };
-  if (dueCount > 0) return { label: "Focus", tone: "warning" };
-  if (newCount > 0) return { label: "New", tone: "xp" };
-  return { label: "Core", tone: "rare" };
 }
 
 // Re-export so consumers can build their own UnitWithLessons-shaped views.

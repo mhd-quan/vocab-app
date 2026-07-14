@@ -96,6 +96,7 @@ export const queryKeys = {
     weakItems: (studentId: number) => ["progress", "weakItems", studentId] as const,
     dailyActivity: (studentId: number, days: number) =>
       ["progress", "dailyActivity", studentId, days] as const,
+    cohortActivity: (days: number) => ["progress", "cohortActivity", days] as const,
     recentSessions: (studentId: number) => ["progress", "recentSessions", studentId] as const,
     unitReport: (studentId: number) => ["progress", "unitReport", studentId] as const,
     unitSessions: (studentId: number, unitId: number) =>

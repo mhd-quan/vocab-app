@@ -275,6 +275,7 @@ describe("ProgressRepository — tutorOverview", () => {
     expect(rows.map((r) => r.student.id)).toEqual([alice.id, bob.id]);
     for (const r of rows) {
       expect(r.totalSeen).toBe(0);
+      expect(r.totalAttempts).toBe(0);
       expect(r.accuracy).toBe(0);
       expect(r.lastPracticedAt).toBeNull();
     }
@@ -304,6 +305,7 @@ describe("ProgressRepository — tutorOverview", () => {
     const rows = repos.progress.tutorOverview({ now: new Date(T0.getTime() + 5 * DAY_MS) });
     const aliceRow = rows.find((r) => r.student.id === alice.id);
     expect(aliceRow?.totalSeen).toBe(1);
+    expect(aliceRow?.totalAttempts).toBe(2);
     expect(aliceRow?.accuracy).toBeCloseTo(0.5, 3);
     expect(aliceRow?.lastPracticedAt?.getTime()).toBe(T0.getTime() + 60_000);
   });

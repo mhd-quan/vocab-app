@@ -1,6 +1,6 @@
 import { cn } from "@/lib/cn";
 import type { HeatmapCell } from "@/modules/analytics";
-import { useState } from "react";
+import { type KeyboardEvent, useMemo, useState } from "react";
 
 export interface HeatmapProps {
   cells: HeatmapCell[];
@@ -14,10 +14,10 @@ export interface HeatmapProps {
 
 const INTENSITY_BG: Record<HeatmapCell["intensity"], string> = {
   0: "bg-surface-3/70",
-  1: "bg-focus/25",
-  2: "bg-focus/45",
-  3: "bg-success/65",
-  4: "bg-success/95",
+  1: "bg-iris/20",
+  2: "bg-iris/40",
+  3: "bg-iris/60",
+  4: "bg-iris/90",
 };
 
 /**
@@ -32,14 +32,14 @@ const INTENSITY_BG: Record<HeatmapCell["intensity"], string> = {
  */
 export function Heatmap({ cells, title, caption, density = "compact", className }: HeatmapProps) {
   const [activeCell, setActiveCell] = useState<HeatmapCell | null>(null);
+  const [rovingIndex, setRovingIndex] = useState(Math.max(0, cells.length - 1));
+  const cellIndexByDate = useMemo(
+    () => new Map(cells.map((cell, index) => [cell.date, index])),
+    [cells],
+  );
   if (cells.length === 0) {
     return (
-      <div
-        className={cn(
-          "rounded-bento border border-dashed border-border-subtle bg-surface-1 px-5 py-4 text-xs text-muted-2",
-          className,
-        )}
-      >
+      <div className={cn("object-surface px-5 py-4 text-xs text-muted", className)}>
         No activity yet.
       </div>
     );
@@ -47,13 +47,16 @@ export function Heatmap({ cells, title, caption, density = "compact", className 
 
   const columns = packIntoColumns(cells);
   const summary = summarizeCells(cells);
+  const safeRovingIndex = Math.min(rovingIndex, cells.length - 1);
+  const navigateCell = (currentIndex: number, delta: number) => {
+    const nextIndex = Math.min(Math.max(currentIndex + delta, 0), cells.length - 1);
+    setRovingIndex(nextIndex);
+    const target = document.querySelector<HTMLButtonElement>(`[data-heatmap-index="${nextIndex}"]`);
+    target?.focus();
+  };
   return (
     <section
-      className={cn(
-        "rounded-bento border border-border-subtle bg-surface-1 px-5 py-4",
-        density === "roomy" && "p-5 lg:p-6",
-        className,
-      )}
+      className={cn("object-surface px-5 py-4", density === "roomy" && "p-5 lg:p-6", className)}
     >
       {title || caption ? (
         <header
@@ -69,7 +72,7 @@ export function Heatmap({ cells, title, caption, density = "compact", className 
           ) : (
             <span />
           )}
-          <span className={cn("text-[10px] text-muted-2", density === "roomy" && "text-xs")}>
+          <span className={cn("text-caption text-muted", density === "roomy" && "text-xs")}>
             {formatActiveCell(activeCell) ?? caption}
           </span>
         </header>
@@ -77,15 +80,10 @@ export function Heatmap({ cells, title, caption, density = "compact", className 
       <div
         className={cn(
           "flex flex-col gap-4",
-          density === "roomy" && "lg:grid lg:grid-cols-[minmax(0,1fr)_14rem] lg:items-stretch",
+          density === "roomy" && "lg:grid lg:grid-cols-[minmax(0,1fr)_13rem] lg:items-stretch",
         )}
       >
-        <div
-          className={cn(
-            "overflow-x-auto",
-            density === "roomy" && "rounded-[var(--shape-corner-lg)] bg-surface-0/50 p-4",
-          )}
-        >
+        <div className={cn("overflow-x-auto", density === "roomy" && "bg-ground/55 p-4")}>
           <div
             className={cn(
               "flex min-w-max gap-1",
@@ -101,9 +99,13 @@ export function Heatmap({ cells, title, caption, density = "compact", className 
                   <Cell
                     key={cell ? cell.date : `${ci}-${ri}`}
                     cell={cell}
+                    index={cell ? (cellIndexByDate.get(cell.date) ?? -1) : -1}
+                    rovingIndex={safeRovingIndex}
                     density={density}
                     onActivate={setActiveCell}
                     onClear={() => setActiveCell(null)}
+                    onNavigate={navigateCell}
+                    onFocusIndex={setRovingIndex}
                   />
                 ))}
               </div>
@@ -118,34 +120,75 @@ export function Heatmap({ cells, title, caption, density = "compact", className 
 
 function Cell({
   cell,
+  index,
+  rovingIndex,
   density,
   onActivate,
   onClear,
+  onNavigate,
+  onFocusIndex,
 }: {
   cell: HeatmapCell | null;
+  index: number;
+  rovingIndex: number;
   density: NonNullable<HeatmapProps["density"]>;
   onActivate: (cell: HeatmapCell) => void;
   onClear: () => void;
+  onNavigate: (currentIndex: number, delta: number) => void;
+  onFocusIndex: (index: number) => void;
 }) {
   if (!cell) {
-    return <div aria-hidden className={cn("h-3 w-3", density === "roomy" && "h-4 w-4")} />;
+    return <div aria-hidden className="h-6 w-6" />;
   }
   return (
     <button
       type="button"
       title={`${cell.date} — ${cell.count} ${cell.count === 1 ? "event" : "events"}`}
       aria-label={`${cell.date}: ${cell.count} practice reps`}
+      data-heatmap-index={index}
+      tabIndex={index === rovingIndex ? 0 : -1}
       onMouseEnter={() => onActivate(cell)}
-      onFocus={() => onActivate(cell)}
+      onFocus={() => {
+        onFocusIndex(index);
+        onActivate(cell);
+      }}
       onMouseLeave={onClear}
       onBlur={onClear}
+      onKeyDown={(event) => onCellKeyDown(event, index, onNavigate)}
       className={cn(
-        "h-3 w-3 rounded-[3px] transition-transform hover:scale-125 focus-visible:scale-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus/40",
-        density === "roomy" && "h-4 w-4 rounded-[4px]",
-        INTENSITY_BG[cell.intensity],
+        "ui-focus-ring group grid h-6 w-6 place-items-center rounded-control transition-colors duration-fast hover:bg-iris/10",
       )}
-    />
+    >
+      <span
+        aria-hidden
+        className={cn(
+          "h-3 w-3 rounded-[3px] transition-shadow duration-fast group-hover:ring-1 group-hover:ring-iris/35",
+          density === "roomy" && "h-4 w-4 rounded-[4px]",
+          INTENSITY_BG[cell.intensity],
+        )}
+      />
+    </button>
   );
+}
+
+function onCellKeyDown(
+  event: KeyboardEvent<HTMLButtonElement>,
+  index: number,
+  navigate: (currentIndex: number, delta: number) => void,
+) {
+  const delta =
+    event.key === "ArrowUp"
+      ? -1
+      : event.key === "ArrowDown"
+        ? 1
+        : event.key === "ArrowLeft"
+          ? -7
+          : event.key === "ArrowRight"
+            ? 7
+            : null;
+  if (delta === null) return;
+  event.preventDefault();
+  navigate(index, delta);
 }
 
 interface HeatmapSummaryStats {
@@ -157,7 +200,7 @@ interface HeatmapSummaryStats {
 
 function HeatmapSummary({ summary }: { summary: HeatmapSummaryStats }) {
   return (
-    <dl className="grid grid-cols-2 gap-2 lg:grid-cols-1">
+    <dl className="grid grid-cols-2 border-t border-border-subtle pt-3 lg:grid-cols-1 lg:border-l lg:border-t-0 lg:pb-1 lg:pl-4 lg:pt-0">
       <SummaryStat label="Total reps" value={summary.total} />
       <SummaryStat label="Active days" value={summary.activeDays} />
       <SummaryStat
@@ -184,10 +227,10 @@ function SummaryStat({
   hint?: string;
 }) {
   return (
-    <div className="rounded-[var(--shape-corner-lg)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] px-3 py-3">
-      <dt className="text-[10px] font-semibold uppercase text-muted-2">{label}</dt>
-      <dd className="mt-1 font-mono text-2xl leading-none text-app">{value}</dd>
-      {hint ? <p className="mt-1 text-xs text-muted">{hint}</p> : null}
+    <div className="border-b border-border-subtle px-2 py-2.5 last:border-b-0 lg:px-0">
+      <dt className="text-caption font-medium text-muted">{label}</dt>
+      <dd className="tabular-figure mt-0.5 text-base font-semibold leading-5 text-app">{value}</dd>
+      {hint ? <p className="mt-0.5 text-caption text-muted">{hint}</p> : null}
     </div>
   );
 }

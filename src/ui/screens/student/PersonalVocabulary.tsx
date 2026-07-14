@@ -3,13 +3,12 @@ import type {
   DictionarySearchHistoryItem,
 } from "@/data/dictionaryLearning";
 import { api } from "@/lib/api";
-import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
+import { AppGlyph } from "@/ui/components/AppGlyph";
 import { Badge, type BadgeTone } from "@/ui/components/Badge";
-import { BentoCard } from "@/ui/components/BentoCard";
+import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
-import { Mascot } from "@/ui/student/mascot";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 
@@ -35,171 +34,195 @@ export function StudentPersonalVocabulary() {
     enabled: Number.isFinite(id) && id > 0,
   });
 
-  const summary =
-    summaryQ.data ??
-    ({
-      total: 0,
-      due: 0,
-      learning: 0,
-      shortTerm: 0,
-      longTerm: 0,
-      averageScore: 0,
-    } as const);
+  const summary = summaryQ.data;
   const items = itemsQ.data ?? [];
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-8 py-10">
-      <Link
-        to="/student/profile/$studentId"
-        params={{ studentId: String(id) }}
-        className="self-start text-xs font-medium text-muted hover:text-app"
-      >
-        Back to units
-      </Link>
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-6 py-6">
+      <header>
+        <h1 className="text-title font-semibold">Personal vocabulary</h1>
+        <p className="mt-1 max-w-2xl text-sm leading-5 text-muted">
+          Words saved from dictionary searches, organised by the next recall step.
+        </p>
+      </header>
 
-      <BentoCard tone={summary.due > 0 ? "focus" : "neutral"} className="p-6">
-        <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
-          <div className="flex items-start gap-4">
-            <Mascot
-              variant={summary.due > 0 ? "focus" : "cheer"}
-              studentId={id}
-              className="hidden h-24 w-24 shrink-0 sm:block"
-            />
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge tone="focus" uppercase>
-                  Personal vocabulary
-                </Badge>
-                {summary.due > 0 ? (
-                  <Badge tone="warning" uppercase>
-                    {summary.due} due
-                  </Badge>
-                ) : null}
-              </div>
-              <h1 className="mt-3 text-3xl font-semibold leading-tight">
-                Dictionary learning track
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-                Looked-up words stay here until they pass the full recall cycle and later retention
-                checks.
-              </p>
-            </div>
+      <section className="grouped-list learning-trace" aria-labelledby="vocabulary-summary-title">
+        {summaryQ.isLoading ? (
+          <p id="vocabulary-summary-title" role="status" className="px-5 py-6 text-sm text-muted">
+            Loading vocabulary progress…
+          </p>
+        ) : summaryQ.isError || !summary ? (
+          <div role="alert" className="px-5 py-5">
+            <h2 id="vocabulary-summary-title" className="text-base font-semibold">
+              Vocabulary progress is unavailable
+            </h2>
+            <p className="mt-1 text-sm text-muted">Your saved words are unchanged.</p>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="mt-3"
+              onClick={() => summaryQ.refetch()}
+            >
+              Retry
+            </Button>
           </div>
-          <Link
-            to="/student/profile/$studentId/personal-vocabulary/session"
-            params={{ studentId: String(id) }}
-            className={cn(
-              "press-bounce inline-flex h-12 items-center justify-center rounded-button bg-accent px-5 text-sm font-semibold uppercase tracking-wide text-accent-fg shadow-press transition hover:translate-y-0 hover:bg-accent/90 active:translate-y-[3px] active:shadow-press-active",
-              summary.due === 0 && "pointer-events-none opacity-45",
-            )}
-          >
-            Start review
-          </Link>
-        </div>
-      </BentoCard>
+        ) : (
+          <>
+            <div className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 id="vocabulary-summary-title" className="text-base font-semibold">
+                  {summary.due > 0
+                    ? `${summary.due} ${summary.due === 1 ? "word is" : "words are"} ready to review`
+                    : "You are caught up"}
+                </h2>
+                <p className="mt-1 text-sm text-muted">
+                  Mastery is built across meaning, recall, typing, and later retention checks.
+                </p>
+              </div>
+              {summary.due > 0 ? (
+                <Link
+                  to="/student/profile/$studentId/personal-vocabulary/session"
+                  params={{ studentId: String(id) }}
+                  className="ui-focus-ring inline-flex h-[var(--size-control-lg)] shrink-0 items-center justify-center gap-1.5 rounded-control bg-accent px-4 text-[13px] font-medium text-accent-fg transition-colors duration-fast hover:bg-accent/90 active:bg-accent/80"
+                >
+                  Review {summary.due} {summary.due === 1 ? "word" : "words"}
+                  <AppGlyph name="arrowRight" size="sm" />
+                </Link>
+              ) : (
+                <span
+                  className="inline-flex h-[var(--size-control-lg)] shrink-0 items-center justify-center gap-1.5 rounded-control bg-surface-2 px-4 text-[13px] font-medium text-muted"
+                  aria-label="No words are due for review"
+                >
+                  <AppGlyph name="check" size="sm" />
+                  All caught up
+                </span>
+              )}
+            </div>
 
-      <section className="grid gap-3 md:grid-cols-5">
-        <MetricCard label="Words" value={summary.total} tone="sky" />
-        <MetricCard label="Due" value={summary.due} tone={summary.due > 0 ? "warning" : "lime"} />
-        <MetricCard label="Learning" value={summary.learning} tone="focus" />
-        <MetricCard label="Short-term" value={summary.shortTerm} tone="xp" />
-        <MetricCard label="Long-term" value={summary.longTerm} tone="success" />
+            <dl className="grid grid-cols-2 gap-px border-t border-border-subtle bg-border-subtle sm:grid-cols-3 lg:grid-cols-6">
+              <SummaryMetric label="Words" value={summary.total} />
+              <SummaryMetric
+                label="Due"
+                value={summary.due}
+                emphasis={summary.due > 0 ? "warning" : undefined}
+              />
+              <SummaryMetric label="Learning" value={summary.learning} />
+              <SummaryMetric label="Short-term" value={summary.shortTerm} />
+              <SummaryMetric label="Long-term" value={summary.longTerm} emphasis="success" />
+              <SummaryMetric label="Mastery" value={`${summary.averageScore}%`} />
+            </dl>
+          </>
+        )}
       </section>
 
-      <BentoCard className="p-5">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h2 className="text-base font-semibold">Mastery score</h2>
-            <p className="mt-1 text-xs text-muted">Average score across personal vocabulary.</p>
-          </div>
-          <span className="font-mono text-2xl text-app">{summary.averageScore}%</span>
-        </div>
-        <ProgressMeter
-          value={summary.averageScore}
-          max={100}
-          label="Personal vocabulary mastery"
-          tone={summary.averageScore >= 80 ? "success" : "accent"}
-          className="mt-4"
-        />
-      </BentoCard>
-
-      <div className="grid gap-6 xl:grid-cols-[1fr_18rem]">
-        <BentoCard className="p-5">
-          <header className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold">Learning items</h2>
-            <span className="font-mono text-xs text-muted-2">{items.length} words</span>
+      <div className="grid min-h-0 gap-5 xl:grid-cols-[minmax(0,1fr)_18rem]">
+        <section className="grouped-list" aria-labelledby="learning-items-title">
+          <header className="flex min-h-12 items-center justify-between gap-4 border-b border-border-subtle px-4">
+            <div>
+              <h2 id="learning-items-title" className="font-semibold">
+                Learning items
+              </h2>
+            </div>
+            <span className="tabular-figure text-xs text-muted">
+              {itemsQ.isLoading || itemsQ.isError
+                ? itemsQ.isLoading
+                  ? "Loading…"
+                  : "Unavailable"
+                : `${items.length} ${items.length === 1 ? "word" : "words"}`}
+            </span>
           </header>
           {itemsQ.isLoading ? (
-            <p className="text-sm text-muted">Loading words...</p>
+            <p className="px-4 py-8 text-sm text-muted">Loading words...</p>
+          ) : itemsQ.isError ? (
+            <p role="alert" className="px-4 py-8 text-sm text-warning">
+              Saved words are temporarily unavailable.
+            </p>
           ) : items.length === 0 ? (
             <EmptyState
               title="No personal words yet"
-              body="Use Search word from the student header to add dictionary lookups here."
+              body="Use Search word in the toolbar to save a dictionary lookup here."
             />
           ) : (
-            <ul className="grid gap-3 lg:grid-cols-2">
+            <ul className="divide-y divide-border-subtle">
               {items.map((item) => (
                 <LearningItemRow key={item.id} item={item} />
               ))}
             </ul>
           )}
-        </BentoCard>
+        </section>
 
-        <BentoCard className="p-5">
-          <h2 className="text-lg font-semibold">Recent searches</h2>
-          <SearchHistoryList loading={historyQ.isLoading} items={historyQ.data ?? []} />
-        </BentoCard>
+        <section className="grouped-list self-start" aria-labelledby="recent-searches-title">
+          <header className="flex min-h-12 items-center border-b border-border-subtle px-4">
+            <h2 id="recent-searches-title" className="font-semibold">
+              Recent searches
+            </h2>
+          </header>
+          <SearchHistoryList
+            loading={historyQ.isLoading}
+            unavailable={historyQ.isError}
+            items={historyQ.data ?? []}
+          />
+        </section>
       </div>
     </div>
   );
 }
 
-function MetricCard({
+function SummaryMetric({
   label,
   value,
-  tone,
+  emphasis,
 }: {
   label: string;
-  value: number;
-  tone: "sky" | "warning" | "lime" | "focus" | "xp" | "success";
+  value: number | string;
+  emphasis?: "success" | "warning";
 }) {
   return (
-    <BentoCard tone={tone} className="p-4" interactive>
-      <p className="text-xs font-semibold uppercase text-muted-2">{label}</p>
-      <p className="mt-2 font-mono text-3xl text-app">{value}</p>
-    </BentoCard>
+    <div className="bg-paper px-4 py-3">
+      <dt className="text-xs text-muted">{label}</dt>
+      <dd
+        className={`tabular-figure mt-0.5 text-lg font-semibold ${
+          emphasis === "success"
+            ? "text-success"
+            : emphasis === "warning"
+              ? "text-warning"
+              : "text-app"
+        }`}
+      >
+        {value}
+      </dd>
+    </div>
   );
 }
 
 function LearningItemRow({ item }: { item: DictionaryLearningItemView }) {
+  const mastery = masteryPercent(item.stability);
+
   return (
-    <li className="rounded-bento border border-border-subtle bg-surface-0/60 p-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge tone={statusTone(item.status)} uppercase>
-          {statusLabel(item.status)}
-        </Badge>
-        <Badge tone="muted" uppercase>
-          {stageLabel(item.stage)}
-        </Badge>
-        {item.cefrLevel ? (
-          <Badge tone="xp" uppercase>
-            {item.cefrLevel}
-          </Badge>
-        ) : null}
+    <li className="px-4 py-3.5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="ui-lexical truncate text-lg font-semibold">{item.headword}</h3>
+            {item.cefrLevel ? <span className="text-xs text-muted">{item.cefrLevel}</span> : null}
+          </div>
+          <p className="mt-0.5 line-clamp-1 text-sm text-muted">
+            {item.definitionVi ?? item.definitionEn}
+          </p>
+        </div>
+        <div className="flex min-w-0 items-center gap-2 sm:w-[15rem] sm:justify-end">
+          <Badge tone={statusTone(item.status)}>{statusLabel(item.status)}</Badge>
+          <span className="text-xs text-muted">{stageLabel(item.stage)}</span>
+          <span className="tabular-figure ml-auto w-9 text-right text-xs text-muted">
+            {mastery}%
+          </span>
+        </div>
       </div>
-      <div className="mt-3 flex items-baseline justify-between gap-3">
-        <h3 className="min-w-0 truncate text-xl font-semibold">{item.headword}</h3>
-        {/* Mastery is derived from FSRS stability — 21-day stability ≈ 100%. */}
-        <span className="font-mono text-sm text-muted">{masteryPercent(item.stability)}%</span>
-      </div>
-      <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted">
-        {item.definitionVi ?? item.definitionEn}
-      </p>
       <ProgressMeter
-        value={masteryPercent(item.stability)}
+        value={mastery}
         max={100}
         label={`${item.headword} mastery`}
-        tone={masteryPercent(item.stability) >= 80 ? "success" : "accent"}
+        tone={mastery >= 80 ? "success" : "accent"}
         className="mt-3"
       />
     </li>
@@ -208,24 +231,30 @@ function LearningItemRow({ item }: { item: DictionaryLearningItemView }) {
 
 function SearchHistoryList({
   loading,
+  unavailable,
   items,
 }: {
   loading: boolean;
+  unavailable: boolean;
   items: DictionarySearchHistoryItem[];
 }) {
-  if (loading) return <p className="mt-4 text-sm text-muted">Loading searches...</p>;
+  if (loading) return <p className="px-4 py-6 text-sm text-muted">Loading searches...</p>;
+  if (unavailable) {
+    return (
+      <p role="alert" className="px-4 py-6 text-sm text-warning">
+        Search history is unavailable.
+      </p>
+    );
+  }
   if (items.length === 0) {
-    return <p className="mt-4 text-sm leading-6 text-muted">No searches recorded yet.</p>;
+    return <p className="px-4 py-6 text-sm leading-5 text-muted">No searches recorded yet.</p>;
   }
   return (
-    <ul className="mt-4 flex flex-col gap-2">
+    <ul className="divide-y divide-border-subtle">
       {items.map((item) => (
-        <li
-          key={item.id}
-          className="rounded-xl border border-border-subtle bg-surface-0/60 px-3 py-2"
-        >
+        <li key={item.id} className="px-4 py-3">
           <p className="truncate text-sm font-medium">{item.headword ?? item.query}</p>
-          <p className="mt-0.5 font-mono text-[11px] text-muted-2">{formatDate(item.createdAt)}</p>
+          <p className="tabular-figure mt-0.5 text-xs text-muted-2">{formatDate(item.createdAt)}</p>
         </li>
       ))}
     </ul>
@@ -234,9 +263,7 @@ function SearchHistoryList({
 
 /**
  * Mastery percent surfaced to students — derived from FSRS stability.
- * 0 days → 0%; ≥ 21 days (the long-term threshold) → 100%. Linear in
- * between. Read-only convenience for the LearningItemRow + dashboard
- * gauges; never feeds the scheduler.
+ * 0 days → 0%; ≥ 21 days (the long-term threshold) → 100%.
  */
 function masteryPercent(stability: number): number {
   if (!Number.isFinite(stability) || stability <= 0) return 0;
@@ -251,8 +278,8 @@ function statusLabel(status: DictionaryLearningItemView["status"]): string {
 }
 
 function statusTone(status: DictionaryLearningItemView["status"]): BadgeTone {
-  if (status === "short_term") return "xp";
   if (status === "long_term") return "success";
+  if (status === "short_term") return "muted";
   return "focus";
 }
 

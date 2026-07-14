@@ -75,6 +75,11 @@ const dailyActivityInput = z.object({
   untilIso: z.string().datetime(),
 });
 
+const cohortActivityInput = z.object({
+  sinceIso: z.string().datetime(),
+  untilIso: z.string().datetime(),
+});
+
 const recentSessionsInput = z.object({
   studentId: z.number().int().positive(),
   limit: z.number().int().positive().max(100).optional(),
@@ -208,6 +213,16 @@ export const progressProcedures = [
     handler: ({ studentId, sinceIso, untilIso }, ctx) =>
       ctx.repos.progress.dailyActivity({
         studentId,
+        since: new Date(sinceIso),
+        until: new Date(untilIso),
+      }),
+  }),
+
+  defineProcedure({
+    name: "progress.cohortActivity",
+    input: cohortActivityInput,
+    handler: ({ sinceIso, untilIso }, ctx) =>
+      ctx.repos.progress.cohortActivity({
         since: new Date(sinceIso),
         until: new Date(untilIso),
       }),

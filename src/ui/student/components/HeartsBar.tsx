@@ -17,10 +17,7 @@ export function HeartsBar({ remaining, total = 5, className }: HeartsBarProps) {
 
   return (
     <div
-      className={cn(
-        "inline-flex h-10 items-center gap-1 rounded-pill border border-danger/25 bg-danger/10 px-3",
-        className,
-      )}
+      className={cn("inline-flex h-8 items-center gap-1 rounded-md bg-surface-2 px-2.5", className)}
       aria-label={`${safeRemaining} of ${safeTotal} hearts remaining`}
     >
       {slots.map((slot) => (

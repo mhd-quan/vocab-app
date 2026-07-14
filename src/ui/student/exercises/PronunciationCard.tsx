@@ -20,8 +20,6 @@ import type {
   PronunciationAttempt,
   PronunciationExercise,
 } from "@/modules/exercises";
-import { Badge } from "@/ui/components/Badge";
-import { BentoCard } from "@/ui/components/BentoCard";
 import { ProgressMeter } from "@/ui/components/ProgressMeter";
 import { VocabularyPronunciation } from "@/ui/components/VocabularyPronunciation";
 import { MicButton } from "@/ui/screens/student/pronunciation/MicButton";
@@ -37,6 +35,8 @@ export interface PronunciationCardProps {
   studentId: number;
   sessionId: number | null;
   preferredAccent?: "uk" | "us" | "any";
+  /** A passing attempt is committed and waiting for the learner to continue. */
+  locked?: boolean;
   onAnswer: (attempt: PronunciationAttempt) => void;
 }
 
@@ -46,6 +46,7 @@ export function PronunciationCard({
   studentId,
   sessionId,
   preferredAccent = "uk",
+  locked = false,
   onAnswer,
 }: PronunciationCardProps) {
   const recorder = usePronunciationRecorder();
@@ -71,6 +72,7 @@ export function PronunciationCard({
   const micState = micStateOf(recorder.state, assess.isPending, Boolean(recorder.recording));
 
   async function handleMic() {
+    if (locked) return;
     if (recorder.state === "recording") {
       const recorded = await recorder.stop();
       if (recorded) assess.mutate({ audioPcm: recorded.audioPcm, sampleRate: recorded.sampleRate });
@@ -89,12 +91,12 @@ export function PronunciationCard({
   }));
 
   return (
-    <BentoCard className="motion-enter mx-auto flex max-w-2xl flex-col gap-5 p-6">
+    <section className="object-surface motion-enter mx-auto flex max-w-2xl flex-col gap-5 bg-surface-1 p-6">
       <header className="flex flex-col items-center gap-3 text-center">
-        <Badge tone="sky" uppercase>
+        <span className="learning-trace-label text-xs font-semibold text-accent">
           Pronunciation
-        </Badge>
-        <h2 className="text-4xl font-semibold leading-tight">{headword}</h2>
+        </span>
+        <h2 className="ui-lexical text-4xl font-semibold leading-tight">{headword}</h2>
         {ipa ? <p className="font-mono text-sm text-muted">{ipa}</p> : null}
         <VocabularyPronunciation
           headword={headword}
@@ -110,7 +112,14 @@ export function PronunciationCard({
           state={micState}
           durationMs={recorder.durationMs}
           maxDurationMs={recorder.maxDurationMs}
-          disabled={sessionId === null}
+          disabled={sessionId === null || locked}
+          disabledReason={
+            locked
+              ? "Attempt recorded. Continue to the next card."
+              : sessionId === null
+                ? "Opening the practice session…"
+                : undefined
+          }
           onClick={handleMic}
         />
       </div>
@@ -124,13 +133,13 @@ export function PronunciationCard({
       ) : null}
 
       {assess.error ? (
-        <div className="rounded-xl border border-warning/35 bg-warning/10 px-4 py-3 text-sm text-warning">
+        <div className="rounded-md bg-warning/10 px-4 py-3 text-sm text-warning">
           {assess.error instanceof Error ? assess.error.message : "Could not score that attempt."}
         </div>
       ) : null}
 
       {assess.data && !assess.data.ok ? (
-        <div className="rounded-xl border border-warning/35 bg-warning/10 px-4 py-3 text-sm text-warning">
+        <div className="rounded-md bg-warning/10 px-4 py-3 text-sm text-warning">
           {assess.data.reason}
         </div>
       ) : null}
@@ -139,10 +148,8 @@ export function PronunciationCard({
         <>
           <div
             className={cn(
-              "rounded-xl border px-4 py-3 text-sm",
-              passed
-                ? "border-success/30 bg-success/10 text-success"
-                : "border-warning/35 bg-warning/10 text-warning",
+              "rounded-md px-4 py-3 text-sm",
+              passed ? "bg-success/10 text-success" : "bg-warning/10 text-warning",
             )}
           >
             <p className="font-semibold">
@@ -154,7 +161,7 @@ export function PronunciationCard({
               <p className="mt-1 leading-6">{assessment.guardrails[0].message}</p>
             ) : null}
           </div>
-          <section className="grid gap-3 sm:grid-cols-3">
+          <section className="grouped-list grid overflow-hidden sm:grid-cols-3 sm:divide-x sm:divide-border-subtle">
             <ScoreCell label="Overall" value={assessment.overallScore} />
             <ScoreCell label="Phonemes" value={assessment.phonemeScore} />
             <ScoreCell
@@ -164,8 +171,8 @@ export function PronunciationCard({
             />
           </section>
           {assessment.feedback.length > 0 ? (
-            <div className="rounded-xl border border-border-subtle bg-surface-0/70 p-4">
-              <p className="text-xs font-semibold uppercase text-muted-2">Feedback</p>
+            <div className="rounded-md bg-surface-2 p-4">
+              <p className="text-xs font-semibold text-muted-2">Feedback</p>
               <ul className="mt-2 flex flex-col gap-1 text-sm leading-6 text-muted">
                 {assessment.feedback.map((line) => (
                   <li key={line}>{line}</li>
@@ -178,15 +185,18 @@ export function PronunciationCard({
           ) : null}
         </>
       ) : null}
-    </BentoCard>
+    </section>
   );
 }
 
 function ScoreCell({ label, value, muted }: { label: string; value: number; muted?: boolean }) {
   return (
-    <div className="rounded-xl border border-border-subtle bg-surface-0/70 p-3">
-      <p className="text-xs font-semibold uppercase text-muted-2">{label}</p>
-      <p className={cn("mt-1 font-mono text-2xl", muted ? "text-muted-2" : "text-app")}>
+    <div className="p-3">
+      <p className="text-xs font-semibold text-muted-2">{label}</p>
+      <p
+        data-tabular
+        className={cn("mt-1 text-2xl font-semibold", muted ? "text-muted-2" : "text-app")}
+      >
         {muted ? "—" : Math.round(value)}
       </p>
       <ProgressMeter

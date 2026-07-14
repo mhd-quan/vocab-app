@@ -20,7 +20,6 @@ import {
 import { SETTINGS_KEYS } from "@/modules/settings/keys";
 import { filterVocabEntriesBySections, parseStudySectionParam } from "@/modules/studySections";
 import { useDisplayPreferences } from "@/providers/DisplayPreferencesProvider";
-import { Button } from "@/ui/components/Button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -279,9 +278,6 @@ export function StudentSession() {
     return (
       <div className="mx-auto max-w-md px-6 py-10 text-center">
         <p className="text-sm text-danger">Invalid lesson.</p>
-        <Button className="mt-4" variant="secondary" onClick={exit}>
-          Back
-        </Button>
       </div>
     );
   }
@@ -302,9 +298,6 @@ export function StudentSession() {
     return (
       <div className="mx-auto max-w-md px-6 py-10 text-center">
         <p className="text-sm text-danger">Lesson not found.</p>
-        <Button className="mt-4" variant="secondary" onClick={exit}>
-          Back
-        </Button>
       </div>
     );
   }

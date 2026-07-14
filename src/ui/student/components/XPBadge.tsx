@@ -11,14 +11,14 @@ export function XPBadge({ xp, className }: XPBadgeProps) {
   return (
     <div
       className={cn(
-        "inline-flex h-10 items-center gap-2 rounded-pill border border-xp/30 bg-xp/10 px-3 font-semibold text-xp",
+        "inline-flex h-8 items-center gap-1.5 rounded-control bg-surface-2 px-2.5 font-medium text-xp",
         className,
       )}
       aria-label={`${safeXp} XP`}
     >
       <AppGlyph name="spark" filled className="h-4 w-4" />
-      <span className="font-mono text-sm text-app">{safeXp}</span>
-      <span className="text-xs uppercase text-muted">XP</span>
+      <span className="tabular-figure text-sm text-app">{safeXp}</span>
+      <span className="text-xs text-muted">XP</span>
     </div>
   );
 }

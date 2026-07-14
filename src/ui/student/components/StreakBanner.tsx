@@ -26,7 +26,7 @@ export function StreakBanner({ stats, variant = "compact", className }: StreakBa
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-2 rounded-pill border border-border-subtle bg-surface-1 px-3 py-1.5 text-sm font-semibold",
+        "inline-flex h-8 items-center gap-1.5 rounded-md bg-surface-2 px-2.5 text-sm font-medium",
         current > 0 ? "text-app" : "text-muted",
         className,
       )}

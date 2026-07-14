@@ -8,16 +8,16 @@ import { DEFAULT_PRONUNCIATION_POLICY } from "@/modules/pronunciation";
 import { SETTINGS_KEYS } from "@/modules/settings/keys";
 import { useAppMode } from "@/providers/AppModeProvider";
 import {
+  DISPLAY_PREFERENCE_SETTING_KEYS,
   type DisplayFontSize,
   type PronunciationAccentPreference,
   useDisplayPreferences,
 } from "@/providers/DisplayPreferencesProvider";
-import { type ThemePreference, useTheme } from "@/providers/ThemeProvider";
+import { THEME_SETTING_KEY, type ThemePreference, useTheme } from "@/providers/ThemeProvider";
 import { Button } from "@/ui/components/Button";
 import { PageHeader } from "@/ui/components/PageHeader";
 import { PinInput } from "@/ui/components/PinInput";
 import {
-  TutorPanel,
   TutorSegmentedControl,
   TutorSelectField,
   TutorSwitchField,
@@ -39,7 +39,6 @@ const SETTINGS = {
   definitionPriority: "definition_priority",
   cameraCheckinsEnabled: "session_camera_checkins_enabled",
   screenshotsEnabled: SETTINGS_KEYS.screenshotsEnabled,
-  pronunciationAccent: "pronunciation_default_accent",
   idleTimeout: "idle_timeout_minutes",
   lockOnClose: "lock_on_close",
   fsrsShortTermDays: "fsrs_short_term_days",
@@ -48,9 +47,9 @@ const SETTINGS = {
 
 const LEGACY_SETTING_KEYS = ["display_compact", "locale"] as const;
 const RESETTABLE_KEYS = [
-  "theme",
+  THEME_SETTING_KEY,
   SOUND_KEY,
-  "display_font_size",
+  ...Object.values(DISPLAY_PREFERENCE_SETTING_KEYS),
   ...Object.values(SETTINGS),
   SETTINGS_KEYS.pronunciationMaxErrorRate,
   SETTINGS_KEYS.pronunciationMinDurationMs,
@@ -62,22 +61,35 @@ export function TutorSettings() {
   return (
     <>
       <PageHeader
-        eyebrow="Tutor"
         title="Settings"
-        subtitle="Tutor access, display, session defaults, and local app preferences."
+        subtitle="Configure tutor access, the learning experience, and local data sources."
       />
-      <section className="grid grid-cols-1 gap-5 px-8 py-6 xl:grid-cols-[minmax(19rem,23rem)_minmax(0,1fr)]">
-        <div className="flex flex-col gap-5">
-          <ChangePinCard />
-          <AutoLockCard />
-          <DictionaryPackCard />
-          <AboutCard />
+      <section className="grid max-w-[90rem] grid-cols-1 gap-6 px-6 pb-12 xl:grid-cols-2">
+        <div className="flex min-w-0 flex-col gap-3">
+          <header className="px-1">
+            <h2 className="text-sm font-semibold text-app">Access and storage</h2>
+            <p className="mt-1 text-xs text-muted">Tutor security and data kept on this device.</p>
+          </header>
+          <div className="grouped-list [&>section:last-child]:border-b-0">
+            <ChangePinCard />
+            <AutoLockCard />
+            <DictionaryPackCard />
+            <AboutCard />
+          </div>
         </div>
-        <div className="flex flex-col gap-5">
-          <PreferencesCard />
-          <SessionDefaultsCard />
-          <SrsThresholdsCard />
-          <PronunciationPolicyCard />
+        <div className="flex min-w-0 flex-col gap-3">
+          <header className="px-1">
+            <h2 className="text-sm font-semibold text-app">Learning experience</h2>
+            <p className="mt-1 text-xs text-muted">
+              Defaults shared by student sessions and pronunciation review.
+            </p>
+          </header>
+          <div className="grouped-list [&>section:last-child]:border-b-0">
+            <PreferencesCard />
+            <SessionDefaultsCard />
+            <SrsThresholdsCard />
+            <PronunciationPolicyCard />
+          </div>
         </div>
       </section>
     </>
@@ -108,7 +120,7 @@ function PreferencesCard() {
 
   return (
     <SettingsCard title="Preferences" description="Appearance and learner feedback.">
-      <div className="divide-y divide-border-subtle overflow-hidden rounded-[var(--shape-corner-xl)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)]">
+      <div className="grouped-list divide-y divide-border-subtle bg-surface-2">
         <PreferenceRow title="Theme">
           <TutorSegmentedControl
             value={theme}
@@ -419,7 +431,7 @@ function DictionaryPackCard() {
           {status?.active ? "Active" : "Not installed"}
         </dd>
         <dt className="text-muted">Entries</dt>
-        <dd className="font-mono text-app">{status?.entryCount.toLocaleString() ?? "0"}</dd>
+        <dd className="tabular-nums text-app">{status?.entryCount.toLocaleString() ?? "0"}</dd>
         <dt className="text-muted">Source</dt>
         <dd className="font-mono text-muted-2">{status?.sourceFile ?? "—"}</dd>
         <dt className="text-muted">Folder</dt>
@@ -465,6 +477,8 @@ function DictionaryPackCard() {
 
 function AboutCard() {
   const queryClient = useQueryClient();
+  const { resetTheme } = useTheme();
+  const { resetDisplayPreferences } = useDisplayPreferences();
   const [confirming, setConfirming] = useState(false);
   const infoQ = useQuery({
     queryKey: ["meta", "appInfo"],
@@ -475,6 +489,8 @@ function AboutCard() {
       await Promise.all(RESETTABLE_KEYS.map((key) => api.settings.delete({ key })));
     },
     onSuccess: () => {
+      resetTheme();
+      resetDisplayPreferences();
       for (const key of RESETTABLE_KEYS) {
         queryClient.invalidateQueries({ queryKey: settingKey(key) });
       }
@@ -594,13 +610,13 @@ function ChangePinCard() {
         {error ? (
           <p
             role="alert"
-            className="rounded-xl border border-danger/40 bg-danger/10 px-3 py-2 text-xs text-danger"
+            className="border-l-2 border-danger bg-danger/8 px-3 py-2 text-xs text-danger"
           >
             {error}
           </p>
         ) : null}
         {success ? (
-          <output className="block rounded-xl border border-success/40 bg-success/10 px-3 py-2 text-xs text-success">
+          <output className="block border-l-2 border-success bg-success/8 px-3 py-2 text-xs text-success">
             {success}
           </output>
         ) : null}
@@ -629,16 +645,20 @@ function SettingsCard({
   className?: string;
 }) {
   return (
-    <TutorPanel title={title} description={description} className={className}>
+    <section className={`border-b border-border-subtle px-5 py-5 ${className ?? ""}`}>
+      <header className="mb-4">
+        <h2 className="text-sm font-semibold text-app">{title}</h2>
+        <p className="mt-1 text-xs leading-5 text-muted">{description}</p>
+      </header>
       <div className="flex min-w-0 flex-col gap-3">{children}</div>
-    </TutorPanel>
+    </section>
   );
 }
 
 function PreferenceRow({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="grid gap-3 px-4 py-3 md:grid-cols-[8rem_minmax(0,1fr)] md:items-center">
-      <h3 className="text-xs font-semibold uppercase text-muted-2">{title}</h3>
+      <h3 className="text-xs font-semibold text-muted-2">{title}</h3>
       <div className="min-w-0">{children}</div>
     </section>
   );

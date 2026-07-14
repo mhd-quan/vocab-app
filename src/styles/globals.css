@@ -29,13 +29,183 @@
   }
 
   body {
-    background: rgb(var(--color-surface-0));
+    background: rgb(var(--color-ground));
     color: rgb(var(--color-fg));
     font-family: var(--font-family-sans);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    font-size: 16px;
+    font-size: 13px;
     letter-spacing: 0;
-    line-height: 1.5;
+    line-height: 1.42;
     text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: rgb(var(--color-accent) / 0.18);
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--color-focus));
+    outline-offset: 2px;
+  }
+
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  * {
+    scrollbar-color: rgb(var(--color-border-strong) / 0.62) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    height: 10px;
+    width: 10px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: rgb(var(--color-border-strong) / 0.54);
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background-clip: content-box;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  [data-tabular],
+  .tabular-figure {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .ui-focus-ring:focus-visible {
+    outline: 2px solid rgb(var(--color-focus));
+    outline-offset: 2px;
+  }
+
+  /* Structural translucency: chrome and floating overlays only. */
+  .window-material {
+    background-color: rgb(var(--color-paper) / 0.82);
+    box-shadow: inset 0 1px rgb(255 255 255 / 0.3);
+    -webkit-backdrop-filter: blur(24px) saturate(1.12);
+    backdrop-filter: blur(24px) saturate(1.12);
+  }
+
+  .popover-material {
+    background-color: rgb(var(--color-paper) / 0.94);
+    -webkit-backdrop-filter: blur(24px) saturate(1.08);
+    backdrop-filter: blur(24px) saturate(1.08);
+  }
+
+  .sheet-material,
+  .overlay-material {
+    background-color: rgb(var(--color-paper) / 0.94);
+    box-shadow: inset 0 1px rgb(255 255 255 / 0.34);
+    -webkit-backdrop-filter: blur(24px) saturate(1.08);
+    backdrop-filter: blur(24px) saturate(1.08);
+  }
+
+  .inspector-material {
+    background-color: rgb(var(--color-paper));
+  }
+
+  .workspace-section {
+    border-top: 1px solid rgb(var(--color-border-subtle));
+  }
+
+  .object-surface {
+    border-radius: var(--radius-object);
+    background: rgb(var(--color-paper));
+  }
+
+  .grouped-list,
+  .ui-group {
+    overflow: hidden;
+    border-radius: var(--radius-object);
+    background: rgb(var(--color-paper));
+  }
+
+  .learning-trace {
+    --trace-rgb: var(--color-iris);
+    border-inline-start: 2px solid rgb(var(--trace-rgb));
+  }
+
+  .learning-trace-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .learning-trace-label::before {
+    width: 1.5rem;
+    height: 2px;
+    border-radius: var(--radius-circular);
+    background: rgb(var(--color-iris));
+    content: "";
+  }
+
+  .ui-pane-header {
+    display: flex;
+    min-height: var(--size-pane-header);
+    align-items: center;
+    padding-inline: 1rem;
+  }
+
+  .ui-row {
+    min-height: var(--size-row);
+    padding: 0.625rem 0.75rem;
+  }
+
+  .ui-lexical {
+    font-family: var(--font-family-lexical);
+    font-feature-settings: "liga", "kern";
+  }
+}
+
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .window-material,
+  .popover-material,
+  .sheet-material,
+  .overlay-material {
+    background-color: rgb(var(--color-paper));
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --color-border-subtle: var(--color-border-strong);
+  }
+
+  .window-material,
+  .popover-material,
+  .sheet-material,
+  .overlay-material,
+  .inspector-material {
+    background-color: rgb(var(--color-paper));
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (forced-colors: active) {
+  :focus-visible,
+  .ui-focus-ring:focus-visible {
+    outline-color: Highlight;
+  }
+
+  .learning-trace {
+    border-inline-start-color: Highlight;
+  }
+
+  .learning-trace-label::before {
+    background: Highlight;
   }
 }

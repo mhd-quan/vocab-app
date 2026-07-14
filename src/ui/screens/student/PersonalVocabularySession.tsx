@@ -13,7 +13,6 @@ import {
   practiceModeForExerciseMode,
 } from "@/modules/exercises/sessionModes";
 import { useDisplayPreferences } from "@/providers/DisplayPreferencesProvider";
-import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
@@ -201,9 +200,6 @@ export function StudentPersonalVocabularySession() {
   if (queue.length === 0) {
     return (
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-5 px-6 py-10">
-        <Button variant="ghost" className="self-start text-muted" onClick={exit}>
-          Back
-        </Button>
         <EmptyState
           title="No personal words due"
           body="Search dictionary entries from the student header to add new personal flashcards."
@@ -218,6 +214,7 @@ export function StudentPersonalVocabularySession() {
       onExit={exit}
       onResult={handleResult}
       contextLabel={`Personal vocabulary · ${queue.length}/${allItems.length} due words`}
+      backLabel="Personal vocabulary"
       soundEnabled={settings[SOUND_KEY] === true}
       autoplay={pronunciationAutoplay}
       preferredAccent={pronunciationAccent}

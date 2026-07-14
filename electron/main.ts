@@ -1,5 +1,12 @@
 import path from "node:path";
-import { BrowserWindow, type MediaAccessPermissionRequest, app, session, shell } from "electron";
+import {
+  BrowserWindow,
+  type MediaAccessPermissionRequest,
+  app,
+  nativeTheme,
+  session,
+  shell,
+} from "electron";
 import started from "electron-squirrel-startup";
 import { SETTINGS_KEYS } from "../src/modules/settings/keys";
 import { type AppDatabase, closeDatabase, openDatabase } from "./db";
@@ -49,6 +56,7 @@ const createMainWindow = (screenshotsEnabled: boolean): BrowserWindow => {
     minWidth: 1100,
     minHeight: 720,
     show: false,
+    backgroundColor: nativeTheme.shouldUseDarkColors ? "#1c1c1e" : "#f6f6f8",
     autoHideMenuBar: true,
     titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "default",
     trafficLightPosition: { x: 16, y: 16 },

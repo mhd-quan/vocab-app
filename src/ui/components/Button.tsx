@@ -10,20 +10,17 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const VARIANT_CLASSES: Record<Variant, string> = {
-  primary:
-    "bg-accent text-accent-fg shadow-sm shadow-accent/20 hover:bg-accent/90 focus-visible:ring-accent/50 disabled:bg-accent/40 disabled:shadow-none",
+  primary: "bg-accent text-accent-fg hover:bg-accent/90 active:bg-accent/80",
   secondary:
-    "border border-border-strong bg-surface-1 text-app hover:bg-surface-2 focus-visible:ring-border-strong/60 disabled:opacity-50",
-  ghost:
-    "bg-transparent text-app hover:bg-surface-2 focus-visible:ring-border-subtle disabled:opacity-50",
-  danger:
-    "bg-danger text-white hover:bg-danger/90 focus-visible:ring-danger/50 disabled:bg-danger/40",
+    "border border-border-strong/65 bg-paper text-app hover:bg-surface-2 active:bg-surface-3",
+  ghost: "bg-transparent text-app hover:bg-surface-2 active:bg-surface-3",
+  danger: "bg-danger text-danger-fg hover:bg-danger/90 active:bg-danger/80",
 };
 
 const SIZE_CLASSES: Record<Size, string> = {
-  sm: "h-8 px-3 text-xs",
-  md: "h-10 px-4 text-sm",
-  lg: "h-12 px-6 text-base",
+  sm: "h-[var(--size-control-sm)] px-2.5 text-xs",
+  md: "h-[var(--size-control-md)] px-3 text-[13px]",
+  lg: "h-[var(--size-control-lg)] px-4 text-[13px]",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
@@ -35,10 +32,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       ref={ref}
       type={type}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-button font-semibold transition-[background-color,border-color,color,box-shadow,transform]",
-        "hover:-translate-y-0.5 active:translate-y-px disabled:hover:translate-y-0",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-0",
-        "disabled:cursor-not-allowed",
+        "ui-focus-ring inline-flex items-center justify-center gap-1.5 rounded-control font-medium",
+        "transition-[background-color,border-color,color,box-shadow,filter] duration-fast",
+        "active:shadow-[inset_0_0_0_1px_rgb(var(--color-border-strong)/0.45)] active:brightness-[0.97]",
+        "disabled:pointer-events-none disabled:opacity-45",
         VARIANT_CLASSES[variant],
         SIZE_CLASSES[size],
         className,

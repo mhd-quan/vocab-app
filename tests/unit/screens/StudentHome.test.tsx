@@ -43,7 +43,7 @@ function book(): Book {
   };
 }
 
-function unit(): Unit {
+function unit(overrides: Partial<Unit> = {}): Unit {
   return {
     id: 10,
     bookId: 1,
@@ -54,10 +54,11 @@ function unit(): Unit {
     metadata: null,
     createdAt: epoch,
     updatedAt: epoch,
+    ...overrides,
   };
 }
 
-function lesson(): Lesson {
+function lesson(overrides: Partial<Lesson> = {}): Lesson {
   return {
     id: 100,
     unitId: 10,
@@ -68,6 +69,7 @@ function lesson(): Lesson {
     metadata: null,
     createdAt: epoch,
     updatedAt: epoch,
+    ...overrides,
   };
 }
 
@@ -154,6 +156,17 @@ describe("StudentHome", () => {
     });
     expect(screen.getByText("Destination B1")).toBeInTheDocument();
     await waitFor(() => expect(screen.getByText(/No cards yet/i)).toBeInTheDocument());
+    expect(screen.getByTestId("student-learning-pane")).toHaveClass("h-full", "overflow-y-auto");
+    expect(screen.getByTestId("student-progress-inspector")).toHaveClass(
+      "h-full",
+      "overflow-y-auto",
+    );
+    expect(screen.getByRole("complementary", { name: "Learning progress" })).toHaveTextContent(
+      /Across all practice/i,
+    );
+    expect(screen.getByTestId("book-unit-list")).toHaveClass("ui-group");
+    expect(screen.getByTestId("book-unit-list")).not.toHaveClass("gap-px");
+    expect(screen.getByTestId("unit-learning-object")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /People/ })).toHaveAttribute(
       "href",
       "/student/profile/1/unit/10",
@@ -208,6 +221,36 @@ describe("StudentHome", () => {
     expect(within(link).getByText(/3 new/i)).toBeInTheDocument();
     expect(within(link).getByText(/8 items/i)).toBeInTheDocument();
     expect(link).toHaveAttribute("href", "/student/profile/1/unit/10");
+  });
+
+  it("marks exactly one data-derived unit as the next action", async () => {
+    vi.spyOn(window.api.students, "listAssignedUnits").mockResolvedValue([
+      unit(),
+      unit({ id: 11, ordinal: 2, code: "U02", title: "Work" }),
+    ]);
+    vi.spyOn(window.api.curriculum, "listLessonsByUnit").mockImplementation(async ({ unitId }) => [
+      lesson({ id: unitId === 10 ? 100 : 110, unitId, title: unitId === 10 ? "Family" : "Jobs" }),
+    ]);
+    vi.spyOn(window.api.progress, "dueByLesson").mockImplementation(async ({ lessonId }) =>
+      lessonId === 100
+        ? { totalCount: 5, dueCount: 2, newCount: 0 }
+        : { totalCount: 3, dueCount: 0, newCount: 0 },
+    );
+    vi.spyOn(window.api.progress, "studentSummary").mockResolvedValue({
+      totalSeen: 8,
+      totalCorrect: 8,
+      totalWrong: 2,
+      accuracy: 0.8,
+      totalDue: 2,
+    });
+
+    renderHome();
+
+    const people = await screen.findByRole("link", { name: /People/i });
+    const work = await screen.findByRole("link", { name: /Work/i });
+    await waitFor(() => expect(within(people).getByText("Review next")).toBeInTheDocument());
+    expect(within(work).getByText("Open")).toBeInTheDocument();
+    expect(screen.getAllByText("Review next")).toHaveLength(1);
   });
 
   it("renders the empty assignment state when no books are assigned", async () => {

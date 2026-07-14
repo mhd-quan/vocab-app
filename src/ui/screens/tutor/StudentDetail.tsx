@@ -12,7 +12,7 @@ import { Modal } from "@/ui/components/Modal";
 import { PageHeader } from "@/ui/components/PageHeader";
 import { StudentHistoryImportButton } from "@/ui/components/StudentHistoryImportButton";
 import { AchievementIcon } from "@/ui/components/rewards";
-import { TutorMetricCard, TutorPanel, TutorSelectField } from "@/ui/tutor/components/Material";
+import { TutorPanel, TutorSelectField } from "@/ui/tutor/components/Material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
@@ -113,10 +113,13 @@ export function TutorStudentDetail() {
 
   if (!Number.isFinite(id) || id <= 0) {
     return (
-      <div className="px-8 py-10">
-        <p className="text-sm text-danger">Invalid student id.</p>
-        <Link to="/tutor/students" className="mt-2 inline-block text-xs text-muted hover:text-app">
-          ← Back to students
+      <div className="px-6 py-8">
+        <p className="text-sm font-medium text-danger">Invalid student id.</p>
+        <Link
+          to="/tutor/students"
+          className="ui-focus-ring mt-3 inline-flex rounded-control text-sm text-accent"
+        >
+          Return to students
         </Link>
       </div>
     );
@@ -133,90 +136,165 @@ export function TutorStudentDetail() {
   return (
     <>
       <PageHeader
-        eyebrow="Student"
         title={
           student?.displayName ?? student?.name ?? (studentQ.isLoading ? "Loading…" : "Unknown")
         }
-        subtitle="Per-student analytics: practice activity, weak words, recent sessions, achievements."
-        actions={
-          <Link to="/tutor/students" className="text-xs text-muted hover:text-app">
-            All students
-          </Link>
+        subtitle={
+          summaryQ.isLoading || streakQ.isLoading
+            ? "Loading the learner record…"
+            : summaryQ.isError || streakQ.isError
+              ? "The current learning summary is temporarily unavailable."
+              : describeStudentState(summary, streak?.practicedToday ?? false, accuracyPct)
         }
       />
 
-      <div className="flex flex-col gap-6 px-8 py-6">
-        <section className="grid gap-4 lg:grid-cols-[18rem_1fr]">
-          <TutorPanel className="flex items-center gap-4 p-6">
+      <div className="flex max-w-[90rem] flex-col gap-5 px-6 pb-10">
+        <section className="object-surface learning-trace overflow-hidden">
+          <div className="flex items-center gap-4 px-5 py-4">
             <Avatar
               name={student?.displayName ?? student?.name ?? "?"}
               avatarSeed={student?.avatarSeed ?? null}
               color={student?.color ?? null}
               size="lg"
             />
-            <div>
-              <p className="text-xs font-semibold uppercase text-focus">Profile</p>
-              <p className="mt-1 text-sm text-muted">
-                {streak?.practicedToday ? "Practised today" : "Ready for practice"}
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-app">Current study state</p>
+              <p className="mt-0.5 text-xs text-muted">
+                {streakQ.isLoading
+                  ? "Loading today’s activity…"
+                  : streakQ.isError
+                    ? "Today’s activity is unavailable"
+                    : streak?.practicedToday
+                      ? "Practised today"
+                      : "No practice recorded today"}
               </p>
+              {student?.notes ? (
+                <p className="mt-1 line-clamp-2 max-w-3xl text-xs text-muted-2">{student.notes}</p>
+              ) : null}
             </div>
-          </TutorPanel>
-          <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <Stat label="Seen" value={summary?.totalSeen ?? 0} tone="xp" />
-            <Stat label="Due" value={summary?.totalDue ?? 0} tone="warning" />
-            <Stat
-              label="Accuracy"
-              value={accuracyPct === null ? "—" : `${accuracyPct}%`}
-              tone={accuracyPct !== null && accuracyPct >= 80 ? "success" : "accent"}
+          </div>
+          <dl className="grid grid-cols-2 border-t border-border-subtle sm:grid-cols-4 sm:divide-x sm:divide-border-subtle">
+            <SummaryMetric
+              label="Seen"
+              value={summaryQ.isLoading || summaryQ.isError ? "—" : (summary?.totalSeen ?? 0)}
             />
-            <Stat
+            <SummaryMetric
+              label="Due"
+              value={summaryQ.isLoading || summaryQ.isError ? "—" : (summary?.totalDue ?? 0)}
+              tone={(summary?.totalDue ?? 0) > 0 ? "warning" : "neutral"}
+            />
+            <SummaryMetric
+              label="Accuracy"
+              value={
+                summaryQ.isLoading || summaryQ.isError || accuracyPct === null
+                  ? "—"
+                  : `${accuracyPct}%`
+              }
+              tone={accuracyPct !== null && accuracyPct >= 80 ? "success" : "neutral"}
+            />
+            <SummaryMetric
               label="Streak"
-              value={streak?.currentStreak ? `${streak.currentStreak}d` : "—"}
-              tone={streak?.currentStreak ? "mastery" : "neutral"}
+              value={
+                streakQ.isLoading || streakQ.isError
+                  ? "—"
+                  : streak?.currentStreak
+                    ? `${streak.currentStreak}d`
+                    : "0d"
+              }
+              tone={streak?.currentStreak ? "success" : "neutral"}
             />
           </dl>
         </section>
 
-        <AssignmentsPanel studentId={id} queryClient={queryClient} />
-
-        <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-          <Heatmap
-            cells={heatmapCells}
+        {activityQ.isLoading ? (
+          <TutorPanel
             title="Practice activity"
-            caption={`Last ${HEATMAP_DAYS} days`}
-            density="roomy"
-          />
-          <CadencePanel cadence={cadence} loading={activityQ.isLoading} />
-        </section>
+            description={`Last ${HEATMAP_DAYS} days`}
+            className="p-5"
+          >
+            <p role="status" className="text-xs text-muted">
+              Loading activity…
+            </p>
+          </TutorPanel>
+        ) : activityQ.isError ? (
+          <DataUnavailable title="Practice activity" onRetry={() => activityQ.refetch()} />
+        ) : (
+          <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+            <Heatmap
+              cells={heatmapCells}
+              title="Practice activity"
+              caption={`Last ${HEATMAP_DAYS} days`}
+              density="roomy"
+            />
+            <CadencePanel cadence={cadence} loading={false} />
+          </section>
+        )}
 
-        <UnitReportPanel
-          studentId={id}
-          rows={unitReportQ.data ?? []}
-          loading={unitReportQ.isLoading}
-        />
-
-        <EvidencePanel
-          studentId={id}
-          overview={evidenceQ.data ?? null}
-          loading={evidenceQ.isLoading}
-        />
-
-        <PronunciationEvidencePanel
-          overview={evidenceQ.data ?? null}
-          loading={evidenceQ.isLoading}
-        />
-
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <WeakWordsPanel rows={weakQ.data ?? []} loading={weakQ.isLoading} />
-          <RecentSessionsPanel rows={recentQ.data ?? []} loading={recentQ.isLoading} />
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {weakQ.isError ? (
+            <DataUnavailable title="Weak words" onRetry={() => weakQ.refetch()} />
+          ) : (
+            <WeakWordsPanel rows={weakQ.data ?? []} loading={weakQ.isLoading} />
+          )}
+          {recentQ.isError ? (
+            <DataUnavailable title="Recent sessions" onRetry={() => recentQ.refetch()} />
+          ) : (
+            <RecentSessionsPanel rows={recentQ.data ?? []} loading={recentQ.isLoading} />
+          )}
         </div>
 
-        <AchievementsPanel
-          ids={(unlockedQ.data ?? []).map((u) => u.achievementId)}
-          loading={unlockedQ.isLoading}
-        />
+        {unitReportQ.isError ? (
+          <DataUnavailable title="Unit report" onRetry={() => unitReportQ.refetch()} />
+        ) : (
+          <UnitReportPanel
+            studentId={id}
+            rows={unitReportQ.data ?? []}
+            loading={unitReportQ.isLoading}
+          />
+        )}
+
+        <AssignmentsPanel studentId={id} queryClient={queryClient} />
+
+        {evidenceQ.isError ? (
+          <DataUnavailable title="Session evidence" onRetry={() => evidenceQ.refetch()} />
+        ) : (
+          <>
+            <EvidencePanel
+              studentId={id}
+              overview={evidenceQ.data ?? null}
+              loading={evidenceQ.isLoading}
+            />
+            <PronunciationEvidencePanel
+              overview={evidenceQ.data ?? null}
+              loading={evidenceQ.isLoading}
+            />
+          </>
+        )}
+
+        {unlockedQ.isError ? (
+          <DataUnavailable title="Achievements" onRetry={() => unlockedQ.refetch()} />
+        ) : (
+          <AchievementsPanel
+            ids={(unlockedQ.data ?? []).map((u) => u.achievementId)}
+            loading={unlockedQ.isLoading}
+          />
+        )}
       </div>
     </>
+  );
+}
+
+function DataUnavailable({ title, onRetry }: { title: string; onRetry: () => unknown }) {
+  return (
+    <TutorPanel title={title} className="p-5">
+      <div role="alert">
+        <p className="text-sm font-medium text-app">Data is temporarily unavailable</p>
+        <p className="mt-1 text-xs text-muted">No learner record has been changed.</p>
+        <Button size="sm" variant="secondary" className="mt-3" onClick={onRetry}>
+          Retry
+        </Button>
+      </div>
+    </TutorPanel>
   );
 }
 
@@ -292,9 +370,13 @@ function AssignmentsPanel({
   };
 
   return (
-    <Panel title="Assignments" caption="Control what the student can see" tone="mastery">
+    <Panel title="Assignments" caption="Choose the units available in this learner's study path.">
       {booksQ.isLoading ? (
         <p className="text-xs text-muted">Loading books…</p>
+      ) : booksQ.isError ? (
+        <p role="alert" className="text-xs text-warning">
+          Books are temporarily unavailable.
+        </p>
       ) : books.length === 0 ? (
         <EmptyState
           title="No books imported"
@@ -302,7 +384,7 @@ function AssignmentsPanel({
         />
       ) : (
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 border-b border-border-subtle pb-4 sm:flex-row sm:items-end sm:justify-between">
             <TutorSelectField
               label="Book"
               value={String(bookId ?? "")}
@@ -320,38 +402,38 @@ function AssignmentsPanel({
 
           {unitsQ.isLoading || assignedQ.isLoading ? (
             <p className="text-xs text-muted">Loading units…</p>
+          ) : unitsQ.isError || assignedQ.isError ? (
+            <p role="alert" className="text-xs text-warning">
+              Unit assignments are temporarily unavailable.
+            </p>
           ) : units.length === 0 ? (
             <p className="text-xs text-muted-2">This book has no imported units yet.</p>
           ) : (
-            <ul className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+            <ul className="grouped-list max-h-80 divide-y divide-border-subtle overflow-y-auto">
               {units.map((unit) => {
                 const checked = selectedUnitIds.has(unit.id);
                 return (
                   <li key={unit.id}>
                     <label
                       className={cn(
-                        "flex min-h-24 cursor-pointer flex-col gap-2 rounded-[var(--shape-corner-lg)] border p-3 transition",
-                        checked
-                          ? "border-mastery/50 bg-mastery/10 shadow-[var(--md-sys-elevation-1)]"
-                          : "border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] hover:border-border-strong hover:bg-[color:var(--md-sys-color-surface-container-high)]",
+                        "flex min-h-[var(--size-row)] cursor-pointer items-center gap-3 px-3 py-2.5 transition-colors",
+                        checked ? "bg-success/8" : "hover:bg-surface-2",
                       )}
                     >
-                      <span className="flex items-center justify-between gap-3">
-                        <span className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => toggle(unit.id)}
-                            className="h-4 w-4 accent-[rgb(var(--color-mastery))]"
-                          />
-                          <span className="font-mono text-[11px] text-muted-2">{unit.code}</span>
-                        </span>
-                        <Badge tone={checked ? "mastery" : "muted"} uppercase>
-                          {checked ? "Assigned" : "Locked"}
-                        </Badge>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggle(unit.id)}
+                        className="h-4 w-4 shrink-0 accent-[rgb(var(--color-accent))]"
+                      />
+                      <span className="w-12 shrink-0 text-[11px] font-medium tabular-nums text-muted-2">
+                        {unit.code}
                       </span>
-                      <span className="line-clamp-2 text-sm font-medium text-app">
+                      <span className="min-w-0 flex-1 truncate text-sm font-medium text-app">
                         {unit.title}
+                      </span>
+                      <span className={checked ? "text-xs text-success" : "text-xs text-muted-2"}>
+                        {checked ? "Assigned" : "Not assigned"}
                       </span>
                     </label>
                   </li>
@@ -361,12 +443,14 @@ function AssignmentsPanel({
           )}
 
           {saveAssignments.isSuccess ? (
-            <p className="text-xs text-success">Assignments saved.</p>
+            <p role="status" className="text-xs text-success">
+              Assignments saved.
+            </p>
           ) : null}
           {saveAssignments.isError ? (
             <p
               role="alert"
-              className="rounded-[var(--shape-corner-lg)] border border-danger/30 bg-danger/10 px-3 py-2 text-xs leading-5 text-danger"
+              className="border-l-2 border-danger bg-danger/8 px-3 py-2 text-xs leading-5 text-danger"
             >
               {formatAssignmentSaveError(saveAssignments.error)}
             </p>
@@ -388,30 +472,28 @@ function formatAssignmentSaveError(error: unknown): string {
   return message || "Could not save assignments.";
 }
 
-function Stat({
+function SummaryMetric({
   label,
   value,
-  tone,
+  tone = "neutral",
 }: {
   label: string;
   value: number | string;
-  tone: "neutral" | "accent" | "success" | "warning" | "xp" | "mastery";
+  tone?: "neutral" | "success" | "warning";
 }) {
   return (
-    <TutorMetricCard
-      label={label}
-      value={value}
-      tone={
-        tone === "mastery"
-          ? "tertiary"
-          : tone === "warning"
-            ? "warning"
-            : tone === "success"
-              ? "success"
-              : "primary"
-      }
-      className="min-h-28 p-4"
-    />
+    <div className="border-t border-border-subtle px-4 py-3 [&:nth-child(-n+2)]:border-t-0 sm:border-t-0">
+      <dt className="text-[11px] text-muted">{label}</dt>
+      <dd
+        className={cn(
+          "mt-1 text-xl font-semibold tabular-nums text-app",
+          tone === "success" && "text-success",
+          tone === "warning" && "text-warning",
+        )}
+      >
+        {value}
+      </dd>
+    </div>
   );
 }
 
@@ -434,7 +516,7 @@ function CadencePanel({ cadence, loading }: { cadence: CadenceStats; loading: bo
       {loading ? (
         <p className="text-xs text-muted">Loading cadence...</p>
       ) : (
-        <dl className="grid gap-3">
+        <dl className="grouped-list divide-y divide-border-subtle">
           <CadenceMetric
             label="This week"
             value={`${cadence.thisWeek} reps`}
@@ -471,18 +553,19 @@ function CadenceMetric({
   tone: "neutral" | "accent" | "success" | "warning";
 }) {
   return (
-    <div
-      className={cn(
-        "rounded-[var(--shape-corner-lg)] border bg-[color:var(--md-sys-color-surface-container-low)] px-3 py-3",
-        tone === "success" && "border-success/25",
-        tone === "warning" && "border-warning/30",
-        tone === "accent" && "border-accent/25",
-        tone === "neutral" && "border-border-subtle",
-      )}
-    >
-      <dt className="text-[10px] font-semibold uppercase text-muted-2">{label}</dt>
-      <dd className="mt-1 font-mono text-2xl text-app">{value}</dd>
-      <p className="mt-1 text-xs text-muted">{hint}</p>
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 px-3 py-2.5">
+      <dt className="text-xs font-medium text-app">{label}</dt>
+      <dd
+        className={cn(
+          "text-sm font-semibold tabular-nums text-app",
+          tone === "success" && "text-success",
+          tone === "warning" && "text-warning",
+          tone === "accent" && "text-accent",
+        )}
+      >
+        {value}
+      </dd>
+      <p className="col-span-2 mt-1 text-[11px] leading-4 text-muted">{hint}</p>
     </div>
   );
 }
@@ -564,10 +647,10 @@ function UnitReportPanel({
           body="Unit rows appear after the student answers vocabulary or grammar items."
         />
       ) : (
-        <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-          <div className="overflow-hidden rounded-[var(--shape-corner-lg)] border border-border-subtle">
+        <div className="grid overflow-hidden rounded-object bg-surface-1 xl:grid-cols-[1.15fr_0.85fr]">
+          <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[color:var(--md-sys-color-surface-container-low)] uppercase text-muted-2">
+              <thead className="bg-surface-2 text-muted-2">
                 <tr>
                   <th className="px-3 py-2 font-medium">Unit</th>
                   <th className="px-3 py-2 font-medium">Sessions</th>
@@ -582,16 +665,15 @@ function UnitReportPanel({
                     key={row.unitId}
                     className={cn(
                       "border-t border-border-subtle transition-colors",
-                      selectedUnitId === row.unitId
-                        ? "bg-accent/10"
-                        : "hover:bg-[color:var(--md-sys-color-surface-container-low)]",
+                      selectedUnitId === row.unitId ? "bg-accent/10" : "hover:bg-surface-2",
                     )}
                   >
                     <td className="px-3 py-2">
                       <button
                         type="button"
+                        aria-pressed={selectedUnitId === row.unitId}
                         onClick={() => setSelectedUnitId(row.unitId)}
-                        className="flex flex-col text-left"
+                        className="ui-focus-ring flex rounded-control text-left"
                       >
                         <span className="font-medium text-app">
                           {row.unitCode}: {row.unitTitle}
@@ -599,13 +681,13 @@ function UnitReportPanel({
                         <span className="text-[10px] text-muted-2">{row.bookTitle}</span>
                       </button>
                     </td>
-                    <td className="px-3 py-2 font-mono text-muted">{row.sessionCount}</td>
+                    <td className="px-3 py-2 tabular-nums text-muted">{row.sessionCount}</td>
                     <td className="px-3 py-2">
-                      <Badge tone={accuracyTone(row.accuracy)} uppercase>
+                      <Badge tone={accuracyTone(row.accuracy)}>
                         {Math.round(row.accuracy * 100)}%
                       </Badge>
                     </td>
-                    <td className="px-3 py-2 font-mono text-muted">
+                    <td className="px-3 py-2 tabular-nums text-muted">
                       {row.avgResponseMs === null ? "—" : formatMs(row.avgResponseMs)}
                     </td>
                     <td className="px-3 py-2 text-muted">
@@ -617,19 +699,17 @@ function UnitReportPanel({
             </table>
           </div>
 
-          <div className="rounded-[var(--shape-corner-lg)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-4">
+          <div className="border-t border-border-subtle bg-surface-2/45 p-4 xl:border-l xl:border-t-0">
             {selectedUnit ? (
               <>
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge tone="focus" uppercase>
-                    {selectedUnit.unitCode}
-                  </Badge>
-                  <Badge tone={accuracyTone(selectedUnit.accuracy)} uppercase>
+                  <Badge tone="focus">{selectedUnit.unitCode}</Badge>
+                  <Badge tone={accuracyTone(selectedUnit.accuracy)}>
                     {Math.round(selectedUnit.accuracy * 100)}%
                   </Badge>
                 </div>
                 <h3 className="mt-3 text-base font-semibold text-app">{selectedUnit.unitTitle}</h3>
-                <dl className="mt-4 grid grid-cols-3 gap-2">
+                <dl className="mt-4 grid grid-cols-3 divide-x divide-border-subtle">
                   <EvidenceMiniStat label="Answered" value={selectedUnit.totalAnswered} />
                   <EvidenceMiniStat label="Correct" value={selectedUnit.totalCorrect} />
                   <EvidenceMiniStat
@@ -642,27 +722,27 @@ function UnitReportPanel({
                   />
                 </dl>
                 <div className="mt-4">
-                  <p className="mb-2 text-[10px] font-semibold uppercase text-muted-2">
-                    Unit sessions
-                  </p>
+                  <p className="mb-2 text-xs font-semibold text-muted">Unit sessions</p>
                   {unitSessionsQ.isLoading ? (
                     <p className="text-xs text-muted">Loading sessions…</p>
+                  ) : unitSessionsQ.isError ? (
+                    <p role="alert" className="text-xs text-warning">
+                      Unit sessions are temporarily unavailable.
+                    </p>
                   ) : (unitSessionsQ.data ?? []).length === 0 ? (
                     <p className="text-xs text-muted-2">No sessions found for this unit.</p>
                   ) : (
-                    <ul className="flex flex-col gap-1">
+                    <ul className="grouped-list divide-y divide-border-subtle">
                       {(unitSessionsQ.data ?? []).map((session) => (
                         <li
                           key={session.sessionId}
-                          className="flex items-center justify-between gap-3 rounded-[var(--shape-corner-md)] border border-border-subtle bg-surface-0 px-3 py-2 text-xs"
+                          className="flex items-center justify-between gap-3 px-3 py-2 text-xs"
                         >
                           <span className="flex items-center gap-2">
-                            <Badge tone="muted" uppercase>
-                              {session.mode}
-                            </Badge>
+                            <Badge tone="muted">{session.mode}</Badge>
                             <span className="text-muted">{formatDate(session.startedAt)}</span>
                           </span>
-                          <span className="font-mono text-muted">
+                          <span className="tabular-nums text-muted">
                             {session.totalCorrect}/{session.totalAnswered}
                           </span>
                         </li>
@@ -737,19 +817,19 @@ function EvidencePanel({
   });
 
   const historyTransfer = (
-    <div className="rounded-[var(--shape-corner-lg)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-3">
+    <div className="border-t border-border-subtle pt-4">
       <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto_auto] md:items-end">
         <label className="flex flex-col gap-1 text-xs text-muted">
-          <span className="font-semibold uppercase text-muted-2">Export passphrase</span>
+          <span className="font-semibold text-muted-2">Export passphrase</span>
           <input
             type="password"
             value={passphrase}
             onChange={(event) => setPassphrase(event.currentTarget.value)}
             placeholder="Optional AES export key"
-            className="h-10 rounded-[var(--shape-corner-md)] border border-border-subtle bg-surface-0 px-3 text-sm text-app outline-none focus:border-accent"
+            className="ui-focus-ring h-9 rounded-control border border-border-subtle bg-surface-1 px-3 text-sm text-app outline-none focus:border-accent"
           />
         </label>
-        <label className="flex min-h-10 items-center gap-2 rounded-[var(--shape-corner-md)] border border-border-subtle bg-surface-0 px-3 text-xs text-muted">
+        <label className="flex min-h-9 items-center gap-2 rounded-control border border-border-subtle bg-surface-1 px-3 text-xs text-muted">
           <input
             type="checkbox"
             checked={includeSnapshots}
@@ -764,12 +844,12 @@ function EvidencePanel({
         <StudentHistoryImportButton />
       </div>
       {exportReport.data && !exportReport.data.canceled ? (
-        <p className="mt-2 text-xs text-success">
+        <p role="status" className="mt-2 text-xs text-success">
           Full student data exported{exportReport.data.encrypted ? " encrypted" : ""}.
         </p>
       ) : null}
       {exportReport.isError ? (
-        <p className="mt-2 text-xs text-danger">
+        <p role="alert" className="mt-2 text-xs text-danger">
           {exportReport.error instanceof Error
             ? exportReport.error.message
             : "Could not export report."}
@@ -795,7 +875,7 @@ function EvidencePanel({
         </div>
       ) : (
         <div className="flex flex-col gap-5">
-          <dl className="grid gap-3 sm:grid-cols-4">
+          <dl className="grouped-list grid sm:grid-cols-4 sm:divide-x sm:divide-border-subtle">
             <EvidenceStat
               label="Attention"
               value={overview.avgAttentionScore === null ? "—" : overview.avgAttentionScore}
@@ -814,27 +894,26 @@ function EvidencePanel({
             />
           </dl>
 
-          <ul className="grid gap-2 lg:grid-cols-2">
+          <ul className="grouped-list divide-y divide-border-subtle">
             {overview.recentSessions.map((session) => (
               <li key={session.sessionId}>
                 <button
                   type="button"
+                  aria-pressed={selectedSessionId === session.sessionId}
                   onClick={() => setSelectedSessionId(session.sessionId)}
                   className={cn(
-                    "w-full rounded-[var(--shape-corner-lg)] border p-3 text-left transition-colors",
+                    "ui-focus-ring w-full rounded-none p-3 text-left transition-colors",
                     selectedSessionId === session.sessionId
-                      ? "border-accent/50 bg-accent/10"
-                      : "border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] hover:border-border-strong",
+                      ? "learning-trace bg-accent/10"
+                      : "hover:bg-surface-2",
                   )}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <span className="flex items-center gap-2">
-                      <Badge tone="muted" uppercase>
-                        {session.mode}
-                      </Badge>
+                      <Badge tone="muted">{session.mode}</Badge>
                       <span className="text-xs text-muted">{formatDate(session.startedAt)}</span>
                     </span>
-                    <Badge tone={attentionScoreTone(session.metrics.attentionScore)} uppercase>
+                    <Badge tone={attentionScoreTone(session.metrics.attentionScore)}>
                       {session.metrics.attentionScore}
                     </Badge>
                   </div>
@@ -900,7 +979,6 @@ function PronunciationEvidencePanel({
     <Panel
       title="Pronunciation CAPT"
       caption="Computer-assisted pronunciation training scores from pronunciation sessions."
-      tone="accent"
     >
       {loading ? (
         <p className="text-xs text-muted">Loading pronunciation evidence...</p>
@@ -910,8 +988,8 @@ function PronunciationEvidencePanel({
           body="CAPT attempts appear here after a student opens the pronunciation lab."
         />
       ) : (
-        <div className="grid gap-4 xl:grid-cols-[18rem_1fr]">
-          <dl className="grid gap-3">
+        <div className="grid overflow-hidden rounded-object bg-surface-1 xl:grid-cols-[18rem_1fr]">
+          <dl className="divide-y divide-border-subtle">
             <EvidenceStat
               label="Avg score"
               value={overview.pronunciationAverageScore ?? "—"}
@@ -936,15 +1014,13 @@ function PronunciationEvidencePanel({
               }
             />
           </dl>
-          <div className="rounded-[var(--shape-corner-lg)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-4">
-            <p className="text-[10px] font-semibold uppercase text-muted-2">
-              Recent pronunciation sessions
-            </p>
-            <ul className="mt-3 flex flex-col gap-2">
+          <div className="border-t border-border-subtle bg-surface-2/45 p-4 xl:border-l xl:border-t-0">
+            <p className="text-xs font-semibold text-muted">Recent pronunciation sessions</p>
+            <ul className="grouped-list mt-3 divide-y divide-border-subtle">
               {sessions.slice(0, 6).map((session) => (
                 <li
                   key={session.sessionId}
-                  className="flex items-center justify-between gap-3 rounded-[var(--shape-corner-md)] border border-border-subtle bg-surface-0 px-3 py-2 text-xs"
+                  className="flex items-center justify-between gap-3 px-3 py-2 text-xs"
                 >
                   <span className="text-muted">{formatDate(session.startedAt)}</span>
                   <span className="flex items-center gap-2">
@@ -955,11 +1031,10 @@ function PronunciationEvidencePanel({
                           ? "muted"
                           : attentionScoreTone(session.metrics.pronunciationAverageScore)
                       }
-                      uppercase
                     >
                       {session.metrics.pronunciationAverageScore ?? "—"}
                     </Badge>
-                    <span className="font-mono text-muted-2">
+                    <span className="tabular-nums text-muted-2">
                       {session.metrics.pronunciationAssessmentCount ?? 0} attempts
                       {(session.metrics.pronunciationRetryRequiredCount ??
                         session.metrics.pronunciationFlagCount ??
@@ -991,9 +1066,11 @@ function EvidenceStat({
   tone: "neutral" | "success" | "warning" | "accent";
 }) {
   return (
-    <div className="rounded-[var(--shape-corner-lg)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-3">
-      <p className="text-[10px] font-semibold uppercase text-muted-2">{label}</p>
-      <p className={cn("mt-1 font-mono text-2xl", evidenceToneClass(tone))}>{value}</p>
+    <div className="px-3 py-2.5">
+      <dt className="text-[11px] font-medium text-muted">{label}</dt>
+      <dd className={cn("mt-1 text-lg font-semibold tabular-nums", evidenceToneClass(tone))}>
+        {value}
+      </dd>
     </div>
   );
 }
@@ -1001,8 +1078,8 @@ function EvidenceStat({
 function EvidenceMiniStat({ label, value }: { label: string; value: number | string }) {
   return (
     <div>
-      <dt className="text-[10px] uppercase text-muted-2">{label}</dt>
-      <dd className="mt-1 font-mono text-xs text-app">{value}</dd>
+      <dt className="text-[10px] text-muted-2">{label}</dt>
+      <dd className="mt-1 text-xs tabular-nums text-app">{value}</dd>
     </div>
   );
 }
@@ -1027,7 +1104,7 @@ function SessionDetailPanel({ sessionId }: { sessionId: number }) {
 
   if (!timeline && !report) {
     return (
-      <div className="rounded-[var(--shape-corner-lg)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-4 text-xs text-muted">
+      <div className="border-t border-border-subtle pt-4 text-xs text-muted">
         Session detail is unavailable.
       </div>
     );
@@ -1039,15 +1116,13 @@ function SessionDetailPanel({ sessionId }: { sessionId: number }) {
   const accuracy = report?.accuracy ?? null;
 
   return (
-    <section className="rounded-[var(--shape-corner-lg)] border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] p-4">
+    <section className="border-t border-border-subtle pt-4">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex flex-wrap gap-2">
-            <Badge tone="muted" uppercase>
-              Session {session.id}
-            </Badge>
+            <Badge tone="muted">Session {session.id}</Badge>
             {metrics ? (
-              <Badge tone={attentionScoreTone(metrics.attentionScore)} uppercase>
+              <Badge tone={attentionScoreTone(metrics.attentionScore)}>
                 Attention {metrics.attentionScore}
               </Badge>
             ) : null}
@@ -1059,12 +1134,12 @@ function SessionDetailPanel({ sessionId }: { sessionId: number }) {
             Duration {formatMs(Math.max(0, endedAt.getTime() - session.startedAt.getTime()))}
           </p>
         </div>
-        <Badge tone={accuracy === null ? "muted" : accuracyTone(accuracy)} uppercase>
+        <Badge tone={accuracy === null ? "muted" : accuracyTone(accuracy)}>
           {accuracy === null ? "No answers" : `${Math.round(accuracy * 100)}%`}
         </Badge>
       </header>
 
-      <dl className="mt-4 grid gap-3 sm:grid-cols-4">
+      <dl className="grouped-list mt-4 grid sm:grid-cols-4 sm:divide-x sm:divide-border-subtle">
         <EvidenceStat label="Answered" value={report?.totalAnswered ?? 0} tone="accent" />
         <EvidenceStat label="Correct" value={report?.totalCorrect ?? 0} tone="success" />
         <EvidenceStat
@@ -1084,7 +1159,7 @@ function SessionDetailPanel({ sessionId }: { sessionId: number }) {
       </dl>
 
       {metrics ? (
-        <dl className="mt-4 grid gap-2 text-xs sm:grid-cols-4">
+        <dl className="mt-4 grid gap-3 text-xs sm:grid-cols-4">
           <EvidenceMiniStat
             label="Focus breaks"
             value={`${metrics.focusLossCount} / ${formatMs(metrics.focusLossMs)}`}
@@ -1101,7 +1176,7 @@ function SessionDetailPanel({ sessionId }: { sessionId: number }) {
       {report?.units.length ? (
         <div className="mt-4 flex flex-wrap gap-2">
           {report.units.map((unit) => (
-            <Badge key={unit.unitId} tone={accuracyTone(unit.accuracy)} uppercase>
+            <Badge key={unit.unitId} tone={accuracyTone(unit.accuracy)}>
               {unit.unitCode} {Math.round(unit.accuracy * 100)}%
             </Badge>
           ))}
@@ -1135,9 +1210,9 @@ function SnapshotTable({
 
   return (
     <>
-      <div className="mt-5 overflow-hidden rounded-[var(--shape-corner-lg)] border border-border-subtle">
+      <div className="grouped-list mt-5">
         <table className="w-full text-left text-xs">
-          <thead className="bg-[color:var(--md-sys-color-surface-container)] uppercase text-muted-2">
+          <thead className="bg-surface-2 text-muted-2">
             <tr>
               <th className="px-3 py-2 font-medium">Image</th>
               <th className="px-3 py-2 font-medium">Captured</th>
@@ -1153,14 +1228,15 @@ function SnapshotTable({
                     <button
                       type="button"
                       onClick={() => setZoomed(snapshot)}
-                      className="group relative block rounded-[var(--shape-corner-md)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                      aria-label={`Open camera snapshot captured ${formatDate(snapshot.occurredAt)}`}
+                      className="ui-focus-ring group relative block rounded-control"
                     >
                       <img
                         src={snapshot.snapshotDataUrl}
-                        alt=""
-                        className="h-16 w-24 rounded-[var(--shape-corner-md)] border border-border-subtle object-cover"
+                        alt={`Camera snapshot captured ${formatDate(snapshot.occurredAt)}`}
+                        className="h-16 w-24 rounded-control border border-border-subtle object-cover"
                       />
-                      <span className="pointer-events-none absolute inset-0 grid place-items-center rounded-[var(--shape-corner-md)] bg-slate-950/0 text-[10px] font-semibold uppercase text-white opacity-0 transition group-hover:bg-slate-950/45 group-hover:opacity-100">
+                      <span className="pointer-events-none absolute inset-0 grid place-items-center rounded-control bg-slate-950/0 text-[10px] font-semibold text-white opacity-0 transition group-hover:bg-slate-950/45 group-hover:opacity-100">
                         Zoom
                       </span>
                     </button>
@@ -1169,7 +1245,7 @@ function SnapshotTable({
                   )}
                 </td>
                 <td className="px-3 py-2 text-muted">{formatDate(snapshot.occurredAt)}</td>
-                <td className="px-3 py-2 font-mono text-muted">
+                <td className="px-3 py-2 tabular-nums text-muted">
                   {snapshot.width && snapshot.height ? `${snapshot.width}x${snapshot.height}` : "—"}
                   {snapshot.bytes ? ` / ${formatBytes(snapshot.bytes)}` : ""}
                 </td>
@@ -1194,8 +1270,8 @@ function SnapshotTable({
         {zoomed?.snapshotDataUrl ? (
           <img
             src={zoomed.snapshotDataUrl}
-            alt=""
-            className="max-h-[70vh] w-full rounded-[var(--shape-corner-lg)] border border-border-subtle object-contain"
+            alt={`Camera snapshot captured ${formatDate(zoomed.occurredAt)}`}
+            className="max-h-[70vh] w-full rounded-object border border-border-subtle object-contain"
           />
         ) : null}
       </Modal>
@@ -1228,23 +1304,23 @@ function WeakWordsPanel({
           body="Once a student answers a few words at least three times, the trickiest ones surface here."
         />
       ) : (
-        <ul className="flex flex-col gap-1">
+        <ul className="grouped-list divide-y divide-border-subtle">
           {rows.map((row) => (
             <li key={row.entryId}>
               <Link
                 to="/tutor/content"
                 search={{ entry: row.entryId, book: row.bookId }}
-                className="flex items-center justify-between rounded-2xl border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] px-3 py-2.5 text-sm transition-colors hover:border-accent/50 hover:bg-[color:var(--md-sys-color-surface-container-high)]"
+                className="ui-focus-ring flex items-center justify-between rounded-none px-3 py-2.5 text-sm transition-colors hover:bg-surface-2"
               >
                 <span className="flex items-baseline gap-2">
-                  <span className="font-medium text-app">{row.headword}</span>
-                  <span className="font-mono text-[10px] text-muted-2">{row.pos}</span>
+                  <span className="ui-lexical text-[15px] font-medium text-app">
+                    {row.headword}
+                  </span>
+                  <span className="text-[11px] text-muted-2">{row.pos}</span>
                 </span>
                 <span className="flex items-center gap-2 text-xs text-muted">
-                  <Badge tone="warning" uppercase>
-                    {Math.round(row.accuracy * 100)}%
-                  </Badge>
-                  <span className="font-mono text-[10px] text-muted-2">
+                  <Badge tone="warning">{Math.round(row.accuracy * 100)}%</Badge>
+                  <span className="text-[11px] tabular-nums text-muted-2">
                     {row.totalCorrect}/{row.totalCorrect + row.totalWrong}
                   </span>
                 </span>
@@ -1281,7 +1357,7 @@ function RecentSessionsPanel({
           body="Student practice sessions show up here once the learner picks a lesson."
         />
       ) : (
-        <ul className="flex flex-col gap-1">
+        <ul className="grouped-list divide-y divide-border-subtle">
           {rows.map((row) => {
             const accuracy =
               row.totalAnswered === 0
@@ -1290,22 +1366,19 @@ function RecentSessionsPanel({
             return (
               <li
                 key={row.sessionId}
-                className="flex items-center justify-between rounded-2xl border border-border-subtle bg-[color:var(--md-sys-color-surface-container-low)] px-3 py-2.5 text-sm"
+                className="flex items-center justify-between px-3 py-2.5 text-sm"
               >
                 <span className="flex items-baseline gap-2">
-                  <Badge tone="muted" uppercase>
-                    {row.mode}
-                  </Badge>
+                  <Badge tone="muted">{row.mode}</Badge>
                   <span className="text-xs text-muted">{formatDate(row.startedAt)}</span>
                 </span>
                 <span className="flex items-center gap-2 text-xs text-muted">
-                  <span className="font-mono text-[10px] text-muted-2">
+                  <span className="text-[11px] tabular-nums text-muted-2">
                     {row.totalCorrect}/{row.totalAnswered}
                   </span>
                   {accuracy !== null ? (
                     <Badge
                       tone={accuracy >= 80 ? "success" : accuracy >= 50 ? "accent" : "warning"}
-                      uppercase
                     >
                       {accuracy}%
                     </Badge>
@@ -1333,11 +1406,11 @@ function AchievementsPanel({ ids, loading }: { ids: string[]; loading: boolean }
           Nothing unlocked yet — encourage a session in student mode.
         </p>
       ) : (
-        <ul className="flex flex-wrap gap-2">
+        <ul className="grouped-list divide-y divide-border-subtle">
           {defs.map((def) => (
             <li
               key={def.id}
-              className="flex items-center gap-2 rounded-full border border-mastery/40 bg-mastery/10 px-3 py-1.5 text-xs text-mastery"
+              className="flex min-h-[var(--size-row)] items-center gap-2 px-3 py-2 text-xs text-success"
               title={def.description}
             >
               <AchievementIcon icon={def.icon} className="h-4 w-4" />
@@ -1366,8 +1439,8 @@ function Panel({
       title={title}
       description={caption}
       className={cn(
-        tone === "mastery" && "border-mastery/30 bg-mastery/10",
-        tone === "accent" && "border-accent/25 bg-accent/10",
+        tone !== "neutral" && "learning-trace",
+        tone === "mastery" && "[--trace-rgb:var(--color-moss)]",
       )}
     >
       {children}
@@ -1382,6 +1455,28 @@ function formatDate(d: Date): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function describeStudentState(
+  summary:
+    | {
+        totalSeen: number;
+        totalDue: number;
+      }
+    | undefined,
+  practicedToday: boolean,
+  accuracyPct: number | null,
+): string {
+  if (!summary) return "Loading the learner's current study state…";
+  if (summary.totalSeen === 0) return "No completed answers yet; assign a first unit to begin.";
+  if (summary.totalDue > 0 && accuracyPct !== null && accuracyPct < 70) {
+    return `${summary.totalDue} items are due, with ${accuracyPct}% accuracy needing attention.`;
+  }
+  if (summary.totalDue > 0) {
+    return `${summary.totalDue} items are due${practicedToday ? ", after practice today" : ""}.`;
+  }
+  if (practicedToday) return "Practised today, with no review items currently due.";
+  return "No review items are currently due; recent work is shown below.";
 }
 
 function attentionScoreTone(score: number): "success" | "accent" | "warning" {

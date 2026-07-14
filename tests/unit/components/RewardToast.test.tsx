@@ -59,5 +59,6 @@ describe("RewardToast", () => {
     render(<RewardToast id="x" title="Hi" onDismiss={() => undefined} />);
     const toast = screen.getByRole("status");
     expect(toast).toHaveAttribute("aria-live", "polite");
+    expect(toast).toHaveClass("motion-reduce:translate-y-0", "motion-reduce:transition-none");
   });
 });

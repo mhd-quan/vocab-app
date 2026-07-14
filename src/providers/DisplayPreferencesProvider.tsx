@@ -24,13 +24,18 @@ interface DisplayPreferencesContextValue {
   setPronunciationAutoplay: (value: boolean) => void;
   pronunciationAccent: PronunciationAccentPreference;
   setPronunciationAccent: (value: PronunciationAccentPreference) => void;
+  /** Apply defaults after the persisted display preferences have been removed. */
+  resetDisplayPreferences: () => void;
 }
 
-const FONT_SIZE_KEY = "display_font_size";
-const PRONUNCIATION_AUTOPLAY_KEY = "pronunciation_autoplay";
-const PRONUNCIATION_ACCENT_KEY = "pronunciation_default_accent";
+export const DISPLAY_PREFERENCE_SETTING_KEYS = {
+  fontSize: "display_font_size",
+  pronunciationAutoplay: "pronunciation_autoplay",
+  pronunciationAccent: "pronunciation_default_accent",
+} as const;
 const FONT_SIZE_VALUES = new Set<DisplayFontSize>(["small", "medium", "large"]);
 const PRONUNCIATION_ACCENT_VALUES = new Set<PronunciationAccentPreference>(["uk", "us", "any"]);
+const FONT_SIZE_DEFAULT: DisplayFontSize = "medium";
 const ROOT_FONT_SIZE: Record<DisplayFontSize, string> = {
   small: "15px",
   medium: "16px",
@@ -42,7 +47,7 @@ const PRONUNCIATION_ACCENT_DEFAULT: PronunciationAccentPreference = "uk";
 const DisplayPreferencesContext = createContext<DisplayPreferencesContextValue | null>(null);
 
 export function DisplayPreferencesProvider({ children }: { children: ReactNode }) {
-  const [fontSize, setFontSizeState] = useState<DisplayFontSize>("medium");
+  const [fontSize, setFontSizeState] = useState<DisplayFontSize>(FONT_SIZE_DEFAULT);
   const [pronunciationAutoplay, setPronunciationAutoplayState] = useState<boolean>(
     PRONUNCIATION_AUTOPLAY_DEFAULT,
   );
@@ -52,9 +57,9 @@ export function DisplayPreferencesProvider({ children }: { children: ReactNode }
   useEffect(() => {
     let cancelled = false;
     void Promise.all([
-      api.settings.get<unknown>({ key: FONT_SIZE_KEY }),
-      api.settings.get<unknown>({ key: PRONUNCIATION_AUTOPLAY_KEY }),
-      api.settings.get<unknown>({ key: PRONUNCIATION_ACCENT_KEY }),
+      api.settings.get<unknown>({ key: DISPLAY_PREFERENCE_SETTING_KEYS.fontSize }),
+      api.settings.get<unknown>({ key: DISPLAY_PREFERENCE_SETTING_KEYS.pronunciationAutoplay }),
+      api.settings.get<unknown>({ key: DISPLAY_PREFERENCE_SETTING_KEYS.pronunciationAccent }),
     ])
       .then(([fontStored, autoplayStored, accentStored]) => {
         if (cancelled) return;
@@ -77,23 +82,35 @@ export function DisplayPreferencesProvider({ children }: { children: ReactNode }
 
   const setFontSize = useCallback((next: DisplayFontSize) => {
     setFontSizeState(next);
-    api.settings.set({ key: FONT_SIZE_KEY, value: next }).catch((err) => {
-      console.error("[DisplayPreferencesProvider] failed to persist display setting", err);
-    });
+    api.settings
+      .set({ key: DISPLAY_PREFERENCE_SETTING_KEYS.fontSize, value: next })
+      .catch((err) => {
+        console.error("[DisplayPreferencesProvider] failed to persist display setting", err);
+      });
   }, []);
 
   const setPronunciationAutoplay = useCallback((next: boolean) => {
     setPronunciationAutoplayState(next);
-    api.settings.set({ key: PRONUNCIATION_AUTOPLAY_KEY, value: next }).catch((err) => {
-      console.error("[DisplayPreferencesProvider] failed to persist autoplay setting", err);
-    });
+    api.settings
+      .set({ key: DISPLAY_PREFERENCE_SETTING_KEYS.pronunciationAutoplay, value: next })
+      .catch((err) => {
+        console.error("[DisplayPreferencesProvider] failed to persist autoplay setting", err);
+      });
   }, []);
 
   const setPronunciationAccent = useCallback((next: PronunciationAccentPreference) => {
     setPronunciationAccentState(next);
-    api.settings.set({ key: PRONUNCIATION_ACCENT_KEY, value: next }).catch((err) => {
-      console.error("[DisplayPreferencesProvider] failed to persist accent setting", err);
-    });
+    api.settings
+      .set({ key: DISPLAY_PREFERENCE_SETTING_KEYS.pronunciationAccent, value: next })
+      .catch((err) => {
+        console.error("[DisplayPreferencesProvider] failed to persist accent setting", err);
+      });
+  }, []);
+
+  const resetDisplayPreferences = useCallback(() => {
+    setFontSizeState(FONT_SIZE_DEFAULT);
+    setPronunciationAutoplayState(PRONUNCIATION_AUTOPLAY_DEFAULT);
+    setPronunciationAccentState(PRONUNCIATION_ACCENT_DEFAULT);
   }, []);
 
   const value = useMemo(
@@ -104,6 +121,7 @@ export function DisplayPreferencesProvider({ children }: { children: ReactNode }
       setPronunciationAutoplay,
       pronunciationAccent,
       setPronunciationAccent,
+      resetDisplayPreferences,
     }),
     [
       fontSize,
@@ -112,6 +130,7 @@ export function DisplayPreferencesProvider({ children }: { children: ReactNode }
       setPronunciationAutoplay,
       pronunciationAccent,
       setPronunciationAccent,
+      resetDisplayPreferences,
     ],
   );
 
@@ -132,7 +151,7 @@ export function useDisplayPreferences(): DisplayPreferencesContextValue {
 function normalizeFontSize(value: unknown): DisplayFontSize {
   return typeof value === "string" && FONT_SIZE_VALUES.has(value as DisplayFontSize)
     ? (value as DisplayFontSize)
-    : "medium";
+    : FONT_SIZE_DEFAULT;
 }
 
 function normalizeAutoplay(value: unknown): boolean {
