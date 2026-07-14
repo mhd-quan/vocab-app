@@ -157,10 +157,15 @@ viewport corner or left floating in unused canvas.
 | Segmented control | Two to four mutually exclusive views only |
 | Popover | Small anchored task or information |
 | Window-scoped sheet | Short modal create/import/confirm task |
+| Wide record sheet | Bounded two-column report drill-down; 896 px at desktop width |
 | Toast | Brief nonblocking confirmation |
 | Badge | Count or terse status only; not taxonomy decoration on every row |
 | Card grid | Rejected as page structure |
 | Global glass | Rejected; material is structural and localized |
+
+Learner-level import and export are neutral utility actions in the Student Detail header. Report
+and evidence views remain focused on inspection; they do not own transport controls or imply that
+an export is limited to the currently selected record.
 
 ## Quality gate
 

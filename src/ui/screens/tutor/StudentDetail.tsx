@@ -12,6 +12,8 @@ import { Heatmap } from "@/ui/components/Heatmap";
 import { Modal } from "@/ui/components/Modal";
 import { PageHeader } from "@/ui/components/PageHeader";
 import { SplitView } from "@/ui/components/SplitView";
+import { StudentHistoryExportButton } from "@/ui/components/StudentHistoryExportButton";
+import { StudentHistoryImportButton } from "@/ui/components/StudentHistoryImportButton";
 import { AchievementIcon } from "@/ui/components/rewards";
 import { TutorPanel, TutorSelectField } from "@/ui/tutor/components/Material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -167,6 +169,21 @@ export function TutorStudentDetail() {
             : summaryQ.isError || streakQ.isError
               ? "The current learning summary is temporarily unavailable."
               : describeStudentState(summary, streak?.practicedToday ?? false, accuracyPct)
+        }
+        actions={
+          <div className="flex items-center gap-2">
+            <StudentHistoryImportButton
+              buttonLabel="Import data"
+              buttonSize="sm"
+              buttonVariant="secondary"
+            />
+            <StudentHistoryExportButton
+              studentId={id}
+              buttonLabel="Export data"
+              buttonSize="sm"
+              buttonVariant="secondary"
+            />
+          </div>
         }
       />
 
@@ -777,7 +794,7 @@ function UnitReportPanel({ studentId }: { studentId: number }) {
         onClose={() => setOpen(false)}
         title="Unit report"
         description="Choose a unit to inspect its aggregate results and session history."
-        size="lg"
+        size="xl"
       >
         {unitReportQ.isLoading ? (
           <p role="status" className="py-8 text-center text-sm text-muted">

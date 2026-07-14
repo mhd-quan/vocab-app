@@ -149,6 +149,9 @@ interface EvidenceExportResult {
   filePath: string | null;
   encrypted: boolean;
   sha256: string;
+  sessionCount: number;
+  learningEventCount: number;
+  evidenceEventCount: number;
 }
 
 interface EvidenceImportResult {

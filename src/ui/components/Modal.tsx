@@ -11,7 +11,7 @@ export interface ModalProps {
   children: ReactNode;
   footer?: ReactNode;
   /** Defaults to `md`. */
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
   /**
    * Element id of the input that should receive focus when the modal opens.
    * Falls back to the first focusable element inside the dialog.
@@ -23,6 +23,7 @@ const SIZE: Record<NonNullable<ModalProps["size"]>, string> = {
   sm: "max-w-sm",
   md: "max-w-lg",
   lg: "max-w-2xl",
+  xl: "max-w-4xl",
 };
 
 /**

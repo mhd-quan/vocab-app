@@ -337,6 +337,9 @@ Object.defineProperty(window, "api", {
         filePath: null,
         encrypted: false,
         sha256: "",
+        sessionCount: 0,
+        learningEventCount: 0,
+        evidenceEventCount: 0,
       }),
       importStudentData: async () => ({
         canceled: true,

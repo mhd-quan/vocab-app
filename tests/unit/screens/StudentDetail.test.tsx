@@ -278,6 +278,50 @@ describe("TutorStudentDetail", () => {
     expect(unlockDates[0]).toHaveAttribute("datetime", epoch.toISOString());
   });
 
+  it("keeps learner-wide import and export outside individual session records", async () => {
+    const exportHistory = vi.spyOn(window.api.evidence, "exportStudentReport").mockResolvedValue({
+      canceled: false,
+      filePath: "/tmp/alice-student-history.json",
+      encrypted: true,
+      sha256: "abc123",
+      sessionCount: 128,
+      learningEventCount: 640,
+      evidenceEventCount: 912,
+    });
+
+    renderDetail();
+
+    expect(await screen.findByRole("button", { name: /import data/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /export data/i }));
+    const dialog = await screen.findByRole("dialog", { name: /export learner data/i });
+    expect(within(dialog).getByText(/every practice session/i)).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole("checkbox", { name: /include camera snapshots/i }));
+    fireEvent.change(within(dialog).getByLabelText(/encryption passphrase/i), {
+      target: { value: "secret123" },
+    });
+    fireEvent.click(within(dialog).getByRole("button", { name: /choose location and export/i }));
+
+    await waitFor(() =>
+      expect(exportHistory).toHaveBeenCalledWith({
+        studentId: 1,
+        includeSnapshots: true,
+        passphrase: "secret123",
+      }),
+    );
+    expect(await within(dialog).findByRole("status")).toHaveTextContent(
+      /exported 128 sessions, 640 learning logs, and 912 evidence logs/i,
+    );
+
+    fireEvent.click(within(dialog).getByRole("button", { name: /^close$/i }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /session evidence review sessions/i }),
+    );
+    const evidenceDialog = await screen.findByRole("dialog", { name: "Session evidence" });
+    expect(
+      within(evidenceDialog).queryByRole("button", { name: /export data|import data/i }),
+    ).not.toBeInTheDocument();
+  });
+
   it("opens the unit report as a bounded master-detail dialog", async () => {
     const unitReport = vi.spyOn(window.api.progress, "unitReport").mockResolvedValue([
       {
@@ -317,6 +361,7 @@ describe("TutorStudentDetail", () => {
     fireEvent.click(launcher);
 
     const dialog = await screen.findByRole("dialog", { name: "Unit report" });
+    expect(dialog).toHaveClass("max-w-4xl");
     await waitFor(() => expect(unitReport).toHaveBeenCalledWith({ studentId: 1 }));
     const unitIndex = within(dialog).getByRole("navigation", { name: /unit report index/i });
     expect(unitIndex).toBeInTheDocument();
@@ -409,6 +454,7 @@ describe("TutorStudentDetail", () => {
     fireEvent.click(launcher);
 
     const dialog = await screen.findByRole("dialog", { name: "Session evidence" });
+    expect(dialog).toHaveClass("max-w-4xl");
     await waitFor(() => expect(overview).toHaveBeenCalledWith({ studentId: 1, limit: 8 }));
     const index = within(dialog).getByRole("navigation", { name: /session evidence index/i });
     expect(index).toHaveClass("overflow-y-auto");
@@ -425,8 +471,8 @@ describe("TutorStudentDetail", () => {
     expect(timeline).toHaveBeenCalledWith({ sessionId: 101, includeSnapshots: false });
     expect(timeline).not.toHaveBeenCalledWith({ sessionId: 101, includeSnapshots: true });
     expect(
-      within(dialog).getByRole("checkbox", { name: /include camera snapshots/i }),
-    ).not.toBeChecked();
+      within(dialog).queryByRole("button", { name: /export data|import data/i }),
+    ).not.toBeInTheDocument();
 
     fireEvent.click(entries[1] as HTMLButtonElement);
     await waitFor(() => expect(within(dialog).getByText("Session 102")).toBeInTheDocument());

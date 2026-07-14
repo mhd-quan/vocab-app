@@ -349,6 +349,71 @@ export function createProgressRepository(db: AppDatabase) {
       .all();
   };
 
+  type AnswerRow = ReturnType<typeof answerRows>[number];
+  type SessionRow = SessionLearningReport["session"];
+
+  const buildSessionLearningReport = (
+    session: SessionRow,
+    rows: AnswerRow[],
+  ): SessionLearningReport => {
+    const answers: SessionReportAnswerRow[] = rows.map((row) => ({
+      eventId: row.eventId,
+      occurredAt: row.occurredAt,
+      contentItemId: row.contentItemId,
+      lessonId: row.lessonId,
+      lessonTitle: row.lessonTitle,
+      lessonKind: row.lessonKind,
+      unitId: row.unitId,
+      unitCode: row.unitCode,
+      unitTitle: row.unitTitle,
+      bookId: row.bookId,
+      bookTitle: row.bookTitle,
+      itemLabel: row.vocabHeadword ?? row.lessonTitle,
+      correct: row.kind === "answered_correct",
+      responseMs: payloadNumber(row.payload, "responseMs"),
+    }));
+
+    const byUnit = new Map<number, SessionReportUnitRow>();
+    for (const answer of answers) {
+      const current =
+        byUnit.get(answer.unitId) ??
+        ({
+          unitId: answer.unitId,
+          unitCode: answer.unitCode,
+          unitTitle: answer.unitTitle,
+          bookTitle: answer.bookTitle,
+          totalAnswered: 0,
+          totalCorrect: 0,
+          accuracy: 0,
+        } satisfies SessionReportUnitRow);
+      current.totalAnswered += 1;
+      if (answer.correct) current.totalCorrect += 1;
+      current.accuracy = current.totalCorrect / current.totalAnswered;
+      byUnit.set(answer.unitId, current);
+    }
+
+    const totalAnswered = answers.length;
+    const totalCorrect = answers.filter((answer) => answer.correct).length;
+    const responseMsValues = answers
+      .map((answer) => answer.responseMs)
+      .filter((value): value is number => value !== null);
+    return {
+      session,
+      totalAnswered,
+      totalCorrect,
+      totalWrong: totalAnswered - totalCorrect,
+      accuracy: totalAnswered === 0 ? null : totalCorrect / totalAnswered,
+      avgResponseMs:
+        responseMsValues.length === 0
+          ? null
+          : Math.round(
+              responseMsValues.reduce((sum, value) => sum + value, 0) / responseMsValues.length,
+            ),
+      units: [...byUnit.values()].sort((a, b) => a.unitCode.localeCompare(b.unitCode)),
+      answers,
+    };
+  };
+
   const recordResolvedAnswer = (input: RecordContentAnswerInput): RecordAnswerResult => {
     const now = input.now ?? new Date();
     return db.transaction((tx) => {
@@ -1173,62 +1238,39 @@ export function createProgressRepository(db: AppDatabase) {
       if (!session) return null;
 
       const rows = answerRows({ studentId: session.studentId, sessionId });
-      const answers: SessionReportAnswerRow[] = rows.map((row) => ({
-        eventId: row.eventId,
-        occurredAt: row.occurredAt,
-        contentItemId: row.contentItemId,
-        lessonId: row.lessonId,
-        lessonTitle: row.lessonTitle,
-        lessonKind: row.lessonKind,
-        unitId: row.unitId,
-        unitCode: row.unitCode,
-        unitTitle: row.unitTitle,
-        bookId: row.bookId,
-        bookTitle: row.bookTitle,
-        itemLabel: row.vocabHeadword ?? row.lessonTitle,
-        correct: row.kind === "answered_correct",
-        responseMs: payloadNumber(row.payload, "responseMs"),
-      }));
+      return buildSessionLearningReport(session, rows);
+    },
 
-      const byUnit = new Map<number, SessionReportUnitRow>();
-      for (const answer of answers) {
-        const cur =
-          byUnit.get(answer.unitId) ??
-          ({
-            unitId: answer.unitId,
-            unitCode: answer.unitCode,
-            unitTitle: answer.unitTitle,
-            bookTitle: answer.bookTitle,
-            totalAnswered: 0,
-            totalCorrect: 0,
-            accuracy: 0,
-          } satisfies SessionReportUnitRow);
-        cur.totalAnswered += 1;
-        if (answer.correct) cur.totalCorrect += 1;
-        cur.accuracy = cur.totalCorrect / cur.totalAnswered;
-        byUnit.set(answer.unitId, cur);
+    /**
+     * Complete session learning history for export. Both sessions and answer
+     * rows are fetched by student id, then joined in memory, avoiding one
+     * report query per session and unbounded caller-generated `IN` lists.
+     */
+    studentSessionReports({ studentId }: { studentId: number }): SessionLearningReport[] {
+      const sessions = db
+        .select({
+          id: practiceSessions.id,
+          studentId: practiceSessions.studentId,
+          mode: practiceSessions.mode,
+          startedAt: practiceSessions.startedAt,
+          endedAt: practiceSessions.endedAt,
+        })
+        .from(practiceSessions)
+        .where(eq(practiceSessions.studentId, studentId))
+        .orderBy(desc(practiceSessions.startedAt), desc(practiceSessions.id))
+        .all();
+      if (sessions.length === 0) return [];
+
+      const rowsBySession = new Map<number, AnswerRow[]>();
+      for (const row of answerRows({ studentId })) {
+        if (row.sessionId === null) continue;
+        const rows = rowsBySession.get(row.sessionId) ?? [];
+        rows.push(row);
+        rowsBySession.set(row.sessionId, rows);
       }
-
-      const totalAnswered = answers.length;
-      const totalCorrect = answers.filter((answer) => answer.correct).length;
-      const responseMsValues = answers
-        .map((answer) => answer.responseMs)
-        .filter((value): value is number => value !== null);
-      return {
-        session,
-        totalAnswered,
-        totalCorrect,
-        totalWrong: totalAnswered - totalCorrect,
-        accuracy: totalAnswered === 0 ? null : totalCorrect / totalAnswered,
-        avgResponseMs:
-          responseMsValues.length === 0
-            ? null
-            : Math.round(
-                responseMsValues.reduce((sum, value) => sum + value, 0) / responseMsValues.length,
-              ),
-        units: [...byUnit.values()].sort((a, b) => a.unitCode.localeCompare(b.unitCode)),
-        answers,
-      };
+      return sessions.map((session) =>
+        buildSessionLearningReport(session, rowsBySession.get(session.id) ?? []),
+      );
     },
 
     /**

@@ -7,8 +7,7 @@ import { Button } from "@/ui/components/Button";
 import { EmptyState } from "@/ui/components/EmptyState";
 import { Modal } from "@/ui/components/Modal";
 import { SplitView } from "@/ui/components/SplitView";
-import { StudentHistoryImportButton } from "@/ui/components/StudentHistoryImportButton";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 function RecordLauncher({
@@ -44,8 +43,6 @@ function RecordLauncher({
 
 export function EvidenceRecord({ studentId }: { studentId: number }) {
   const [open, setOpen] = useState(false);
-  const [includeSnapshots, setIncludeSnapshots] = useState(false);
-  const [passphrase, setPassphrase] = useState("");
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
   const overviewQ = useQuery({
     queryKey: queryKeys.evidence.studentOverview(studentId),
@@ -71,66 +68,6 @@ export function EvidenceRecord({ studentId }: { studentId: number }) {
     });
   }, [overview?.recentSessions]);
 
-  const exportReport = useMutation({
-    mutationFn: () =>
-      api.evidence.exportStudentReport({
-        studentId,
-        includeSnapshots,
-        passphrase: passphrase.trim() || undefined,
-      }),
-  });
-
-  const historyTransfer = (
-    <section
-      className="mt-6 border-t border-border-subtle pt-4"
-      aria-labelledby="history-transfer-title"
-    >
-      <h3 id="history-transfer-title" className="text-sm font-semibold text-app">
-        History transfer
-      </h3>
-      <p className="mt-1 text-xs leading-5 text-muted">
-        Export this learner’s complete record or import a compatible history file.
-      </p>
-      <label className="mt-3 flex flex-col gap-1 text-xs text-muted">
-        <span className="font-medium text-muted-2">Export passphrase</span>
-        <input
-          type="password"
-          value={passphrase}
-          onChange={(event) => setPassphrase(event.currentTarget.value)}
-          placeholder="Optional AES export key"
-          className="ui-focus-ring h-9 rounded-control border border-border-subtle bg-surface-1 px-3 text-sm text-app outline-none focus:border-accent"
-        />
-      </label>
-      <label className="mt-3 flex min-h-9 items-center gap-2 text-xs text-muted">
-        <input
-          type="checkbox"
-          checked={includeSnapshots}
-          onChange={(event) => setIncludeSnapshots(event.currentTarget.checked)}
-          className="h-4 w-4 accent-[rgb(var(--color-accent))]"
-        />
-        Include camera snapshots
-      </label>
-      <div className="mt-3 flex flex-wrap gap-2">
-        <Button onClick={() => exportReport.mutate()} disabled={exportReport.isPending}>
-          {exportReport.isPending ? "Exporting…" : "Export history"}
-        </Button>
-        <StudentHistoryImportButton />
-      </div>
-      {exportReport.data && !exportReport.data.canceled ? (
-        <p role="status" className="mt-2 text-xs text-success">
-          Full student data exported{exportReport.data.encrypted ? " encrypted" : ""}.
-        </p>
-      ) : null}
-      {exportReport.isError ? (
-        <p role="alert" className="mt-2 text-xs text-danger">
-          {exportReport.error instanceof Error
-            ? exportReport.error.message
-            : "Could not export report."}
-        </p>
-      ) : null}
-    </section>
-  );
-
   return (
     <>
       <RecordLauncher
@@ -153,7 +90,7 @@ export function EvidenceRecord({ studentId }: { studentId: number }) {
         onClose={() => setOpen(false)}
         title="Session evidence"
         description="Select a session on the left; inspect its complete record on the right."
-        size="lg"
+        size="xl"
       >
         {overviewQ.isLoading ? (
           <p role="status" className="py-8 text-center text-sm text-muted">
@@ -171,16 +108,12 @@ export function EvidenceRecord({ studentId }: { studentId: number }) {
             >
               Retry
             </Button>
-            {historyTransfer}
           </div>
         ) : !overview || overview.sessionCount === 0 ? (
-          <div>
-            <EmptyState
-              title="No evidence logs yet"
-              body="Student sessions will appear here after the learner starts a practice round."
-            />
-            {historyTransfer}
-          </div>
+          <EmptyState
+            title="No evidence logs yet"
+            body="Student sessions will appear here after the learner starts a practice round."
+          />
         ) : (
           <div className="flex h-[min(65vh,42rem)] min-h-[28rem] flex-col gap-3">
             <dl className="grid shrink-0 grid-cols-4 gap-px overflow-hidden rounded-control bg-border-subtle">
@@ -259,7 +192,6 @@ export function EvidenceRecord({ studentId }: { studentId: number }) {
                   <p className="text-sm text-muted">Select a session to inspect its record.</p>
                 )}
                 <PronunciationEvidencePanel overview={overview} loading={false} />
-                {historyTransfer}
               </section>
             </SplitView>
           </div>

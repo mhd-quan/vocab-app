@@ -266,6 +266,56 @@ export function createEvidenceRepository(db: AppDatabase) {
       };
     },
 
+    /**
+     * Complete evidence history for one student in two bounded queries: one
+     * for sessions and one for that student's events. This deliberately
+     * avoids both the UI-oriented recent-session limit and an `IN (...)`
+     * clause containing every session id, so exports remain reliable for
+     * long-lived learner profiles.
+     */
+    studentSessionTimelines({ studentId }: { studentId: number }): StudentEvidenceTimeline[] {
+      const sessionRows = db
+        .select({
+          id: practiceSessions.id,
+          studentId: practiceSessions.studentId,
+          mode: practiceSessions.mode,
+          startedAt: practiceSessions.startedAt,
+          endedAt: practiceSessions.endedAt,
+        })
+        .from(practiceSessions)
+        .where(eq(practiceSessions.studentId, studentId))
+        .orderBy(desc(practiceSessions.startedAt), desc(practiceSessions.id))
+        .all();
+      if (sessionRows.length === 0) return [];
+
+      const validSessionIds = new Set(sessionRows.map((session) => session.id));
+      const events = db
+        .select()
+        .from(sessionEvidenceEvents)
+        .where(eq(sessionEvidenceEvents.studentId, studentId))
+        .orderBy(asc(sessionEvidenceEvents.occurredAt), asc(sessionEvidenceEvents.id))
+        .all()
+        // Keep the export student-scoped even if a legacy or manually edited
+        // database contains an inconsistent student/session association.
+        .filter((event) => validSessionIds.has(event.sessionId));
+      const bySession = new Map<number, SessionEvidenceEvent[]>();
+      for (const event of events) {
+        const rows = bySession.get(event.sessionId) ?? [];
+        rows.push(event);
+        bySession.set(event.sessionId, rows);
+      }
+
+      return sessionRows.map((session) => {
+        const sessionRows = bySession.get(session.id) ?? [];
+        return {
+          session,
+          events: sessionRows,
+          metrics: summarizeSessionEvidence(sessionRows),
+          snapshots: snapshotRows(sessionRows),
+        };
+      });
+    },
+
     recentSessionSummaries,
 
     studentOverview({
