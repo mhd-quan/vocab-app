@@ -227,9 +227,7 @@ function GrammarOverview({
   return (
     <section className="object-surface overflow-hidden bg-surface-1">
       <header className="px-6 pb-5 pt-6">
-        <span className="learning-trace-label text-xs font-semibold text-accent">
-          Grammar overview
-        </span>
+        <span className="text-xs font-semibold text-accent">Grammar overview</span>
         <h1 className="mt-3 text-[24px] font-semibold leading-tight">
           Review the rule, then apply it.
         </h1>
@@ -360,7 +358,7 @@ function GrammarExerciseCard({
     >
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <span className="learning-trace-label text-xs font-semibold text-accent">
+          <span className="text-xs font-semibold text-accent">
             {formatExerciseKind(exercise.kind)}
           </span>
           <h2

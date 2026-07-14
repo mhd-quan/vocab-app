@@ -62,6 +62,20 @@ export interface TutorEvidenceOverviewRow {
   pronunciationRetryRequiredCount: number;
 }
 
+interface TutorEvidenceAggregateRow {
+  studentId: number;
+  latestSessionAtMs: number;
+  sessionCount: number;
+  avgAttentionScore: number;
+  totalReviewFlags: number;
+  focusLossCount: number;
+  cameraSnapshotCount: number;
+  pronunciationAssessmentCount: number;
+  pronunciationAverageScore: number | null;
+  pronunciationFlagCount: number;
+  pronunciationRetryRequiredCount: number;
+}
+
 export interface StudentEvidenceOverview {
   studentId: number;
   sessionCount: number;
@@ -261,37 +275,23 @@ export function createEvidenceRepository(db: AppDatabase) {
       studentId: number;
       limit?: number;
     }): StudentEvidenceOverview {
-      const sessions = recentSessionSummaries({ studentId, limit: Math.max(limit, 500) });
-      const scored = sessions.filter((s) => s.eventCount > 0);
-      const avgAttentionScore =
-        scored.length === 0
-          ? null
-          : Math.round(
-              scored.reduce((sum, session) => sum + session.metrics.attentionScore, 0) /
-                scored.length,
-            );
+      const recentSessions = recentSessionSummaries({ studentId, limit: Math.max(0, limit) });
+      const aggregate = db.$sqlite.prepare(STUDENT_EVIDENCE_OVERVIEW_SQL).get(studentId) as
+        | TutorEvidenceAggregateRow
+        | undefined;
       return {
         studentId,
-        sessionCount: scored.length,
-        avgAttentionScore,
-        totalReviewFlags: scored.reduce((sum, s) => sum + s.metrics.reviewFlagCount, 0),
-        focusLossCount: scored.reduce((sum, s) => sum + s.metrics.focusLossCount, 0),
-        cameraSnapshotCount: scored.reduce((sum, s) => sum + s.metrics.cameraSnapshotCount, 0),
-        pronunciationAssessmentCount: scored.reduce(
-          (sum, s) => sum + s.metrics.pronunciationAssessmentCount,
-          0,
-        ),
-        pronunciationAverageScore: pronunciationAverage(scored),
-        pronunciationFlagCount: scored.reduce(
-          (sum, s) => sum + s.metrics.pronunciationFlagCount,
-          0,
-        ),
-        pronunciationRetryRequiredCount: scored.reduce(
-          (sum, s) => sum + s.metrics.pronunciationRetryRequiredCount,
-          0,
-        ),
-        latestSessionAt: scored[0]?.startedAt ?? null,
-        recentSessions: sessions.slice(0, limit),
+        sessionCount: aggregate?.sessionCount ?? 0,
+        avgAttentionScore: aggregate?.avgAttentionScore ?? null,
+        totalReviewFlags: aggregate?.totalReviewFlags ?? 0,
+        focusLossCount: aggregate?.focusLossCount ?? 0,
+        cameraSnapshotCount: aggregate?.cameraSnapshotCount ?? 0,
+        pronunciationAssessmentCount: aggregate?.pronunciationAssessmentCount ?? 0,
+        pronunciationAverageScore: aggregate?.pronunciationAverageScore ?? null,
+        pronunciationFlagCount: aggregate?.pronunciationFlagCount ?? 0,
+        pronunciationRetryRequiredCount: aggregate?.pronunciationRetryRequiredCount ?? 0,
+        latestSessionAt: aggregate ? new Date(aggregate.latestSessionAtMs) : null,
+        recentSessions,
       };
     },
 
@@ -304,63 +304,32 @@ export function createEvidenceRepository(db: AppDatabase) {
         .all();
       if (studentRows.length === 0) return [];
 
-      const sessions = db
-        .select({
-          id: practiceSessions.id,
-          studentId: practiceSessions.studentId,
-          mode: practiceSessions.mode,
-          startedAt: practiceSessions.startedAt,
-          endedAt: practiceSessions.endedAt,
-        })
-        .from(practiceSessions)
-        .where(
-          inArray(
-            practiceSessions.studentId,
-            studentRows.map((s) => s.id),
-          ),
-        )
-        .orderBy(desc(practiceSessions.startedAt), desc(practiceSessions.id))
-        .all();
-      const summaries = sessionSummariesFromRows(
-        sessions,
-        sessionEvents(sessions.map((s) => s.id)),
-      );
-      const byStudent = new Map<number, SessionEvidenceSummaryRow[]>();
-      for (const summary of summaries) {
-        const list = byStudent.get(summary.studentId) ?? [];
-        list.push(summary);
-        byStudent.set(summary.studentId, list);
-      }
+      // Keep this fan-out bounded to one aggregate row per active student. The
+      // previous implementation selected every session and evidence event, then
+      // built two unbounded `IN (...)` lists before reducing them in JavaScript.
+      // Besides retaining the whole evidence history in memory, that failed once
+      // a cohort crossed SQLite's bind-variable limit. This query reproduces the
+      // per-session evidence score in SQL, then rolls those sessions up by their
+      // active owner without any caller-generated parameter list.
+      const aggregateRows = db.$sqlite
+        .prepare(TUTOR_EVIDENCE_OVERVIEW_SQL)
+        .all() as TutorEvidenceAggregateRow[];
+      const aggregates = new Map(aggregateRows.map((row) => [row.studentId, row]));
 
       return studentRows.map((student) => {
-        const rows = (byStudent.get(student.id) ?? []).filter((row) => row.eventCount > 0);
-        const avgAttentionScore =
-          rows.length === 0
-            ? null
-            : Math.round(
-                rows.reduce((sum, row) => sum + row.metrics.attentionScore, 0) / rows.length,
-              );
+        const row = aggregates.get(student.id);
         return {
           student,
-          latestSessionAt: rows[0]?.startedAt ?? null,
-          sessionCount: rows.length,
-          avgAttentionScore,
-          totalReviewFlags: rows.reduce((sum, row) => sum + row.metrics.reviewFlagCount, 0),
-          focusLossCount: rows.reduce((sum, row) => sum + row.metrics.focusLossCount, 0),
-          cameraSnapshotCount: rows.reduce((sum, row) => sum + row.metrics.cameraSnapshotCount, 0),
-          pronunciationAssessmentCount: rows.reduce(
-            (sum, row) => sum + row.metrics.pronunciationAssessmentCount,
-            0,
-          ),
-          pronunciationAverageScore: pronunciationAverage(rows),
-          pronunciationFlagCount: rows.reduce(
-            (sum, row) => sum + row.metrics.pronunciationFlagCount,
-            0,
-          ),
-          pronunciationRetryRequiredCount: rows.reduce(
-            (sum, row) => sum + row.metrics.pronunciationRetryRequiredCount,
-            0,
-          ),
+          latestSessionAt: row ? new Date(row.latestSessionAtMs) : null,
+          sessionCount: row?.sessionCount ?? 0,
+          avgAttentionScore: row?.avgAttentionScore ?? null,
+          totalReviewFlags: row?.totalReviewFlags ?? 0,
+          focusLossCount: row?.focusLossCount ?? 0,
+          cameraSnapshotCount: row?.cameraSnapshotCount ?? 0,
+          pronunciationAssessmentCount: row?.pronunciationAssessmentCount ?? 0,
+          pronunciationAverageScore: row?.pronunciationAverageScore ?? null,
+          pronunciationFlagCount: row?.pronunciationFlagCount ?? 0,
+          pronunciationRetryRequiredCount: row?.pronunciationRetryRequiredCount ?? 0,
         };
       });
     },
@@ -379,16 +348,131 @@ function numberPayload(payload: Record<string, unknown>, key: string): number | 
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
-function pronunciationAverage(rows: SessionEvidenceSummaryRow[]): number | null {
-  let scoreTotal = 0;
-  let attemptTotal = 0;
-  for (const row of rows) {
-    const average = row.metrics.pronunciationAverageScore;
-    const count = row.metrics.pronunciationAssessmentCount;
-    if (typeof average !== "number" || count <= 0) continue;
-    scoreTotal += average * count;
-    attemptTotal += count;
-  }
-  if (attemptTotal === 0) return null;
-  return Math.round(scoreTotal / attemptTotal);
+/**
+ * SQL equivalent of `summarizeSessionEvidence`, limited to the fields used by
+ * evidence overview headlines. Metrics are first calculated per session because
+ * attention penalties are capped per session; only then are they aggregated by
+ * student. A session counts exactly when it has at least one evidence event.
+ */
+function evidenceOverviewSql(scopeSql: string): string {
+  return `
+  WITH session_components AS (
+    SELECT
+      ps.student_id AS student_id,
+      ps.id AS session_id,
+      ps.started_at AS started_at,
+      SUM(CASE WHEN e.kind = 'window_focus_returned' THEN 1 ELSE 0 END) AS focus_loss_count,
+      SUM(
+        CASE WHEN e.kind = 'window_focus_returned'
+          THEN max(0, coalesce(e.duration_ms, 0)) ELSE 0 END
+      ) AS focus_loss_ms,
+      SUM(CASE WHEN e.kind = 'document_visible' THEN 1 ELSE 0 END) AS document_hidden_count,
+      SUM(
+        CASE WHEN e.kind = 'document_visible'
+          THEN max(0, coalesce(e.duration_ms, 0)) ELSE 0 END
+      ) AS document_hidden_ms,
+      SUM(CASE WHEN e.kind = 'guardrail_overlay_shown' THEN 1 ELSE 0 END) AS guardrail_count,
+      SUM(CASE WHEN e.kind = 'camera_snapshot' THEN 1 ELSE 0 END) AS camera_snapshot_count,
+      SUM(CASE WHEN e.kind = 'camera_unavailable' THEN 1 ELSE 0 END) AS camera_unavailable_count,
+      SUM(
+        CASE WHEN e.kind = 'answer_submitted'
+          AND json_type(e.payload, '$.responseMs') IN ('integer', 'real')
+          AND json_extract(e.payload, '$.responseMs') >= 60000
+          THEN 1 ELSE 0 END
+      ) AS slow_response_count,
+      SUM(
+        CASE WHEN e.kind = 'answer_submitted'
+          AND json_type(e.payload, '$.responseMs') IN ('integer', 'real')
+          AND json_extract(e.payload, '$.responseMs') > 0
+          AND json_extract(e.payload, '$.responseMs') <= 900
+          THEN 1 ELSE 0 END
+      ) AS rapid_response_count,
+      SUM(
+        CASE WHEN e.kind = 'pronunciation_assessment'
+          AND json_type(e.payload, '$.overallScore') IN ('integer', 'real')
+          THEN 1 ELSE 0 END
+      ) AS pronunciation_assessment_count,
+      SUM(
+        CASE WHEN e.kind = 'pronunciation_assessment'
+          AND json_type(e.payload, '$.overallScore') IN ('integer', 'real')
+          THEN json_extract(e.payload, '$.overallScore') ELSE 0 END
+      ) AS pronunciation_score_total,
+      SUM(
+        CASE WHEN e.kind = 'pronunciation_assessment'
+          AND json_type(e.payload, '$.overallScore') IN ('integer', 'real')
+          AND (
+            json_type(e.payload, '$.retryRequired') = 'true'
+            OR json_extract(e.payload, '$.overallScore') < coalesce(
+              CASE WHEN json_type(e.payload, '$.passingScore') IN ('integer', 'real')
+                THEN json_extract(e.payload, '$.passingScore') END,
+              65
+            )
+          )
+          THEN 1 ELSE 0 END
+      ) AS pronunciation_flag_count,
+      SUM(
+        CASE WHEN e.kind = 'pronunciation_assessment'
+          AND json_type(e.payload, '$.overallScore') IN ('integer', 'real')
+          AND json_type(e.payload, '$.retryRequired') = 'true'
+          THEN 1 ELSE 0 END
+      ) AS pronunciation_retry_required_count
+    FROM practice_sessions AS ps
+    INNER JOIN session_evidence_events AS e ON e.session_id = ps.id
+    ${scopeSql}
+    GROUP BY ps.student_id, ps.id, ps.started_at
+  ),
+  session_values AS (
+    SELECT
+      *,
+      focus_loss_count + document_hidden_count + guardrail_count
+        + slow_response_count + rapid_response_count + camera_unavailable_count
+        + pronunciation_flag_count AS review_flag_count,
+      CASE WHEN pronunciation_assessment_count = 0 THEN NULL
+        ELSE round(pronunciation_score_total * 1.0 / pronunciation_assessment_count) END
+        AS pronunciation_average_score,
+      min(35, focus_loss_count * 8)
+        + min(25, focus_loss_ms * 5.0 / 60000)
+        + min(18, document_hidden_count * 5)
+        + min(12, document_hidden_ms * 4.0 / 60000)
+        + min(18, slow_response_count * 3)
+        + min(12, rapid_response_count * 2)
+        + min(10, guardrail_count * 4)
+        + min(10, camera_unavailable_count * 5)
+        + min(12, pronunciation_flag_count * 3) AS attention_penalty
+    FROM session_components
+  ),
+  session_scores AS (
+    SELECT
+      *,
+      max(0, min(100, round(100 - attention_penalty))) AS attention_score
+    FROM session_values
+  )
+  SELECT
+    student_id AS studentId,
+    max(started_at) AS latestSessionAtMs,
+    count(*) AS sessionCount,
+    round(avg(attention_score)) AS avgAttentionScore,
+    sum(review_flag_count) AS totalReviewFlags,
+    sum(focus_loss_count) AS focusLossCount,
+    sum(camera_snapshot_count) AS cameraSnapshotCount,
+    sum(pronunciation_assessment_count) AS pronunciationAssessmentCount,
+    CASE WHEN sum(pronunciation_assessment_count) = 0 THEN NULL
+      ELSE round(
+        sum(pronunciation_average_score * pronunciation_assessment_count) * 1.0
+          / sum(pronunciation_assessment_count)
+      ) END AS pronunciationAverageScore,
+    sum(pronunciation_flag_count) AS pronunciationFlagCount,
+    sum(pronunciation_retry_required_count) AS pronunciationRetryRequiredCount
+  FROM session_scores
+  GROUP BY student_id
+`;
 }
+
+const TUTOR_EVIDENCE_OVERVIEW_SQL = evidenceOverviewSql(`
+  INNER JOIN students AS s ON s.id = ps.student_id
+  WHERE s.archived_at IS NULL
+`);
+
+const STUDENT_EVIDENCE_OVERVIEW_SQL = evidenceOverviewSql(`
+  WHERE ps.student_id = ?
+`);

@@ -10,6 +10,7 @@ import {
   lessons,
   practiceSessions,
   students,
+  unitAssignments,
   units,
   vocabEntries,
 } from "../../../src/data/schema";
@@ -115,6 +116,39 @@ export interface DueLessonStats {
   totalCount: number;
   dueCount: number;
   newCount: number;
+}
+
+/**
+ * Truthful learning-state counts for one assigned curriculum scope.
+ *
+ * `new`, `learning`, and `secure` are the durable mastery buckets. `due`
+ * and `current` split the introduced items by scheduling time, while the
+ * four *Learning/*Secure breakdown fields retain both dimensions without
+ * making the caller guess how much of either mastery bucket is due.
+ */
+export interface AssignedProgressCounts {
+  totalCount: number;
+  introducedCount: number;
+  newCount: number;
+  learningCount: number;
+  secureCount: number;
+  dueCount: number;
+  currentCount: number;
+  dueLearningCount: number;
+  dueSecureCount: number;
+  learningCurrentCount: number;
+  secureCurrentCount: number;
+  oldestDueAt: Date | null;
+}
+
+export interface AssignedLessonProgressRow extends AssignedProgressCounts {
+  lessonId: number;
+}
+
+export interface AssignedUnitProgressRow extends AssignedProgressCounts {
+  bookId: number;
+  unitId: number;
+  lessons: AssignedLessonProgressRow[];
 }
 
 export interface DueItem {
@@ -476,6 +510,148 @@ export function createProgressRepository(db: AppDatabase) {
 
     recordContentAnswer(input: RecordContentAnswerInput): RecordAnswerResult {
       return recordResolvedAnswer(input);
+    },
+
+    /**
+     * One batch query for every unit currently assigned to the student.
+     *
+     * The primary mastery buckets come directly from FSRS state:
+     * - no curated row / `new` / an unrecognised imported state -> new
+     * - `learning` / `short_term` -> learning
+     * - `long_term` -> secure
+     *
+     * Due/current are a second, scheduling dimension over introduced items.
+     * Keeping both dimensions makes the following invariants explicit:
+     *
+     *   new + introduced = total
+     *   learning + secure = introduced
+     *   due + current = introduced
+     *
+     * Starting from unit_assignments (rather than item_progress) both includes
+     * empty assigned lessons and excludes unassigned/personal content. The
+     * student + curated predicates live in the LEFT JOIN so an item with no
+     * matching progress snapshot remains visible as new.
+     */
+    assignedUnitProgress({
+      studentId,
+      now,
+    }: {
+      studentId: number;
+      now: Date;
+    }): AssignedUnitProgressRow[] {
+      const nowMs = now.getTime();
+      const hasContent = sql`${contentItems.id} is not null`;
+      const hasProgress = sql`${itemProgress.contentItemId} is not null`;
+      const isLearning = sql`${itemProgress.state} in ('learning', 'short_term')`;
+      const isSecure = sql`${itemProgress.state} = 'long_term'`;
+      const isIntroduced = sql`(${isLearning} or ${isSecure})`;
+      const isDue = sql`(${itemProgress.nextDueAt} is null or ${itemProgress.nextDueAt} <= ${nowMs})`;
+      const isCurrent = sql`${itemProgress.nextDueAt} > ${nowMs}`;
+
+      const rows = db
+        .select({
+          bookId: books.id,
+          unitId: units.id,
+          lessonId: lessons.id,
+          totalCount: sql<number>`sum(case when ${hasContent} then 1 else 0 end)`.as("total_count"),
+          introducedCount:
+            sql<number>`sum(case when ${hasContent} and ${hasProgress} and ${isIntroduced} then 1 else 0 end)`.as(
+              "introduced_count",
+            ),
+          newCount:
+            sql<number>`sum(case when ${hasContent} and not (${hasProgress} and ${isIntroduced}) then 1 else 0 end)`.as(
+              "new_count",
+            ),
+          learningCount:
+            sql<number>`sum(case when ${hasContent} and ${hasProgress} and ${isLearning} then 1 else 0 end)`.as(
+              "learning_count",
+            ),
+          secureCount:
+            sql<number>`sum(case when ${hasContent} and ${hasProgress} and ${isSecure} then 1 else 0 end)`.as(
+              "secure_count",
+            ),
+          dueCount:
+            sql<number>`sum(case when ${hasContent} and ${hasProgress} and ${isIntroduced} and ${isDue} then 1 else 0 end)`.as(
+              "due_count",
+            ),
+          currentCount:
+            sql<number>`sum(case when ${hasContent} and ${hasProgress} and ${isIntroduced} and ${isCurrent} then 1 else 0 end)`.as(
+              "current_count",
+            ),
+          dueLearningCount:
+            sql<number>`sum(case when ${hasContent} and ${hasProgress} and ${isLearning} and ${isDue} then 1 else 0 end)`.as(
+              "due_learning_count",
+            ),
+          dueSecureCount:
+            sql<number>`sum(case when ${hasContent} and ${hasProgress} and ${isSecure} and ${isDue} then 1 else 0 end)`.as(
+              "due_secure_count",
+            ),
+          learningCurrentCount:
+            sql<number>`sum(case when ${hasContent} and ${hasProgress} and ${isLearning} and ${isCurrent} then 1 else 0 end)`.as(
+              "learning_current_count",
+            ),
+          secureCurrentCount:
+            sql<number>`sum(case when ${hasContent} and ${hasProgress} and ${isSecure} and ${isCurrent} then 1 else 0 end)`.as(
+              "secure_current_count",
+            ),
+          oldestDueAtMs: sql<
+            number | null
+          >`min(case when ${hasContent} and ${hasProgress} and ${isIntroduced} and ${itemProgress.nextDueAt} is not null and ${itemProgress.nextDueAt} <= ${nowMs} then ${itemProgress.nextDueAt} else null end)`.as(
+            "oldest_due_at_ms",
+          ),
+        })
+        .from(unitAssignments)
+        .innerJoin(units, eq(unitAssignments.unitId, units.id))
+        .innerJoin(books, eq(units.bookId, books.id))
+        .leftJoin(lessons, eq(lessons.unitId, units.id))
+        .leftJoin(contentItems, eq(contentItems.lessonId, lessons.id))
+        .leftJoin(
+          itemProgress,
+          and(
+            eq(itemProgress.studentId, studentId),
+            eq(itemProgress.contentItemId, contentItems.id),
+            eq(itemProgress.track, "curated"),
+          ),
+        )
+        .where(
+          and(eq(unitAssignments.studentId, studentId), eq(unitAssignments.status, "assigned")),
+        )
+        .groupBy(books.id, books.code, units.id, units.ordinal, lessons.id, lessons.ordinal)
+        .orderBy(asc(books.code), asc(units.ordinal), asc(lessons.ordinal))
+        .all();
+
+      const byUnit = new Map<number, AssignedUnitProgressRow>();
+      for (const row of rows) {
+        const lessonCounts: AssignedProgressCounts = {
+          totalCount: Number(row.totalCount),
+          introducedCount: Number(row.introducedCount),
+          newCount: Number(row.newCount),
+          learningCount: Number(row.learningCount),
+          secureCount: Number(row.secureCount),
+          dueCount: Number(row.dueCount),
+          currentCount: Number(row.currentCount),
+          dueLearningCount: Number(row.dueLearningCount),
+          dueSecureCount: Number(row.dueSecureCount),
+          learningCurrentCount: Number(row.learningCurrentCount),
+          secureCurrentCount: Number(row.secureCurrentCount),
+          oldestDueAt: row.oldestDueAtMs === null ? null : new Date(row.oldestDueAtMs),
+        };
+        let unit = byUnit.get(row.unitId);
+        if (!unit) {
+          unit = {
+            bookId: row.bookId,
+            unitId: row.unitId,
+            ...emptyAssignedProgressCounts(),
+            lessons: [],
+          };
+          byUnit.set(row.unitId, unit);
+        }
+        addAssignedProgressCounts(unit, lessonCounts);
+        if (row.lessonId !== null) {
+          unit.lessons.push({ lessonId: row.lessonId, ...lessonCounts });
+        }
+      }
+      return [...byUnit.values()];
     },
 
     /**
@@ -1338,6 +1514,46 @@ export interface FleetSnapshot {
   totalDue: number;
   topXp: (FleetSnapshotProfile & { xp: number }) | null;
   topStreak: (FleetSnapshotProfile & { streak: number }) | null;
+}
+
+function emptyAssignedProgressCounts(): AssignedProgressCounts {
+  return {
+    totalCount: 0,
+    introducedCount: 0,
+    newCount: 0,
+    learningCount: 0,
+    secureCount: 0,
+    dueCount: 0,
+    currentCount: 0,
+    dueLearningCount: 0,
+    dueSecureCount: 0,
+    learningCurrentCount: 0,
+    secureCurrentCount: 0,
+    oldestDueAt: null,
+  };
+}
+
+function addAssignedProgressCounts(
+  target: AssignedProgressCounts,
+  source: AssignedProgressCounts,
+): void {
+  target.totalCount += source.totalCount;
+  target.introducedCount += source.introducedCount;
+  target.newCount += source.newCount;
+  target.learningCount += source.learningCount;
+  target.secureCount += source.secureCount;
+  target.dueCount += source.dueCount;
+  target.currentCount += source.currentCount;
+  target.dueLearningCount += source.dueLearningCount;
+  target.dueSecureCount += source.dueSecureCount;
+  target.learningCurrentCount += source.learningCurrentCount;
+  target.secureCurrentCount += source.secureCurrentCount;
+  if (
+    source.oldestDueAt &&
+    (!target.oldestDueAt || source.oldestDueAt.getTime() < target.oldestDueAt.getTime())
+  ) {
+    target.oldestDueAt = source.oldestDueAt;
+  }
 }
 
 function startOfLocalDay(value: Date): Date {

@@ -1,5 +1,4 @@
 import { api } from "@/lib/api";
-import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
 import { Avatar } from "@/ui/components/Avatar";
 import { EmptyState } from "@/ui/components/EmptyState";
@@ -40,15 +39,23 @@ export function TutorDashboard() {
   });
 
   const rows = overviewQ.data ?? [];
-  const evidenceRows = evidenceQ.data ?? [];
+  const evidenceUnknown = evidenceQ.isLoading || evidenceQ.isError;
+  const evidenceRows = evidenceUnknown ? [] : (evidenceQ.data ?? []);
   const cohort = cohortQ.data ?? [];
 
   return (
     <>
       <PageHeader
-        eyebrow="Overview"
         title="Overview"
-        subtitle="Practice rhythm, learners who need a follow-up, and the exact record behind it."
+        subtitle="Practice rhythm and the learners who need your attention next."
+        actions={
+          <Link
+            to="/tutor/students"
+            className="ui-focus-ring rounded-control text-sm font-medium text-accent hover:underline"
+          >
+            View all students
+          </Link>
+        }
       />
 
       {overviewQ.isLoading ? (
@@ -84,32 +91,26 @@ export function TutorDashboard() {
           <CohortConclusion
             rows={rows}
             evidenceRows={evidenceRows}
+            evidenceLoading={evidenceQ.isLoading}
+            evidenceUnavailable={evidenceQ.isError}
             cohort={cohort}
             cohortLoading={cohortQ.isLoading}
             cohortUnavailable={cohortQ.isError}
           />
 
-          <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(20rem,0.75fr)]">
+          <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(20rem,0.75fr)]">
             <CohortRhythm
               cells={cohort}
               loading={cohortQ.isLoading}
               unavailable={cohortQ.isError}
             />
-            <AttentionQueue rows={rows} evidenceRows={evidenceRows} />
+            <AttentionQueue
+              rows={rows}
+              evidenceRows={evidenceRows}
+              evidenceLoading={evidenceQ.isLoading}
+              evidenceUnavailable={evidenceQ.isError}
+            />
           </div>
-
-          <SummaryStrip
-            rows={rows}
-            cohort={cohort}
-            cohortLoading={cohortQ.isLoading}
-            cohortUnavailable={cohortQ.isError}
-          />
-
-          <StudentLedger
-            rows={rows}
-            evidenceRows={evidenceRows}
-            evidenceUnavailable={evidenceQ.isError}
-          />
         </div>
       )}
     </>
@@ -119,91 +120,56 @@ export function TutorDashboard() {
 function CohortConclusion({
   rows,
   evidenceRows,
+  evidenceLoading,
+  evidenceUnavailable,
   cohort,
   cohortLoading,
   cohortUnavailable,
 }: {
   rows: OverviewRow[];
   evidenceRows: EvidenceRow[];
+  evidenceLoading: boolean;
+  evidenceUnavailable: boolean;
   cohort: CohortCell[];
   cohortLoading: boolean;
   cohortUnavailable: boolean;
 }) {
-  const evidenceByStudent = new Map(evidenceRows.map((row) => [row.student.id, row]));
-  const attention = rows
-    .map((row): AttentionItem | null => {
-      const reasons = attentionReasons(row, evidenceByStudent.get(row.student.id));
-      return reasons.length > 0 ? { row, reasons } : null;
-    })
-    .filter((item): item is AttentionItem => item !== null)
-    .sort(compareAttentionItems);
+  const attention = buildAttentionItems(rows, evidenceRows);
   const first = attention[0];
   const totalDue = rows.reduce((sum, row) => sum + row.totalDue, 0);
   const answerCount = cohort.reduce((sum, cell) => sum + cell.answerCount, 0);
   const activeToday = cohort.at(-1)?.activeStudentCount ?? 0;
+  const evidenceUnknown = evidenceLoading || evidenceUnavailable;
 
   const title = first
     ? `${studentDisplayName(first.row)} is the clearest next follow-up.`
     : totalDue > 0
       ? `${formatInteger(totalDue)} items are due for review.`
-      : "The cohort has no urgent follow-up signals.";
-  const detail = cohortLoading
+      : evidenceUnknown
+        ? "Progress signals show no urgent follow-up."
+        : "The cohort has no urgent follow-up signals.";
+  const activityDetail = cohortLoading
     ? `${formatInteger(rows.length)} active profiles · lesson activity is loading.`
     : cohortUnavailable
       ? `${formatInteger(rows.length)} active profiles · lesson activity is temporarily unavailable.`
       : `${formatInteger(activeToday)} lesson-active today · ${formatInteger(answerCount)} assigned-lesson answers in ${COHORT_DAYS} days.`;
+  const evidenceDetail = evidenceLoading
+    ? " Session review evidence is still loading."
+    : evidenceUnavailable
+      ? " Session review evidence is temporarily unavailable."
+      : "";
 
   return (
-    <section className="learning-trace py-1 pl-4" aria-labelledby="cohort-conclusion-title">
+    <section className="py-1" aria-labelledby="cohort-conclusion-title">
       <h2 id="cohort-conclusion-title" className="text-[15px] font-semibold text-app">
         {title}
       </h2>
       <p className="mt-1 text-xs leading-5 text-muted">
         {first ? `${first.reasons.map((reason) => reason.label).join(" · ")}. ` : ""}
-        {detail}
+        {activityDetail}
+        {evidenceDetail}
       </p>
     </section>
-  );
-}
-
-function SummaryStrip({
-  rows,
-  cohort,
-  cohortLoading,
-  cohortUnavailable,
-}: {
-  rows: OverviewRow[];
-  cohort: CohortCell[];
-  cohortLoading: boolean;
-  cohortUnavailable: boolean;
-}) {
-  const totalDue = rows.reduce((sum, row) => sum + row.totalDue, 0);
-  const answerCount = cohort.reduce((sum, cell) => sum + cell.answerCount, 0);
-  const activeToday = cohort.at(-1)?.activeStudentCount ?? 0;
-  const values = [
-    { label: "Active profiles", value: formatInteger(rows.length) },
-    { label: "Due now", value: formatInteger(totalDue) },
-    {
-      label: `Lesson answers · ${COHORT_DAYS} days`,
-      value: cohortLoading ? "…" : cohortUnavailable ? "—" : formatInteger(answerCount),
-    },
-    {
-      label: "Lesson-active today",
-      value: cohortLoading ? "…" : cohortUnavailable ? "—" : formatInteger(activeToday),
-    },
-  ];
-
-  return (
-    <dl className="ui-group grid grid-cols-2 gap-px bg-border-subtle lg:grid-cols-4">
-      {values.map((item) => (
-        <div key={item.label} className="bg-surface-1 px-4 py-3">
-          <dt className="text-[11px] text-muted">{item.label}</dt>
-          <dd data-tabular className="mt-1 text-lg font-semibold tracking-[-0.01em] text-app">
-            {item.value}
-          </dd>
-        </div>
-      ))}
-    </dl>
   );
 }
 
@@ -257,7 +223,7 @@ function CohortRhythm({
         <div className="grid min-h-52 place-items-center border-t border-border-subtle text-center">
           <div>
             <p className="text-sm font-medium text-app">Cohort activity is unavailable</p>
-            <p className="mt-1 text-xs text-muted">Student totals below are still available.</p>
+            <p className="mt-1 text-xs text-muted">The follow-up queue remains available.</p>
           </div>
         </div>
       ) : answerCount === 0 ? (
@@ -364,22 +330,31 @@ interface AttentionItem {
   reasons: AttentionReason[];
 }
 
-function AttentionQueue({
-  rows,
-  evidenceRows,
-}: {
-  rows: OverviewRow[];
-  evidenceRows: EvidenceRow[];
-}) {
+function buildAttentionItems(rows: OverviewRow[], evidenceRows: EvidenceRow[]): AttentionItem[] {
   const evidenceByStudent = new Map(evidenceRows.map((row) => [row.student.id, row]));
-  const attention = rows
+  return rows
     .map((row): AttentionItem | null => {
       const reasons = attentionReasons(row, evidenceByStudent.get(row.student.id));
       return reasons.length > 0 ? { row, reasons } : null;
     })
     .filter((item): item is AttentionItem => item !== null)
     .sort(compareAttentionItems);
+}
+
+function AttentionQueue({
+  rows,
+  evidenceRows,
+  evidenceLoading,
+  evidenceUnavailable,
+}: {
+  rows: OverviewRow[];
+  evidenceRows: EvidenceRow[];
+  evidenceLoading: boolean;
+  evidenceUnavailable: boolean;
+}) {
+  const attention = buildAttentionItems(rows, evidenceRows);
   const visible = attention.slice(0, ATTENTION_LIMIT);
+  const evidenceUnknown = evidenceLoading || evidenceUnavailable;
 
   return (
     <section className="ui-group min-w-0 bg-surface-1" aria-labelledby="attention-title">
@@ -395,11 +370,26 @@ function AttentionQueue({
         </span>
       </header>
 
+      {evidenceUnknown ? (
+        <p
+          role="status"
+          className="mx-4 mb-3 rounded-control bg-warning/8 px-3 py-2 text-[11px] leading-4 text-warning"
+        >
+          {evidenceLoading
+            ? "Review flags are still loading; this queue is using practice data only."
+            : "Review flags are temporarily unavailable; this queue is using practice data only."}
+        </p>
+      ) : null}
+
       {visible.length === 0 ? (
         <div className="border-t border-border-subtle px-4 py-8 text-center">
-          <p className="text-sm font-medium text-app">Nothing needs follow-up now</p>
+          <p className="text-sm font-medium text-app">
+            {evidenceUnknown ? "No progress-based follow-up now" : "Nothing needs follow-up now"}
+          </p>
           <p className="mt-1 text-xs text-muted">
-            No stale due load, review flags, or weak samples.
+            {evidenceUnknown
+              ? "Review evidence could add learners when it becomes available."
+              : "No stale due load, review flags, or weak samples."}
           </p>
         </div>
       ) : (
@@ -413,7 +403,6 @@ function AttentionQueue({
                   params={{ studentId: String(row.student.id) }}
                   className="ui-focus-ring group flex min-h-16 items-center gap-3 px-4 py-3 outline-offset-[-2px] transition-colors hover:bg-surface-2/65"
                 >
-                  <span aria-hidden className="h-8 w-0.5 shrink-0 rounded-sm bg-accent" />
                   <Avatar
                     name={display}
                     avatarSeed={row.student.avatarSeed ?? null}
@@ -439,143 +428,16 @@ function AttentionQueue({
       {attention.length > visible.length ? (
         <p className="border-t border-border-subtle px-4 py-2.5 text-[11px] text-muted">
           {attention.length - visible.length} more learner
-          {attention.length - visible.length === 1 ? "" : "s"} in the ledger below.
+          {attention.length - visible.length === 1 ? "" : "s"} need review.
         </p>
       ) : null}
-    </section>
-  );
-}
-
-function StudentLedger({
-  rows,
-  evidenceRows,
-  evidenceUnavailable,
-}: {
-  rows: OverviewRow[];
-  evidenceRows: EvidenceRow[];
-  evidenceUnavailable: boolean;
-}) {
-  const evidenceByStudent = new Map(evidenceRows.map((row) => [row.student.id, row]));
-  const sorted = [...rows].sort((a, b) =>
-    studentDisplayName(a).localeCompare(studentDisplayName(b), undefined, { sensitivity: "base" }),
-  );
-
-  return (
-    <section aria-labelledby="ledger-title">
-      <header className="mb-3 flex items-baseline justify-between gap-4">
-        <div>
-          <h2 id="ledger-title" className="text-[15px] font-semibold text-app">
-            Student ledger
-          </h2>
-          <p className="mt-1 text-xs text-muted">Lifetime totals with current review load.</p>
-        </div>
-        {evidenceUnavailable ? (
-          <span className="text-[11px] text-warning">Session signals unavailable</span>
-        ) : (
-          <Link
-            to="/tutor/students"
-            className="ui-focus-ring rounded-control text-xs font-medium text-accent hover:underline"
-          >
-            Manage profiles
-          </Link>
-        )}
-      </header>
-
-      <div className="ui-group overflow-x-auto bg-surface-1">
-        <table className="w-full min-w-[46rem] text-left text-[13px]">
-          <caption className="sr-only">Student ledger</caption>
-          <thead className="border-b border-border-subtle bg-surface-2/70 text-[11px] text-muted">
-            <tr>
-              <th className="px-4 py-2 font-medium">Student</th>
-              <th className="px-3 py-2 text-right font-medium">Answers</th>
-              <th className="px-3 py-2 text-right font-medium">Due</th>
-              <th className="px-3 py-2 text-right font-medium">Accuracy</th>
-              <th className="px-3 py-2 font-medium">Last practised</th>
-              <th className="px-3 py-2 text-right font-medium">Review flags</th>
-              <th aria-hidden className="w-16 px-3 py-2" />
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((row) => {
-              const display = studentDisplayName(row);
-              const evidence = evidenceByStudent.get(row.student.id);
-              return (
-                <tr
-                  key={row.student.id}
-                  className="border-b border-border-subtle transition-colors last:border-b-0 hover:bg-surface-2/55"
-                >
-                  <td className="px-4 py-3">
-                    <Link
-                      to="/tutor/students/$studentId"
-                      params={{ studentId: String(row.student.id) }}
-                      className="ui-focus-ring flex items-center gap-3 rounded-control hover:text-accent"
-                    >
-                      <Avatar
-                        name={display}
-                        avatarSeed={row.student.avatarSeed ?? null}
-                        color={row.student.color}
-                        size="sm"
-                      />
-                      <span className="min-w-0">
-                        <span className="block truncate font-medium text-app">{display}</span>
-                        <span data-tabular className="mt-0.5 block text-[11px] text-muted-2">
-                          {formatInteger(row.totalSeen)} words seen
-                        </span>
-                      </span>
-                    </Link>
-                  </td>
-                  <td data-tabular className="px-3 py-3 text-right text-app">
-                    {formatInteger(row.totalAttempts)}
-                  </td>
-                  <td
-                    data-tabular
-                    className={cn(
-                      "px-3 py-3 text-right",
-                      row.totalDue > 0 ? "font-medium text-warning" : "text-muted-2",
-                    )}
-                  >
-                    {formatInteger(row.totalDue)}
-                  </td>
-                  <td data-tabular className="px-3 py-3 text-right text-app">
-                    {row.totalAttempts === 0 ? "—" : `${Math.round(row.accuracy * 100)}%`}
-                  </td>
-                  <td className="px-3 py-3 text-xs text-muted">
-                    {row.lastPracticedAt ? (
-                      <time
-                        dateTime={row.lastPracticedAt.toISOString()}
-                        title={formatDateLabel(row.lastPracticedAt)}
-                      >
-                        {relativeTime(row.lastPracticedAt)}
-                      </time>
-                    ) : (
-                      "Never"
-                    )}
-                  </td>
-                  <td
-                    data-tabular
-                    className={cn(
-                      "px-3 py-3 text-right",
-                      (evidence?.totalReviewFlags ?? 0) > 0 ? "text-warning" : "text-muted-2",
-                    )}
-                  >
-                    {formatInteger(evidence?.totalReviewFlags ?? 0)}
-                  </td>
-                  <td className="px-3 py-3 text-right">
-                    <Link
-                      to="/tutor/students/$studentId"
-                      params={{ studentId: String(row.student.id) }}
-                      aria-label={`Open ${display}`}
-                      className="ui-focus-ring rounded-control text-[11px] font-medium text-muted hover:text-app"
-                    >
-                      Open
-                    </Link>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <Link
+        to="/tutor/students"
+        className="ui-focus-ring flex min-h-10 items-center justify-between border-t border-border-subtle px-4 text-xs font-medium text-accent transition-colors hover:bg-surface-2"
+      >
+        <span>Open student directory</span>
+        <span aria-hidden>→</span>
+      </Link>
     </section>
   );
 }
@@ -652,17 +514,4 @@ function formatShortDate(value: Date): string {
 
 function formatInteger(value: number): string {
   return value.toLocaleString();
-}
-
-const MINUTE = 60_000;
-const HOUR = 60 * MINUTE;
-const DAY = 24 * HOUR;
-
-function relativeTime(value: Date): string {
-  const diff = Date.now() - value.getTime();
-  if (diff < MINUTE) return "Just now";
-  if (diff < HOUR) return `${Math.floor(diff / MINUTE)}m ago`;
-  if (diff < DAY) return `${Math.floor(diff / HOUR)}h ago`;
-  if (diff < 7 * DAY) return `${Math.floor(diff / DAY)}d ago`;
-  return formatShortDate(value);
 }

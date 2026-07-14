@@ -23,6 +23,11 @@ components; the release changes presentation and interaction without changing th
 - Rebalanced profile selection into a compact two-column object grid and curriculum units into a
   responsive shared-border grid so wide windows carry useful information instead of long empty
   rows.
+- Reframed student unit progress as an inspectable learning composition: review due, learning,
+  secure, and not-yet-introduced counts are mutually exclusive and remain labelled without colour.
+- Reframed tutor overview and student detail around conclusions and bounded drill-downs; unit
+  reports, session evidence, and achievement details open on demand instead of occupying the
+  primary canvas.
 - Rebuilt dictionary search as a focused window-scoped sheet with an integrated titlebar, focus
   trap, smaller bounded canvas, suggested searches, and clear empty-state direction.
 - Expanded practice sessions to use the available window height, made the full headword area an
@@ -57,6 +62,8 @@ components; the release changes presentation and interaction without changing th
 
 - `npm run lint`
 - `npm run typecheck`
-- Full Vitest suite under Electron's Node runtime: 84 files / 534 tests
-- Electron development build and launch at the default 1440 x 900 viewport; the supported window
-  minimum remains 1100 x 720. Automated capture respects the app's screenshot-content policy.
+- Full Vitest suite under Electron's Node runtime: 85 files / 562 tests
+- Electron development build and launch at the default 1440 x 900 viewport, including populated
+  unit-report and session-evidence split views.
+- Responsive capture at the supported 1100 x 720 minimum: no document, learning-pane, or inspector
+  horizontal overflow. Automated capture respects the app's screenshot-content policy.

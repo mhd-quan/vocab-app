@@ -70,11 +70,10 @@ export function RewardToast({
     >
       <div
         className={cn(
-          "popover-material pointer-events-auto relative flex items-center gap-3 overflow-hidden rounded-overlay border py-3 pl-5 pr-4 shadow-lift",
+          "popover-material pointer-events-auto flex items-center gap-3 overflow-hidden rounded-overlay border px-4 py-3 shadow-lift",
           palette,
         )}
       >
-        <span aria-hidden className="absolute inset-y-2 left-0 w-[3px] rounded-r-sm bg-current" />
         {icon ? <span className="grid h-8 w-8 place-items-center">{icon}</span> : null}
         <div className="flex flex-col leading-tight">
           <span className="text-xs font-semibold text-app">{title}</span>

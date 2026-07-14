@@ -140,18 +140,11 @@ function ProfileCard({
       onClick={() => void openProfile()}
       disabled={checkingProfile}
       className={cn(
-        "ui-focus-ring group relative flex min-h-[4.75rem] w-full items-center gap-3 bg-surface-1 py-3 pl-5 pr-3 text-left outline-offset-[-2px]",
+        "ui-focus-ring group flex min-h-[4.75rem] w-full items-center gap-3 bg-surface-1 px-3 py-3 text-left outline-offset-[-2px]",
         "transition-[background-color,box-shadow] duration-150 hover:bg-surface-2/65 active:bg-surface-3/60 active:shadow-[inset_0_0_0_1px_rgb(var(--color-border-subtle))]",
         checkingProfile && "cursor-wait opacity-70 hover:bg-surface-1",
       )}
     >
-      <span
-        aria-hidden
-        className={cn(
-          "absolute inset-y-3 left-0 w-[3px] rounded-r-sm",
-          checkingProfile ? "bg-border-strong" : protectedProfile ? "bg-warning" : "bg-accent",
-        )}
-      />
       <Avatar name={student.name} avatarSeed={student.avatarSeed} color={student.color} size="md" />
       <div className="min-w-0 flex-1">
         <span className="block truncate text-sm font-semibold">{student.name}</span>

@@ -2,7 +2,8 @@ import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
 import { type HeatmapCell, bucketByDay } from "@/modules/analytics";
-import { type AchievementDefinition, getAchievement } from "@/modules/rewards";
+import { getAchievement } from "@/modules/rewards";
+import { AppGlyph, type AppGlyphName } from "@/ui/components/AppGlyph";
 import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
 import { Button } from "@/ui/components/Button";
@@ -10,14 +11,16 @@ import { EmptyState } from "@/ui/components/EmptyState";
 import { Heatmap } from "@/ui/components/Heatmap";
 import { Modal } from "@/ui/components/Modal";
 import { PageHeader } from "@/ui/components/PageHeader";
-import { StudentHistoryImportButton } from "@/ui/components/StudentHistoryImportButton";
+import { SplitView } from "@/ui/components/SplitView";
 import { AchievementIcon } from "@/ui/components/rewards";
 import { TutorPanel, TutorSelectField } from "@/ui/tutor/components/Material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { EvidenceRecord } from "./student-detail/EvidenceRecord";
 
 const HEATMAP_DAYS = 90;
+const ACHIEVEMENT_PREVIEW_LIMIT = 6;
 
 /**
  * Per-student analytics drill-down. Every panel reads its own narrow
@@ -35,49 +38,38 @@ export function TutorStudentDetail() {
     queryFn: () => api.students.getById({ id }),
     enabled: Number.isFinite(id) && id > 0,
   });
+  const canLoadStudentData = Number.isFinite(id) && id > 0 && studentQ.data != null;
 
   const queryClient = useQueryClient();
 
   const summaryQ = useQuery({
     queryKey: queryKeys.progress.summary(id),
     queryFn: () => api.progress.studentSummary({ studentId: id }),
-    enabled: Number.isFinite(id) && id > 0,
+    enabled: canLoadStudentData,
   });
 
   const streakQ = useQuery({
     queryKey: queryKeys.rewards.streak(id),
     queryFn: () => api.rewards.streak({ studentId: id }),
-    enabled: Number.isFinite(id) && id > 0,
+    enabled: canLoadStudentData,
   });
 
   const unlockedQ = useQuery({
     queryKey: queryKeys.rewards.listUnlocked(id),
     queryFn: () => api.rewards.listUnlocked({ studentId: id }),
-    enabled: Number.isFinite(id) && id > 0,
+    enabled: canLoadStudentData,
   });
 
   const weakQ = useQuery({
     queryKey: queryKeys.progress.weakItems(id),
     queryFn: () => api.progress.weakItems({ studentId: id, minAttempts: 3, limit: 10 }),
-    enabled: Number.isFinite(id) && id > 0,
+    enabled: canLoadStudentData,
   });
 
   const recentQ = useQuery({
     queryKey: queryKeys.progress.recentSessions(id),
     queryFn: () => api.progress.recentSessions({ studentId: id, limit: 10 }),
-    enabled: Number.isFinite(id) && id > 0,
-  });
-
-  const unitReportQ = useQuery({
-    queryKey: queryKeys.progress.unitReport(id),
-    queryFn: () => api.progress.unitReport({ studentId: id }),
-    enabled: Number.isFinite(id) && id > 0,
-  });
-
-  const evidenceQ = useQuery({
-    queryKey: queryKeys.evidence.studentOverview(id),
-    queryFn: () => api.evidence.studentOverview({ studentId: id, limit: 8 }),
-    enabled: Number.isFinite(id) && id > 0,
+    enabled: canLoadStudentData,
   });
 
   // Daily-activity is fetched once per (studentId, days) pair. The cells
@@ -95,7 +87,7 @@ export function TutorStudentDetail() {
         untilIso: now.toISOString(),
       });
     },
-    enabled: Number.isFinite(id) && id > 0,
+    enabled: canLoadStudentData,
   });
 
   const heatmapCells = useMemo<HeatmapCell[]>(() => {
@@ -125,6 +117,36 @@ export function TutorStudentDetail() {
     );
   }
 
+  if (studentQ.isLoading) {
+    return (
+      <>
+        <PageHeader title="Loading student…" subtitle="Opening the learner record." />
+        <p role="status" className="px-[var(--space-window-x)] text-sm text-muted">
+          Loading student profile…
+        </p>
+      </>
+    );
+  }
+
+  if (studentQ.isError) {
+    return (
+      <StudentRecordUnavailable
+        title="Student profile is unavailable"
+        detail="The learner record could not be loaded."
+        onRetry={() => studentQ.refetch()}
+      />
+    );
+  }
+
+  if (!studentQ.data) {
+    return (
+      <StudentRecordUnavailable
+        title="Student not found"
+        detail="This learner may have been archived or deleted."
+      />
+    );
+  }
+
   const student = studentQ.data;
   const summary = summaryQ.data;
   const streak = streakQ.data;
@@ -148,8 +170,8 @@ export function TutorStudentDetail() {
         }
       />
 
-      <div className="flex max-w-[90rem] flex-col gap-5 px-6 pb-10">
-        <section className="object-surface learning-trace overflow-hidden">
+      <div className="mx-auto flex w-full max-w-[80rem] flex-col gap-4 px-6 pb-10">
+        <section className="object-surface overflow-hidden">
           <div className="flex items-center gap-4 px-5 py-4">
             <Avatar
               name={student?.displayName ?? student?.name ?? "?"}
@@ -219,7 +241,7 @@ export function TutorStudentDetail() {
         ) : activityQ.isError ? (
           <DataUnavailable title="Practice activity" onRetry={() => activityQ.refetch()} />
         ) : (
-          <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+          <section className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
             <Heatmap
               cells={heatmapCells}
               title="Practice activity"
@@ -230,7 +252,7 @@ export function TutorStudentDetail() {
           </section>
         )}
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
           {weakQ.isError ? (
             <DataUnavailable title="Weak words" onRetry={() => weakQ.refetch()} />
           ) : (
@@ -243,42 +265,75 @@ export function TutorStudentDetail() {
           )}
         </div>
 
-        {unitReportQ.isError ? (
-          <DataUnavailable title="Unit report" onRetry={() => unitReportQ.refetch()} />
-        ) : (
-          <UnitReportPanel
-            studentId={id}
-            rows={unitReportQ.data ?? []}
-            loading={unitReportQ.isLoading}
-          />
-        )}
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
+          <AssignmentsPanel key={`assignments-${id}`} studentId={id} queryClient={queryClient} />
 
-        <AssignmentsPanel studentId={id} queryClient={queryClient} />
+          <section
+            className="object-surface overflow-hidden"
+            aria-labelledby="learner-records-title"
+          >
+            <header className="border-b border-border-subtle px-4 py-3">
+              <h2
+                id="learner-records-title"
+                className="font-display text-base font-semibold text-app"
+              >
+                Learner records
+              </h2>
+              <p className="mt-1 text-xs leading-5 text-muted">
+                Open a focused view when you need the underlying detail.
+              </p>
+            </header>
+            <div className="divide-y divide-border-subtle">
+              <UnitReportPanel key={`unit-report-${id}`} studentId={id} />
 
-        {evidenceQ.isError ? (
-          <DataUnavailable title="Session evidence" onRetry={() => evidenceQ.refetch()} />
-        ) : (
-          <>
-            <EvidencePanel
-              studentId={id}
-              overview={evidenceQ.data ?? null}
-              loading={evidenceQ.isLoading}
-            />
-            <PronunciationEvidencePanel
-              overview={evidenceQ.data ?? null}
-              loading={evidenceQ.isLoading}
-            />
-          </>
-        )}
+              <EvidenceRecord key={`evidence-${id}`} studentId={id} />
 
-        {unlockedQ.isError ? (
-          <DataUnavailable title="Achievements" onRetry={() => unlockedQ.refetch()} />
-        ) : (
-          <AchievementsPanel
-            ids={(unlockedQ.data ?? []).map((u) => u.achievementId)}
-            loading={unlockedQ.isLoading}
-          />
-        )}
+              {unlockedQ.isError ? (
+                <RecordUnavailable title="Achievements" onRetry={() => unlockedQ.refetch()} />
+              ) : (
+                <AchievementsPanel
+                  key={`achievements-${id}`}
+                  records={unlockedQ.data ?? []}
+                  loading={unlockedQ.isLoading}
+                />
+              )}
+            </div>
+          </section>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function StudentRecordUnavailable({
+  title,
+  detail,
+  onRetry,
+}: {
+  title: string;
+  detail: string;
+  onRetry?: () => unknown;
+}) {
+  return (
+    <>
+      <PageHeader title={title} subtitle={detail} />
+      <div className="px-[var(--space-window-x)] pb-10">
+        <div className="object-surface max-w-xl px-5 py-6">
+          <p className="text-sm text-muted">No student controls are available for this record.</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {onRetry ? (
+              <Button size="sm" variant="secondary" onClick={onRetry}>
+                Retry
+              </Button>
+            ) : null}
+            <Link
+              to="/tutor/students"
+              className="ui-focus-ring inline-flex min-h-8 items-center rounded-control px-2 text-xs font-medium text-accent"
+            >
+              Return to students
+            </Link>
+          </div>
+        </div>
       </div>
     </>
   );
@@ -298,6 +353,20 @@ function DataUnavailable({ title, onRetry }: { title: string; onRetry: () => unk
   );
 }
 
+function RecordUnavailable({ title, onRetry }: { title: string; onRetry: () => unknown }) {
+  return (
+    <div role="alert" className="flex items-center justify-between gap-3 px-4 py-3">
+      <span className="min-w-0">
+        <span className="block text-sm font-medium text-app">{title}</span>
+        <span className="mt-0.5 block text-xs text-warning">Temporarily unavailable</span>
+      </span>
+      <Button size="sm" variant="secondary" onClick={onRetry}>
+        Retry
+      </Button>
+    </div>
+  );
+}
+
 function AssignmentsPanel({
   studentId,
   queryClient,
@@ -307,6 +376,7 @@ function AssignmentsPanel({
 }) {
   const [bookId, setBookId] = useState<number | null>(null);
   const [selectedUnitIds, setSelectedUnitIds] = useState<Set<number>>(() => new Set());
+  const [hydratedAssignmentKey, setHydratedAssignmentKey] = useState<string | null>(null);
 
   const booksQ = useQuery({
     queryKey: queryKeys.curriculum.books(),
@@ -332,10 +402,14 @@ function AssignmentsPanel({
     queryFn: () => api.students.listAssignedUnitIds({ studentId, bookId: bookId ?? undefined }),
     enabled: Number.isFinite(studentId) && studentId > 0 && bookId !== null,
   });
+  const assignmentKey = bookId === null ? null : `${studentId}:${bookId}`;
 
   useEffect(() => {
-    if (assignedQ.data) setSelectedUnitIds(new Set(assignedQ.data));
-  }, [assignedQ.data]);
+    if (assignmentKey !== null && assignedQ.data) {
+      setSelectedUnitIds(new Set(assignedQ.data));
+      setHydratedAssignmentKey(assignmentKey);
+    }
+  }, [assignedQ.data, assignmentKey]);
 
   const saveAssignments = useMutation({
     mutationFn: () =>
@@ -353,6 +427,9 @@ function AssignmentsPanel({
         }),
         queryClient.invalidateQueries({
           queryKey: queryKeys.students.assignedUnitIds(studentId, bookId),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.progress.assignedUnitProgress(studentId),
         }),
       ]);
     },
@@ -389,12 +466,25 @@ function AssignmentsPanel({
               label="Book"
               value={String(bookId ?? "")}
               options={books.map((book) => ({ value: String(book.id), label: book.title }))}
-              onChange={(value) => setBookId(Number(value))}
+              disabled={unitsQ.isLoading || assignedQ.isLoading || saveAssignments.isPending}
+              onChange={(value) => {
+                setBookId(Number(value));
+                setSelectedUnitIds(new Set());
+                setHydratedAssignmentKey(null);
+              }}
               containerClassName="sm:min-w-72"
             />
             <Button
               onClick={() => saveAssignments.mutate()}
-              disabled={bookId === null || saveAssignments.isPending}
+              disabled={
+                bookId === null ||
+                hydratedAssignmentKey !== assignmentKey ||
+                unitsQ.isLoading ||
+                unitsQ.isError ||
+                assignedQ.isLoading ||
+                assignedQ.isError ||
+                saveAssignments.isPending
+              }
             >
               {saveAssignments.isPending ? "Saving…" : "Save assignments"}
             </Button>
@@ -600,463 +690,233 @@ function formatDelta(deltaPct: number | null): string {
   return `${deltaPct > 0 ? "+" : ""}${deltaPct}% vs previous 7 days`;
 }
 
-function UnitReportPanel({
-  studentId,
-  rows,
-  loading,
+function RecordLauncher({
+  title,
+  detail,
+  icon,
+  open,
+  onOpen,
 }: {
-  studentId: number;
-  rows: Array<{
-    unitId: number;
-    unitCode: string;
-    unitTitle: string;
-    bookTitle: string;
-    sessionCount: number;
-    totalAnswered: number;
-    totalCorrect: number;
-    accuracy: number;
-    avgResponseMs: number | null;
-    lastPracticedAt: Date | null;
-  }>;
-  loading: boolean;
+  title: string;
+  detail: string;
+  icon: AppGlyphName;
+  open: boolean;
+  onOpen: () => void;
 }) {
+  return (
+    <button
+      type="button"
+      aria-haspopup="dialog"
+      aria-expanded={open}
+      onClick={onOpen}
+      className="ui-focus-ring group flex w-full items-center gap-3 rounded-none px-4 py-3 text-left transition-colors hover:bg-surface-2"
+    >
+      <AppGlyph name={icon} className="text-muted" />
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-medium text-app">{title}</span>
+        <span className="mt-0.5 block truncate text-xs text-muted">{detail}</span>
+      </span>
+      <AppGlyph name="arrowRight" className="text-muted-2 group-hover:text-app" />
+    </button>
+  );
+}
+
+function UnitReportPanel({ studentId }: { studentId: number }) {
+  const [open, setOpen] = useState(false);
   const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null);
+  const unitReportQ = useQuery({
+    queryKey: queryKeys.progress.unitReport(studentId),
+    queryFn: () => api.progress.unitReport({ studentId }),
+    enabled: open && studentId > 0,
+  });
+  const rows = unitReportQ.data ?? [];
+  const effectiveSelectedUnitId =
+    selectedUnitId !== null && rows.some((row) => row.unitId === selectedUnitId)
+      ? selectedUnitId
+      : (rows[0]?.unitId ?? null);
 
   useEffect(() => {
-    if (selectedUnitId !== null) return;
-    if (rows[0]) setSelectedUnitId(rows[0].unitId);
-  }, [rows, selectedUnitId]);
+    setSelectedUnitId((current) => {
+      if (current !== null && rows.some((row) => row.unitId === current)) return current;
+      return rows[0]?.unitId ?? null;
+    });
+  }, [rows]);
 
-  const selectedUnit = rows.find((row) => row.unitId === selectedUnitId) ?? null;
+  const selectedUnit = rows.find((row) => row.unitId === effectiveSelectedUnitId) ?? null;
   const unitSessionsQ = useQuery({
     queryKey:
-      selectedUnitId === null
+      effectiveSelectedUnitId === null
         ? ["progress", "unitSessions", studentId, "none"]
-        : queryKeys.progress.unitSessions(studentId, selectedUnitId),
-    queryFn: () => api.progress.unitSessions({ studentId, unitId: selectedUnitId ?? 0, limit: 20 }),
-    enabled: selectedUnitId !== null,
-  });
-
-  return (
-    <Panel title="Unit report" caption="Select a unit to inspect its learning sessions.">
-      {loading ? (
-        <p className="text-xs text-muted">Loading units…</p>
-      ) : rows.length === 0 ? (
-        <EmptyState
-          title="No unit attempts yet"
-          body="Unit rows appear after the student answers vocabulary or grammar items."
-        />
-      ) : (
-        <div className="grid overflow-hidden rounded-object bg-surface-1 xl:grid-cols-[1.15fr_0.85fr]">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-surface-2 text-muted-2">
-                <tr>
-                  <th className="px-3 py-2 font-medium">Unit</th>
-                  <th className="px-3 py-2 font-medium">Sessions</th>
-                  <th className="px-3 py-2 font-medium">Accuracy</th>
-                  <th className="px-3 py-2 font-medium">Avg time</th>
-                  <th className="px-3 py-2 font-medium">Last</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr
-                    key={row.unitId}
-                    className={cn(
-                      "border-t border-border-subtle transition-colors",
-                      selectedUnitId === row.unitId ? "bg-accent/10" : "hover:bg-surface-2",
-                    )}
-                  >
-                    <td className="px-3 py-2">
-                      <button
-                        type="button"
-                        aria-pressed={selectedUnitId === row.unitId}
-                        onClick={() => setSelectedUnitId(row.unitId)}
-                        className="ui-focus-ring flex rounded-control text-left"
-                      >
-                        <span className="font-medium text-app">
-                          {row.unitCode}: {row.unitTitle}
-                        </span>
-                        <span className="text-[10px] text-muted-2">{row.bookTitle}</span>
-                      </button>
-                    </td>
-                    <td className="px-3 py-2 tabular-nums text-muted">{row.sessionCount}</td>
-                    <td className="px-3 py-2">
-                      <Badge tone={accuracyTone(row.accuracy)}>
-                        {Math.round(row.accuracy * 100)}%
-                      </Badge>
-                    </td>
-                    <td className="px-3 py-2 tabular-nums text-muted">
-                      {row.avgResponseMs === null ? "—" : formatMs(row.avgResponseMs)}
-                    </td>
-                    <td className="px-3 py-2 text-muted">
-                      {row.lastPracticedAt ? formatDate(row.lastPracticedAt) : "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="border-t border-border-subtle bg-surface-2/45 p-4 xl:border-l xl:border-t-0">
-            {selectedUnit ? (
-              <>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge tone="focus">{selectedUnit.unitCode}</Badge>
-                  <Badge tone={accuracyTone(selectedUnit.accuracy)}>
-                    {Math.round(selectedUnit.accuracy * 100)}%
-                  </Badge>
-                </div>
-                <h3 className="mt-3 text-base font-semibold text-app">{selectedUnit.unitTitle}</h3>
-                <dl className="mt-4 grid grid-cols-3 divide-x divide-border-subtle">
-                  <EvidenceMiniStat label="Answered" value={selectedUnit.totalAnswered} />
-                  <EvidenceMiniStat label="Correct" value={selectedUnit.totalCorrect} />
-                  <EvidenceMiniStat
-                    label="Avg response"
-                    value={
-                      selectedUnit.avgResponseMs === null
-                        ? "—"
-                        : formatMs(selectedUnit.avgResponseMs)
-                    }
-                  />
-                </dl>
-                <div className="mt-4">
-                  <p className="mb-2 text-xs font-semibold text-muted">Unit sessions</p>
-                  {unitSessionsQ.isLoading ? (
-                    <p className="text-xs text-muted">Loading sessions…</p>
-                  ) : unitSessionsQ.isError ? (
-                    <p role="alert" className="text-xs text-warning">
-                      Unit sessions are temporarily unavailable.
-                    </p>
-                  ) : (unitSessionsQ.data ?? []).length === 0 ? (
-                    <p className="text-xs text-muted-2">No sessions found for this unit.</p>
-                  ) : (
-                    <ul className="grouped-list divide-y divide-border-subtle">
-                      {(unitSessionsQ.data ?? []).map((session) => (
-                        <li
-                          key={session.sessionId}
-                          className="flex items-center justify-between gap-3 px-3 py-2 text-xs"
-                        >
-                          <span className="flex items-center gap-2">
-                            <Badge tone="muted">{session.mode}</Badge>
-                            <span className="text-muted">{formatDate(session.startedAt)}</span>
-                          </span>
-                          <span className="tabular-nums text-muted">
-                            {session.totalCorrect}/{session.totalAnswered}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </>
-            ) : null}
-          </div>
-        </div>
-      )}
-    </Panel>
-  );
-}
-
-function EvidencePanel({
-  studentId,
-  overview,
-  loading,
-}: {
-  studentId: number;
-  overview: {
-    sessionCount: number;
-    avgAttentionScore: number | null;
-    totalReviewFlags: number;
-    focusLossCount: number;
-    cameraSnapshotCount: number;
-    pronunciationAssessmentCount?: number;
-    pronunciationAverageScore?: number | null;
-    pronunciationFlagCount?: number;
-    pronunciationRetryRequiredCount?: number;
-    recentSessions: Array<{
-      sessionId: number;
-      mode: string;
-      startedAt: Date;
-      eventCount: number;
-      metrics: {
-        attentionScore: number;
-        answerCount: number;
-        avgResponseMs: number | null;
-        focusLossCount: number;
-        focusLossMs: number;
-        cameraSnapshotCount: number;
-        pronunciationAssessmentCount?: number;
-        pronunciationAverageScore?: number | null;
-        pronunciationFlagCount?: number;
-        pronunciationRetryRequiredCount?: number;
-        reviewFlagCount: number;
-      };
-    }>;
-  } | null;
-  loading: boolean;
-}) {
-  const [includeSnapshots, setIncludeSnapshots] = useState(true);
-  const [passphrase, setPassphrase] = useState("");
-  const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (selectedSessionId !== null) return;
-    const first = overview?.recentSessions[0];
-    if (first) setSelectedSessionId(first.sessionId);
-  }, [overview?.recentSessions, selectedSessionId]);
-
-  const exportReport = useMutation({
-    mutationFn: () =>
-      api.evidence.exportStudentReport({
+        : queryKeys.progress.unitSessions(studentId, effectiveSelectedUnitId),
+    queryFn: () =>
+      api.progress.unitSessions({
         studentId,
-        includeSnapshots,
-        passphrase: passphrase.trim() || undefined,
+        unitId: effectiveSelectedUnitId ?? 0,
+        limit: 20,
       }),
+    enabled: open && effectiveSelectedUnitId !== null,
   });
 
-  const historyTransfer = (
-    <div className="border-t border-border-subtle pt-4">
-      <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto_auto] md:items-end">
-        <label className="flex flex-col gap-1 text-xs text-muted">
-          <span className="font-semibold text-muted-2">Export passphrase</span>
-          <input
-            type="password"
-            value={passphrase}
-            onChange={(event) => setPassphrase(event.currentTarget.value)}
-            placeholder="Optional AES export key"
-            className="ui-focus-ring h-9 rounded-control border border-border-subtle bg-surface-1 px-3 text-sm text-app outline-none focus:border-accent"
-          />
-        </label>
-        <label className="flex min-h-9 items-center gap-2 rounded-control border border-border-subtle bg-surface-1 px-3 text-xs text-muted">
-          <input
-            type="checkbox"
-            checked={includeSnapshots}
-            onChange={(event) => setIncludeSnapshots(event.currentTarget.checked)}
-            className="h-4 w-4 accent-[rgb(var(--color-accent))]"
-          />
-          Include camera snapshots
-        </label>
-        <Button onClick={() => exportReport.mutate()} disabled={exportReport.isPending}>
-          {exportReport.isPending ? "Exporting…" : "Export history"}
-        </Button>
-        <StudentHistoryImportButton />
-      </div>
-      {exportReport.data && !exportReport.data.canceled ? (
-        <p role="status" className="mt-2 text-xs text-success">
-          Full student data exported{exportReport.data.encrypted ? " encrypted" : ""}.
-        </p>
-      ) : null}
-      {exportReport.isError ? (
-        <p role="alert" className="mt-2 text-xs text-danger">
-          {exportReport.error instanceof Error
-            ? exportReport.error.message
-            : "Could not export report."}
-        </p>
-      ) : null}
-    </div>
-  );
-
   return (
-    <Panel
-      title="Session evidence"
-      caption="Timing, focus breaks, consented camera check-ins, and portable history export/import"
-    >
-      {loading ? (
-        <p className="text-xs text-muted">Loading…</p>
-      ) : !overview || overview.sessionCount === 0 ? (
-        <div className="flex flex-col gap-5">
+    <>
+      <RecordLauncher
+        title="Unit report"
+        detail={
+          open && unitReportQ.isLoading
+            ? "Loading unit history…"
+            : unitReportQ.data
+              ? `${rows.length} practised unit${rows.length === 1 ? "" : "s"}`
+              : "Review unit performance and session history"
+        }
+        icon="book"
+        open={open}
+        onOpen={() => setOpen(true)}
+      />
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Unit report"
+        description="Choose a unit to inspect its aggregate results and session history."
+        size="lg"
+      >
+        {unitReportQ.isLoading ? (
+          <p role="status" className="py-8 text-center text-sm text-muted">
+            Loading units…
+          </p>
+        ) : unitReportQ.isError ? (
+          <div role="alert" className="py-8 text-center">
+            <p className="text-sm font-medium text-app">Unit report is unavailable</p>
+            <p className="mt-1 text-xs text-muted">No learner record has been changed.</p>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="mt-3"
+              onClick={() => unitReportQ.refetch()}
+            >
+              Retry
+            </Button>
+          </div>
+        ) : rows.length === 0 ? (
           <EmptyState
-            title="No evidence logs yet"
-            body="Student sessions will appear here after the learner starts a practice round."
+            title="No unit attempts yet"
+            body="Unit rows appear after the student answers vocabulary or grammar items."
           />
-          {historyTransfer}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-5">
-          <dl className="grouped-list grid sm:grid-cols-4 sm:divide-x sm:divide-border-subtle">
-            <EvidenceStat
-              label="Attention"
-              value={overview.avgAttentionScore === null ? "—" : overview.avgAttentionScore}
-              tone={
-                overview.avgAttentionScore === null
-                  ? "neutral"
-                  : attentionScoreTone(overview.avgAttentionScore)
-              }
-            />
-            <EvidenceStat label="Flags" value={overview.totalReviewFlags} tone="warning" />
-            <EvidenceStat label="Focus breaks" value={overview.focusLossCount} tone="warning" />
-            <EvidenceStat
-              label="Camera checks"
-              value={overview.cameraSnapshotCount}
-              tone="success"
-            />
-          </dl>
-
-          <ul className="grouped-list divide-y divide-border-subtle">
-            {overview.recentSessions.map((session) => (
-              <li key={session.sessionId}>
+        ) : (
+          <SplitView
+            initialSize={210}
+            minSize={180}
+            maxSize={260}
+            contentMinSize={300}
+            label="Resize unit index"
+            storageKey={`tutor.student.${studentId}.unit-report-split`}
+            className="h-[min(60vh,38rem)] overflow-hidden rounded-object border border-border-subtle"
+          >
+            <nav aria-label="Unit report index" className="h-full overflow-y-auto bg-surface-2/45">
+              {rows.map((row) => (
                 <button
+                  key={row.unitId}
                   type="button"
-                  aria-pressed={selectedSessionId === session.sessionId}
-                  onClick={() => setSelectedSessionId(session.sessionId)}
+                  aria-pressed={effectiveSelectedUnitId === row.unitId}
+                  onClick={() => setSelectedUnitId(row.unitId)}
                   className={cn(
-                    "ui-focus-ring w-full rounded-none p-3 text-left transition-colors",
-                    selectedSessionId === session.sessionId
-                      ? "learning-trace bg-accent/10"
-                      : "hover:bg-surface-2",
+                    "ui-focus-ring w-full border-b border-border-subtle px-3 py-3 text-left transition-colors last:border-b-0 hover:bg-surface-2",
+                    effectiveSelectedUnitId === row.unitId && "bg-surface-3/60",
                   )}
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="flex items-center gap-2">
-                      <Badge tone="muted">{session.mode}</Badge>
-                      <span className="text-xs text-muted">{formatDate(session.startedAt)}</span>
+                  <span className="flex items-baseline justify-between gap-2">
+                    <span className="truncate text-sm font-medium text-app">
+                      {row.unitCode}: {row.unitTitle}
                     </span>
-                    <Badge tone={attentionScoreTone(session.metrics.attentionScore)}>
-                      {session.metrics.attentionScore}
-                    </Badge>
-                  </div>
-                  <dl className="mt-3 grid grid-cols-3 gap-2 text-xs">
-                    <EvidenceMiniStat
-                      label="Avg response"
-                      value={
-                        session.metrics.avgResponseMs === null
-                          ? "—"
-                          : formatMs(session.metrics.avgResponseMs)
-                      }
-                    />
-                    <EvidenceMiniStat
-                      label="Focus"
-                      value={`${session.metrics.focusLossCount} / ${formatMs(
-                        session.metrics.focusLossMs,
-                      )}`}
-                    />
-                    <EvidenceMiniStat label="Camera" value={session.metrics.cameraSnapshotCount} />
-                  </dl>
-                </button>
-              </li>
-            ))}
-          </ul>
-
-          {selectedSessionId !== null ? <SessionDetailPanel sessionId={selectedSessionId} /> : null}
-
-          {historyTransfer}
-        </div>
-      )}
-    </Panel>
-  );
-}
-
-function PronunciationEvidencePanel({
-  overview,
-  loading,
-}: {
-  overview: {
-    pronunciationAssessmentCount?: number;
-    pronunciationAverageScore?: number | null;
-    pronunciationFlagCount?: number;
-    pronunciationRetryRequiredCount?: number;
-    recentSessions: Array<{
-      sessionId: number;
-      startedAt: Date;
-      metrics: {
-        pronunciationAssessmentCount?: number;
-        pronunciationAverageScore?: number | null;
-        pronunciationFlagCount?: number;
-        pronunciationRetryRequiredCount?: number;
-      };
-    }>;
-  } | null;
-  loading: boolean;
-}) {
-  const attemptCount = overview?.pronunciationAssessmentCount ?? 0;
-  const sessions = (overview?.recentSessions ?? []).filter(
-    (session) => (session.metrics.pronunciationAssessmentCount ?? 0) > 0,
-  );
-
-  return (
-    <Panel
-      title="Pronunciation CAPT"
-      caption="Computer-assisted pronunciation training scores from pronunciation sessions."
-    >
-      {loading ? (
-        <p className="text-xs text-muted">Loading pronunciation evidence...</p>
-      ) : !overview || attemptCount === 0 ? (
-        <EmptyState
-          title="No pronunciation attempts yet"
-          body="CAPT attempts appear here after a student opens the pronunciation lab."
-        />
-      ) : (
-        <div className="grid overflow-hidden rounded-object bg-surface-1 xl:grid-cols-[18rem_1fr]">
-          <dl className="divide-y divide-border-subtle">
-            <EvidenceStat
-              label="Avg score"
-              value={overview.pronunciationAverageScore ?? "—"}
-              tone={
-                overview.pronunciationAverageScore === null ||
-                overview.pronunciationAverageScore === undefined
-                  ? "neutral"
-                  : attentionScoreTone(overview.pronunciationAverageScore)
-              }
-            />
-            <EvidenceStat label="Attempts" value={attemptCount} tone="accent" />
-            <EvidenceStat
-              label="Retries"
-              value={
-                overview.pronunciationRetryRequiredCount ?? overview.pronunciationFlagCount ?? 0
-              }
-              tone={
-                (overview.pronunciationRetryRequiredCount ?? overview.pronunciationFlagCount ?? 0) >
-                0
-                  ? "warning"
-                  : "success"
-              }
-            />
-          </dl>
-          <div className="border-t border-border-subtle bg-surface-2/45 p-4 xl:border-l xl:border-t-0">
-            <p className="text-xs font-semibold text-muted">Recent pronunciation sessions</p>
-            <ul className="grouped-list mt-3 divide-y divide-border-subtle">
-              {sessions.slice(0, 6).map((session) => (
-                <li
-                  key={session.sessionId}
-                  className="flex items-center justify-between gap-3 px-3 py-2 text-xs"
-                >
-                  <span className="text-muted">{formatDate(session.startedAt)}</span>
-                  <span className="flex items-center gap-2">
-                    <Badge
-                      tone={
-                        session.metrics.pronunciationAverageScore === null ||
-                        session.metrics.pronunciationAverageScore === undefined
-                          ? "muted"
-                          : attentionScoreTone(session.metrics.pronunciationAverageScore)
-                      }
-                    >
-                      {session.metrics.pronunciationAverageScore ?? "—"}
-                    </Badge>
-                    <span className="tabular-nums text-muted-2">
-                      {session.metrics.pronunciationAssessmentCount ?? 0} attempts
-                      {(session.metrics.pronunciationRetryRequiredCount ??
-                        session.metrics.pronunciationFlagCount ??
-                        0) > 0
-                        ? ` · ${
-                            session.metrics.pronunciationRetryRequiredCount ??
-                            session.metrics.pronunciationFlagCount
-                          } retries`
-                        : ""}
+                    <span className="shrink-0 text-xs tabular-nums text-muted">
+                      {Math.round(row.accuracy * 100)}%
                     </span>
                   </span>
-                </li>
+                  <span className="mt-1 block truncate text-[11px] text-muted-2">
+                    {row.bookTitle} · {row.sessionCount} session{row.sessionCount === 1 ? "" : "s"}
+                  </span>
+                </button>
               ))}
-            </ul>
-          </div>
-        </div>
-      )}
-    </Panel>
+            </nav>
+
+            <section className="h-full overflow-y-auto p-5" aria-live="polite">
+              {selectedUnit ? (
+                <>
+                  <p className="text-xs font-medium text-accent">{selectedUnit.unitCode}</p>
+                  <h3 className="mt-1 text-lg font-semibold text-app">{selectedUnit.unitTitle}</h3>
+                  <p className="mt-1 text-xs text-muted">{selectedUnit.bookTitle}</p>
+                  <dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-control bg-border-subtle sm:grid-cols-4">
+                    <UnitReportMetric
+                      label="Answered"
+                      value={selectedUnit.totalAnswered}
+                      tone="accent"
+                    />
+                    <UnitReportMetric
+                      label="Correct"
+                      value={selectedUnit.totalCorrect}
+                      tone="success"
+                    />
+                    <UnitReportMetric
+                      label="Accuracy"
+                      value={`${Math.round(selectedUnit.accuracy * 100)}%`}
+                      tone={accuracyTone(selectedUnit.accuracy)}
+                    />
+                    <UnitReportMetric
+                      label="Avg response"
+                      value={
+                        selectedUnit.avgResponseMs === null
+                          ? "—"
+                          : formatMs(selectedUnit.avgResponseMs)
+                      }
+                      tone="neutral"
+                    />
+                  </dl>
+                  <div className="mt-5 border-t border-border-subtle pt-4">
+                    <h4 className="text-sm font-semibold text-app">Sessions</h4>
+                    {unitSessionsQ.isLoading ? (
+                      <p role="status" className="mt-3 text-xs text-muted">
+                        Loading sessions…
+                      </p>
+                    ) : unitSessionsQ.isError ? (
+                      <p role="alert" className="mt-3 text-xs text-warning">
+                        Unit sessions are temporarily unavailable.
+                      </p>
+                    ) : (unitSessionsQ.data ?? []).length === 0 ? (
+                      <p className="mt-3 text-xs text-muted-2">No sessions found for this unit.</p>
+                    ) : (
+                      <ul className="mt-2 divide-y divide-border-subtle">
+                        {(unitSessionsQ.data ?? []).map((session) => (
+                          <li
+                            key={session.sessionId}
+                            className="flex items-center justify-between gap-3 py-2.5 text-xs"
+                          >
+                            <span>
+                              <span className="block font-medium text-app">{session.mode}</span>
+                              <time
+                                className="mt-0.5 block text-muted"
+                                dateTime={session.startedAt.toISOString()}
+                              >
+                                {formatDate(session.startedAt)}
+                              </time>
+                            </span>
+                            <span className="tabular-nums text-muted">
+                              {session.totalCorrect}/{session.totalAnswered}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </>
+              ) : null}
+            </section>
+          </SplitView>
+        )}
+      </Modal>
+    </>
   );
 }
 
-function EvidenceStat({
+function UnitReportMetric({
   label,
   value,
   tone,
@@ -1066,216 +926,20 @@ function EvidenceStat({
   tone: "neutral" | "success" | "warning" | "accent";
 }) {
   return (
-    <div className="px-3 py-2.5">
+    <div className="bg-surface-1 px-3 py-2.5">
       <dt className="text-[11px] font-medium text-muted">{label}</dt>
-      <dd className={cn("mt-1 text-lg font-semibold tabular-nums", evidenceToneClass(tone))}>
+      <dd
+        className={cn(
+          "mt-1 text-lg font-semibold tabular-nums",
+          tone === "neutral" && "text-muted",
+          tone === "success" && "text-success",
+          tone === "warning" && "text-warning",
+          tone === "accent" && "text-accent",
+        )}
+      >
         {value}
       </dd>
     </div>
-  );
-}
-
-function EvidenceMiniStat({ label, value }: { label: string; value: number | string }) {
-  return (
-    <div>
-      <dt className="text-[10px] text-muted-2">{label}</dt>
-      <dd className="mt-1 text-xs tabular-nums text-app">{value}</dd>
-    </div>
-  );
-}
-
-function SessionDetailPanel({ sessionId }: { sessionId: number }) {
-  const timelineQ = useQuery({
-    queryKey: queryKeys.evidence.sessionTimeline(sessionId, true),
-    queryFn: () => api.evidence.sessionTimeline({ sessionId, includeSnapshots: true }),
-  });
-  const reportQ = useQuery({
-    queryKey: queryKeys.progress.sessionReport(sessionId),
-    queryFn: () => api.progress.sessionReport({ sessionId }),
-  });
-
-  const timeline = timelineQ.data;
-  const report = reportQ.data;
-  const metrics = timeline?.metrics;
-
-  if (timelineQ.isLoading || reportQ.isLoading) {
-    return <p className="text-xs text-muted">Loading session detail…</p>;
-  }
-
-  if (!timeline && !report) {
-    return (
-      <div className="border-t border-border-subtle pt-4 text-xs text-muted">
-        Session detail is unavailable.
-      </div>
-    );
-  }
-
-  const session = timeline?.session ?? report?.session;
-  if (!session) return null;
-  const endedAt = session.endedAt ?? timeline?.events.at(-1)?.occurredAt ?? session.startedAt;
-  const accuracy = report?.accuracy ?? null;
-
-  return (
-    <section className="border-t border-border-subtle pt-4">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="flex flex-wrap gap-2">
-            <Badge tone="muted">Session {session.id}</Badge>
-            {metrics ? (
-              <Badge tone={attentionScoreTone(metrics.attentionScore)}>
-                Attention {metrics.attentionScore}
-              </Badge>
-            ) : null}
-          </div>
-          <h3 className="mt-2 text-base font-semibold text-app">
-            {formatDate(session.startedAt)} - {formatDate(endedAt)}
-          </h3>
-          <p className="mt-1 text-xs text-muted">
-            Duration {formatMs(Math.max(0, endedAt.getTime() - session.startedAt.getTime()))}
-          </p>
-        </div>
-        <Badge tone={accuracy === null ? "muted" : accuracyTone(accuracy)}>
-          {accuracy === null ? "No answers" : `${Math.round(accuracy * 100)}%`}
-        </Badge>
-      </header>
-
-      <dl className="grouped-list mt-4 grid sm:grid-cols-4 sm:divide-x sm:divide-border-subtle">
-        <EvidenceStat label="Answered" value={report?.totalAnswered ?? 0} tone="accent" />
-        <EvidenceStat label="Correct" value={report?.totalCorrect ?? 0} tone="success" />
-        <EvidenceStat
-          label="Avg response"
-          value={
-            report?.avgResponseMs === null || report?.avgResponseMs === undefined
-              ? "—"
-              : formatMs(report.avgResponseMs)
-          }
-          tone="accent"
-        />
-        <EvidenceStat
-          label="Review flags"
-          value={metrics?.reviewFlagCount ?? 0}
-          tone={(metrics?.reviewFlagCount ?? 0) > 0 ? "warning" : "success"}
-        />
-      </dl>
-
-      {metrics ? (
-        <dl className="mt-4 grid gap-3 text-xs sm:grid-cols-4">
-          <EvidenceMiniStat
-            label="Focus breaks"
-            value={`${metrics.focusLossCount} / ${formatMs(metrics.focusLossMs)}`}
-          />
-          <EvidenceMiniStat
-            label="Hidden"
-            value={`${metrics.documentHiddenCount} / ${formatMs(metrics.documentHiddenMs)}`}
-          />
-          <EvidenceMiniStat label="Guardrails" value={metrics.guardrailCount} />
-          <EvidenceMiniStat label="Camera" value={metrics.cameraSnapshotCount} />
-        </dl>
-      ) : null}
-
-      {report?.units.length ? (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {report.units.map((unit) => (
-            <Badge key={unit.unitId} tone={accuracyTone(unit.accuracy)}>
-              {unit.unitCode} {Math.round(unit.accuracy * 100)}%
-            </Badge>
-          ))}
-        </div>
-      ) : null}
-
-      <SnapshotTable snapshots={timeline?.snapshots ?? []} />
-    </section>
-  );
-}
-
-function SnapshotTable({
-  snapshots,
-}: {
-  snapshots: Array<{
-    id: number;
-    occurredAt: Date;
-    fileName: string | null;
-    bytes: number | null;
-    sha256: string | null;
-    width: number | null;
-    height: number | null;
-    snapshotDataUrl?: string | null;
-  }>;
-}) {
-  const [zoomed, setZoomed] = useState<(typeof snapshots)[number] | null>(null);
-
-  if (snapshots.length === 0) {
-    return <p className="mt-4 text-xs text-muted-2">No camera snapshots for this session.</p>;
-  }
-
-  return (
-    <>
-      <div className="grouped-list mt-5">
-        <table className="w-full text-left text-xs">
-          <thead className="bg-surface-2 text-muted-2">
-            <tr>
-              <th className="px-3 py-2 font-medium">Image</th>
-              <th className="px-3 py-2 font-medium">Captured</th>
-              <th className="px-3 py-2 font-medium">Size</th>
-              <th className="px-3 py-2 font-medium">Hash</th>
-            </tr>
-          </thead>
-          <tbody>
-            {snapshots.map((snapshot) => (
-              <tr key={snapshot.id} className="border-t border-border-subtle">
-                <td className="px-3 py-2">
-                  {snapshot.snapshotDataUrl ? (
-                    <button
-                      type="button"
-                      onClick={() => setZoomed(snapshot)}
-                      aria-label={`Open camera snapshot captured ${formatDate(snapshot.occurredAt)}`}
-                      className="ui-focus-ring group relative block rounded-control"
-                    >
-                      <img
-                        src={snapshot.snapshotDataUrl}
-                        alt={`Camera snapshot captured ${formatDate(snapshot.occurredAt)}`}
-                        className="h-16 w-24 rounded-control border border-border-subtle object-cover"
-                      />
-                      <span className="pointer-events-none absolute inset-0 grid place-items-center rounded-control bg-slate-950/0 text-[10px] font-semibold text-white opacity-0 transition group-hover:bg-slate-950/45 group-hover:opacity-100">
-                        Zoom
-                      </span>
-                    </button>
-                  ) : (
-                    <span className="text-muted-2">{snapshot.fileName ?? "stored"}</span>
-                  )}
-                </td>
-                <td className="px-3 py-2 text-muted">{formatDate(snapshot.occurredAt)}</td>
-                <td className="px-3 py-2 tabular-nums text-muted">
-                  {snapshot.width && snapshot.height ? `${snapshot.width}x${snapshot.height}` : "—"}
-                  {snapshot.bytes ? ` / ${formatBytes(snapshot.bytes)}` : ""}
-                </td>
-                <td className="px-3 py-2 font-mono text-[10px] text-muted-2">
-                  {snapshot.sha256 ? snapshot.sha256.slice(0, 12) : "—"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <Modal
-        open={zoomed !== null}
-        onClose={() => setZoomed(null)}
-        title="Camera snapshot"
-        description={
-          zoomed
-            ? `${formatDate(zoomed.occurredAt)} · ${zoomed.width ?? "?"}x${zoomed.height ?? "?"}`
-            : undefined
-        }
-      >
-        {zoomed?.snapshotDataUrl ? (
-          <img
-            src={zoomed.snapshotDataUrl}
-            alt={`Camera snapshot captured ${formatDate(zoomed.occurredAt)}`}
-            className="max-h-[70vh] w-full rounded-object border border-border-subtle object-contain"
-          />
-        ) : null}
-      </Modal>
-    </>
   );
 }
 
@@ -1393,56 +1057,118 @@ function RecentSessionsPanel({
   );
 }
 
-function AchievementsPanel({ ids, loading }: { ids: string[]; loading: boolean }) {
-  const defs = ids
-    .map((id) => getAchievement(id))
-    .filter((d): d is AchievementDefinition => d !== null);
+function AchievementsPanel({
+  records,
+  loading,
+}: {
+  records: Array<{ achievementId: string; unlockedAt: Date }>;
+  loading: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const achievements = records.flatMap((record) => {
+    const definition = getAchievement(record.achievementId);
+    return definition ? [{ definition, unlockedAt: record.unlockedAt }] : [];
+  });
+  const preview = achievements.slice(0, ACHIEVEMENT_PREVIEW_LIMIT);
+  const overflow = achievements.length - preview.length;
+
   return (
-    <Panel title="Achievements" caption={`${defs.length} unlocked`} tone="mastery">
-      {loading ? (
-        <p className="text-xs text-muted">Loading…</p>
-      ) : defs.length === 0 ? (
-        <p className="text-xs text-muted-2">
-          Nothing unlocked yet — encourage a session in student mode.
-        </p>
-      ) : (
-        <ul className="grouped-list divide-y divide-border-subtle">
-          {defs.map((def) => (
-            <li
-              key={def.id}
-              className="flex min-h-[var(--size-row)] items-center gap-2 px-3 py-2 text-xs text-success"
-              title={def.description}
-            >
-              <AchievementIcon icon={def.icon} className="h-4 w-4" />
-              <span className="font-medium text-app">{def.title}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </Panel>
+    <>
+      <button
+        type="button"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onClick={() => setOpen(true)}
+        className="ui-focus-ring group w-full rounded-none px-4 py-3 text-left transition-colors hover:bg-surface-2"
+      >
+        <span className="flex items-center gap-3">
+          <AppGlyph name="trophy" className="text-muted" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-medium text-app">Achievements</span>
+            <span className="mt-0.5 block text-xs text-muted">
+              {loading ? "Loading collection…" : `${achievements.length} unlocked`}
+            </span>
+          </span>
+          <AppGlyph name="arrowRight" className="text-muted-2 group-hover:text-app" />
+        </span>
+        {!loading && preview.length > 0 ? (
+          <span className="mt-2.5 flex items-center gap-2 pl-8" aria-label="Achievement preview">
+            {preview.map(({ definition }) => (
+              <span
+                key={definition.id}
+                title={definition.title}
+                className="grid h-6 w-6 place-items-center text-mastery"
+              >
+                <AchievementIcon icon={definition.icon} className="h-[18px] w-[18px]" />
+              </span>
+            ))}
+            {overflow > 0 ? (
+              <span className="text-xs font-medium tabular-nums text-muted">+{overflow}</span>
+            ) : null}
+          </span>
+        ) : null}
+      </button>
+
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Achievements"
+        description={
+          loading
+            ? "Loading the learner’s collection…"
+            : `${achievements.length} milestones unlocked.`
+        }
+        size="md"
+      >
+        {loading ? (
+          <p role="status" className="py-8 text-center text-sm text-muted">
+            Loading achievements…
+          </p>
+        ) : achievements.length === 0 ? (
+          <EmptyState
+            title="No achievements yet"
+            body="Completed practice milestones will appear in this collection."
+          />
+        ) : (
+          <ul className="divide-y divide-border-subtle">
+            {achievements.map(({ definition, unlockedAt }) => (
+              <li key={definition.id} className="flex gap-3 py-3 first:pt-0 last:pb-0">
+                <AchievementIcon
+                  icon={definition.icon}
+                  className="mt-0.5 h-5 w-5 shrink-0 text-mastery"
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold text-app">{definition.title}</span>
+                  <span className="mt-0.5 block text-xs leading-5 text-muted">
+                    {definition.description}
+                  </span>
+                  <time
+                    dateTime={unlockedAt.toISOString()}
+                    className="mt-1 block text-[11px] text-muted-2"
+                  >
+                    Unlocked {formatCalendarDate(unlockedAt)}
+                  </time>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Modal>
+    </>
   );
 }
 
 function Panel({
   title,
   caption,
-  tone = "neutral",
   children,
 }: {
   title: string;
   caption?: string;
-  tone?: "neutral" | "mastery" | "accent";
   children: React.ReactNode;
 }) {
   return (
-    <TutorPanel
-      title={title}
-      description={caption}
-      className={cn(
-        tone !== "neutral" && "learning-trace",
-        tone === "mastery" && "[--trace-rgb:var(--color-moss)]",
-      )}
-    >
+    <TutorPanel title={title} description={caption}>
       {children}
     </TutorPanel>
   );
@@ -1454,6 +1180,14 @@ function formatDate(d: Date): string {
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+  });
+}
+
+function formatCalendarDate(d: Date): string {
+  return d.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   });
 }
 
@@ -1479,29 +1213,10 @@ function describeStudentState(
   return "No review items are currently due; recent work is shown below.";
 }
 
-function attentionScoreTone(score: number): "success" | "accent" | "warning" {
-  if (score >= 85) return "success";
-  if (score >= 65) return "accent";
-  return "warning";
-}
-
 function accuracyTone(score: number): "success" | "accent" | "warning" {
   if (score >= 0.8) return "success";
   if (score >= 0.5) return "accent";
   return "warning";
-}
-
-function evidenceToneClass(tone: "neutral" | "success" | "warning" | "accent"): string {
-  switch (tone) {
-    case "success":
-      return "text-success";
-    case "warning":
-      return "text-warning";
-    case "accent":
-      return "text-accent";
-    case "neutral":
-      return "text-muted";
-  }
 }
 
 function formatMs(ms: number): string {
@@ -1511,10 +1226,4 @@ function formatMs(ms: number): string {
   const minutes = Math.floor(seconds / 60);
   const rest = seconds % 60;
   return rest === 0 ? `${minutes}m` : `${minutes}m ${rest}s`;
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
-  if (bytes >= 1024) return `${Math.round(bytes / 1024)}KB`;
-  return `${bytes}B`;
 }

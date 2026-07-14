@@ -1,76 +1,102 @@
-import type { Book, Lesson, Unit } from "@/data/types";
+import type { Book, Unit } from "@/data/types";
 import { api } from "@/lib/api";
-import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/queryClient";
-import { summarizeStudentProgress } from "@/modules/rewards";
 import { AppGlyph } from "@/ui/components/AppGlyph";
 import { Avatar } from "@/ui/components/Avatar";
 import { EmptyState } from "@/ui/components/EmptyState";
-import { AccuracyIcon, DueIcon, LessonIcon, SeenIcon } from "@/ui/components/LearningIcons";
-import { ProgressMeter } from "@/ui/components/ProgressMeter";
 import { SplitView } from "@/ui/components/SplitView";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { AchievementStrip } from "./AchievementStrip";
+import { UnitStatusTrack } from "./UnitStatusTrack";
 
-interface UnitWithLessons {
-  unit: Unit;
-  lessons: Lesson[];
-}
+type UnitProgressRow = Awaited<ReturnType<typeof api.progress.assignedUnitProgress>>[number];
+
+const numberFormat = new Intl.NumberFormat();
 
 /**
- * Student home is intentionally unit-first. Tutors decide which units a
- * learner can see; the learner picks a unit, then chooses the exact section
- * to practise on the unit study screen.
+ * Student home is unit-first: it answers what needs attention, where it sits
+ * in the curriculum, and what state every item is in without flattening those
+ * answers into a misleading completion percentage.
  */
 export function StudentHome() {
   const { studentId } = useParams({ from: "/student/profile/$studentId" });
   const id = Number(studentId);
+  const enabled = Number.isFinite(id) && id > 0;
 
   const studentQ = useQuery({
     queryKey: queryKeys.students.byId(id),
     queryFn: () => api.students.getById({ id }),
-    enabled: Number.isFinite(id) && id > 0,
+    enabled,
   });
-
+  const canLoadStudentData = enabled && studentQ.data != null;
   const booksQ = useQuery({
     queryKey: queryKeys.students.assignedBooks(id),
     queryFn: () => api.students.listAssignedBooks({ studentId: id }),
-    enabled: Number.isFinite(id) && id > 0,
+    enabled: canLoadStudentData,
   });
-
   const summaryQ = useQuery({
     queryKey: queryKeys.progress.summary(id),
     queryFn: () => api.progress.studentSummary({ studentId: id }),
-    enabled: Number.isFinite(id) && id > 0,
+    enabled: canLoadStudentData,
   });
-
-  const streakQ = useQuery({
-    queryKey: queryKeys.rewards.streak(id),
-    queryFn: () => api.rewards.streak({ studentId: id }),
-    enabled: Number.isFinite(id) && id > 0,
+  const assignedProgressQ = useQuery({
+    queryKey: queryKeys.progress.assignedUnitProgress(id),
+    queryFn: () => api.progress.assignedUnitProgress({ studentId: id }),
+    enabled: canLoadStudentData,
   });
-
   const dictionaryLearningQ = useQuery({
     queryKey: queryKeys.dictionaryLearning.summary(id),
     queryFn: () => api.dictionaryLearning.summary({ studentId: id }),
-    enabled: Number.isFinite(id) && id > 0,
+    enabled: canLoadStudentData,
   });
 
-  const studentName = studentQ.data?.displayName ?? studentQ.data?.name ?? "Unknown student";
-  const homePrompt = summaryQ.data
-    ? summaryQ.data.totalDue > 0
-      ? `${summaryQ.data.totalDue} items are ready for review. Your next unit is marked below.`
-      : "You are caught up. Start a new unit when you are ready."
-    : "Choose a unit from your learning path.";
+  if (!enabled) {
+    return (
+      <StudentHomeUnavailable title="Invalid profile" detail="Choose a learner profile again." />
+    );
+  }
+  if (studentQ.isLoading) {
+    return (
+      <p role="status" className="px-8 py-10 text-sm text-muted">
+        Loading learner profile…
+      </p>
+    );
+  }
+  if (studentQ.isError) {
+    return (
+      <StudentHomeUnavailable
+        title="Learner profile is unavailable"
+        detail="The profile could not be loaded."
+        onRetry={() => studentQ.refetch()}
+      />
+    );
+  }
+  if (!studentQ.data) {
+    return (
+      <StudentHomeUnavailable
+        title="Learner profile not found"
+        detail="This profile may have been removed. Choose another learner."
+      />
+    );
+  }
+
+  const studentName = studentQ.data.displayName ?? studentQ.data.name;
+  const assignedDueCount = assignedProgressQ.data?.reduce((total, row) => total + row.dueCount, 0);
+  const homePrompt =
+    assignedDueCount === undefined
+      ? "Choose a unit from your learning path."
+      : assignedDueCount > 0
+        ? `${numberFormat.format(assignedDueCount)} ${assignedDueCount === 1 ? "item is" : "items are"} ready for review.`
+        : "Review is up to date. Choose a unit when you are ready.";
 
   return (
     <SplitView
       side="trailing"
-      initialSize={304}
-      minSize={272}
-      maxSize={384}
+      initialSize={312}
+      minSize={288}
+      maxSize={376}
       label="Resize learning progress inspector"
       storageKey="vocab.student.today-pane"
       className="h-full min-h-0"
@@ -78,27 +104,54 @@ export function StudentHome() {
       <section
         data-testid="student-learning-pane"
         aria-label="Learning path"
-        className="h-full min-w-0 overflow-y-auto px-6 py-5"
+        className="student-learning-pane h-full min-w-0 overflow-y-auto px-7 py-6 xl:px-9"
       >
-        <header className="mb-5 flex items-center gap-3">
+        <header className="mb-8 flex items-center gap-4">
           <Avatar
             name={studentQ.data?.displayName ?? studentQ.data?.name ?? "?"}
             avatarSeed={studentQ.data?.avatarSeed ?? null}
             color={studentQ.data?.color ?? null}
-            size="md"
+            size="lg"
+            className="h-16 w-16 text-xl"
           />
           <div className="min-w-0">
-            <h1 className="truncate text-[22px] font-semibold leading-tight tracking-[-0.02em]">
+            <h1 className="truncate font-display text-[30px] font-semibold leading-none tracking-[-0.025em] text-app">
               {studentQ.isLoading ? "Loading…" : studentName}
             </h1>
-            <p className="mt-1 text-[13px] text-muted">{homePrompt}</p>
+            <p className="mt-2 text-[13px] leading-5 text-muted">{homePrompt}</p>
           </div>
         </header>
 
+        <div className="mb-4 border-b border-border-subtle pb-3">
+          <h2 className="font-display text-[17px] font-semibold tracking-[-0.012em] text-app">
+            Learning path
+          </h2>
+        </div>
+
+        {assignedProgressQ.isError ? (
+          <div
+            role="alert"
+            className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle pb-4"
+          >
+            <p className="text-xs leading-5 text-warning">
+              Item status is temporarily unavailable. Units can still be opened normally.
+            </p>
+            <button
+              type="button"
+              className="ui-focus-ring rounded-control text-xs font-semibold text-accent"
+              onClick={() => assignedProgressQ.refetch()}
+            >
+              Retry status
+            </button>
+          </div>
+        ) : null}
+
         {booksQ.isLoading ? (
-          <p className="text-sm text-muted">Loading assigned units…</p>
+          <p role="status" className="py-3 text-sm text-muted">
+            Loading assigned units…
+          </p>
         ) : booksQ.isError ? (
-          <div role="alert" className="learning-trace py-2 pl-4">
+          <div role="alert" className="py-3">
             <p className="text-sm font-medium text-app">The learning path is unavailable</p>
             <button
               type="button"
@@ -114,7 +167,13 @@ export function StudentHome() {
             body="Ask your tutor to assign a book unit before starting practice."
           />
         ) : (
-          <BookList studentId={id} books={booksQ.data ?? []} />
+          <BookList
+            studentId={id}
+            books={booksQ.data ?? []}
+            progressRows={assignedProgressQ.data ?? []}
+            progressLoading={assignedProgressQ.isLoading}
+            progressUnavailable={assignedProgressQ.isError}
+          />
         )}
       </section>
 
@@ -124,27 +183,25 @@ export function StudentHome() {
         aria-label="Learning progress"
       >
         <div className="flex items-baseline justify-between gap-3">
-          <h2 className="text-sm font-semibold">Progress</h2>
-          <span className="text-[11px] text-muted-2">Across all practice</span>
+          <h2 className="text-sm font-semibold text-app">Practice record</h2>
+          <span className="text-[11px] text-muted-2">Lifetime</span>
         </div>
         {summaryQ.data ? (
-          <SummaryStats
-            summary={summaryQ.data}
-            streak={streakQ.data?.currentStreak ?? 0}
-            practicedToday={streakQ.data?.practicedToday ?? false}
-          />
+          <SummaryStats summary={summaryQ.data} />
         ) : summaryQ.isError ? (
           <p role="alert" className="py-4 text-xs text-warning">
-            Progress is temporarily unavailable.
+            Practice totals are temporarily unavailable.
           </p>
         ) : (
-          <p className="py-4 text-xs text-muted">Loading progress…</p>
+          <p role="status" className="py-4 text-xs text-muted">
+            Loading practice totals…
+          </p>
         )}
 
         <section className="mt-6 border-t border-border-subtle pt-5">
-          <h2 className="mb-2 text-xs font-semibold">Practice tools</h2>
-          <div className="ui-group bg-surface-2">
-            <PersonalVocabularyCard
+          <h2 className="mb-1 text-xs font-semibold text-app">Practice tools</h2>
+          <nav aria-label="Practice tools" className="divide-y divide-border-subtle">
+            <PersonalVocabularyLink
               studentId={id}
               summary={
                 dictionaryLearningQ.data ?? {
@@ -157,13 +214,14 @@ export function StudentHome() {
                 }
               }
               loading={dictionaryLearningQ.isLoading}
+              unavailable={dictionaryLearningQ.isError}
             />
-            <PronunciationLabCard studentId={id} />
-          </div>
+            <PronunciationLabLink studentId={id} />
+          </nav>
         </section>
 
         <section className="mt-6 border-t border-border-subtle pt-5">
-          <h2 className="mb-3 text-xs font-semibold">Achievements</h2>
+          <h2 className="mb-3 text-xs font-semibold text-app">Achievements</h2>
           <AchievementStrip studentId={id} />
         </section>
       </aside>
@@ -171,27 +229,94 @@ export function StudentHome() {
   );
 }
 
-function PronunciationLabCard({ studentId }: { studentId: number }) {
+function StudentHomeUnavailable({
+  title,
+  detail,
+  onRetry,
+}: {
+  title: string;
+  detail: string;
+  onRetry?: () => unknown;
+}) {
   return (
-    <Link
-      to="/student/profile/$studentId/pronunciation"
-      params={{ studentId: String(studentId) }}
-      className="ui-focus-ring group flex min-h-[var(--size-row)] items-center gap-3 border-t border-border-subtle px-3 py-2.5 outline-offset-[-2px] transition-colors hover:bg-surface-3/60"
-    >
-      <AppGlyph name="volume" className="h-5 w-5 text-accent" />
-      <div className="min-w-0 flex-1">
-        <h3 className="font-medium">Pronunciation lab</h3>
-        <p className="mt-0.5 text-xs leading-4 text-muted">IPA, audio, and scoring.</p>
-      </div>
-      <AppGlyph name="arrowRight" className="h-4 w-4 text-muted-2 group-hover:text-app" />
-    </Link>
+    <div className="grid h-full place-items-center px-8 py-10">
+      <section className="max-w-sm text-center">
+        <h1 className="font-display text-xl font-semibold text-app">{title}</h1>
+        <p className="mt-2 text-sm leading-6 text-muted">{detail}</p>
+        <div className="mt-4 flex justify-center gap-3">
+          {onRetry ? (
+            <button
+              type="button"
+              className="ui-focus-ring rounded-control text-xs font-semibold text-accent"
+              onClick={onRetry}
+            >
+              Retry
+            </button>
+          ) : null}
+          <Link
+            to="/student"
+            className="ui-focus-ring rounded-control text-xs font-semibold text-accent"
+          >
+            Choose profile
+          </Link>
+        </div>
+      </section>
+    </div>
   );
 }
 
-function PersonalVocabularyCard({
+function SummaryStats({
+  summary,
+}: {
+  summary: {
+    totalSeen: number;
+    totalCorrect: number;
+    totalWrong: number;
+    accuracy: number;
+    totalDue: number;
+  };
+}) {
+  const attempts = summary.totalCorrect + summary.totalWrong;
+  const lifetimeAccuracy =
+    attempts > 0 ? Math.round((summary.totalCorrect / attempts) * 100) : null;
+
+  return (
+    <dl className="mt-3 divide-y divide-border-subtle border-y border-border-subtle">
+      <RecordMetric
+        label="Items practiced"
+        value={numberFormat.format(summary.totalSeen)}
+        detail="Distinct items across all practice"
+      />
+      <RecordMetric
+        label="Lifetime accuracy"
+        value={lifetimeAccuracy === null ? "—" : `${lifetimeAccuracy}%`}
+        detail={
+          attempts > 0
+            ? `${numberFormat.format(summary.totalCorrect)} correct from ${numberFormat.format(attempts)} answers`
+            : "No answers recorded yet"
+        }
+      />
+    </dl>
+  );
+}
+
+function RecordMetric({ label, value, detail }: { label: string; value: string; detail: string }) {
+  return (
+    <div className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-0.5 py-3">
+      <dt className="text-xs font-medium text-app">{label}</dt>
+      <dd data-tabular className="row-span-2 text-base font-semibold text-app">
+        {value}
+      </dd>
+      <span className="text-[11px] leading-4 text-muted">{detail}</span>
+    </div>
+  );
+}
+
+function PersonalVocabularyLink({
   studentId,
   summary,
   loading,
+  unavailable,
 }: {
   studentId: number;
   summary: {
@@ -203,389 +328,283 @@ function PersonalVocabularyCard({
     averageScore: number;
   };
   loading: boolean;
+  unavailable: boolean;
 }) {
-  const hasDue = summary.due > 0;
   return (
     <Link
       to="/student/profile/$studentId/personal-vocabulary"
       params={{ studentId: String(studentId) }}
-      className={cn(
-        "ui-focus-ring group block px-3 py-3 outline-offset-[-2px] transition-colors hover:bg-surface-3/60",
-        hasDue && "bg-accent/[0.04]",
-      )}
+      className="ui-focus-ring group flex min-h-[var(--size-row)] items-center gap-3 py-3 outline-offset-[-2px] transition-colors duration-fast hover:text-accent motion-reduce:transition-none"
     >
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <AppGlyph name="dictionary" className="h-5 w-5 text-accent" />
-          <h3 className="font-medium">Personal vocabulary</h3>
-          {hasDue ? (
-            <span className="text-[11px] font-medium text-warning">{summary.due} due</span>
-          ) : null}
-        </div>
-        <p className="mt-1 text-xs leading-4 text-muted">Words saved from dictionary searches.</p>
+      <AppGlyph name="dictionary" className="h-[18px] w-[18px] text-accent" />
+      <div className="min-w-0 flex-1">
+        <h3 className="text-[13px] font-medium text-app">Personal vocabulary</h3>
+        <p className="mt-0.5 truncate text-[11px] leading-4 text-muted">
+          {loading
+            ? "Loading saved words…"
+            : unavailable
+              ? "Saved-word totals unavailable"
+              : `${numberFormat.format(summary.total)} saved${summary.due > 0 ? ` · ${numberFormat.format(summary.due)} ready` : ""}`}
+        </p>
       </div>
-      <dl className="mt-3 flex items-center gap-4">
-        <MiniStat label="Words" value={loading ? "..." : String(summary.total)} />
-        <MiniStat label="Learning" value={loading ? "..." : String(summary.learning)} />
-        <MiniStat label="Score" value={loading ? "..." : `${summary.averageScore}%`} />
-      </dl>
+      <AppGlyph name="arrowRight" className="h-4 w-4 text-muted-2 group-hover:text-accent" />
     </Link>
   );
 }
 
-function MiniStat({ label, value }: { label: string; value: string }) {
+function PronunciationLabLink({ studentId }: { studentId: number }) {
   return (
-    <div>
-      <dt className="text-[10px] text-muted-2">{label}</dt>
-      <dd data-tabular className="text-xs font-medium text-app">
-        {value}
-      </dd>
-    </div>
-  );
-}
-
-function SummaryStats({
-  summary,
-  streak,
-  practicedToday,
-}: {
-  summary: {
-    totalSeen: number;
-    totalDue: number;
-    totalCorrect: number;
-    totalWrong: number;
-    accuracy: number;
-  };
-  streak: number;
-  practicedToday: boolean;
-}) {
-  const progress = summarizeStudentProgress({
-    totalSeen: summary.totalSeen,
-    totalCorrect: summary.totalCorrect,
-    totalWrong: summary.totalWrong,
-    accuracy: summary.accuracy,
-    streakDays: streak,
-    practicedToday,
-  });
-  return (
-    <section className="mt-3">
-      <div className="flex items-start justify-between gap-3 pb-4">
-        <div>
-          <h2 className="font-medium text-app">{progress.headline}</h2>
-          <p className="mt-1 text-xs leading-4 text-muted">{progress.note}</p>
-        </div>
+    <Link
+      to="/student/profile/$studentId/pronunciation"
+      params={{ studentId: String(studentId) }}
+      className="ui-focus-ring group flex min-h-[var(--size-row)] items-center gap-3 py-3 outline-offset-[-2px] transition-colors duration-fast hover:text-accent motion-reduce:transition-none"
+    >
+      <AppGlyph name="volume" className="h-[18px] w-[18px] text-accent" />
+      <div className="min-w-0 flex-1">
+        <h3 className="text-[13px] font-medium text-app">Pronunciation lab</h3>
+        <p className="mt-0.5 text-[11px] leading-4 text-muted">IPA, audio, and scoring</p>
       </div>
-      <dl className="divide-y divide-border-subtle">
-        <SummaryMetric
-          label="Words seen"
-          value={progress.wordsLabel}
-          icon={<SeenIcon className="h-4 w-4 text-accent" />}
-        />
-        <SummaryMetric
-          label="Streak"
-          value={streak > 0 ? `${streak}d` : "0d"}
-          icon={<AppGlyph name="flame" className="h-4 w-4 text-warning" />}
-        />
-        <SummaryMetric
-          label="Due"
-          value={String(summary.totalDue)}
-          icon={
-            <DueIcon
-              className={summary.totalDue > 0 ? "h-4 w-4 text-warning" : "h-4 w-4 text-success"}
-            />
-          }
-        />
-        <SummaryMetric
-          label="Accuracy"
-          value={`${progress.accuracyPct}%`}
-          icon={<AccuracyIcon className="h-4 w-4 text-accent" />}
-        />
-      </dl>
-    </section>
+      <AppGlyph name="arrowRight" className="h-4 w-4 text-muted-2 group-hover:text-accent" />
+    </Link>
   );
 }
 
-function SummaryMetric({
-  label,
-  value,
-  icon,
+function BookList({
+  studentId,
+  books,
+  progressRows,
+  progressLoading,
+  progressUnavailable,
 }: {
-  label: string;
-  value: string;
-  icon: ReactNode;
+  studentId: number;
+  books: Book[];
+  progressRows: UnitProgressRow[];
+  progressLoading: boolean;
+  progressUnavailable: boolean;
 }) {
-  return (
-    <div className="grid grid-cols-[1fr_auto_auto] items-center gap-2 py-2.5">
-      <dt className="text-xs text-muted">{label}</dt>
-      <dd data-tabular className="text-sm font-semibold text-app">
-        {value}
-      </dd>
-      <span className="text-muted-2">{icon}</span>
-    </div>
+  const unitQueries = useQueries({
+    queries: books.map((book) => ({
+      queryKey: queryKeys.students.assignedUnits(studentId, book.id),
+      queryFn: () => api.students.listAssignedUnits({ studentId, bookId: book.id }),
+    })),
+  });
+  const unitQueriesLoading = unitQueries.some((query) => query.isLoading);
+  const unitQueriesUnavailable = unitQueries.some((query) => query.isError);
+  const unitsByBook = books.map((book, bookIndex) => ({
+    book,
+    units: [...(unitQueries[bookIndex]?.data ?? [])].sort(
+      (left, right) => left.ordinal - right.ordinal || left.id - right.id,
+    ),
+    loading: unitQueries[bookIndex]?.isLoading ?? false,
+    unavailable: unitQueries[bookIndex]?.isError ?? false,
+  }));
+  const orderedUnits = unitsByBook
+    .flatMap(({ units }) => units)
+    .map((unit, order) => ({
+      unit,
+      order,
+    }));
+  const recommendedUnitId =
+    progressLoading || progressUnavailable || unitQueriesLoading || unitQueriesUnavailable
+      ? null
+      : selectRecommendedUnitId(progressRows, orderedUnits);
+  const progressByUnit = useMemo(
+    () => new Map(progressRows.map((row) => [row.unitId, row])),
+    [progressRows],
   );
-}
 
-function BookList({ studentId, books }: { studentId: number; books: Book[] }) {
-  const [priorities, setPriorities] = useState<Record<number, { priority: number; order: number }>>(
-    {},
-  );
-  const reportPriority = useCallback(
-    (unitId: number, priority: number, order: number) =>
-      setPriorities((current) => {
-        const existing = current[unitId];
-        if (existing?.priority === priority && existing.order === order) return current;
-        return { ...current, [unitId]: { priority, order } };
-      }),
-    [],
-  );
-  const recommendedUnitId = useMemo(
-    () =>
-      Object.entries(priorities)
-        .sort(([, a], [, b]) => a.priority - b.priority || a.order - b.order)
-        .map(([unitId]) => Number(unitId))[0] ?? null,
-    [priorities],
-  );
-
   return (
-    <ul className="flex flex-col gap-8">
-      {books.map((book, bookIndex) => (
+    <div className="flex flex-col gap-10">
+      {unitsByBook.map(({ book, units, loading, unavailable }) => (
         <BookSection
           key={book.id}
           studentId={studentId}
           book={book}
-          bookIndex={bookIndex}
+          units={units}
+          loading={loading}
+          unavailable={unavailable}
+          progressByUnit={progressByUnit}
+          progressLoading={progressLoading}
+          progressUnavailable={progressUnavailable}
           recommendedUnitId={recommendedUnitId}
-          onPriority={reportPriority}
         />
       ))}
-    </ul>
+    </div>
   );
 }
 
 function BookSection({
   studentId,
   book,
-  bookIndex,
+  units,
+  loading,
+  unavailable,
+  progressByUnit,
+  progressLoading,
+  progressUnavailable,
   recommendedUnitId,
-  onPriority,
 }: {
   studentId: number;
   book: Book;
-  bookIndex: number;
+  units: Unit[];
+  loading: boolean;
+  unavailable: boolean;
+  progressByUnit: Map<number, UnitProgressRow>;
+  progressLoading: boolean;
+  progressUnavailable: boolean;
   recommendedUnitId: number | null;
-  onPriority: (unitId: number, priority: number, order: number) => void;
 }) {
-  const unitsQ = useQuery({
-    queryKey: queryKeys.students.assignedUnits(studentId, book.id),
-    queryFn: () => api.students.listAssignedUnits({ studentId, bookId: book.id }),
-  });
-  const units = unitsQ.data ?? [];
-
   return (
-    <li className="flex flex-col gap-3">
-      <header className="flex items-end justify-between gap-3 pb-1">
-        <div>
-          <h2 className="text-[17px] font-semibold tracking-[-0.012em]">{book.title}</h2>
-          <span className="font-mono text-xs text-muted-2">{book.code}</span>
-        </div>
+    <section aria-labelledby={`book-${book.id}-title`}>
+      <header className="flex items-baseline justify-between gap-4">
+        <h2
+          id={`book-${book.id}-title`}
+          className="font-display text-[18px] font-semibold tracking-[-0.015em] text-app"
+        >
+          {book.title}
+        </h2>
+        {!loading && !unavailable ? (
+          <span className="text-[11px] text-muted-2">
+            {units.length} {units.length === 1 ? "unit" : "units"}
+          </span>
+        ) : null}
       </header>
-      {unitsQ.isLoading ? (
-        <p className="text-xs text-muted">Loading units…</p>
-      ) : unitsQ.isError ? (
-        <p role="alert" className="text-xs text-warning">
+
+      {loading ? (
+        <p role="status" className="py-4 text-xs text-muted">
+          Loading units…
+        </p>
+      ) : unavailable ? (
+        <p role="alert" className="py-4 text-xs text-warning">
           Assigned units are unavailable.
         </p>
       ) : units.length === 0 ? (
-        <p className="text-xs text-muted-2">No assigned units in this book.</p>
+        <p className="py-4 text-xs text-muted-2">No assigned units in this book.</p>
       ) : (
-        <ul data-testid="book-unit-list" className="ui-group bg-surface-1">
-          {units.map((unit, unitIndex) => (
+        <ul data-testid="book-unit-list" className="student-unit-grid mt-3">
+          {units.map((unit) => (
             <AssignedUnitCard
               key={unit.id}
               studentId={studentId}
               unit={unit}
-              order={bookIndex * 1_000 + unitIndex}
+              progress={progressByUnit.get(unit.id)}
+              progressLoading={progressLoading}
+              progressUnavailable={progressUnavailable}
               recommended={recommendedUnitId === unit.id}
-              onPriority={onPriority}
             />
           ))}
         </ul>
       )}
-    </li>
+    </section>
   );
 }
 
 function AssignedUnitCard({
   studentId,
   unit,
-  order,
+  progress,
+  progressLoading,
+  progressUnavailable,
   recommended,
-  onPriority,
 }: {
   studentId: number;
   unit: Unit;
-  order: number;
+  progress: UnitProgressRow | undefined;
+  progressLoading: boolean;
+  progressUnavailable: boolean;
   recommended: boolean;
-  onPriority: (unitId: number, priority: number, order: number) => void;
 }) {
-  const lessonsQ = useQuery({
-    queryKey: queryKeys.curriculum.lessons(unit.id),
-    queryFn: () => api.curriculum.listLessonsByUnit({ unitId: unit.id }),
-  });
-  const lessons = lessonsQ.data ?? [];
-
-  // Due / new / total are all derivable from one IPC call per lesson —
-  // batched here via useQueries so they share the renderer's cache and
-  // fire in parallel.
-  const dueQs = useQueries({
-    queries: lessons.map((lesson) => ({
-      queryKey: queryKeys.progress.dueByLesson(studentId, lesson.id),
-      queryFn: () => api.progress.dueByLesson({ studentId, lessonId: lesson.id }),
-    })),
-  });
-  const progressLoading = dueQs.some((query) => query.isLoading);
-  const progressUnavailable = lessonsQ.isError || dueQs.some((query) => query.isError);
-
-  const totals = lessons.reduce(
-    (acc, lesson, index) => {
-      const stats = dueQs[index]?.data;
-      acc.totalCount += stats?.totalCount ?? 0;
-      acc.dueCount += stats?.dueCount ?? 0;
-      acc.newCount += stats?.newCount ?? stats?.totalCount ?? 0;
-      if (lesson.kind === "grammar") acc.hasGrammar = true;
-      if (lesson.kind === "vocabulary") acc.hasVocab = true;
-      return acc;
-    },
-    { totalCount: 0, dueCount: 0, newCount: 0, hasGrammar: false, hasVocab: false },
-  );
-
-  const reviewCount = totals.dueCount + totals.newCount;
-  const completedCount = Math.max(totals.totalCount - reviewCount, 0);
-  const contentTypes = [totals.hasVocab ? "Vocabulary" : null, totals.hasGrammar ? "Grammar" : null]
-    .filter(Boolean)
-    .join(" + ");
-
-  const traceTone =
-    reviewCount === 0 && totals.totalCount > 0
-      ? "bg-success"
-      : totals.dueCount > 0
-        ? "bg-warning"
-        : "bg-accent";
-  const priority = progressUnavailable ? 99 : totals.dueCount > 0 ? 0 : totals.newCount > 0 ? 1 : 2;
-
-  useEffect(() => {
-    if (lessonsQ.isLoading || progressLoading) return;
-    onPriority(unit.id, priority, order);
-  }, [lessonsQ.isLoading, onPriority, order, priority, progressLoading, unit.id]);
-
-  if (lessonsQ.isLoading) {
-    return (
-      <li className="border-b border-border-subtle px-5 py-6 text-xs text-muted last:border-b-0">
-        Loading lessons…
-      </li>
-    );
-  }
-
-  const actionLabel =
-    progressUnavailable || !recommended
-      ? "Open"
-      : totals.dueCount > 0
-        ? "Review next"
-        : totals.newCount > 0
-          ? "Start next"
-          : "Continue";
+  const missingProgress = !progressLoading && !progressUnavailable && progress === undefined;
 
   return (
-    <li
-      data-testid="unit-learning-object"
-      className="border-b border-border-subtle last:border-b-0"
-    >
+    <li data-testid="unit-learning-object" className="min-w-0">
       <Link
         to="/student/profile/$studentId/unit/$unitId"
         params={{ studentId: String(studentId), unitId: String(unit.id) }}
-        className="ui-focus-ring group relative grid min-h-28 gap-4 overflow-hidden bg-surface-1 px-5 py-4 pl-6 text-sm outline-offset-[-2px] transition-colors hover:bg-surface-2/65 active:bg-surface-3/60 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+        data-recommended={recommended ? "true" : undefined}
+        className="ui-focus-ring group flex h-full min-h-[164px] flex-col border-t border-border-subtle py-4 text-sm outline-offset-2 transition-[border-color,color] duration-fast hover:border-border-strong motion-reduce:transition-none"
       >
-        <span
-          aria-hidden
-          className={cn("absolute inset-y-4 left-0 w-[3px] rounded-r-sm", traceTone)}
-        />
-        <div className="min-w-0">
-          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-            <LessonIcon className="h-[18px] w-[18px] text-accent" />
-            <span className="truncate text-[15px] font-semibold">
-              {unit.code}: {unit.title}
+        <div className="flex items-center justify-between gap-4">
+          <span className="font-mono text-[11px] font-medium text-muted-2">{unit.code}</span>
+          {recommended ? (
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-app">
+              <span data-testid="review-now-action">Review now</span>
+              <AppGlyph name="arrowRight" className="h-4 w-4" />
             </span>
-            {contentTypes ? <span className="text-xs text-muted-2">{contentTypes}</span> : null}
-          </div>
-          {unit.summaryMd ? (
-            <p className="mt-2 line-clamp-2 max-w-2xl text-[13px] leading-5 text-muted">
-              {unit.summaryMd}
-            </p>
-          ) : null}
-          {progressUnavailable ? (
-            <p className="mt-3 text-xs text-warning">
-              Progress is unavailable. Open the unit to retry.
-            </p>
-          ) : progressLoading ? (
-            <p role="status" className="mt-3 text-xs text-muted">
-              Loading progress…
-            </p>
           ) : (
-            <ProgressMeter
-              value={completedCount}
-              max={totals.totalCount}
-              label={`${unit.title} progress`}
-              tone={
-                reviewCount === 0 && totals.totalCount > 0
-                  ? "success"
-                  : totals.dueCount > 0
-                    ? "warning"
-                    : "accent"
-              }
-              className="mt-3 max-w-xl"
+            <AppGlyph
+              name="arrowRight"
+              className="h-4 w-4 text-muted-2 transition-colors duration-fast group-hover:text-accent motion-reduce:transition-none"
             />
           )}
         </div>
-        <div className="flex min-w-40 items-center gap-3 sm:justify-end">
-          <div className="flex flex-1 flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:justify-end">
-            {!progressLoading && !progressUnavailable && totals.dueCount > 0 ? (
-              <span className="font-medium text-warning">{totals.dueCount} due</span>
-            ) : null}
-            {!progressLoading && !progressUnavailable && totals.newCount > 0 ? (
-              <span className="text-muted">{totals.newCount} new</span>
-            ) : null}
-            {!progressLoading &&
-            !progressUnavailable &&
-            reviewCount === 0 &&
-            totals.totalCount > 0 ? (
-              <span className="font-medium text-success">All caught up</span>
-            ) : null}
-            {!progressLoading && !progressUnavailable && totals.totalCount === 0 ? (
-              <span className="text-muted">No cards yet</span>
-            ) : null}
-            {!progressLoading && !progressUnavailable ? (
-              <span data-tabular className="text-muted-2">
-                {totals.totalCount} items
-              </span>
-            ) : null}
-          </div>
-          <span
-            className={cn(
-              "text-xs font-semibold",
-              recommended && totals.dueCount > 0 ? "text-warning" : "text-accent",
+
+        <h3 className="mt-2 font-display text-[18px] font-semibold leading-6 tracking-[-0.012em] text-app transition-colors duration-fast group-hover:text-accent motion-reduce:transition-none">
+          {unit.title}
+        </h3>
+        {unit.summaryMd ? (
+          <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted">{unit.summaryMd}</p>
+        ) : null}
+
+        {progressUnavailable ? null : (
+          <div className="mt-auto pt-5">
+            {missingProgress ? (
+              <p className="text-xs text-warning">Progress is temporarily unavailable.</p>
+            ) : progressLoading ? (
+              <p role="status" className="text-xs text-muted">
+                Loading item status…
+              </p>
+            ) : progress && progress.totalCount > 0 ? (
+              <UnitStatusTrack
+                label={`${unit.code} ${unit.title}`}
+                totalCount={progress.totalCount}
+                reviewNowCount={progress.dueCount}
+                learningCurrentCount={progress.learningCurrentCount}
+                secureCurrentCount={progress.secureCurrentCount}
+                newCount={progress.newCount}
+                dueLearningCount={progress.dueLearningCount}
+                dueSecureCount={progress.dueSecureCount}
+              />
+            ) : (
+              <p className="text-xs text-muted">No practice items yet.</p>
             )}
-          >
-            {actionLabel}
-          </span>
-          <AppGlyph
-            name="arrowRight"
-            className="h-4 w-4 text-muted-2 transition-colors group-hover:text-accent"
-          />
-        </div>
+          </div>
+        )}
       </Link>
     </li>
   );
 }
 
-// Re-export so consumers can build their own UnitWithLessons-shaped views.
-export type { UnitWithLessons };
+function selectRecommendedUnitId(
+  progressRows: UnitProgressRow[],
+  orderedUnits: Array<{ unit: Unit; order: number }>,
+): number | null {
+  const curriculumOrder = new Map(orderedUnits.map(({ unit, order }) => [unit.id, order]));
+  const candidates = progressRows.filter(
+    (row) => row.dueCount > 0 && curriculumOrder.has(row.unitId),
+  );
+
+  candidates.sort((left, right) => {
+    const leftOldest = dueTimestamp(left.oldestDueAt);
+    const rightOldest = dueTimestamp(right.oldestDueAt);
+    if (leftOldest !== rightOldest) return leftOldest < rightOldest ? -1 : 1;
+
+    const leftRatio = left.dueCount / Math.max(left.totalCount, 1);
+    const rightRatio = right.dueCount / Math.max(right.totalCount, 1);
+    if (leftRatio !== rightRatio) return rightRatio - leftRatio;
+    if (left.dueCount !== right.dueCount) return right.dueCount - left.dueCount;
+    return (curriculumOrder.get(left.unitId) ?? 0) - (curriculumOrder.get(right.unitId) ?? 0);
+  });
+
+  return candidates[0]?.unitId ?? null;
+}
+
+function dueTimestamp(value: UnitProgressRow["oldestDueAt"]): number {
+  // A null due date is an introduced item with no future schedule. It is due
+  // immediately and must not be pushed behind items with known overdue dates.
+  if (!value) return Number.NEGATIVE_INFINITY;
+  const timestamp = value instanceof Date ? value.getTime() : new Date(value).getTime();
+  return Number.isFinite(timestamp) ? timestamp : Number.NEGATIVE_INFINITY;
+}
+
+export { selectRecommendedUnitId };

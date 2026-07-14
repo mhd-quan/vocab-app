@@ -23,8 +23,8 @@ describe("SrsArchiveBanner", () => {
 
     const heading = await screen.findByRole("heading", { name: "Review schedule updated" });
     const region = heading.closest("[role='region']");
-    expect(region).toHaveClass("object-surface", "learning-trace");
-    expect(region).not.toHaveClass("shadow-card", "rounded-bento");
+    expect(region).toHaveClass("object-surface", "bg-warning/5");
+    expect(region).not.toHaveClass("learning-trace", "shadow-card", "rounded-bento");
     expect(screen.getByText(/12 earlier progress records/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Dismiss" }));

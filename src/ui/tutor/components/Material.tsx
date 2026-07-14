@@ -167,56 +167,6 @@ export function TutorPanel({
   );
 }
 
-export function TutorMetricCard({
-  label,
-  value,
-  hint,
-  icon,
-  tone = "primary",
-  className,
-}: {
-  label: string;
-  value: ReactNode;
-  hint?: string;
-  icon?: ReactNode;
-  tone?: "primary" | "secondary" | "tertiary" | "success" | "warning";
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "object-surface learning-trace flex min-h-20 flex-col justify-between px-4 py-3",
-        metricTone(tone),
-        className,
-      )}
-    >
-      <div className="flex items-center justify-between gap-4">
-        <span className="text-ui font-medium text-muted">{label}</span>
-        {icon ? <span className="text-muted-2">{icon}</span> : null}
-      </div>
-      <div>
-        <p className="tabular-figure text-2xl font-semibold leading-none text-app">{value}</p>
-        {hint ? <p className="mt-2 text-xs text-muted-2">{hint}</p> : null}
-      </div>
-    </div>
-  );
-}
-
-function metricTone(tone: "primary" | "secondary" | "tertiary" | "success" | "warning") {
-  switch (tone) {
-    case "secondary":
-      return "[--trace-rgb:var(--color-muted)]";
-    case "tertiary":
-      return "[--trace-rgb:var(--color-ochre)]";
-    case "success":
-      return "[--trace-rgb:var(--color-moss)]";
-    case "warning":
-      return "[--trace-rgb:var(--color-ochre)]";
-    case "primary":
-      return "[--trace-rgb:var(--color-iris)]";
-  }
-}
-
 export function TutorDataTable({
   children,
   className,

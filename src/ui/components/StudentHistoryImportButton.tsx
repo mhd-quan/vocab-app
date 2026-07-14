@@ -118,7 +118,7 @@ export function StudentHistoryImportButton({
           ) : null}
 
           {stats ? (
-            <div className="learning-trace overflow-hidden border-y border-border-subtle bg-success/5">
+            <div className="overflow-hidden border-y border-border-subtle bg-success/5">
               <div className="flex items-center justify-between gap-3 px-4 py-3">
                 <p className="text-sm font-semibold text-success">Student history imported.</p>
                 <Badge tone="success">#{stats.studentId}</Badge>

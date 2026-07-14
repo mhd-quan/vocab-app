@@ -2,10 +2,33 @@
   [data-app-mode="student"]:root,
   [data-app-mode="student"] {
     --student-header-height: var(--size-toolbar);
+    --font-family-display: "SF Pro Rounded", "Avenir Next Rounded", "Avenir Next",
+      "Segoe UI Variable Display", var(--font-family-sans);
   }
 }
 
 @layer components {
+  .student-learning-pane {
+    container-name: student-learning-pane;
+    container-type: inline-size;
+  }
+
+  .student-unit-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  [data-app-mode="student"] [data-student-bg="custom"] .student-learning-pane {
+    background-color: rgb(var(--color-paper));
+  }
+
+  @container student-learning-pane (min-width: 42rem) {
+    .student-unit-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 2.5rem;
+    }
+  }
+
   /*
    * A wallpaper never rewrites utility classes or interaction states.
    * Only named content surfaces opt into an opaque reading plane.

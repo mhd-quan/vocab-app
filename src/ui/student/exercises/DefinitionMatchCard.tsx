@@ -103,9 +103,7 @@ export function DefinitionMatchCard({ exercise, onAnswer, outcome }: DefinitionM
   return (
     <section className="object-surface motion-enter mx-auto flex max-w-4xl flex-col gap-5 bg-surface-1 p-6">
       <header className="flex flex-col items-center gap-3 text-center">
-        <span className="learning-trace-label text-xs font-semibold text-accent">
-          Match definitions
-        </span>
+        <span className="text-xs font-semibold text-accent">Match definitions</span>
         <p className="text-sm text-muted">
           {locked
             ? outcome.correct

@@ -77,9 +77,9 @@
     --space-group: 1rem;
 
     /* Three containment roles, plus circular geometry for true capsules. */
-    --radius-control: 0.4375rem;
-    --radius-object: 0.6875rem;
-    --radius-overlay: 0.8125rem;
+    --radius-control: 0.5rem;
+    --radius-object: 0.75rem;
+    --radius-overlay: 0.875rem;
     --radius-circular: 9999px;
 
     /* Compatibility aliases resolve to the three roles above. */

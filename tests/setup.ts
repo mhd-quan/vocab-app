@@ -279,6 +279,7 @@ Object.defineProperty(window, "api", {
         unlockedAchievements: [],
       }),
       dueByLesson: async () => ({ totalCount: 0, dueCount: 0, newCount: 0 }),
+      assignedUnitProgress: async () => [],
       seenEntryIdsByLesson: async () => [],
       dueByStudent: async () => [],
       studentSummary: async () => ({
